@@ -170,7 +170,7 @@ const clearWallpaper = () => {
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Comprimento</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.appWidth }}px</span>
                       </div>
-                      <input type="range" v-model="settings.appWidth" min="800" max="2500" step="50" class="w-full accent-indigo-500" @change="settings.saveSetting('app-width', settings.appWidth)" />
+                      <input type="range" v-model="settings.appWidth" min="800" max="2500" step="50" class="w-full tass-range" @change="settings.saveSetting('app-width', settings.appWidth)" />
                     </div>
 
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
@@ -178,7 +178,7 @@ const clearWallpaper = () => {
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Espessura</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.cardPadding }}px</span>
                       </div>
-                      <input type="range" v-model="settings.cardPadding" min="8" max="40" step="2" class="w-full accent-indigo-500" @change="settings.saveSetting('app-card-padding', settings.cardPadding)" />
+                      <input type="range" v-model="settings.cardPadding" min="8" max="40" step="2" class="w-full tass-range" @change="settings.saveSetting('app-card-padding', settings.cardPadding)" />
                     </div>
 
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
@@ -186,7 +186,7 @@ const clearWallpaper = () => {
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tamanho do ID</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.taskNumberSize }}px</span>
                       </div>
-                      <input type="range" v-model="settings.taskNumberSize" min="8" max="24" step="1" class="w-full accent-indigo-500" @change="settings.saveSetting('app-task-number-size', settings.taskNumberSize)" />
+                      <input type="range" v-model="settings.taskNumberSize" min="8" max="24" step="1" class="w-full tass-range" @change="settings.saveSetting('app-task-number-size', settings.taskNumberSize)" />
                     </div>
 
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
@@ -194,7 +194,7 @@ const clearWallpaper = () => {
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tamanho do Título</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.taskDescriptionSize }}px</span>
                       </div>
-                      <input type="range" v-model="settings.taskDescriptionSize" min="10" max="28" step="1" class="w-full accent-indigo-500" @change="settings.saveSetting('app-task-desc-size', settings.taskDescriptionSize)" />
+                      <input type="range" v-model="settings.taskDescriptionSize" min="10" max="28" step="1" class="w-full tass-range" @change="settings.saveSetting('app-task-desc-size', settings.taskDescriptionSize)" />
                     </div>
 
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4 md:col-span-2">
@@ -202,7 +202,7 @@ const clearWallpaper = () => {
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Arredondamento</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.cardBorderRadius }}px</span>
                       </div>
-                      <input type="range" v-model="settings.cardBorderRadius" min="0" max="40" step="1" class="w-full accent-indigo-500" @change="settings.saveSetting('app-card-radius', settings.cardBorderRadius)" />
+                      <input type="range" v-model="settings.cardBorderRadius" min="0" max="40" step="1" class="w-full tass-range" @change="settings.saveSetting('app-card-radius', settings.cardBorderRadius)" />
                     </div>
 
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4 md:col-span-2">
@@ -210,7 +210,7 @@ const clearWallpaper = () => {
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nível de Transparência</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.cardOpacity }}%</span>
                       </div>
-                      <input type="range" v-model="settings.cardOpacity" min="10" max="100" step="5" class="w-full accent-indigo-500" @change="settings.saveSetting('app-card-opacity', settings.cardOpacity)" />
+                      <input type="range" v-model="settings.cardOpacity" min="10" max="100" step="5" class="w-full tass-range" @change="settings.saveSetting('app-card-opacity', settings.cardOpacity)" />
                       
                       <div class="pt-6 border-t border-slate-200 dark:border-white/5">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block">Aplicar transparência em:</label>
@@ -363,7 +363,7 @@ const clearWallpaper = () => {
                           type="range" 
                           v-model="settings.backgroundBlur" 
                           min="0" max="20" step="1" 
-                          class="w-full accent-indigo-500" 
+                          class="w-full tass-range" 
                           @change="settings.saveSetting('app-bg-blur', settings.backgroundBlur)"
                         />
                       </div>
@@ -403,28 +403,5 @@ const clearWallpaper = () => {
 .fade-slide-leave-to {
   opacity: 0;
   transform: translateX(-10px);
-}
-
-input[type="range"] {
-  height: 6px;
-  border-radius: 5px;
-  background: #e2e8f0;
-  outline: none;
-}
-.dark input[type="range"] {
-  background: #1e293b;
-}
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #6366f1;
-  cursor: pointer;
-  border: 3px solid white;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-}
-.dark input[type="range"]::-webkit-slider-thumb {
-  border: 3px solid #0f172a;
 }
 </style>
