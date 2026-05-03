@@ -1,15 +1,14 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { Save, PlusCircle, X, Clock } from 'lucide-vue-next';
+import { Save, PlusCircle, Clock } from 'lucide-vue-next';
 import { useTaskStore } from '../stores/taskStore';
 import { useSettingsStore } from '../stores/settingsStore';
-import { useModalDrag } from '../composables/useModalDrag';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
+import BaseModal from './BaseModal.vue';
 import '@vuepic/vue-datepicker/dist/main.css';
 
 const taskStore = useTaskStore();
 const settings = useSettingsStore();
-const { position, onMouseDown } = useModalDrag();
 
 const props = defineProps({
   taskToEdit: {
@@ -101,167 +100,163 @@ const submitTask = () => {
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center animate-[fadeIn_0.3s_ease-out]" @click.self="emit('close')">
-    <section 
-      class="glass-panel w-[95%] max-w-2xl p-8 animate-scaleIn overflow-y-auto max-h-[90vh] custom-scrollbar shadow-2xl border-indigo-500/10"
-      :style="{ transform: `translate(${position.x}px, ${position.y}px)` }"
-    >
-      <div class="flex justify-between items-center mb-8 cursor-grab active:cursor-grabbing group" @mousedown="onMouseDown">
-        <div class="flex items-center gap-3">
-          <div class="w-2 h-8 rounded-full" :style="{ backgroundColor: color }"></div>
-          <div>
-            <h2 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-none">{{ taskToEdit ? 'Editar Tarefa' : 'Nova Tarefa' }}</h2>
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Arraste para mover</p>
+  <BaseModal 
+    :title="taskToEdit ? 'Editar Tarefa' : 'Nova Tarefa'" 
+    maxWidth="max-w-2xl" 
+    @close="emit('close')"
+  >
+    <template #header>
+      <div class="flex items-center gap-3">
+        <div class="w-2 h-8 rounded-full" :style="{ backgroundColor: color }"></div>
+        <div>
+          <h2 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-none">{{ taskToEdit ? 'Editar Tarefa' : 'Nova Tarefa' }}</h2>
+          <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Arraste para mover</p>
+        </div>
+      </div>
+    </template>
+
+    <form @submit.prevent="submitTask" class="flex flex-col gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        <div>
+          <label for="task-title" class="block mb-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Número da Tarefa</label>
+          <input 
+            id="task-title" 
+            v-model="title" 
+            type="text" 
+            placeholder="Ex: TSK-1234" 
+            required 
+            class="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-mono font-bold"
+            :style="{ color: color }"
+          />
+        </div>
+
+        <div>
+          <label class="block mb-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Cor da Categoria</label>
+          <div class="flex gap-2 flex-wrap p-2 bg-slate-100/50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 rounded-xl justify-between h-[50px] items-center">
+            <button 
+              v-for="c in colors" 
+              :key="c.value"
+              type="button"
+              @click="color = c.value"
+              class="w-7 h-7 rounded-full border-2 transition-all hover:scale-110"
+              :style="{ backgroundColor: c.value }"
+              :class="color === c.value ? 'border-slate-800 dark:border-white scale-110 ring-4 ring-indigo-500/10' : 'border-transparent opacity-80'"
+              :title="c.name"
+            ></button>
           </div>
         </div>
-        <button class="icon-btn" @click="emit('close')">
-          <X class="w-6 h-6" />
+      </div>
+      
+      <div>
+        <label for="task-desc" class="block mb-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Título da Tarefa</label>
+        <textarea 
+          id="task-desc" 
+          v-model="description" 
+          placeholder="O que você precisa fazer?"
+          rows="2"
+          class="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+        ></textarea>
+      </div>
+
+      <div>
+        <button 
+          type="button" 
+          @click="showAdvanced = !showAdvanced"
+          class="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
+        >
+          <span class="text-indigo-600 dark:text-indigo-400 font-bold text-sm">Mais opções</span>
+          <span class="text-slate-400 transition-transform duration-300" :class="showAdvanced ? 'rotate-180' : ''">↓</span>
         </button>
       </div>
 
-      <form @submit.prevent="submitTask" class="flex flex-col gap-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-          <div>
-            <label for="task-title" class="block mb-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Número da Tarefa</label>
-            <input 
-              id="task-title" 
-              v-model="title" 
-              type="text" 
-              placeholder="Ex: TSK-1234" 
-              required 
-              class="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-mono font-bold"
-              :style="{ color: color }"
-            />
-          </div>
+      <div v-show="showAdvanced" class="grid grid-cols-1 md:grid-cols-2 gap-5 p-5 bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-slate-200 dark:border-white/5 animate-[fadeIn_0.3s_ease-out]">
+        
+        <div class="md:col-span-1">
+          <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Sprint</label>
+          <select 
+            v-model="sprintId"
+            class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm appearance-none cursor-pointer"
+          >
+            <option value="">Nenhuma Sprint</option>
+            <option v-for="sprint in taskStore.sprints" :key="sprint.id" :value="sprint.id">
+              Até {{ new Date(sprint.endDate).toLocaleDateString('pt-BR') }}
+            </option>
+          </select>
+        </div>
 
+        <div class="grid grid-cols-2 gap-3 md:col-span-1">
           <div>
-            <label class="block mb-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Cor da Categoria</label>
-            <div class="flex gap-2 flex-wrap p-2 bg-slate-100/50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 rounded-xl justify-between h-[50px] items-center">
-              <button 
-                v-for="c in colors" 
-                :key="c.value"
-                type="button"
-                @click="color = c.value"
-                class="w-7 h-7 rounded-full border-2 transition-all hover:scale-110"
-                :style="{ backgroundColor: c.value }"
-                :class="color === c.value ? 'border-slate-800 dark:border-white scale-110 ring-4 ring-indigo-500/10' : 'border-transparent opacity-80'"
-                :title="c.name"
-              ></button>
-            </div>
+            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Estimativa</label>
+            <VueDatePicker 
+              v-model="estimatedTimeObj" 
+              time-picker 
+              placeholder="00:00"
+              auto-apply
+              :dark="settings.theme === 'dark'"
+              class="tass-timepicker"
+            >
+              <template #input-icon>
+                <Clock class="w-4 h-4 ml-2 text-slate-400" />
+              </template>
+            </VueDatePicker>
+          </div>
+          <div>
+            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Prioridade</label>
+            <select v-model="priority" class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm appearance-none cursor-pointer">
+              <option value="Baixa">Baixa</option>
+              <option value="Normal">Normal</option>
+              <option value="Alta">Alta</option>
+              <option value="Urgente">Urgente</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="md:col-span-1">
+          <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Link da Tarefa</label>
+          <input v-model="taskUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
+        </div>
+
+        <div class="md:col-span-1">
+          <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Link da Branch</label>
+          <input v-model="branchUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
+        </div>
+
+        <div class="md:col-span-2 grid grid-cols-3 gap-3">
+          <div>
+            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1 text-orange-500">Desenvolvimento</label>
+            <input v-model="devUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
+          </div>
+          <div>
+            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1 text-emerald-500">Homologação</label>
+            <input v-model="homologUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
+          </div>
+          <div>
+            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1 text-blue-500">Produção</label>
+            <input v-model="prodUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
           </div>
         </div>
         
-        <div>
-          <label for="task-desc" class="block mb-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Título da Tarefa</label>
-          <textarea 
-            id="task-desc" 
-            v-model="description" 
-            placeholder="O que você precisa fazer?"
-            rows="2"
-            class="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
-          ></textarea>
+        <div class="md:col-span-2">
+          <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Scripts de Banco</label>
+          <textarea v-model="dbScripts" rows="2" placeholder="Queries SQL..." class="w-full px-3 py-2 font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all resize-y"></textarea>
         </div>
 
-        <div>
-          <button 
-            type="button" 
-            @click="showAdvanced = !showAdvanced"
-            class="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
-          >
-            <span class="text-indigo-600 dark:text-indigo-400 font-bold text-sm">Mais opções</span>
-            <span class="text-slate-400 transition-transform duration-300" :class="showAdvanced ? 'rotate-180' : ''">↓</span>
-          </button>
+        <div class="md:col-span-2">
+          <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Observações</label>
+          <textarea v-model="moreInfo" rows="2" placeholder="Mais detalhes..." class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all resize-y"></textarea>
         </div>
+      </div>
 
-        <div v-show="showAdvanced" class="grid grid-cols-1 md:grid-cols-2 gap-5 p-5 bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-slate-200 dark:border-white/5 animate-[fadeIn_0.3s_ease-out]">
-          
-          <div class="md:col-span-1">
-            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Sprint</label>
-            <select 
-              v-model="sprintId"
-              class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm appearance-none cursor-pointer"
-            >
-              <option value="">Nenhuma Sprint</option>
-              <option v-for="sprint in taskStore.sprints" :key="sprint.id" :value="sprint.id">
-                Até {{ new Date(sprint.endDate).toLocaleDateString('pt-BR') }}
-              </option>
-            </select>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3 md:col-span-1">
-            <div>
-              <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Estimativa</label>
-              <VueDatePicker 
-                v-model="estimatedTimeObj" 
-                time-picker 
-                placeholder="00:00"
-                auto-apply
-                :dark="settings.theme === 'dark'"
-                class="tass-timepicker"
-              >
-                <template #input-icon>
-                  <Clock class="w-4 h-4 ml-2 text-slate-400" />
-                </template>
-              </VueDatePicker>
-            </div>
-            <div>
-              <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Prioridade</label>
-              <select v-model="priority" class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm appearance-none cursor-pointer">
-                <option value="Baixa">Baixa</option>
-                <option value="Normal">Normal</option>
-                <option value="Alta">Alta</option>
-                <option value="Urgente">Urgente</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="md:col-span-1">
-            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Link da Tarefa</label>
-            <input v-model="taskUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
-          </div>
-
-          <div class="md:col-span-1">
-            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Link da Branch</label>
-            <input v-model="branchUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
-          </div>
-
-          <div class="md:col-span-2 grid grid-cols-3 gap-3">
-            <div>
-              <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1 text-orange-500">Desenvolvimento</label>
-              <input v-model="devUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
-            </div>
-            <div>
-              <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1 text-emerald-500">Homologação</label>
-              <input v-model="homologUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
-            </div>
-            <div>
-              <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1 text-blue-500">Produção</label>
-              <input v-model="prodUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
-            </div>
-          </div>
-          
-          <div class="md:col-span-2">
-            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Scripts de Banco</label>
-            <textarea v-model="dbScripts" rows="2" placeholder="Queries SQL..." class="w-full px-3 py-2 font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all resize-y"></textarea>
-          </div>
-
-          <div class="md:col-span-2">
-            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Observações</label>
-            <textarea v-model="moreInfo" rows="2" placeholder="Mais detalhes..." class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all resize-y"></textarea>
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-200 dark:border-white/10">
-          <button type="button" class="px-6 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all" @click="emit('close')">Cancelar</button>
-          <button type="submit" class="btn btn-primary !px-8" :disabled="!title.trim()">
-            <Save v-if="taskToEdit" class="w-4 h-4 mr-2" />
-            <PlusCircle v-else class="w-4 h-4 mr-2" />
-            {{ taskToEdit ? 'Salvar Tarefa' : 'Criar Tarefa' }}
-          </button>
-        </div>
-      </form>
-    </section>
-  </div>
+      <div class="flex justify-end gap-3 mt-4">
+        <button type="button" class="px-6 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all" @click="emit('close')">Cancelar</button>
+        <button type="submit" class="btn btn-primary !px-8" :disabled="!title.trim()">
+          <Save v-if="taskToEdit" class="w-4 h-4 mr-2" />
+          <PlusCircle v-else class="w-4 h-4 mr-2" />
+          {{ taskToEdit ? 'Salvar Tarefa' : 'Criar Tarefa' }}
+        </button>
+      </div>
+    </form>
+  </BaseModal>
 </template>
 
 <style>
@@ -288,29 +283,5 @@ const submitTask = () => {
 .dp__theme_dark {
   --dp-background-color: #0f172a !important;
   --dp-border-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-.glass-panel {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.dark .glass-panel {
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.1);
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0,0,0,0.2);
 }
 </style>

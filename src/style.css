@@ -68,6 +68,26 @@
   }
 }
 
+/* Global Transitions */
+.fade-slide-enter-active, .fade-slide-leave-active {
+  transition: all 0.3s ease;
+}
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateX(10px);
+}
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.fade-enter-active, .fade-leave-active {
+  @apply transition-opacity duration-300;
+}
+.fade-enter-from, .fade-leave-to {
+  @apply opacity-0;
+}
+
 
 /* SweetAlert2 Theme Integration */
 .swal2-popup.tass-toast {

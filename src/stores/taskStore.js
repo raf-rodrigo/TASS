@@ -1,8 +1,7 @@
-import Swal from 'sweetalert2';
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { db } from '../db.js';
-import { toast as sToast } from '../utils/swal.js';
+import { notificationService } from '../services/notificationService';
 import { useSettingsStore } from './settingsStore';
 
 export const useTaskStore = defineStore('task', () => {
@@ -97,7 +96,7 @@ export const useTaskStore = defineStore('task', () => {
       const id = await db.tasks.add(taskToAdd);
       taskToAdd.id = id;
       tasks.value.unshift(taskToAdd);
-      sToast.fire({ icon: 'success', title: 'Tarefa adicionada!' });
+      notificationService.toast('Tarefa adicionada!');
       return id;
     } catch (error) {
       console.error("Failed to add task:", error);
@@ -141,12 +140,7 @@ export const useTaskStore = defineStore('task', () => {
 
       tasks.value = tasks.value.filter(t => t.id !== id);
       
-      sToast.fire({ 
-        icon: 'success', 
-        title: 'Tarefa excluída',
-        timer: 2000,
-        showConfirmButton: false 
-      });
+      notificationService.toast('Tarefa excluída');
 
     } catch (error) {
       console.error("Failed to delete task:", error);
@@ -178,10 +172,10 @@ export const useTaskStore = defineStore('task', () => {
       tasks.value.sort((a, b) => a.position - b.position);
       
       lastDeletedTask.value = null;
-      sToast.fire({ icon: 'success', title: 'Tarefa restaurada!' });
+      notificationService.toast('Tarefa restaurada!');
     } catch (error) {
       console.error("Failed to restore task:", error);
-      sToast.fire({ icon: 'error', title: 'Erro ao restaurar tarefa.' });
+      notificationService.alert('Erro ao restaurar tarefa.', '', 'error');
     }
   };
 

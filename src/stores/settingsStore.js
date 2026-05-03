@@ -149,8 +149,8 @@ export const useSettingsStore = defineStore('settings', () => {
   const saveAllSettings = async () => {
     try {
       const promises = Object.entries(legacyKeys).map(([key, config]) => {
-        const value = Array.isArray(config.ref.value) ? [...config.ref.value] : config.ref.value;
-        return db.settings.put({ key, value });
+        const plainValue = JSON.parse(JSON.stringify(config.ref.value));
+        return db.settings.put({ key, value: plainValue });
       });
       await Promise.all(promises);
       console.log("All settings saved to database");

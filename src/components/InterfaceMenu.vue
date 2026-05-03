@@ -385,23 +385,5 @@ const clearWallpaper = () => {
 </template>
 
 <style scoped>
-.glass-panel {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-}
-.dark .glass-panel {
-  background: rgba(15, 23, 42, 0.98);
-}
-
-.fade-slide-enter-active, .fade-slide-leave-active {
-  transition: all 0.3s ease;
-}
-.fade-slide-enter-from {
-  opacity: 0;
-  transform: translateX(10px);
-}
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateX(-10px);
-}
 </style>
+

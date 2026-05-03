@@ -15,9 +15,8 @@ import { useShortcuts } from './composables/useShortcuts.js';
 import { useNotesDrag } from './composables/useNotesDrag.js';
 
 // Stores
-import { toast as sToast } from './utils/swal.js';
+import { notificationService } from './services/notificationService';
 import { ClipboardList, Plus, Sun, Moon, Settings, Calendar, Maximize, StickyNote, RotateCcw, Pencil, CheckCircle, Trash2, X, Clock, Monitor } from 'lucide-vue-next';
-import { sendNotification, playNotificationSound } from './utils/notifications.js';
 
 import { useSettingsStore } from './stores/settingsStore';
 import { useTaskStore } from './stores/taskStore';
@@ -143,10 +142,7 @@ const toggleTaskCompletion = async (task) => {
       await taskStore.toggleTimer(task);
     }
     await taskStore.updateTask(task.id, { completed: newStatus });
-    sToast.fire({ 
-      icon: 'success', 
-      title: newStatus ? 'Tarefa concluída!' : 'Tarefa reaberta!' 
-    });
+    notificationService.toast(newStatus ? 'Tarefa concluída!' : 'Tarefa reaberta!');
   } catch (error) {
     console.error("Failed to update task completion:", error);
   }
@@ -169,14 +165,7 @@ const startGlobalTimer = () => {
       
       if (!isWorkDay || !isWithinHours) {
         taskStore.toggleTimer(taskStore.activeTask);
-        sToast.fire({
-          icon: 'info',
-          title: 'Expediente Encerrado',
-          text: 'Sua tarefa foi pausada automaticamente seguindo sua jornada de trabalho.',
-          timer: 6000,
-          toast: false,
-          position: 'center'
-        });
+        notificationService.alert('Expediente Encerrado', 'Sua tarefa foi pausada automaticamente seguindo sua jornada de trabalho.', 'info');
         return;
       }
     }
@@ -210,7 +199,7 @@ const exportTasks = async () => {
   try {
     const data = await db.tasks.toArray();
     downloadJson(data, 'tass_tasks_backup.json');
-    sToast.fire({ icon: 'success', title: 'Backup de tarefas exportado!' });
+    notificationService.toast('Backup de tarefas exportado!');
   } catch (error) {
     console.error("Export failed:", error);
   }
@@ -227,7 +216,7 @@ const exportSystem = async () => {
       timestamp: new Date().toISOString()
     };
     downloadJson(fullData, 'tass_full_system_backup.json');
-    sToast.fire({ icon: 'success', title: 'Backup completo do sistema exportado!' });
+    notificationService.toast('Backup completo do sistema exportado!');
   } catch (error) {
     console.error("System export failed:", error);
   }
@@ -255,9 +244,9 @@ const importTasks = async (event) => {
       if (!tasks) throw new Error("Invalid task format");
       await db.tasks.bulkPut(tasks);
       await taskStore.loadTasks();
-      sToast.fire({ icon: 'success', title: 'Tarefas importadas com sucesso!' });
+      notificationService.toast('Tarefas importadas com sucesso!');
     } catch (error) {
-      sToast.fire({ icon: 'error', title: 'Falha na importação de tarefas' });
+      notificationService.alert('Falha na importação de tarefas', '', 'error');
     }
     event.target.value = '';
   };
@@ -284,9 +273,9 @@ const importSystem = async (event) => {
       await taskStore.loadSprints();
       applyTheme();
       
-      sToast.fire({ icon: 'success', title: 'Sistema restaurado completamente!' });
+      notificationService.toast('Sistema restaurado completamente!');
     } catch (error) {
-      sToast.fire({ icon: 'error', title: 'Falha na restauração do sistema', text: 'O arquivo não parece ser um backup completo válido.' });
+      notificationService.alert('Falha na restauração do sistema', 'O arquivo não parece ser um backup completo válido.', 'error');
     }
     event.target.value = '';
   };
@@ -296,7 +285,7 @@ const importSystem = async (event) => {
 const resetFilters = () => {
   statusFilter.value = 'all';
   settings.activeSprintId = 'all';
-  sToast.fire({ icon: 'info', title: 'Filtros limpos', timer: 1500, toast: true, position: 'top-end' });
+  notificationService.toast('Filtros limpos', 'info', 1500);
 };
 
 onMounted(async () => {
