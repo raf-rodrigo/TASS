@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&family=Lexend:wght@300;400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;700;900&family=Ubuntu:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&family=Mulish:wght@300;400;500;600;700;800&family=Quicksand:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased text-slate-800 bg-gradient-to-br from-slate-100 to-slate-200 dark:text-slate-100 dark:from-slate-900 dark:to-slate-800 min-h-screen bg-fixed;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-white/80 dark:bg-slate-800/70 backdrop-blur-md border border-white/50 dark:border-white/10 shadow-lg dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-2xl p-6;
+  }
+  
+  .icon-btn {
+    @apply p-1.5 rounded text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors flex items-center justify-center;
+  }
+  
+  .icon-btn.danger:hover {
+    @apply text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .btn-secondary {
+    @apply bg-white/50 hover:bg-white/80 dark:bg-white/10 dark:hover:bg-white/20 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-white/10;
+  }
+
+  .btn-danger {
+    @apply bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .filter-btn {
+    @apply bg-transparent border-none text-slate-500 dark:text-slate-400 px-4 py-2 rounded-md font-medium cursor-pointer transition-colors hover:text-slate-900 dark:hover:text-slate-100;
+  }
+
+  .filter-btn.active {
+    @apply bg-indigo-600 text-white hover:text-white;
+  }
+}
+
+/* SweetAlert2 Theme Integration */
+.swal2-popup.tass-toast {
+  @apply !bg-white dark:!bg-slate-800 !text-slate-800 dark:!text-slate-100 !shadow-xl !border !border-slate-200 dark:!border-white/10;
+}
+
+.swal2-popup.tass-modal {
+  @apply !bg-white dark:!bg-slate-800 !text-slate-800 dark:!text-slate-100 !rounded-2xl !border-none !shadow-2xl;
+}
+
+.swal2-title, .swal2-content, .swal2-html-container {
+  @apply !text-slate-800 dark:!text-slate-100;
+}
+
+.swal2-actions {
+  @apply !flex !gap-3 !mt-6 !justify-end;
+}
+
+.swal2-confirm, .swal2-cancel, .swal2-deny {
+  @apply !m-0;
+}
