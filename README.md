@@ -41,9 +41,10 @@ O **TASS** é um gerenciador de tarefas avançado, focado em produtividade para 
 - **[Vue 3](https://vuejs.org/)**: Framework principal com Composition API.
 - **[Vite](https://vitejs.dev/)**: Build tool ultra-rápida.
 - **[Tailwind CSS](https://tailwindcss.com/)**: Estilização moderna e responsiva.
+- **[Pinia](https://pinia.vuejs.org/)**: Gestão de estado global (Stores).
 - **[Dexie.js](https://dexie.org/)**: Wrapper para IndexedDB, garantindo persistência robusta.
 - **[SweetAlert2](https://sweetalert2.github.io/)**: Biblioteca unificada para modais de confirmação e notificações (toasts).
-- **[Lucide Vue Next](https://lucide.dev/)**: Biblioteca de ícones vetoriais.
+- **[Lucide Vue Next](https://lucide.dev/)**: Biblioteca de ícones vetoriais modernos.
 
 ---
 
@@ -53,15 +54,24 @@ O **TASS** é um gerenciador de tarefas avançado, focado em produtividade para 
 /src
   ├── db.js                     # Configuração do banco de dados local (Dexie)
   ├── main.js                   # Inicialização do Vue 3
-  ├── style.css                 # Estilos globais e variáveis de tema
-  ├── App.vue                   # Componente raiz e lógica global (Timer, Filtros, Temas)
-  ├── components/               # Componentes reutilizáveis
-  │   ├── TaskCard.vue          # Card individual com lógica de Timer e GitLab
-  │   ├── TaskModal.vue         # Formulário de criação/edição com campos avançados
-  │   └── SettingsModal.vue     # Painel de configurações e integrações
-  ├── utils/                    # Utilitários e Helpers
-  │   └── swal.js               # Configuração unificada do SweetAlert2
-  └── assets/                   # Imagens e ativos estáticos
+  ├── style.css                 # Design System (Tailwind + Custom Layers)
+  ├── App.vue                   # Componente raiz, Timer Global e Layout principal
+  ├── components/               # Componentes Vue (.vue)
+  │   ├── TaskCard.vue          # Card de tarefa com lógica de timer e ações GitLab
+  │   ├── InterfaceMenu.vue     # Menu lateral para customização estética em tempo real
+  │   ├── SettingsModal.vue     # Configurações de sistema, integração API e Backups
+  │   └── ...                   # Modais de Sprint, Notas e Tarefas
+  ├── stores/                   # Estado Global (Pinia)
+  │   ├── taskStore.js          # Lógica de tarefas, cronômetro e sprints
+  │   └── settingsStore.js      # Persistência de preferências de UI e chaves de API
+  ├── services/                 # Serviços de Integração
+  │   └── gitlab.js             # Mecânica avançada de fluxo de branches GitLab
+  ├── composables/              # Lógica compartilhada (Hooks)
+  │   ├── useShortcuts.js       # Atalhos de teclado globais
+  │   └── useNotesDrag.js       # Mecânica de arraste e posicionamento
+  └── utils/                    # Utilitários
+      ├── swal.js               # Wrapper para SweetAlert2 (Toasts/Modals)
+      └── notifications.js      # Notificações nativas do navegador e sons
 ```
 
 ---

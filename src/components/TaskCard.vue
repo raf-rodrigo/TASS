@@ -50,14 +50,7 @@ const isCreatingBranch = ref(false);
 const handleGitlabAction = async () => {
   isCreatingBranch.value = true;
   try {
-    const result = await gitlabService.createBranch(props.task, settings);
-    if (result) {
-      const { treeUrl, mode } = result;
-      if (mode === 'magic') {
-        window.open(treeUrl, '_blank');
-      }
-      sToast.fire({ icon: 'success', title: 'Branch criada no GitLab!' });
-    }
+    await gitlabService.handleGitlabFlow(props.task, settings);
   } catch (error) {
     console.error("GitLab Action failed:", error);
     sToast.fire({ icon: 'error', title: 'Falha na ação do GitLab' });
@@ -162,14 +155,13 @@ const openLink = (url) => {
         <!-- 2. GitLab Action -->
         <button 
           v-if="!task.completed || task.branchUrl"
-          class="icon-btn !p-1.5 transition-all" 
-          :class="task.branchUrl ? 'text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/10' : 'text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10'"
-          @click.stop="task.branchUrl ? openLink(task.branchUrl) : handleGitlabAction()"
+          class="icon-btn !p-1.5 transition-all text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/10"
+          @click.stop="handleGitlabAction()"
           :disabled="isCreatingBranch"
           title="GitLab Action"
         >
           <GitBranch v-if="!isCreatingBranch" class="w-3.5 h-3.5" />
-          <div v-else class="w-3.5 h-3.5 rounded-full border-2 border-orange-500 border-t-transparent animate-spin"></div>
+          <div v-else class="w-3.5 h-3.5 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
         </button>
 
         <!-- 3. Mensagem (Observações - Persistente) -->
