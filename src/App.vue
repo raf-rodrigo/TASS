@@ -530,11 +530,4 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style scoped>
-.filter-btn {
-  @apply px-4 py-1.5 text-xs font-bold rounded-md transition-all text-slate-500 hover:text-slate-700 dark:hover:text-slate-200;
-}
-.filter-btn.active {
-  @apply bg-indigo-500 text-white shadow-lg shadow-indigo-500/25 scale-105;
-}
-</style>
+
