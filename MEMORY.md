@@ -1,38 +1,52 @@
 # Project Memory - TASS (Task & Advanced Support System)
 
-## 📅 Last Update: 2026-05-02
+## 📅 Last Update: 2026-05-03
 ## 🚀 Contexto Atual
-O TASS evoluiu para uma interface de alta performance, focada em personalização extrema (Tipografia e Design) e métricas de tempo em tempo real.
+O TASS consolidou sua arquitetura para um modelo de **Componentes Base** e **Serviços Centralizados**, eliminando a redundância de CSS e lógica espalhada. O sistema agora é regido por um Design System unificado via Tailwind e componentes modais herdados.
 
-## 🛠 Funcionalidades Implementadas
-1.  **Drag & Drop Inteligente:**
-    - Reordenamento de tarefas agora funciona **independente de filtros ativos**.
-    - A lógica no `taskStore.js` mescla a ordem da lista filtrada com a lista total, preservando a posição das tarefas ocultas.
-2.  **Interface Menu (Painel de Ajustes):**
-    - **Tipografia:** Biblioteca de 12 fontes premium (Sora, Mulish, Quicksand, Inter, etc) integradas via Google Fonts.
-    - **Customização de Notas:** Ajustes de posição (L/R), largura, cor e altura do botão de ativação.
-    - **Paleta Clássica:** Cores de post-it otimizadas: Amarelo Canário (#fef9c3), Rosa Especial (#FA6495) e Verde Limão (#a3ff33).
-3.  **Métricas de Tempo:**
-    - **Sprint Totalizer:** Contador no header que exibe o total de horas/minutos/segundos trabalhados na sprint selecionada.
-    - **Messaging System:** Feedback visual via SweetAlert2.
-5.  **Sprint Management:** Vínculo automático de tarefas e filtros avançados.
-6.  **Refatoração Arquitetural:**
-    - Lógica de **Lembrete de Água** e **Atalhos Globais** movida para Composables (`useWaterReminder`, `useShortcuts`), limpando o `App.vue`.
+## 🛠 Funcionalidades e Melhorias Arquiteturais (Audit 2026)
+1.  **BaseModal & Herança visual:**
+    *   Todos os modais (`Task`, `Settings`, `Sprint`) agora utilizam o `BaseModal.vue`.
+    *   **Benefício:** Lógica de arraste, transições e visual Glassmorphism centralizados em um único ponto.
+2.  **Notification Service (Single Point of Truth):**
+    *   Criação do `notificationService.js` que unifica Toasts (Swal), Alertas e Notificações Nativas.
+    *   **Proibição:** Chamadas diretas ao `sweetalert2` ou `utils/notifications` em componentes são desencorajadas em favor do serviço.
+3.  **Design System & Tailwind:**
+    *   Tokens de cores (`indigo`, `amber`, `emerald`) e animações (`scaleIn`, `fadeIn`) movidos para `tailwind.config.js`.
+    *   Estilos globais de componentes (`.glass-panel`, `.tass-range`, `.custom-scrollbar`) movidos para `src/style.css`.
+4.  **Persistência Segura:**
+    *   Implementação de "Plain Object Cloning" no `settingsStore.js` via `JSON.parse(JSON.stringify())` antes de salvar no IndexedDB para evitar `DataCloneError` com Proxies do Vue.
+
+## 🏛️ Diretrizes de Arquitetura (MANDATÓRIO)
+Para evitar o retorno à "bagunça" técnica, as seguintes regras devem ser seguidas:
+
+### 1. DRY (Don't Repeat Yourself) - CSS
+*   **Nunca** criar blocos `<style scoped>` para visuais genéricos (bordas, sombras, glassmorphism). 
+*   Se um estilo for usado em mais de um lugar, ele deve ir para o `style.css` como uma classe utilitária ou componente Tailwind (`@layer components`).
+
+### 2. Lógica de Modais
+*   Sempre envolver novos modais com o componente `<BaseModal>`.
+*   A lógica de arraste já está inclusa; não tente reinventar o `useModalDrag` localmente.
+
+### 3. Feedback ao Usuário
+*   Utilizar exclusivamente o `notificationService`. 
+*   Mantenha a interface do serviço consistente para que possamos trocar a biblioteca de UI (ex: sair do SweetAlert para outro) sem tocar nos componentes de negócio.
+
+### 4. Manutenção de Store (Persistence)
+*   Sempre que adicionar uma nova configuração no `settingsStore`, lembre-se de incluí-la no mapeamento de `legacyKeys` (se necessário) e garantir que o salvamento passe pela limpeza de Proxies.
 
 ## 📌 Progresso Recente
-- [x] **Reordenação Universal:** O sistema agora permite arrastar tarefas sob qualquer filtro, preservando as posições das tarefas ocultas.
-- [x] **Validação de Importação:** Implementada verificação de esquema manual (Tasks apenas) para evitar corrupção de banco.
-- [x] **Arraste Interativo (Challenge):** Botão de notas agora permite ajuste vertical (fechado) e redimensionamento horizontal (aberto) via arraste direto.
-- [x] **Master Reset:** Botão "Todas" consolidado para limpar todos os filtros de uma vez.
-- [x] **Arquitetura:** Lógica de interface e interações movida para Composables (`useShortcuts`, `useWaterReminder`, `useNotesDrag`).
+- [x] **Auditoria Técnica:** Identificação e remoção de redundâncias de CSS em `InterfaceMenu`, `TaskCard` e Modais.
+- [x] **Unificação de UI:** Criação do `BaseModal` e refatoração completa dos modais do sistema.
+- [x] **Centralização de Notificações:** Abstração completa do SweetAlert2 para um serviço.
+- [x] **Correção de Bugs Críticos:** Resolvido erro de `DataCloneError` no IndexedDB e erros de importação no NotificationService.
 
 ## 🎯 Próximos Passos
-1. **Performance:** Monitorar performance do `bulkPut` em listas massivas.
-2. **Relatórios:** Iniciar exportação de dados por Sprint (PDF/CSV).
-3. **Anexos:** Considerar suporte a prints/arquivos vinculados a tasks via Blobs.
+1.  **Refatoração de Inputs:** Criar componentes base para inputs (ex: `TassInput.vue`) para padronizar bordas e focus rings.
+2.  **Performance:** Monitorar o impacto das transições globais em dispositivos com menor poder de processamento.
+3.  **Logs de Debug:** Implementar um logger centralizado que possa ser ativado via settings.
 
 ## 🎨 Padrões de Design
-- **Estilo:** Glassmorphism e minimalismo premium.
-- **Tipografia Dinâmica:** Configurável pelo usuário, aplicada globalmente via `settingsStore`.
-- **Interação:** Cards com classe `.cursor-grab` para feedback visual de arrasto.
-- **Hierarquia:** Configurações de sistema no topo, notas na base.
+- **Visual:** Glassmorphism 2.0 (Desfoque de 20px, bordas brancas com 10-20% de opacidade).
+- **Cores:** Indigo-600 (Ações), Amber-500 (Atenção/Notas), Emerald-500 (Sucesso/Sprint).
+- **UX:** Todo modal deve ser arrastável pelo cabeçalho para não obstruir a visão das tarefas ao fundo.
