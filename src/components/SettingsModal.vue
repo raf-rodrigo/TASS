@@ -54,8 +54,8 @@ const localSettings = ref({
 });
 
 const dayNames = [
-  { id: 0, label: 'D' }, { id: 1, label: 'S' }, { id: 2, label: 'T' }, 
-  { id: 3, label: 'Q' }, { id: 4, label: 'Q' }, { id: 5, label: 'S' }, { id: 6, label: 'S' }
+  { id: 1, label: 'S' }, { id: 2, label: 'T' }, { id: 3, label: 'Q' }, 
+  { id: 4, label: 'Q' }, { id: 5, label: 'S' }, { id: 6, label: 'S' }, { id: 0, label: 'D' }
 ];
 
 const toggleDay = (dayId) => {
@@ -215,7 +215,7 @@ const handleImportSystem = (event) => emit('import-system', event);
 
                 <div class="space-y-3">
                   <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Dias Ativos</label>
-                  <div class="flex flex-wrap gap-2">
+                  <div class="flex flex-wrap gap-2 justify-center">
                     <button v-for="day in dayNames" :key="day.id" @click="toggleDay(day.id)"
                       class="w-10 h-10 rounded-xl text-xs font-black transition-all border"
                       :class="localSettings.workDays.includes(day.id) ? 'bg-amber-500 border-amber-600 text-white shadow-lg shadow-amber-500/20' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-400'">
