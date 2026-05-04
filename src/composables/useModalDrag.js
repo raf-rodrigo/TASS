@@ -6,7 +6,6 @@ export function useModalDrag() {
   const startPos = ref({ x: 0, y: 0 });
 
   const onMouseDown = (e) => {
-    // Só arrasta se clicar no elemento alvo (header) e não em botões/inputs
     if (e.target.closest('button') || e.target.closest('input') || e.target.closest('textarea')) return;
 
     isDragging.value = true;
@@ -15,6 +14,7 @@ export function useModalDrag() {
       y: e.clientY - position.value.y
     };
 
+    document.body.classList.add('dragging-modal');
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
   };
@@ -30,6 +30,7 @@ export function useModalDrag() {
 
   const onMouseUp = () => {
     isDragging.value = false;
+    document.body.classList.remove('dragging-modal');
     window.removeEventListener('mousemove', onMouseMove);
     window.removeEventListener('mouseup', onMouseUp);
   };

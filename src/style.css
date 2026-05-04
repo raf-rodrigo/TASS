@@ -109,6 +109,19 @@
   @apply !bg-white dark:!bg-slate-800 !text-slate-800 dark:!text-slate-100 !shadow-xl !border !border-slate-200 dark:!border-white/10;
 }
 
+/* Otimização de Performance para Arraste */
+.dragging-modal * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.dragging-modal .fixed.inset-0 {
+  backdrop-filter: none !important;
+}
+
 .swal2-popup.tass-modal {
   @apply !bg-white dark:!bg-slate-800 !text-slate-800 dark:!text-slate-100 !rounded-2xl !border-none !shadow-2xl;
 }

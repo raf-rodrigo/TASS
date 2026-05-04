@@ -79,11 +79,13 @@ const clearWallpaper = () => {
     leave-from-class="opacity-100 scale-100"
     leave-to-class="opacity-0 scale-95"
   >
-    <div v-if="isOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-transparent" @click.self="emit('close')">
+    <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" @click.self="emit('close')">
       <section 
         class="glass-panel w-[95%] max-w-4xl p-0 animate-scaleIn h-[90vh] md:h-[600px] flex flex-col overflow-hidden shadow-2xl border-indigo-500/10"
         :style="{ 
-          transform: `translate(${position.x}px, ${position.y}px)`,
+          '--modal-x': `${position.x}px`,
+          '--modal-y': `${position.y}px`,
+          transform: `translate(var(--modal-x), var(--modal-y))`,
           backgroundColor: settings.theme === 'dark' 
             ? `rgba(15, 23, 42, ${settings.opacityTargets.modals ? settings.cardOpacity / 100 : 0.98})` 
             : `rgba(255, 255, 255, ${settings.opacityTargets.modals ? settings.cardOpacity / 100 : 0.95})`
