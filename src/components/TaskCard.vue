@@ -73,13 +73,6 @@ const openLink = (url) => {
       task.isRunning ? 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : '',
       taskStore.selectedTask?.id === task.id ? 'ring-2 ring-indigo-500/50 border-indigo-500 bg-indigo-50/10 dark:bg-indigo-500/5' : 'hover:border-indigo-400/40'
     ]"
-    :style="{ 
-      padding: settings.cardPadding + 'px',
-      borderRadius: settings.cardBorderRadius + 'px',
-      backgroundColor: settings.theme === 'dark' 
-        ? `rgba(30, 41, 59, ${settings.opacityTargets.cards ? settings.cardOpacity / 100 : 0.98})` 
-        : `rgba(255, 255, 255, ${settings.opacityTargets.cards ? settings.cardOpacity / 100 : 0.95})`
-    }"
     @click.stop="handleSelect"
   >
     <!-- Balão de Observações Local -->

@@ -13,6 +13,7 @@ import draggable from 'vuedraggable';
 import { useWaterReminder } from './composables/useWaterReminder.js';
 import { useShortcuts } from './composables/useShortcuts.js';
 import { useNotesDrag } from './composables/useNotesDrag.js';
+import { useTheme } from './composables/useTheme.js';
 
 // Stores
 import { notificationService } from './services/notificationService';
@@ -80,6 +81,9 @@ useShortcuts({
 });
 
 const { onMouseDown: handleNotesDrag, hasMoved: notesMoved, isDragging: isNotesDragging } = useNotesDrag(settings, showNotes, 'vertical');
+
+// Theme Management
+const { toggleTheme, applyTheme } = useTheme(settings);
 
 const handleToggleNotes = () => {
   showNotes.value = !showNotes.value;
@@ -166,18 +170,8 @@ const startAutoSave = () => {
   }, 10000);
 };
 
-const toggleTheme = () => {
-  settings.theme = settings.theme === 'dark' ? 'light' : 'dark';
-  settings.saveSetting('app-theme', settings.theme); 
-  applyTheme();
-};
-
-const applyTheme = () => {
-  if (settings.theme === 'dark') {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
+const toggleThemeLocal = () => {
+  toggleTheme();
 };
 
 // --- BACKUP HANDLERS ---
@@ -381,13 +375,7 @@ onUnmounted(() => {
       <!-- Center: Separate Filters & Metrics (Grouped for Layout) -->
       <div class="flex flex-col md:flex-row justify-center items-center gap-3 pointer-events-auto w-full md:w-auto">
         <!-- Status Filters Capsule -->
-        <div 
-          class="flex items-center gap-0.5 p-1 rounded-2xl border border-slate-200 dark:border-white/10 shadow-lg backdrop-blur-xl"
-          :style="{ backgroundColor: settings.theme === 'dark' 
-            ? `rgba(30, 41, 59, ${settings.opacityTargets.bottomBar ? settings.cardOpacity / 100 : 0.98})` 
-            : `rgba(255, 255, 255, ${settings.opacityTargets.bottomBar ? settings.cardOpacity / 100 : 0.95})` 
-          }"
-        >
+        <div class="bottom-capsule">
           <button class="filter-btn" :class="{ 'active': statusFilter === 'all' }" @click="resetFilters">Todas</button>
           <button class="filter-btn" :class="{ 'active': statusFilter === 'active' }" @click="statusFilter = 'active'">Ativas</button>
           <button class="filter-btn" :class="{ 'active': statusFilter === 'completed' }" @click="statusFilter = 'completed'">Concluídas</button>
@@ -397,13 +385,7 @@ onUnmounted(() => {
         </div>
 
         <!-- Metrics Info Capsule -->
-        <div 
-          class="flex items-center gap-1.5 p-1 rounded-2xl border border-slate-200 dark:border-white/10 shadow-lg backdrop-blur-xl"
-          :style="{ backgroundColor: settings.theme === 'dark' 
-            ? `rgba(30, 41, 59, ${settings.opacityTargets.bottomBar ? settings.cardOpacity / 100 : 0.98})` 
-            : `rgba(255, 255, 255, ${settings.opacityTargets.bottomBar ? settings.cardOpacity / 100 : 0.95})` 
-          }"
-        >
+        <div class="bottom-capsule">
           <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-100/50 dark:bg-white/5 rounded-xl border border-slate-200/50 dark:border-white/5">
             <Calendar class="w-3.5 h-3.5 text-indigo-500" />
             <span class="text-[10px] font-bold text-slate-700 dark:text-slate-200 uppercase whitespace-nowrap">{{ taskStore.activeSprintName }}</span>
