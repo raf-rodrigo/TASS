@@ -14,6 +14,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const gitlabBaseBranch = ref('develop');
   const waterReminderEnabled = ref(false);
   const waterReminderInterval = ref(60);
+  const inactivityThreshold = ref(1); // Em minutos
   const activeSprintId = ref('all');
   const taskNumberSize = ref(12);
   const taskDescriptionSize = ref(13);
@@ -74,6 +75,7 @@ export const useSettingsStore = defineStore('settings', () => {
     'app-gitlab-base-branch': { ref: gitlabBaseBranch, type: 'string', default: 'develop' },
     'app-water-enabled': { ref: waterReminderEnabled, type: 'boolean', default: false },
     'app-water-interval': { ref: waterReminderInterval, type: 'number', default: 60 },
+    'app-inactivity-threshold': { ref: inactivityThreshold, type: 'number', default: 1 },
     'app-active-sprint': { ref: activeSprintId, type: 'string', default: 'all' },
     'app-track-inactivity': { ref: trackInactivity, type: 'boolean', default: true },
     'app-work-start': { ref: workStart, type: 'string', default: '08:00' },

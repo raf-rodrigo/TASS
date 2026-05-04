@@ -50,10 +50,11 @@ export const notificationService = {
       text, 
       icon,
       customClass: {
-        popup: 'tass-modal'
+        popup: 'tass-modal',
+        confirmButton: 'btn btn-primary !px-10'
       },
       buttonsStyling: false,
-      confirmButtonClass: 'btn btn-primary'
+      confirmButtonText: 'Entendido'
     });
   }
 };

@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { 
   Download, Upload, Droplets, Globe, 
-  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server
+  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
@@ -50,7 +50,11 @@ const localSettings = ref({
   workStart: stringToTimeObj(settings.workStart),
   workEnd: stringToTimeObj(settings.workEnd),
   workDays: [...settings.workDays],
-  autoPauseOutsideWork: settings.autoPauseOutsideWork
+  autoPauseOutsideWork: settings.autoPauseOutsideWork,
+  inactivityThreshold: { 
+    hours: Math.floor((settings.inactivityThreshold || 1) / 60), 
+    minutes: (settings.inactivityThreshold || 1) % 60 
+  }
 });
 
 const dayNames = [
@@ -97,6 +101,7 @@ const handleSave = async () => {
   settings.workEnd = timeObjToString(localSettings.value.workEnd);
   settings.workDays = [...localSettings.value.workDays];
   settings.autoPauseOutsideWork = localSettings.value.autoPauseOutsideWork;
+  settings.inactivityThreshold = (localSettings.value.inactivityThreshold.hours * 60) + localSettings.value.inactivityThreshold.minutes;
 
   await settings.saveAllSettings();
   notificationService.toast('Configurações Salvas!');
@@ -291,16 +296,43 @@ const handleImportSystem = (event) => emit('import-system', event);
                   </div>
                 </label>
 
-                <label class="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/10 group">
-                  <div>
-                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Track de Inatividade</p>
-                    <p class="text-[10px] text-slate-500">Detectar automaticamente quando o PC estiver ocioso.</p>
+                <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 group space-y-4">
+                  <label class="flex items-center justify-between cursor-pointer">
+                    <div>
+                      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Monitor de Inatividade</p>
+                      <p class="text-[10px] text-slate-500">Pausar tarefa automaticamente após tempo de ócio.</p>
+                    </div>
+                    <div class="relative inline-flex items-center">
+                      <input type="checkbox" class="sr-only peer" v-model="localSettings.trackInactivity">
+                      <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                    </div>
+                  </label>
+                  
+                  <div v-if="localSettings.trackInactivity" class="pt-4 border-t border-slate-200 dark:border-white/5 animate-fadeIn">
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="flex-1">
+                        <p class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1.5 ml-1">Tempo de Espera (HH:mm)</p>
+                        <VueDatePicker 
+                          v-model="localSettings.inactivityThreshold" 
+                          time-picker 
+                          auto-apply 
+                          :dark="settings.theme === 'dark'" 
+                          class="tass-timepicker"
+                        >
+                          <template #input-icon>
+                            <Clock class="w-4 h-4 ml-2 text-slate-400" />
+                          </template>
+                        </VueDatePicker>
+                      </div>
+                      <div class="text-right">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase">Total</p>
+                        <p class="text-lg font-black text-indigo-600 dark:text-indigo-400">
+                          {{ (localSettings.inactivityThreshold.hours * 60) + localSettings.inactivityThreshold.minutes }} min
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div class="relative inline-flex items-center">
-                    <input type="checkbox" class="sr-only peer" v-model="localSettings.trackInactivity">
-                    <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-                  </div>
-                </label>
+                </div>
               </div>
             </div>
 
