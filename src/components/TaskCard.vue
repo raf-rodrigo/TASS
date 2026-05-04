@@ -158,22 +158,22 @@ const openLink = (url) => {
             ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20' 
             : 'bg-slate-200 dark:bg-white/5 text-slate-400 dark:text-slate-600 border-transparent opacity-20 cursor-default'"
           @click.stop="task.moreInfo && (showObservations = !showObservations)"
-          :title="task.moreInfo ? 'Ver Observações' : ''"
+          :title="task.moreInfo ? 'Ver Observações' : 'Observações não cadastradas'"
         >
           <MessageSquare class="w-3 h-3" />
         </button>
 
-        <!-- 4. Banco (Link Externo) -->
-        <a 
-          v-if="task.taskUrl" 
-          :href="task.taskUrl" 
-          target="_blank" 
-          class="px-1.5 py-1 rounded text-[8px] font-black tracking-tighter transition-all bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-white/10" 
-          @click.stop
-          title="Abrir Link do Banco/Tarefa"
+        <!-- 4. Link da Tarefa (Link Externo) -->
+        <button 
+          class="px-1.5 py-1 rounded text-[8px] font-black tracking-tighter transition-all border flex items-center justify-center" 
+          :class="task.taskUrl 
+            ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20' 
+            : 'bg-slate-200 dark:bg-white/5 text-slate-400 dark:text-slate-600 border-transparent opacity-20 cursor-default'"
+          @click.stop="task.taskUrl && openLink(task.taskUrl)"
+          :title="task.taskUrl ? 'Abrir Link da Tarefa' : 'Link da tarefa não cadastrado'"
         >
           <ExternalLink class="w-3 h-3" />
-        </a>
+        </button>
 
         <!-- 5. Ambientes (PRD, HML, DEV) -->
         <div class="flex items-center gap-1.5 ml-1">
@@ -183,7 +183,7 @@ const openLink = (url) => {
             :class="task.prodUrl 
               ? 'bg-blue-500 text-white shadow-[0_0_8px_rgba(59,130,246,0.5)] border border-blue-400 cursor-pointer hover:scale-105 active:scale-95' 
               : 'bg-slate-200 dark:bg-white/5 text-slate-400 dark:text-slate-600 border-transparent opacity-20'"
-            :title="task.prodUrl ? 'Abrir Produção' : 'Sem link de Produção'"
+            :title="task.prodUrl ? 'Abrir Produção' : 'Link de Produção não cadastrado'"
           >
             PRD
           </div>
@@ -193,7 +193,7 @@ const openLink = (url) => {
             :class="task.homologUrl 
               ? 'bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.5)] border border-emerald-400 cursor-pointer hover:scale-105 active:scale-95' 
               : 'bg-slate-200 dark:bg-white/5 text-slate-400 dark:text-slate-600 border-transparent opacity-20'"
-            :title="task.homologUrl ? 'Abrir Homologação Cliente' : 'Sem link de Homolog'"
+            :title="task.homologUrl ? 'Abrir Homologação' : 'Link de Homologação não cadastrado'"
           >
             HML
           </div>
@@ -203,7 +203,7 @@ const openLink = (url) => {
             :class="task.devUrl 
               ? 'bg-orange-500 text-white shadow-[0_0_8px_rgba(249,115,22,0.5)] border border-orange-400 cursor-pointer hover:scale-105 active:scale-95' 
               : 'bg-slate-200 dark:bg-white/5 text-slate-400 dark:text-slate-600 border-transparent opacity-20'"
-            :title="task.devUrl ? 'Abrir Homologação Interna' : 'Sem link de Dev'"
+            :title="task.devUrl ? 'Abrir Desenvolvimento' : 'Link de Desenvolvimento não cadastrado'"
           >
             DEV
           </div>
