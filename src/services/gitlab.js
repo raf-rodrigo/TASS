@@ -4,11 +4,18 @@ import { slugify } from '../utils/string.js';
 
 export const gitlabService = {
   getBranchName(task) {
-    let combined = task.title;
-    if (task.description) {
-      combined += '-' + task.description;
-    }
-    return slugify(combined);
+    // Título/Número: Preservamos o original, apenas trocando espaços por hifens
+    const titlePart = task.title.trim().replace(/\s+/g, '-');
+    
+    // Descrição: Aplicamos a formatação completa (slugify)
+    const descPart = task.description ? slugify(task.description) : '';
+    
+    // Combinamos ambos. Se não houver descrição, usamos apenas o título.
+    const combined = descPart ? `${titlePart}-${descPart}` : titlePart;
+    
+    // Limpeza final mínima para garantir que o Git aceite o nome da branch 
+    // (remove caracteres ilegais como *, ?, :, [, ], etc)
+    return combined.replace(/[^\w\d\-\/\.\u00C0-\u00FF]/g, '');
   },
 
   async deleteLocalBranchLink(task) {

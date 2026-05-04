@@ -30,16 +30,6 @@ const showObservations = ref(false);
 
 const formattedTime = computed(() => formatMsToHMS(props.task.totalTimeSpent));
 
-const formattedTitle = computed(() => {
-  if (!settings.formatText) return props.task.title;
-  return slugify(props.task.title);
-});
-
-const formattedDescription = computed(() => {
-  if (!props.task.description) return '';
-  if (!settings.formatText) return props.task.description;
-  return slugify(props.task.description);
-});
 
 const isCreatingBranch = ref(false);
 
@@ -208,18 +198,18 @@ const openLink = (url) => {
             fontSize: settings.taskNumberSize + 'px'
           }"
           :class="!task.color ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 dark:bg-indigo-500/20' : ''"
-          :title="formattedTitle"
+          :title="task.title"
         >
-          {{ formattedTitle }}
+          {{ task.title }}
         </span>
         <span 
-          v-if="formattedDescription" 
+          v-if="task.description" 
           class="text-sm truncate flex-1 min-w-0" 
           :class="task.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'"
           :style="{ fontSize: settings.taskDescriptionSize + 'px' }"
-          :title="formattedDescription"
+          :title="task.description"
         >
-          {{ formattedDescription }}
+          {{ task.description }}
         </span>
       </div>
       <div class="flex items-center gap-1.5 shrink-0 ml-auto flex-row-reverse">
@@ -247,7 +237,7 @@ const openLink = (url) => {
             settings.roundedIcons ? 'w-[26px] h-[26px] rounded-xl' : 'px-1.5 py-1 rounded',
             task.branchUrl 
               ? 'text-purple-600 dark:text-purple-400 bg-purple-500/5 border-purple-500/10 hover:bg-purple-500/15' 
-              : 'bg-slate-100 dark:bg-white/5 text-slate-400/40 dark:text-slate-600/40 border-transparent cursor-default'
+              : 'bg-slate-100 dark:bg-white/5 text-slate-400/40 dark:text-slate-600/40 border-transparent cursor-pointer hover:bg-slate-200 dark:hover:bg-white/10'
           ]"
           @click.stop="handleGitlabAction()"
           :disabled="isCreatingBranch"

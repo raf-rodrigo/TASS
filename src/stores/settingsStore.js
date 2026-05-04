@@ -5,7 +5,6 @@ import { db } from '../db.js';
 export const useSettingsStore = defineStore('settings', () => {
   const theme = ref('dark');
   const columns = ref(2);
-  const formatText = ref(false);
   const appWidth = ref(1000);
   const gitlabUrl = ref('https://git.lliege.com.br/POCS/ci');
   const gitlabIntegrationMode = ref('link');
@@ -63,7 +62,6 @@ export const useSettingsStore = defineStore('settings', () => {
 
       if (settingsMap['app-theme']) theme.value = settingsMap['app-theme'];
       if (settingsMap['app-columns']) columns.value = settingsMap['app-columns'];
-      if (settingsMap['app-format-text']) formatText.value = settingsMap['app-format-text'];
       if (settingsMap['app-width']) appWidth.value = settingsMap['app-width'];
       if (settingsMap['app-active-sprint']) activeSprintId.value = settingsMap['app-active-sprint'];
       if (settingsMap['app-gitlab-url']) gitlabUrl.value = settingsMap['app-gitlab-url'];
@@ -114,7 +112,6 @@ export const useSettingsStore = defineStore('settings', () => {
     const settingsToSave = [
       { key: 'app-theme', value: theme.value },
       { key: 'app-columns', value: columns.value },
-      { key: 'app-format-text', value: formatText.value },
       { key: 'app-width', value: appWidth.value },
       { key: 'app-active-sprint', value: activeSprintId.value },
       { key: 'app-gitlab-url', value: gitlabUrl.value },
@@ -157,7 +154,7 @@ export const useSettingsStore = defineStore('settings', () => {
   };
 
   return {
-    theme, columns, formatText, appWidth, gitlabUrl, gitlabIntegrationMode,
+    theme, columns, appWidth, gitlabUrl, gitlabIntegrationMode,
     gitlabProjectId, gitlabToken, gitlabBaseBranch, waterReminderEnabled,
     waterReminderInterval, inactivityThreshold, activeSprintId, taskNumberSize,
     taskDescriptionSize, notesSide, noteColor, backgroundImage, backgroundBlur,

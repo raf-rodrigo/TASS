@@ -38,7 +38,6 @@ const timeObjToString = (obj) => {
 
 // Local state for transactional editing
 const localSettings = ref({
-  formatText: settings.formatText,
   gitlabUrl: settings.gitlabUrl,
   gitlabIntegrationMode: settings.gitlabIntegrationMode,
   gitlabProjectId: settings.gitlabProjectId,
@@ -88,7 +87,6 @@ const handleTestNotification = async () => {
 };
 
 const handleSave = async () => {
-  settings.formatText = localSettings.value.formatText;
   settings.gitlabUrl = localSettings.value.gitlabUrl;
   settings.gitlabIntegrationMode = localSettings.value.gitlabIntegrationMode;
   settings.gitlabProjectId = localSettings.value.gitlabProjectId;
@@ -301,16 +299,6 @@ const handleImportSystem = (event) => emit('import-system', event);
               </div>
 
               <div class="space-y-4">
-                <label class="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/10 group">
-                  <div>
-                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Formatar Branches</p>
-                    <p class="text-[10px] text-slate-500">Normalizar títulos para criação de branches.</p>
-                  </div>
-                  <div class="relative inline-flex items-center">
-                    <input type="checkbox" class="sr-only peer" v-model="localSettings.formatText">
-                    <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-                  </div>
-                </label>
 
                 <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 group space-y-4">
                   <label class="flex items-center justify-between cursor-pointer">
