@@ -192,7 +192,7 @@ const clearWallpaper = () => {
                     <!-- Escala de Texto -->
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
                       <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tamanho do ID</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tamanho do Título</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.taskNumberSize }}px</span>
                       </div>
                       <input type="range" v-model="settings.taskNumberSize" min="8" max="24" step="1" class="w-full tass-range" @change="settings.saveSetting('app-task-number-size', settings.taskNumberSize)" />
@@ -200,7 +200,7 @@ const clearWallpaper = () => {
 
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
                       <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tamanho do Título</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tamanho da Descrição</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.taskDescriptionSize }}px</span>
                       </div>
                       <input type="range" v-model="settings.taskDescriptionSize" min="10" max="28" step="1" class="w-full tass-range" @change="settings.saveSetting('app-task-desc-size', settings.taskDescriptionSize)" />
