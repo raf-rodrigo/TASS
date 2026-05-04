@@ -210,6 +210,27 @@ const clearWallpaper = () => {
                       </div>
                       <input type="range" v-model="settings.taskDescriptionSize" min="10" max="28" step="1" class="w-full tass-range" @change="settings.saveSetting('app-task-desc-size', settings.taskDescriptionSize)" />
                     </div>
+
+                    <label class="p-5 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-3xl border border-indigo-500/10 md:col-span-2 flex items-center justify-between group transition-all hover:bg-indigo-500/10 cursor-pointer">
+                      <div class="flex items-center gap-3">
+                        <div class="p-2 bg-indigo-500 rounded-lg text-white">
+                          <Layers class="w-4 h-4" />
+                        </div>
+                        <div>
+                          <span class="text-[10px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest">Ícones Arredondados</span>
+                          <p class="text-[9px] text-slate-500 font-bold uppercase tracking-tighter mt-0.5">Unifica o tamanho e arredondamento dos botões</p>
+                        </div>
+                      </div>
+                      <div class="relative inline-flex items-center">
+                        <input 
+                          type="checkbox" 
+                          v-model="settings.roundedIcons"
+                          @change="settings.saveSetting('app-rounded-icons', settings.roundedIcons)" 
+                          class="sr-only peer" 
+                        />
+                        <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
+                      </div>
+                    </label>
                   </div>
                 </div>
 

@@ -81,6 +81,38 @@
   .custom-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-slate-400/20 dark:bg-white/10 rounded-full;
   }
+
+  /* Custom Tooltips */
+  [data-tip] {
+    @apply relative;
+  }
+
+  [data-tip]::after {
+    content: attr(data-tip);
+    @apply absolute bottom-[130%] left-1/2 -translate-x-1/2 px-3 py-1.5 
+           bg-slate-900 dark:bg-slate-950 text-white text-[10px] font-black 
+           uppercase tracking-widest rounded-xl opacity-0 pointer-events-none 
+           transition-all duration-200 z-[110] whitespace-nowrap border border-white/10 shadow-2xl;
+  }
+
+  [data-tip]::before {
+    content: '';
+    @apply absolute bottom-[115%] left-1/2 -translate-x-1/2 border-8 
+           border-transparent border-t-slate-900 dark:border-t-slate-950 
+           opacity-0 pointer-events-none transition-all duration-200 z-[110];
+  }
+
+  [data-tip]:hover::after, [data-tip]:hover::before {
+    @apply opacity-100;
+  }
+  
+  [data-tip]:hover::after {
+    @apply bottom-[140%];
+  }
+  
+  [data-tip]:hover::before {
+    @apply bottom-[125%];
+  }
 }
 
 /* Global Transitions */

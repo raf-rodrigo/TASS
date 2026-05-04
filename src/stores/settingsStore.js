@@ -42,6 +42,7 @@ export const useSettingsStore = defineStore('settings', () => {
     modals: true,
     alerts: true
   });
+  const roundedIcons = ref(false);
 
   const customWallpapers = ref([
     { name: 'Dark Abstract', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop' },
@@ -86,6 +87,7 @@ export const useSettingsStore = defineStore('settings', () => {
     'app-auto-pause-work': { ref: autoPauseOutsideWork, type: 'boolean', default: false },
     'app-card-opacity': { ref: cardOpacity, type: 'number', default: 80 },
     'app-card-radius': { ref: cardBorderRadius, type: 'number', default: 16 },
+    'app-rounded-icons': { ref: roundedIcons, type: 'boolean', default: false },
     'app-opacity-targets': { ref: opacityTargets, type: 'object', default: { cards: true, topBar: true, bottomBar: true, contextMenu: true, actionBar: true } },
     'app-custom-wallpapers': { 
       ref: customWallpapers, 
@@ -193,6 +195,7 @@ export const useSettingsStore = defineStore('settings', () => {
     autoPauseOutsideWork,
     cardOpacity,
     cardBorderRadius,
+    roundedIcons,
     opacityTargets,
     customWallpapers,
     loadSettings,

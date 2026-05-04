@@ -148,7 +148,7 @@ export const gitlabService = {
       title: 'Branch já existe',
       html: `A branch <b>${branchName}</b> já existe no GitLab.<br><br>O que deseja fazer?`,
       confirmButtonText: 'Abrir Branch',
-      cancelButtonText: 'Excluir Branch',
+      cancelButtonText: 'Deletar Branch',
       cancelClass: 'btn btn-danger',
       showDenyButton: true,
       denyButtonText: 'Fechar',
@@ -161,8 +161,8 @@ export const gitlabService = {
     } else if (result.dismiss === 'cancel') {
       const confirmDelete = await sConfirm({
         title: 'Alerta de Exclusão',
-        text: `Deseja realmente EXCLUIR a branch '${branchName}'?`,
-        confirmButtonText: 'Sim, Excluir',
+        text: `Deseja realmente DELETAR a branch '${branchName}'?`,
+        confirmButtonText: 'Sim, Deletar',
         confirmClass: 'btn btn-danger',
         cancelButtonText: 'Fechar',
         icon: 'warning'
