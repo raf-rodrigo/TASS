@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { 
   Download, Upload, Droplets, Globe, 
-  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock
+  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
@@ -117,16 +117,16 @@ const handleImportSystem = (event) => emit('import-system', event);
     title="Ajustes TASS" 
     maxWidth="max-w-4xl" 
     customClass="h-[90vh] md:h-[600px] !p-0"
+    :hideHeader="true"
     @close="emit('close')"
   >
-    <template #header>
-      <!-- Overriding default header to show sidebar integration better -->
-      <div class="hidden"></div>
-    </template>
-
-    <div class="flex flex-col md:flex-row h-full overflow-hidden">
-      <!-- Sidebar de Abas -->
-      <aside class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex flex-col p-4">
+    <template #default="{ onMouseDown }">
+      <div class="flex flex-col md:flex-row h-full overflow-hidden">
+        <!-- Sidebar de Abas (Handle de Arraste) -->
+        <aside 
+          class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex flex-col p-4 cursor-grab active:cursor-grabbing group"
+          @mousedown="onMouseDown"
+        >
         <div class="hidden md:flex items-center gap-3 px-2 mb-8">
           <div class="p-2 bg-indigo-500 rounded-xl text-white">
             <Monitor class="w-5 h-5" />
@@ -158,6 +158,10 @@ const handleImportSystem = (event) => emit('import-system', event);
 
       <!-- Conteúdo da Aba -->
       <main class="flex-1 flex flex-col bg-white dark:bg-slate-950 overflow-hidden relative">
+        <!-- Close Button Top Right -->
+        <button class="absolute top-6 right-6 icon-btn z-10" @click="emit('close')">
+          <X class="w-5 h-5" />
+        </button>
         <div class="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
           <transition name="fade-slide" mode="out-in">
             <!-- ABA: GitLab -->
@@ -210,11 +214,19 @@ const handleImportSystem = (event) => emit('import-system', event);
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   <div class="input-group">
                     <label class="!text-amber-600 dark:!text-amber-400">Início</label>
-                    <VueDatePicker v-model="localSettings.workStart" time-picker auto-apply :dark="settings.theme === 'dark'" class="tass-timepicker" />
+                    <VueDatePicker v-model="localSettings.workStart" time-picker auto-apply :dark="settings.theme === 'dark'" class="tass-timepicker">
+                      <template #input-icon>
+                        <Clock class="w-4 h-4 ml-2 text-amber-500" />
+                      </template>
+                    </VueDatePicker>
                   </div>
                   <div class="input-group">
                     <label class="!text-amber-600 dark:!text-amber-400">Término</label>
-                    <VueDatePicker v-model="localSettings.workEnd" time-picker auto-apply :dark="settings.theme === 'dark'" class="tass-timepicker" />
+                    <VueDatePicker v-model="localSettings.workEnd" time-picker auto-apply :dark="settings.theme === 'dark'" class="tass-timepicker">
+                      <template #input-icon>
+                        <Clock class="w-4 h-4 ml-2 text-amber-500" />
+                      </template>
+                    </VueDatePicker>
                   </div>
                 </div>
 
@@ -394,6 +406,7 @@ const handleImportSystem = (event) => emit('import-system', event);
         </footer>
       </main>
     </div>
+    </template>
   </BaseModal>
 </template>
 

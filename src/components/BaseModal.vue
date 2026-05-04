@@ -7,7 +7,8 @@ const props = defineProps({
   showClose: { type: Boolean, default: true },
   maxWidth: { type: String, default: 'max-w-2xl' },
   customClass: { type: String, default: '' },
-  animate: { type: Boolean, default: true }
+  animate: { type: Boolean, default: true },
+  hideHeader: { type: Boolean, default: false }
 });
 
 const emit = defineEmits(['close']);
@@ -23,10 +24,11 @@ const { position, onMouseDown } = useModalDrag();
     >
       <!-- Header / Drag Handle -->
       <header 
+        v-if="!hideHeader"
         class="flex items-center justify-between p-6 pb-2 cursor-grab active:cursor-grabbing group select-none"
         @mousedown="onMouseDown"
       >
-        <slot name="header">
+        <slot name="header" :onMouseDown="onMouseDown">
           <div class="flex items-center gap-3">
             <div class="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
             <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter">{{ title }}</h2>
@@ -39,8 +41,11 @@ const { position, onMouseDown } = useModalDrag();
       </header>
 
       <!-- Content Area -->
-      <main class="flex-1 overflow-y-auto custom-scrollbar p-6 pt-2">
-        <slot></slot>
+      <main 
+        class="flex-1 overflow-y-auto custom-scrollbar"
+        :class="hideHeader ? 'p-0' : 'p-6 pt-2'"
+      >
+        <slot :onMouseDown="onMouseDown"></slot>
       </main>
 
       <!-- Footer Area -->
