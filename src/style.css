@@ -123,7 +123,10 @@
 }
 
 .swal2-popup.tass-modal {
-  @apply !bg-white dark:!bg-slate-800 !text-slate-800 dark:!text-slate-100 !rounded-2xl !border-none !shadow-2xl;
+  background-color: rgba(var(--app-bg-raw), var(--app-alert-opacity)) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  @apply bg-white dark:bg-slate-800 !text-slate-800 dark:!text-slate-100 !rounded-2xl !border-none !shadow-2xl;
 }
 
 .swal2-title, .swal2-content, .swal2-html-container {

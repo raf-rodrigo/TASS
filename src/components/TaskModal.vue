@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { Save, PlusCircle, Clock } from 'lucide-vue-next';
+import { Save, PlusCircle, Clock, Layout, Settings2, ChevronDown } from 'lucide-vue-next';
 import { useTaskStore } from '../stores/taskStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
@@ -107,10 +107,12 @@ const submitTask = () => {
   >
     <template #header>
       <div class="flex items-center gap-3">
-        <div class="w-2 h-8 rounded-full" :style="{ backgroundColor: color }"></div>
+        <div class="p-2.5 rounded-2xl text-white shadow-lg" :style="{ backgroundColor: color, boxShadow: `0 8px 20px -4px ${color}44` }">
+          <Layout class="w-6 h-6" />
+        </div>
         <div>
-          <h2 class="text-2xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-none">{{ taskToEdit ? 'Editar Tarefa' : 'Nova Tarefa' }}</h2>
-          <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Arraste para mover</p>
+          <h2 class="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tighter leading-none">{{ taskToEdit ? 'Editar Tarefa' : 'Nova Tarefa' }}</h2>
+          <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Detalhamento da Task</p>
         </div>
       </div>
     </template>
@@ -158,18 +160,28 @@ const submitTask = () => {
         ></textarea>
       </div>
 
-      <div>
+      <div class="mt-2">
         <button 
           type="button" 
           @click="showAdvanced = !showAdvanced"
-          class="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group"
+          class="w-full flex items-center justify-between p-4 bg-slate-500/5 hover:bg-slate-500/10 border border-slate-500/20 rounded-2xl transition-all group"
         >
-          <span class="text-indigo-600 dark:text-indigo-400 font-bold text-sm">Mais opções</span>
-          <span class="text-slate-400 transition-transform duration-300" :class="showAdvanced ? 'rotate-180' : ''">↓</span>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
+              <Settings2 class="w-5 h-5" />
+            </div>
+            <div class="text-left">
+              <span class="block text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">Mais Opções Avançadas</span>
+              <span class="text-[9px] text-slate-500 font-medium">Links, Prazos e Ambientes</span>
+            </div>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-white dark:bg-white/5 flex items-center justify-center border border-slate-200 dark:border-white/10 shadow-sm transition-transform duration-300" :class="{ 'rotate-180': showAdvanced }">
+            <ChevronDown class="w-4 h-4 text-slate-400" />
+          </div>
         </button>
       </div>
 
-      <div v-show="showAdvanced" class="grid grid-cols-1 md:grid-cols-2 gap-5 p-5 bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-slate-200 dark:border-white/5 animate-[fadeIn_0.3s_ease-out]">
+      <div v-show="showAdvanced" class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn pt-2">
         
         <div class="md:col-span-1">
           <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Sprint</label>

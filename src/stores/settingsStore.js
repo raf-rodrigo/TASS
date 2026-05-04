@@ -39,7 +39,8 @@ export const useSettingsStore = defineStore('settings', () => {
     bottomBar: true,
     contextMenu: true,
     actionBar: true,
-    modals: true
+    modals: true,
+    alerts: true
   });
 
   const customWallpapers = ref([

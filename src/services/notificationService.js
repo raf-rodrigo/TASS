@@ -31,12 +31,13 @@ export const notificationService = {
   /**
    * Confirm an action via Modal
    */
-  async confirm(title, text, confirmButtonText = 'Sim', icon = 'info') {
+  async confirm(title, text, confirmText = 'Sim', icon = 'info', confirmClass = 'btn btn-primary') {
     const result = await sConfirm({
       title,
       text,
-      confirmButtonText,
-      icon
+      confirmText,
+      icon,
+      confirmClass
     });
     return result.isConfirmed;
   },

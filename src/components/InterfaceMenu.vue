@@ -79,7 +79,7 @@ const clearWallpaper = () => {
     leave-from-class="opacity-100 scale-100"
     leave-to-class="opacity-0 scale-95"
   >
-    <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" @click.self="emit('close')">
+    <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-transparent" @click.self="emit('close')">
       <section 
         class="glass-panel w-[95%] max-w-4xl p-0 animate-scaleIn h-[90vh] md:h-[600px] flex flex-col overflow-hidden shadow-2xl border-indigo-500/10"
         :style="{ 
@@ -400,7 +400,15 @@ const clearWallpaper = () => {
                             </div>
                           </label>
 
-                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all md:col-span-2">
+                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Alertas e Mensagens</span>
+                            <div class="relative inline-flex items-center">
+                              <input type="checkbox" v-model="settings.opacityTargets.alerts" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
+                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
+                            </div>
+                          </label>
+
+                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
                             <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Barra de Ações (Filtros)</span>
                             <div class="relative inline-flex items-center">
                               <input type="checkbox" v-model="settings.opacityTargets.actionBar" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />

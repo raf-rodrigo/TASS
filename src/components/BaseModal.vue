@@ -42,7 +42,7 @@ const { position, onMouseDown } = useModalDrag();
           </div>
         </slot>
         
-        <button v-if="showClose" @click="emit('close')" class="icon-btn hover:rotate-90 transition-transform">
+        <button v-if="showClose" @click="emit('close')" class="icon-btn">
           <X class="w-5 h-5" />
         </button>
       </header>
@@ -56,7 +56,7 @@ const { position, onMouseDown } = useModalDrag();
       </main>
 
       <!-- Footer Area -->
-      <footer v-if="$slots.footer" class="p-6 pt-2 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
+      <footer v-if="$slots.footer" class="p-5 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
         <slot name="footer"></slot>
       </footer>
     </section>
