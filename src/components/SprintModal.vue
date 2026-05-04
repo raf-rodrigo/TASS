@@ -45,7 +45,7 @@ const deleteSprint = async (id) => {
   const confirmed = await notificationService.confirm(
     'Excluir Sprint',
     'Isso não excluirá as tarefas associadas, mas removerá o vínculo. Continuar?',
-    'Excluir',
+    'Excluir Sprint',
     'warning',
     'btn btn-danger'
   );
@@ -194,7 +194,7 @@ const isPast = (dateStr) => {
               <!-- Ação Excluir -->
               <button 
                 @click.stop="deleteSprint(sprint.id)" 
-                class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+                class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500/10 hover:text-red-500"
                 :class="activeSprintId == sprint.id ? 'text-white/40' : 'text-slate-400 bg-slate-100/50 dark:bg-white/5'"
               >
                 <Trash2 class="w-4 h-4" />

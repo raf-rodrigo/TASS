@@ -313,9 +313,6 @@ onUnmounted(() => {
           <button class="p-1.5 hover:scale-110 transition-transform group" @click="showInterfaceMenu = true" title="Ajustes de Interface">
             <Maximize class="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
           </button>
-          <button class="p-1.5 hover:scale-110 transition-transform group" @click="showSprints = true" title="Gerenciar Sprints">
-            <Calendar class="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
-          </button>
           <button class="p-1.5 hover:scale-110 transition-transform group" @click="showSettings = true" title="Configurações">
             <Settings class="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
           </button>
@@ -334,18 +331,22 @@ onUnmounted(() => {
           >
             <Plus class="w-5 h-5" />
           </button>
-
         </div>
 
         <!-- Metrics Info Capsule -->
         <div class="bottom-capsule">
-          <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-100/50 dark:bg-white/5 rounded-xl border border-slate-200/50 dark:border-white/5 relative group pr-7 transition-all" :class="{ 'pr-3': settings.activeSprintId === 'all' }">
+          <div 
+            @click="showSprints = true"
+            class="flex items-center gap-2 px-3 py-1.5 bg-slate-100/50 dark:bg-white/5 rounded-xl border border-slate-200/50 dark:border-white/5 relative group pr-7 transition-all cursor-pointer hover:bg-indigo-500/5 hover:border-indigo-500/30" 
+            :class="{ 'pr-3': settings.activeSprintId === 'all' }"
+            title="Gerenciar Sprints"
+          >
             <Calendar class="w-3.5 h-3.5 text-indigo-500" />
             <span class="text-[10px] font-bold text-slate-700 dark:text-slate-200 uppercase whitespace-nowrap">{{ taskStore.activeSprintName }}</span>
             <button 
               v-if="settings.activeSprintId !== 'all'" 
-              @click="settings.activeSprintId = 'all'" 
-              class="absolute right-1.5 p-0.5 rounded-md hover:bg-red-500 hover:text-white text-slate-400 transition-all"
+              @click.stop="settings.activeSprintId = 'all'" 
+              class="absolute right-1.5 p-0.5 rounded-md hover:bg-red-500 hover:text-white text-slate-400 transition-all z-10"
               title="Limpar Filtro de Sprint"
             >
               <X class="w-3 h-3" />

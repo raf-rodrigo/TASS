@@ -30,7 +30,9 @@ export const confirm = async (options) => {
     icon: 'info',
     showCancelButton: true,
     buttonsStyling: false,
-    ...nativeOptions, // Passa apenas o que sobrou (parâmetros nativos)
+    ...nativeOptions,
+    confirmButtonText: confirmText || 'Sim',
+    cancelButtonText: cancelText || 'Cancelar',
     customClass: {
       popup: 'tass-modal',
       confirmButton: confirmClass || 'btn btn-primary',

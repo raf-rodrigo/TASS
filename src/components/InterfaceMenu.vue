@@ -331,23 +331,18 @@ const clearWallpaper = () => {
                       </div>
                     </div>
 
-                    <div class="pt-4 border-t border-slate-200 dark:border-white/10">
-                      <div class="p-5 bg-indigo-500/5 rounded-3xl border border-indigo-500/10 space-y-4">
-                        <div class="flex justify-between items-center">
-                          <div class="flex items-center gap-2">
-                            <Sliders class="w-4 h-4 text-indigo-500" />
-                            <span class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Desfoque do Fundo</span>
-                          </div>
-                          <span class="text-xs font-black text-indigo-500">{{ settings.backgroundBlur }}px</span>
-                        </div>
-                        <input 
-                          type="range" 
-                          v-model="settings.backgroundBlur" 
-                          min="0" max="20" step="1" 
-                          class="w-full tass-range-indigo" 
-                          @change="settings.saveSetting('app-bg-blur', settings.backgroundBlur)" 
-                        />
+                    <div class="pt-4 border-t border-slate-200 dark:border-white/10 space-y-4">
+                      <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Desfoque do Fundo</span>
+                        <span class="text-xs font-black text-indigo-500">{{ settings.backgroundBlur }}px</span>
                       </div>
+                      <input 
+                        type="range" 
+                        v-model="settings.backgroundBlur" 
+                        min="0" max="20" step="1" 
+                        class="w-full tass-range" 
+                        @change="settings.saveSetting('app-bg-blur', settings.backgroundBlur)" 
+                      />
                     </div>
                   </div>
 
