@@ -190,7 +190,7 @@ const openLink = (url) => {
     <div :class="task.completed ? 'opacity-50' : ''" class="flex justify-between items-center gap-2 transition-opacity">
       <div class="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
         <span 
-          class="font-bold px-2 py-1 rounded-lg leading-none shrink-0 truncate max-w-[100px] sm:max-w-[200px] transition-all border" 
+          class="font-bold px-2 py-1 rounded-lg leading-none flex-shrink-0 transition-all border flex items-center justify-center gap-2 mr-2 min-w-[85px]" 
           :style="{ 
             backgroundColor: (!task.isRunning && task.color) ? `${task.color}26` : '', 
             color: (!task.isRunning && task.color) ? task.color : '',
@@ -198,12 +198,13 @@ const openLink = (url) => {
             fontSize: settings.taskNumberSize + 'px'
           }"
           :class="[
-            (!task.color || task.isRunning) ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 dark:bg-indigo-500/20 border-indigo-500/20' : '',
-            task.isRunning ? 'shadow-sm ring-1 ring-indigo-500/30' : ''
+            (!task.color && !task.isRunning) ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 dark:bg-indigo-500/20 border-indigo-500/20' : '',
+            task.isRunning ? 'bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-mono text-xs' : ''
           ]"
           :title="task.isRunning ? 'Tempo Decorrido' : task.title"
         >
           {{ task.isRunning ? formattedTime : task.title }}
+          <span v-if="task.isRunning" class="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse"></span>
         </span>
         <span 
           v-if="task.description || task.isRunning" 
