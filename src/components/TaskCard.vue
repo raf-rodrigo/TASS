@@ -4,6 +4,8 @@ import { Play, Square, GitBranch, ExternalLink, MessageSquare, StickyNote, X } f
 import { notificationService } from '../services/notificationService';
 import { slugify } from '../utils/string.js';
 import { formatMsToHMS } from '../utils/time.js';
+import { isValidUrl, ensureProtocol } from '../utils/validation';
+import Swal from '../utils/swal';
 
 // Stores & Services
 import { useSettingsStore } from '../stores/settingsStore';
@@ -41,6 +43,94 @@ const formattedDescription = computed(() => {
 
 const isCreatingBranch = ref(false);
 
+const handleQuickAction = async (field, label, type = 'url') => {
+  const currentValue = props.task[field] || '';
+  
+  // Se for um link e já tiver valor, abrimos o link normalmente
+  if (type === 'url' && currentValue) {
+    window.open(ensureProtocol(currentValue), '_blank');
+    return;
+  }
+
+  // Se for observação e já tiver valor, o clique alterna a exibição (comportamento original)
+  if (field === 'moreInfo' && currentValue) {
+    showObservations.value = !showObservations.value;
+    return;
+  }
+
+  // Refatoração para estrutura sólida sem hacks de CSS
+  const { value: newValue } = await Swal.fire({
+    title: `Cadastrar ${label}`,
+    html: `
+      <div class="p-1">
+        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 text-center">
+          Insira o ${label.toLowerCase()} para esta tarefa
+        </p>
+        <div class="max-w-[calc(100%-2.25em)] mx-auto">
+          <input 
+            id="swal-input-custom" 
+            class="tass-input my-4" 
+            placeholder="${type === 'url' ? 'https://...' : 'Escreva aqui...'}"
+            value="${currentValue}"
+          >
+          <div id="swal-error-custom" class="hidden bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-3 rounded-xl border border-red-500/20 mb-2 animate-shake"></div>
+        </div>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'Salvar',
+    cancelButtonText: 'Cancelar',
+    buttonsStyling: false,
+    customClass: {
+      popup: 'tass-modal',
+      confirmButton: 'btn btn-primary !px-8',
+      cancelButton: 'btn btn-secondary !px-6',
+      title: 'tass-modal-title'
+    },
+    didOpen: () => {
+      const input = document.getElementById('swal-input-custom');
+      const confirmButton = Swal.getConfirmButton();
+      const errorDiv = document.getElementById('swal-error-custom');
+      
+      confirmButton.disabled = !input.value.trim();
+      input.focus();
+
+      input.addEventListener('input', (e) => {
+        confirmButton.disabled = !e.target.value.trim();
+        errorDiv.classList.add('hidden'); // Esconde erro ao voltar a digitar
+      });
+    },
+    preConfirm: () => {
+      const value = document.getElementById('swal-input-custom').value.trim();
+      const errorDiv = document.getElementById('swal-error-custom');
+      
+      if (!value) {
+        errorDiv.textContent = 'O campo não pode estar vazio!';
+        errorDiv.classList.remove('hidden');
+        return false;
+      }
+      
+      if (type === 'url' && !isValidUrl(value)) {
+        errorDiv.textContent = 'Por favor, insira um link válido!';
+        errorDiv.classList.remove('hidden');
+        return false;
+      }
+      
+      return value;
+    }
+  });
+
+  if (newValue) {
+    const formattedValue = type === 'url' ? ensureProtocol(newValue.trim()) : newValue.trim();
+    try {
+      await taskStore.updateTask(props.task.id, { [field]: formattedValue });
+      notificationService.toast(`${label} salvo com sucesso!`, 'success');
+    } catch (error) {
+      notificationService.toast('Erro ao salvar alteração.', 'error');
+    }
+  }
+};
+
 const handleGitlabAction = async () => {
   isCreatingBranch.value = true;
   try {
@@ -71,8 +161,14 @@ const openLink = (url) => {
     class="glass-panel transition-all duration-300 animate-scaleIn cursor-pointer cursor-grab hover:-translate-y-0.5 group relative hover:z-[100]"
     :class="[
       task.isRunning ? 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : '',
-      taskStore.selectedTask?.id === task.id ? 'ring-2 ring-indigo-500/50 border-indigo-500 bg-indigo-50/10 dark:bg-indigo-500/5' : 'hover:border-indigo-400/40'
+      taskStore.selectedTask?.id === task.id ? 'ring-2 ring-indigo-500/50 border-indigo-500 z-[50]' : 'hover:border-indigo-400/40',
+      settings.cardOpacity < 1 ? 'backdrop-blur-xl' : ''
     ]"
+    :style="{ 
+      backgroundColor: taskStore.selectedTask?.id === task.id 
+        ? (settings.cardOpacity < 1 ? 'rgba(99, 102, 241, 0.1)' : '') 
+        : '' 
+    }"
     @click.stop="handleSelect"
   >
     <!-- Balão de Observações Local -->
@@ -168,10 +264,10 @@ const openLink = (url) => {
             settings.roundedIcons ? 'w-[26px] h-[26px] rounded-xl' : 'px-1.5 py-1 rounded text-[8px]',
             task.moreInfo 
               ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20' 
-              : 'bg-slate-100 dark:bg-white/5 text-slate-400/40 dark:text-slate-600/40 border-transparent cursor-default'
+              : 'bg-slate-100 dark:bg-white/5 text-slate-400/40 dark:text-slate-600/40 border-transparent'
           ]"
-          @click.stop="task.moreInfo && (showObservations = !showObservations)"
-          :data-tip="task.moreInfo ? 'Ver Observações' : 'Observações não cadastradas'"
+          @click.stop="handleQuickAction('moreInfo', 'Observações', 'text')"
+          :data-tip="task.moreInfo ? 'Ver Observações' : 'Clique para cadastrar Observações'"
         >
           <MessageSquare class="w-3 h-3" />
         </button>
@@ -183,10 +279,10 @@ const openLink = (url) => {
             settings.roundedIcons ? 'w-[26px] h-[26px] rounded-xl' : 'px-1.5 py-1 rounded text-[8px]',
             task.taskUrl 
               ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20' 
-              : 'bg-slate-100 dark:bg-white/5 text-slate-400/40 dark:text-slate-600/40 border-transparent cursor-default'
+              : 'bg-slate-100 dark:bg-white/5 text-slate-400/40 dark:text-slate-600/40 border-transparent'
           ]"
-          @click.stop="task.taskUrl && openLink(task.taskUrl)"
-          :data-tip="task.taskUrl ? 'Abrir Link da Tarefa' : 'Link da tarefa não cadastrado'"
+          @click.stop="handleQuickAction('taskUrl', 'Link da Tarefa', 'url')"
+          :data-tip="task.taskUrl ? 'Abrir Link da Tarefa' : 'Clique para cadastrar Link'"
         >
           <ExternalLink class="w-3 h-3" />
         </button>
@@ -194,41 +290,41 @@ const openLink = (url) => {
         <!-- 5. Ambientes (PRD, HML, DEV) -->
         <div class="flex items-center ml-1" :class="settings.roundedIcons ? 'gap-1' : 'gap-1.5'">
           <div 
-            @click.stop="task.prodUrl && openLink(task.prodUrl)"
+            @click.stop="handleQuickAction('prodUrl', 'Produção', 'url')"
             class="font-black tracking-tighter transition-all flex items-center justify-center border"
             :class="[
               settings.roundedIcons ? 'w-8 h-[26px] rounded-xl text-[7px]' : 'px-1.5 py-1 rounded text-[8px]',
               task.prodUrl 
                 ? 'bg-blue-500 text-white shadow-[0_0_8px_rgba(59,130,246,0.5)] border-blue-400 cursor-pointer hover:scale-105 active:scale-95' 
-                : 'bg-slate-100 dark:bg-white/5 text-slate-400/30 dark:text-slate-600/30 border-slate-200/50 dark:border-white/5'
+                : 'bg-slate-100 dark:bg-white/5 text-slate-400/30 dark:text-slate-600/30 border-slate-200/50 dark:border-white/5 cursor-pointer hover:bg-slate-200 dark:hover:bg-white/10'
             ]"
-            :data-tip="task.prodUrl ? 'Abrir Produção' : 'Link de Produção não cadastrado'"
+            :data-tip="task.prodUrl ? 'Abrir Produção' : 'Clique para cadastrar Produção'"
           >
             PRD
           </div>
           <div 
-            @click.stop="task.homologUrl && openLink(task.homologUrl)"
+            @click.stop="handleQuickAction('homologUrl', 'Homologação', 'url')"
             class="font-black tracking-tighter transition-all flex items-center justify-center border"
             :class="[
               settings.roundedIcons ? 'w-8 h-[26px] rounded-xl text-[7px]' : 'px-1.5 py-1 rounded text-[8px]',
               task.homologUrl 
                 ? 'bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.5)] border-emerald-400 cursor-pointer hover:scale-105 active:scale-95' 
-                : 'bg-slate-100 dark:bg-white/5 text-slate-400/30 dark:text-slate-600/30 border-slate-200/50 dark:border-white/5'
+                : 'bg-slate-100 dark:bg-white/5 text-slate-400/30 dark:text-slate-600/30 border-slate-200/50 dark:border-white/5 cursor-pointer hover:bg-slate-200 dark:hover:bg-white/10'
             ]"
-            :data-tip="task.homologUrl ? 'Abrir Homologação' : 'Link de Homologação não cadastrado'"
+            :data-tip="task.homologUrl ? 'Abrir Homologação' : 'Clique para cadastrar Homologação'"
           >
             HML
           </div>
           <div 
-            @click.stop="task.devUrl && openLink(task.devUrl)"
+            @click.stop="handleQuickAction('devUrl', 'Desenvolvimento', 'url')"
             class="font-black tracking-tighter transition-all flex items-center justify-center border"
             :class="[
               settings.roundedIcons ? 'w-8 h-[26px] rounded-xl text-[7px]' : 'px-1.5 py-1 rounded text-[8px]',
               task.devUrl 
                 ? 'bg-orange-500 text-white shadow-[0_0_8px_rgba(249,115,22,0.5)] border border-orange-400 cursor-pointer hover:scale-105 active:scale-95' 
-                : 'bg-slate-100 dark:bg-white/5 text-slate-400/30 dark:text-slate-600/30 border-slate-200/50 dark:border-white/5'
+                : 'bg-slate-100 dark:bg-white/5 text-slate-400/30 dark:text-slate-600/30 border-slate-200/50 dark:border-white/5 cursor-pointer hover:bg-slate-200 dark:hover:bg-white/10'
             ]"
-            :data-tip="task.devUrl ? 'Abrir Desenvolvimento' : 'Link de Desenvolvimento não cadastrado'"
+            :data-tip="task.devUrl ? 'Abrir Desenvolvimento' : 'Clique para cadastrar Desenvolvimento'"
           >
             DEV
           </div>

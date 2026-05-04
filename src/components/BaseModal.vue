@@ -21,7 +21,7 @@ const { position, onMouseDown } = useModalDrag();
   <div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/20 dark:bg-black/40 backdrop-blur-sm" @click.self="emit('close')">
     <section 
       class="glass-panel w-full flex flex-col shadow-2xl border-white/20 dark:border-white/5 overflow-hidden"
-      :class="[maxWidth, customClass, { 'animate-scaleIn': animate }]"
+      :class="[maxWidth, customClass, { 'animate-scaleIn': animate, 'backdrop-blur-xl': settings.cardOpacity < 100 }]"
       :style="{ 
         transform: `translate(${position.x}px, ${position.y}px)`,
         backgroundColor: settings.theme === 'dark' 

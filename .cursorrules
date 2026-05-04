@@ -44,3 +44,26 @@ A regra de ouro é o **Arredondamento Geométrico**: o raio interno deve ser o r
 ## 6. Layout e Espaçamento
 - **Gaps de Seção**: Usar `space-y-6` ou `gap-6` para separar grandes blocos de formulário.
 - **Respiros Internos**: `p-4` a `p-6` para containers principais.
+
+## 7. Validação e Integridade de Dados
+- **URLs**: Nunca salvar URLs sem validação. Utilizar sempre a função `isValidUrl` de `src/utils/validation.js`.
+- **Formatação**: Utilizar sempre `ensureProtocol` ao salvar links para garantir que o prefixo `https://` esteja presente.
+- **Campos Vazios**: Tratar campos vazios como válidos (opcionais), a menos que explicitamente marcados como obrigatórios.
+
+## 8. Diálogos e Prompts (SweetAlert2)
+Para manter a consistência visual nos alertas e prompts:
+- **Estilização**: Sempre desativar o estilo nativo (`buttonsStyling: false`) e aplicar `customClass`:
+  ```javascript
+  customClass: {
+    popup: 'tass-modal',
+    confirmButton: 'btn btn-primary',
+    cancelButton: 'btn btn-secondary',
+    input: 'tass-input'
+  }
+  ```
+- **Ações**: Preferir `confirmText` e `cancelText` como nomes de propriedades de texto nos wrappers.
+
+## 9. Tooltips Customizadas
+- **Nativo**: Nunca utilizar o atributo `title` do navegador.
+- **Custom**: Utilizar o atributo `data-tip` nos elementos. O sistema CSS em `style.css` cuidará da exibição opaca e centralizada.
+- **Z-Index**: Elementos com tooltips devem garantir um `z-index` maior em estado de hover (`hover:z-[100]`) para evitar sobreposição por elementos vizinhos.

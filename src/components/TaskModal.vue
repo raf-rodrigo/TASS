@@ -8,6 +8,8 @@ import {
 } from 'lucide-vue-next';
 import { useTaskStore } from '../stores/taskStore';
 import { useSettingsStore } from '../stores/settingsStore';
+import { isValidUrl, ensureProtocol } from '../utils/validation';
+import { notificationService } from '../services/notificationService';
 import BaseModal from './BaseModal.vue';
 
 const taskStore = useTaskStore();
@@ -52,6 +54,51 @@ const parseEstimatedHours = (timeStr) => {
 };
 
 const estimatedHours = ref(parseEstimatedHours(props.taskToEdit?.estimatedTime));
+const errors = ref({});
+
+const validateFields = () => {
+  errors.value = {};
+  let firstErrorTab = null;
+
+  const urlFields = [
+    { key: 'devUrl', value: devUrl.value, label: 'Desenvolvimento', tab: 'links' },
+    { key: 'homologUrl', value: homologUrl.value, label: 'Homologação', tab: 'links' },
+    { key: 'prodUrl', value: prodUrl.value, label: 'Produção', tab: 'links' },
+    { key: 'taskUrl', value: taskUrl.value, label: 'Link da Tarefa', tab: 'links' },
+    { key: 'branchUrl', value: branchUrl.value, label: 'URL do Merge', tab: 'links' }
+  ];
+
+  for (const field of urlFields) {
+    if (field.value && !isValidUrl(field.value)) {
+      errors.value[field.key] = `Link de ${field.label} inválido!`;
+      if (!firstErrorTab) firstErrorTab = field.tab;
+    }
+  }
+
+  // Validar título (aba basic)
+  if (!title.value.trim()) {
+    errors.value.title = 'O título é obrigatório!';
+    if (!firstErrorTab) firstErrorTab = 'basic';
+  }
+
+  return firstErrorTab;
+};
+
+const hasErrorInTab = (tabId) => {
+  if (tabId === 'links') {
+    return !!(errors.value.devUrl || errors.value.homologUrl || errors.value.prodUrl || errors.value.taskUrl || errors.value.branchUrl);
+  }
+  if (tabId === 'basic') {
+    return !!errors.value.title;
+  }
+  return false;
+};
+
+const clearError = (field) => {
+  if (errors.value[field]) {
+    delete errors.value[field];
+  }
+};
 
 const colors = [
   { name: 'Indigo', value: '#6366f1' },
@@ -73,7 +120,13 @@ onMounted(() => {
 });
 
 const submitTask = () => {
-  if (!title.value.trim()) return;
+  const errorTab = validateFields();
+  
+  if (errorTab) {
+    activeTab.value = errorTab; // Navega para a aba com erro
+    notificationService.toast('Verifique os campos com erro.', 'error');
+    return;
+  }
   
   const timeStr = estimatedHours.value > 0 ? `${estimatedHours.value}h` : '';
 
@@ -82,11 +135,11 @@ const submitTask = () => {
     description: description.value.trim(),
     estimatedTime: timeStr,
     priority: priority.value,
-    devUrl: devUrl.value.trim(),
-    homologUrl: homologUrl.value.trim(),
-    prodUrl: prodUrl.value.trim(),
-    taskUrl: taskUrl.value.trim(),
-    branchUrl: branchUrl.value.trim(),
+    devUrl: ensureProtocol(devUrl.value.trim()),
+    homologUrl: ensureProtocol(homologUrl.value.trim()),
+    prodUrl: ensureProtocol(prodUrl.value.trim()),
+    taskUrl: ensureProtocol(taskUrl.value.trim()),
+    branchUrl: ensureProtocol(branchUrl.value.trim()),
     dbScripts: dbScripts.value.trim(),
     moreInfo: moreInfo.value.trim(),
     sprintId: sprintId.value ? parseInt(sprintId.value) : null,
@@ -114,7 +167,7 @@ const submitTask = () => {
     <div class="flex flex-col md:flex-row h-[90vh] md:h-[650px] overflow-hidden">
       <!-- Sidebar (Navigation) -->
       <aside 
-        class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-5 bg-slate-50/50 dark:bg-white/[0.02]"
+        class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-5 bg-slate-500/5 dark:bg-black/20"
         @mousedown="onMouseDown"
       >
         <div class="flex items-center gap-3 mb-8 px-1">
@@ -133,12 +186,15 @@ const submitTask = () => {
             :key="tab.id"
             @click="activeTab = tab.id"
             type="button"
-            class="flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition-all group"
+            class="flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative"
             :class="activeTab === tab.id 
               ? 'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-slate-200 dark:ring-white/10' 
               : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'"
           >
-            <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
+            <div class="relative">
+              <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
+              <div v-if="hasErrorInTab(tab.id)" class="absolute -top-1.5 -right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-50 dark:border-slate-800 animate-pulse"></div>
+            </div>
             <span class="text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
           </button>
         </nav>
@@ -155,13 +211,13 @@ const submitTask = () => {
       </aside>
 
       <!-- Main Content -->
-      <main class="flex-1 flex flex-col overflow-hidden bg-white dark:bg-slate-950 relative">
+      <main class="flex-1 flex flex-col overflow-hidden bg-white/20 dark:bg-slate-900/40 relative">
         <!-- Close Button -->
         <button type="button" @click="emit('close')" class="absolute top-6 right-6 icon-btn z-20">
           <X class="w-5 h-5" />
         </button>
 
-        <form @submit.prevent="submitTask" class="flex-1 flex flex-col overflow-hidden">
+        <form @submit.prevent="submitTask" novalidate class="flex-1 flex flex-col overflow-hidden">
           <div class="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
             <transition name="fade-slide" mode="out-in">
               <!-- ABA 1: Cadastro Básico -->
@@ -174,10 +230,14 @@ const submitTask = () => {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                   <div>
                     <label for="task-title" class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Número da Tarefa</label>
-                    <input id="task-title" v-model="title" type="text" placeholder="Ex: TSK-1234" required 
-                      class="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-mono font-bold"
+                    <input id="task-title" v-model="title" @input="clearError('title')" type="text" placeholder="Ex: TSK-1234" required 
+                      class="w-full px-4 py-3 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-mono font-bold"
+                      :class="errors.title ? 'border-red-500/50 ring-1 ring-red-500/20' : 'border-slate-200 dark:border-white/10'"
                       :style="{ color: color }"
                     />
+                    <div v-if="errors.title" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1.5 animate-shake text-center">
+                      {{ errors.title }}
+                    </div>
                   </div>
 
                   <div>
@@ -246,20 +306,26 @@ const submitTask = () => {
                 <div class="grid grid-cols-1 gap-8">
                   <!-- Seção: Gestão de Código -->
                   <div class="grid grid-cols-1 gap-6">
-                    <div class="space-y-1.5">
-                      <div class="flex items-center gap-2 mb-1">
-                        <ExternalLink class="w-3.5 h-3.5 text-indigo-500" />
-                        <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Link da Tarefa</label>
+                      <div class="space-y-1.5">
+                        <div class="flex items-center gap-2 mb-1">
+                          <ExternalLink class="w-3.5 h-3.5" :class="errors.taskUrl ? 'text-red-500' : 'text-indigo-500'" />
+                          <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Link da Tarefa</label>
+                        </div>
+                        <input v-model="taskUrl" type="url" @input="clearError('taskUrl')" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" :class="errors.taskUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : 'border-slate-200 dark:border-white/10'" />
+                        <div v-if="errors.taskUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1.5 animate-shake text-center">
+                          {{ errors.taskUrl }}
+                        </div>
                       </div>
-                      <input v-model="taskUrl" type="url" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" />
-                    </div>
-                    <div class="space-y-1.5">
-                      <div class="flex items-center gap-2 mb-1">
-                        <GitBranch class="w-3.5 h-3.5 text-purple-500" />
-                        <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">URL do Merge</label>
+                      <div class="space-y-1.5">
+                        <div class="flex items-center gap-2 mb-1">
+                          <GitBranch class="w-3.5 h-3.5" :class="errors.branchUrl ? 'text-red-500' : 'text-purple-500'" />
+                          <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">URL do Merge</label>
+                        </div>
+                        <input v-model="branchUrl" type="url" @input="clearError('branchUrl')" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" :class="errors.branchUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : 'border-slate-200 dark:border-white/10'" />
+                        <div v-if="errors.branchUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1.5 animate-shake text-center">
+                          {{ errors.branchUrl }}
+                        </div>
                       </div>
-                      <input v-model="branchUrl" type="url" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" />
-                    </div>
                   </div>
 
                   <!-- Seção: Ambientes de Deploy -->
@@ -272,26 +338,35 @@ const submitTask = () => {
                     <div class="grid grid-cols-1 gap-6">
                       <div class="space-y-2">
                         <div class="flex items-center justify-between px-1">
-                          <span class="text-[9px] font-black text-orange-500 uppercase tracking-widest">Desenvolvimento</span>
-                          <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+                          <span class="text-[9px] font-black uppercase tracking-widest" :class="errors.devUrl ? 'text-red-500' : 'text-orange-500'">Desenvolvimento</span>
+                          <span class="w-1.5 h-1.5 rounded-full" :class="errors.devUrl ? 'bg-red-500' : 'bg-orange-500 animate-pulse'"></span>
                         </div>
-                        <input v-model="devUrl" type="url" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" />
+                        <input v-model="devUrl" type="url" @input="clearError('devUrl')" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" :class="errors.devUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : 'border-slate-200 dark:border-white/10'" />
+                        <div v-if="errors.devUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1 animate-shake text-center">
+                          {{ errors.devUrl }}
+                        </div>
                       </div>
                       
                       <div class="space-y-2">
                          <div class="flex items-center justify-between px-1">
-                          <span class="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Homologação</span>
-                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          <span class="text-[9px] font-black uppercase tracking-widest" :class="errors.homologUrl ? 'text-red-500' : 'text-emerald-500'">Homologação</span>
+                          <span class="w-1.5 h-1.5 rounded-full" :class="errors.homologUrl ? 'bg-red-500' : 'bg-emerald-500'"></span>
                         </div>
-                        <input v-model="homologUrl" type="url" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" />
+                        <input v-model="homologUrl" type="url" @input="clearError('homologUrl')" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" :class="errors.homologUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : 'border-slate-200 dark:border-white/10'" />
+                        <div v-if="errors.homologUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1 animate-shake text-center">
+                          {{ errors.homologUrl }}
+                        </div>
                       </div>
 
                       <div class="space-y-2">
                          <div class="flex items-center justify-between px-1">
-                          <span class="text-[9px] font-black text-blue-500 uppercase tracking-widest">Produção</span>
-                          <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></span>
+                          <span class="text-[9px] font-black uppercase tracking-widest" :class="errors.prodUrl ? 'text-red-500' : 'text-blue-500'">Produção</span>
+                          <span class="w-1.5 h-1.5 rounded-full" :class="errors.prodUrl ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]'"></span>
                         </div>
-                        <input v-model="prodUrl" type="url" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" />
+                        <input v-model="prodUrl" type="url" @input="clearError('prodUrl')" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" :class="errors.prodUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : 'border-slate-200 dark:border-white/10'" />
+                        <div v-if="errors.prodUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1 animate-shake text-center">
+                          {{ errors.prodUrl }}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -329,7 +404,7 @@ const submitTask = () => {
           <!-- Footer (Persistent) -->
           <footer class="p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex justify-end gap-3">
             <button type="button" @click="emit('close')" class="px-6 py-3 text-xs font-black text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all uppercase tracking-widest">Cancelar</button>
-            <button type="submit" class="px-10 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition-all shadow-xl shadow-indigo-500/25 disabled:opacity-50 uppercase tracking-widest flex items-center gap-2 active:scale-95" :disabled="!title.trim()">
+            <button type="submit" class="px-10 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition-all shadow-xl shadow-indigo-500/25 uppercase tracking-widest flex items-center gap-2 active:scale-95">
               <Save v-if="taskToEdit" class="w-4 h-4" />
               <PlusCircle v-else class="w-4 h-4" />
               {{ taskToEdit ? 'Salvar Alterações' : 'Criar Nova Tarefa' }}
