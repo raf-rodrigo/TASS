@@ -421,14 +421,6 @@ onMounted(async () => {
             <span class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{{ taskStore.activeSprintTotalTime }}</span>
           </div>
 
-          <div v-if="taskStore.activeTask" class="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-xl border border-emerald-500/20 animate-scaleIn">
-            <span class="text-[10px] font-medium text-slate-600 dark:text-slate-300 truncate max-w-[80px] md:max-w-[120px]">{{ taskStore.activeTask.title }}</span>
-            <span class="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-            <span class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">
-              {{ taskStore.activeTaskTimeFormatted }}
-            </span>
-            <span class="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse"></span>
-          </div>
 
           <button v-if="taskStore.lastDeletedTask" @click="taskStore.restoreTask" class="flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 rounded-md transition-all animate-pulse ml-1 border border-amber-500/20">
             <RotateCcw class="w-3.5 h-3.5" /> Desfazer
