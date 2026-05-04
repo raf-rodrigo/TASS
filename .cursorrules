@@ -1,0 +1,46 @@
+# 🛠️ Guia de Padronização Visual (TASS)
+
+Este documento serve como referência para manter a consistência "Premium" da interface. Todos os novos componentes e refatorações devem seguir estas diretrizes.
+
+---
+
+## 1. Modais (BaseModal)
+Todos os modais devem utilizar o componente `BaseModal` e seguir a estrutura de slots:
+
+- **Header (`#header`)**:
+  - Padrão: Ícone em box colorido + Título + Subtítulo.
+  - Box do Ícone: `p-2.5 rounded-2xl text-white shadow-lg`.
+  - Título: `text-2xl font-black tracking-tighter`.
+  - Subtítulo: `text-[10px] font-bold text-slate-400 uppercase tracking-widest`.
+- **Footer (`#footer`)**:
+  - Utilizar o slot nativo do `BaseModal` para garantir padding simétrico (`p-5`).
+  - Botões de rodapé devem ocupar a largura total (`w-full`).
+
+## 2. Geometria e Arredondamento (Radius Harmony)
+A regra de ouro é o **Arredondamento Geométrico**: o raio interno deve ser o raio externo menos o padding.
+
+- **Containers Principais (Modais, Cards Grandes)**: `rounded-2xl` (16px).
+- **Elementos Internos (Inputs, Botões, Cards de Lista)**: `rounded-xl` (12px).
+- **Cápsulas de Barra de Status**: `rounded-2xl` com itens `rounded-xl`.
+
+## 3. Tipografia e Rótulos
+- **Rótulos de Campo (Labels)**: `text-[10px] font-black text-slate-500 uppercase tracking-widest`.
+- **Botões de Ação**: `text-xs font-black uppercase tracking-tight`.
+- **Textos de Apoio/Placeholders**: `text-slate-400`.
+
+## 4. Paleta de Cores e Semântica
+- **Principal (Indigo)**: Preferencialmente `indigo-600` para botões e `indigo-500` para ícones/detalhes.
+- **Sucesso (Emerald)**: `emerald-500/600`.
+- **Perigo (Red)**: `red-500/600`.
+- **Fundo de Itens**: `bg-white dark:bg-white/5` com borda `border-slate-200 dark:border-white/10`.
+
+## 5. Interações e Feedback
+- **Hover**: Usar `transition-all duration-300`. Para botões, prefira `active:scale-95`.
+- **Ações Destrutivas**:
+  - Botão: `btn-danger` (Vermelho).
+  - Ícone de Confirmação: `danger` ou `error` (Vermelho), nunca amarelo (warning).
+- **Transparência**: Seguir as variáveis de CSS para opacidade (`var(--app-card-opacity)`).
+
+## 6. Layout e Espaçamento
+- **Gaps de Seção**: Usar `space-y-6` ou `gap-6` para separar grandes blocos de formulário.
+- **Respiros Internos**: `p-4` a `p-6` para containers principais.

@@ -120,7 +120,7 @@ const submitTask = () => {
     <form @submit.prevent="submitTask" class="flex flex-col gap-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         <div>
-          <label for="task-title" class="block mb-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Número da Tarefa</label>
+          <label for="task-title" class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Número da Tarefa</label>
           <input 
             id="task-title" 
             v-model="title" 
@@ -133,7 +133,7 @@ const submitTask = () => {
         </div>
 
         <div>
-          <label class="block mb-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Cor da Categoria</label>
+          <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Cor da Categoria</label>
           <div class="flex gap-2 flex-wrap p-2 bg-slate-100/50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 rounded-xl justify-between h-[50px] items-center">
             <button 
               v-for="c in colors" 
@@ -150,7 +150,7 @@ const submitTask = () => {
       </div>
       
       <div>
-        <label for="task-desc" class="block mb-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Título da Tarefa</label>
+        <label for="task-desc" class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Título da Tarefa</label>
         <textarea 
           id="task-desc" 
           v-model="description" 
@@ -184,10 +184,10 @@ const submitTask = () => {
       <div v-show="showAdvanced" class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn pt-2">
         
         <div class="md:col-span-1">
-          <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Sprint</label>
+          <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Sprint</label>
           <select 
             v-model="sprintId"
-            class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm appearance-none cursor-pointer"
+            class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm appearance-none cursor-pointer"
           >
             <option value="">Nenhuma Sprint</option>
             <option v-for="sprint in taskStore.sprints" :key="sprint.id" :value="sprint.id">
@@ -198,7 +198,7 @@ const submitTask = () => {
 
         <div class="grid grid-cols-2 gap-3 md:col-span-1">
           <div>
-            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Estimativa</label>
+            <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Estimativa</label>
             <VueDatePicker 
               v-model="estimatedTimeObj" 
               time-picker 
@@ -213,8 +213,8 @@ const submitTask = () => {
             </VueDatePicker>
           </div>
           <div>
-            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Prioridade</label>
-            <select v-model="priority" class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm appearance-none cursor-pointer">
+            <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Prioridade</label>
+            <select v-model="priority" class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm appearance-none cursor-pointer">
               <option value="Baixa">Baixa</option>
               <option value="Normal">Normal</option>
               <option value="Alta">Alta</option>
@@ -224,46 +224,46 @@ const submitTask = () => {
         </div>
 
         <div class="md:col-span-1">
-          <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Link da Tarefa</label>
-          <input v-model="taskUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
+          <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Link da Tarefa</label>
+          <input v-model="taskUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
         </div>
 
         <div class="md:col-span-1">
-          <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Link da Branch</label>
-          <input v-model="branchUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
+          <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Link da Branch</label>
+          <input v-model="branchUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
         </div>
 
         <div class="md:col-span-2 grid grid-cols-3 gap-3">
           <div>
-            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1 text-orange-500">Desenvolvimento</label>
-            <input v-model="devUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
+            <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1 text-orange-500">Desenvolvimento</label>
+            <input v-model="devUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
           </div>
           <div>
-            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1 text-emerald-500">Homologação</label>
-            <input v-model="homologUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
+            <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1 text-emerald-500">Homologação</label>
+            <input v-model="homologUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
           </div>
           <div>
-            <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1 text-blue-500">Produção</label>
-            <input v-model="prodUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
+            <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1 text-blue-500">Produção</label>
+            <input v-model="prodUrl" type="url" placeholder="https://..." class="w-full px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all" />
           </div>
         </div>
         
         <div class="md:col-span-2">
-          <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Scripts de Banco</label>
-          <textarea v-model="dbScripts" rows="2" placeholder="Queries SQL..." class="w-full px-3 py-2 font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all resize-y"></textarea>
+          <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Scripts de Banco</label>
+          <textarea v-model="dbScripts" rows="2" placeholder="Queries SQL..." class="w-full px-3 py-2 font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all resize-y"></textarea>
         </div>
 
         <div class="md:col-span-2">
-          <label class="block mb-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider ml-1">Observações</label>
-          <textarea v-model="moreInfo" rows="2" placeholder="Mais detalhes..." class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all resize-y"></textarea>
+          <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Observações</label>
+          <textarea v-model="moreInfo" rows="2" placeholder="Mais detalhes..." class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all resize-y"></textarea>
         </div>
       </div>
 
       <div class="flex justify-end gap-3 mt-4">
         <button type="button" class="px-6 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all" @click="emit('close')">Cancelar</button>
-        <button type="submit" class="btn btn-primary !px-8" :disabled="!title.trim()">
-          <Save v-if="taskToEdit" class="w-4 h-4 mr-2" />
-          <PlusCircle v-else class="w-4 h-4 mr-2" />
+        <button type="submit" class="px-8 py-3 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-lg shadow-indigo-500/20 uppercase tracking-widest active:scale-95 disabled:opacity-50" :disabled="!title.trim()">
+          <Save v-if="taskToEdit" class="w-4 h-4 mr-2 inline" />
+          <PlusCircle v-else class="w-4 h-4 mr-2 inline" />
           {{ taskToEdit ? 'Salvar Tarefa' : 'Criar Tarefa' }}
         </button>
       </div>

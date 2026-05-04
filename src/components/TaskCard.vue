@@ -104,7 +104,7 @@ const openLink = (url) => {
     <div :class="task.completed ? 'opacity-50' : ''" class="flex justify-between items-center gap-2 transition-opacity">
       <div class="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
         <span 
-          class="font-bold px-2 py-1 rounded-md leading-none shrink-0 truncate max-w-[100px] sm:max-w-[200px] transition-all" 
+          class="font-bold px-2 py-1 rounded-lg leading-none shrink-0 truncate max-w-[100px] sm:max-w-[200px] transition-all" 
           :style="{ 
             backgroundColor: task.color ? `${task.color}26` : '', 
             color: task.color || '',

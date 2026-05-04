@@ -100,10 +100,13 @@ const clearWallpaper = () => {
             @mousedown="onMouseDown"
           >
             <div class="hidden md:flex items-center gap-3 px-2 mb-8">
-              <div class="p-2 bg-indigo-500 rounded-xl text-white">
+              <div class="p-2.5 bg-indigo-500 rounded-2xl text-white shadow-lg shadow-indigo-500/20">
                 <Palette class="w-5 h-5" />
               </div>
-              <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter">Ajustes Visuais</h2>
+              <div>
+                <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter">Interface</h2>
+                <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Ajustes Visuais</p>
+              </div>
             </div>
 
             <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
@@ -149,7 +152,7 @@ const clearWallpaper = () => {
 
                   <div class="space-y-6">
                     <div class="space-y-3">
-                      <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Colunas do Board</label>
+                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Colunas do Board</label>
                       <div class="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200 dark:border-white/5 w-full">
                         <button v-for="n in 4" :key="n" @click="settings.columns = n; settings.saveSetting('app-columns', n)"
                           class="flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300"
@@ -169,7 +172,7 @@ const clearWallpaper = () => {
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
                       <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Comprimento</span>
+                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Comprimento</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.appWidth }}px</span>
                       </div>
                       <input type="range" v-model="settings.appWidth" min="800" max="2500" step="50" class="w-full tass-range" @change="settings.saveSetting('app-width', settings.appWidth)" />
@@ -177,7 +180,7 @@ const clearWallpaper = () => {
 
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
                       <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Espessura</span>
+                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Espessura</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.cardPadding }}px</span>
                       </div>
                       <input type="range" v-model="settings.cardPadding" min="8" max="40" step="2" class="w-full tass-range" @change="settings.saveSetting('app-card-padding', settings.cardPadding)" />
@@ -185,7 +188,7 @@ const clearWallpaper = () => {
 
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4 md:col-span-2">
                       <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Arredondamento</span>
+                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Arredondamento</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.cardBorderRadius }}px</span>
                       </div>
                       <input type="range" v-model="settings.cardBorderRadius" min="0" max="40" step="1" class="w-full tass-range" @change="settings.saveSetting('app-card-radius', settings.cardBorderRadius)" />
@@ -194,7 +197,7 @@ const clearWallpaper = () => {
                     <!-- Escala de Texto -->
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
                       <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tamanho do Título</span>
+                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho do Título</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.taskNumberSize }}px</span>
                       </div>
                       <input type="range" v-model="settings.taskNumberSize" min="8" max="24" step="1" class="w-full tass-range" @change="settings.saveSetting('app-task-number-size', settings.taskNumberSize)" />
@@ -202,7 +205,7 @@ const clearWallpaper = () => {
 
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
                       <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tamanho da Descrição</span>
+                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho da Descrição</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.taskDescriptionSize }}px</span>
                       </div>
                       <input type="range" v-model="settings.taskDescriptionSize" min="10" max="28" step="1" class="w-full tass-range" @change="settings.saveSetting('app-task-desc-size', settings.taskDescriptionSize)" />
@@ -222,7 +225,7 @@ const clearWallpaper = () => {
                     <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
                       <div class="flex items-center gap-3 mb-2">
                         <TypeIcon class="w-5 h-5 text-indigo-500" />
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Família de Fontes</span>
+                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Família de Fontes</span>
                       </div>
                       <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
                         <button v-for="font in fontOptions" :key="font" @click="settings.fontFamily = font; settings.saveSetting('app-font-family', font)"
@@ -266,7 +269,7 @@ const clearWallpaper = () => {
                         <ImageIcon class="w-5 h-5 text-emerald-500" />
                         <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Galeria de Fundos</h3>
                       </div>
-                      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ settings.customWallpapers.length }} / 11 Slots</span>
+                      <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">{{ settings.customWallpapers.length }} / 11 Slots</span>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -315,7 +318,7 @@ const clearWallpaper = () => {
                     <!-- Add Wallpaper Input Field -->
                     <div v-if="showAddWallpaper" class="animate-fadeIn p-4 bg-white dark:bg-white/5 rounded-2xl border border-emerald-500/30 space-y-4">
                       <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">URL da Imagem</label>
+                        <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">URL da Imagem</label>
                         <div class="flex gap-2">
                           <input 
                             v-model="newWallpaperUrl" 
@@ -418,9 +421,10 @@ const clearWallpaper = () => {
               </transition>
             </div>
 
-            <!-- Footer Manual -->
-            <footer class="p-4 md:p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex gap-4">
-              <button @click="emit('close')" class="w-full px-6 py-2.5 md:py-3 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-2xl transition-all shadow-xl shadow-indigo-500/20">Terminei os Ajustes</button>
+            <footer class="p-5 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
+              <button @click="emit('close')" class="w-full py-4 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-xl shadow-indigo-500/20 uppercase tracking-widest active:scale-95">
+                Terminei os Ajustes
+              </button>
             </footer>
           </main>
         </div>

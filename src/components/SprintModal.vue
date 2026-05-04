@@ -46,7 +46,7 @@ const deleteSprint = async (id) => {
     'Excluir Sprint',
     'Isso não excluirá as tarefas associadas, mas removerá o vínculo. Continuar?',
     'Excluir Sprint',
-    'warning',
+    'error',
     'btn btn-danger'
   );
 
@@ -148,8 +148,8 @@ const isPast = (dateStr) => {
             class="tass-datepicker"
           />
           <div class="flex gap-3">
-            <button @click="showAddForm = false" class="flex-1 py-2.5 text-[10px] font-bold text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all uppercase">Cancelar</button>
-            <button @click="addSprint" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black rounded-xl transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 uppercase" :disabled="!newSprintDate">
+            <button @click="showAddForm = false" class="flex-1 py-3 text-xs font-black text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all uppercase tracking-widest">Cancelar</button>
+            <button @click="addSprint" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 uppercase tracking-widest" :disabled="!newSprintDate">
               Salvar Sprint
             </button>
           </div>
@@ -206,7 +206,7 @@ const isPast = (dateStr) => {
     </div>
 
     <template #footer>
-      <button @click="emit('close')" class="w-full py-4 text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest hover:bg-indigo-500/5 rounded-2xl transition-all border border-indigo-500/10">
+      <button @click="emit('close')" class="w-full py-4 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-xl shadow-indigo-500/20 uppercase tracking-widest active:scale-95">
         Voltar ao Board
       </button>
     </template>
