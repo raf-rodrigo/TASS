@@ -14,6 +14,8 @@ import { useWaterReminder } from './composables/useWaterReminder.js';
 import { useShortcuts } from './composables/useShortcuts.js';
 import { useNotesDrag } from './composables/useNotesDrag.js';
 import { useTheme } from './composables/useTheme.js';
+import { useSystemMonitoring } from './composables/useSystemMonitoring.js';
+import { useGlobalPulse } from './composables/useGlobalPulse.js';
 
 // Stores
 import { notificationService } from './services/notificationService';
@@ -35,8 +37,7 @@ const showInterfaceMenu = ref(false);
 const showNotes = ref(false);
 const taskToEdit = ref(null);
 
-let timerInterval = null;
-let autoSaveInterval = null;
+
 
 // Lógica de Filtros
 const filteredTasks = computed(() => {
@@ -85,6 +86,12 @@ const { onMouseDown: handleNotesDrag, hasMoved: notesMoved, isDragging: isNotesD
 // Theme Management
 const { toggleTheme, applyTheme } = useTheme(settings);
 
+// System Monitoring (Inactivity & Work Schedule)
+const { checkMonitoring } = useSystemMonitoring(settings, taskStore);
+
+// Global Pulse (Timers & Auto-save)
+useGlobalPulse(taskStore, checkMonitoring);
+
 const handleToggleNotes = () => {
   showNotes.value = !showNotes.value;
 };
@@ -125,50 +132,7 @@ const deleteTask = async (id) => {
   await taskStore.deleteTask(id);
 };
 
-const lastActivity = ref(Date.now());
-const resetInactivity = () => {
-  lastActivity.value = Date.now();
-};
-
-const startGlobalTimer = () => {
-  timerInterval = setInterval(() => {
-    const now = Date.now();
-
-    // Monitor de Inatividade (Dinâmico)
-    if (settings.trackInactivity && taskStore.activeTask) {
-      const thresholdMs = (settings.inactivityThreshold || 1) * 60000;
-      if (now - lastActivity.value > thresholdMs) {
-        const pausedTaskName = taskStore.activeTask.title;
-        taskStore.toggleTimer(taskStore.activeTask);
-        notificationService.alert('Monitor de Inatividade', `A tarefa ativa (${pausedTaskName}) foi parada por falta de atividade.`, 'warning');
-        resetInactivity(); // Reseta para não disparar alerta em loop
-      }
-    }
-
-    // Verificação de pausa automática fora do expediente
-    if (settings.autoPauseOutsideWork && taskStore.activeTask) {
-      const nowDate = new Date();
-      const currentDay = nowDate.getDay();
-      const currentTimeStr = nowDate.getHours().toString().padStart(2, '0') + ':' + nowDate.getMinutes().toString().padStart(2, '0');
-      
-      const isWorkDay = settings.workDays.includes(currentDay);
-      const isWithinHours = currentTimeStr >= settings.workStart && currentTimeStr < settings.workEnd;
-      
-      if (!isWorkDay || !isWithinHours) {
-        taskStore.toggleTimer(taskStore.activeTask);
-        notificationService.alert('Expediente Encerrado', 'Sua tarefa foi pausada automaticamente seguindo sua jornada de trabalho.', 'info');
-        return;
-      }
-    }
-    taskStore.updateRunningTasks();
-  }, 1000);
-};
-
-const startAutoSave = () => {
-  autoSaveInterval = setInterval(() => {
-    taskStore.autoSaveRunningTasks();
-  }, 10000);
-};
+// Os métodos startGlobalTimer e startAutoSave foram movidos para o useGlobalPulse
 
 const toggleThemeLocal = () => {
   toggleTheme();
@@ -206,22 +170,11 @@ onMounted(async () => {
   applyTheme();
   await taskStore.loadTasks();
   await taskStore.loadSprints();
-  startGlobalTimer();
-  startAutoSave();
   startWaterReminder();
-
-  // Iniciar monitor de inatividade
-  window.addEventListener('mousemove', resetInactivity);
-  window.addEventListener('keydown', resetInactivity);
-  window.addEventListener('click', resetInactivity);
 });
 
 onUnmounted(() => {
-  if (timerInterval) clearInterval(timerInterval);
-  if (autoSaveInterval) clearInterval(autoSaveInterval);
-  window.removeEventListener('mousemove', resetInactivity);
-  window.removeEventListener('keydown', resetInactivity);
-  window.removeEventListener('click', resetInactivity);
+  // Timers e listeners agora são limpos pelos composables
 });
 </script>
 
