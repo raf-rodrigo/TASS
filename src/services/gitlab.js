@@ -36,6 +36,8 @@ export const gitlabService = {
     }
   },
 
+
+
   async handleGitlabFlow(task, settings) {
     const { gitlabUrl, gitlabIntegrationMode } = settings;
     const branchName = this.getBranchName(task);

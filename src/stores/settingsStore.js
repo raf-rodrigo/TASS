@@ -55,110 +55,98 @@ export const useSettingsStore = defineStore('settings', () => {
 
   const isInitialized = ref(false);
 
-  // Map of localStorage keys to their ref names and default values
-  const legacyKeys = {
-    'app-theme': { ref: theme, type: 'string', default: 'dark' },
-    'app-columns': { ref: columns, type: 'number', default: 2 },
-    'app-format-text': { ref: formatText, type: 'boolean', default: false },
-    'app-width': { ref: appWidth, type: 'number', default: 1000 },
-    'app-task-number-size': { ref: taskNumberSize, type: 'number', default: 12 },
-    'app-task-desc-size': { ref: taskDescriptionSize, type: 'number', default: 13 },
-    'app-notes-side': { ref: notesSide, type: 'string', default: 'right' },
-    'app-note-color': { ref: noteColor, type: 'string', default: '#fef9c3' },
-    'app-bg-image': { ref: backgroundImage, type: 'string', default: '' },
-    'app-bg-blur': { ref: backgroundBlur, type: 'number', default: 0 },
-    'app-notes-btn-top': { ref: notesButtonTop, type: 'number', default: 128 },
-    'app-notes-width': { ref: notesWidth, type: 'number', default: 350 },
-    'app-card-padding': { ref: cardPadding, type: 'number', default: 16 },
-    'app-font-family': { ref: fontFamily, type: 'string', default: 'Inter' },
-    'app-gitlab-url': { ref: gitlabUrl, type: 'string', default: 'https://git.lliege.com.br/POCS/ci' },
-    'app-gitlab-mode': { ref: gitlabIntegrationMode, type: 'string', default: 'link' },
-    'app-gitlab-project-id': { ref: gitlabProjectId, type: 'string', default: '' },
-    'app-gitlab-token': { ref: gitlabToken, type: 'string', default: '' },
-    'app-gitlab-base-branch': { ref: gitlabBaseBranch, type: 'string', default: 'develop' },
-    'app-water-enabled': { ref: waterReminderEnabled, type: 'boolean', default: false },
-    'app-water-interval': { ref: waterReminderInterval, type: 'number', default: 60 },
-    'app-inactivity-threshold': { ref: inactivityThreshold, type: 'number', default: 1 },
-    'app-active-sprint': { ref: activeSprintId, type: 'string', default: 'all' },
-    'app-track-inactivity': { ref: trackInactivity, type: 'boolean', default: true },
-    'app-work-start': { ref: workStart, type: 'string', default: '08:00' },
-    'app-work-end': { ref: workEnd, type: 'string', default: '18:00' },
-    'app-work-days': { ref: workDays, type: 'object', default: [1, 2, 3, 4, 5] },
-    'app-auto-pause-work': { ref: autoPauseOutsideWork, type: 'boolean', default: false },
-    'app-card-opacity': { ref: cardOpacity, type: 'number', default: 80 },
-    'app-card-radius': { ref: cardBorderRadius, type: 'number', default: 16 },
-    'app-rounded-icons': { ref: roundedIcons, type: 'boolean', default: false },
-    'app-opacity-targets': { ref: opacityTargets, type: 'object', default: { cards: true, topBar: true, bottomBar: true, contextMenu: true, actionBar: true } },
-    'app-custom-wallpapers': { 
-      ref: customWallpapers, 
-      type: 'object', 
-      default: [
-        { name: 'Dark Abstract', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop' },
-        { name: 'Deep Space', url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1920&auto=format&fit=crop' },
-        { name: 'Minimal Nature', url: 'https://images.unsplash.com/photo-1477346611705-65d1883cee1e?q=80&w=1920&auto=format&fit=crop' },
-        { name: 'Modern Scenic', url: 'https://images.unsplash.com/photo-1776811805307-a0e0289c672f?q=80&w=1920&auto=format&fit=crop' },
-        { name: 'Cozy Desk', url: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=1920&auto=format&fit=crop' },
-        { name: 'Studio Night', url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1920&auto=format&fit=crop' }
-      ] 
-    }
-  };
-
   const loadSettings = async () => {
     try {
       const allSettings = await db.settings.toArray();
       const settingsMap = Object.fromEntries(allSettings.map(s => [s.key, s.value]));
 
-      const needsMigration = allSettings.length === 0;
+      if (settingsMap['app-theme']) theme.value = settingsMap['app-theme'];
+      if (settingsMap['app-columns']) columns.value = settingsMap['app-columns'];
+      if (settingsMap['app-format-text']) formatText.value = settingsMap['app-format-text'];
+      if (settingsMap['app-width']) appWidth.value = settingsMap['app-width'];
+      if (settingsMap['app-active-sprint']) activeSprintId.value = settingsMap['app-active-sprint'];
+      if (settingsMap['app-gitlab-url']) gitlabUrl.value = settingsMap['app-gitlab-url'];
+      if (settingsMap['app-gitlab-mode']) gitlabIntegrationMode.value = settingsMap['app-gitlab-mode'];
+      if (settingsMap['app-gitlab-project-id']) gitlabProjectId.value = settingsMap['app-gitlab-project-id'];
+      if (settingsMap['app-gitlab-token']) gitlabToken.value = settingsMap['app-gitlab-token'];
+      if (settingsMap['app-gitlab-base-branch']) gitlabBaseBranch.value = settingsMap['app-gitlab-base-branch'];
+      if (settingsMap['app-water-enabled']) waterReminderEnabled.value = settingsMap['app-water-enabled'];
+      if (settingsMap['app-water-interval']) waterReminderInterval.value = settingsMap['app-water-interval'];
+      if (settingsMap['app-track-inactivity']) trackInactivity.value = settingsMap['app-track-inactivity'];
+      if (settingsMap['app-inactivity-threshold']) inactivityThreshold.value = settingsMap['app-inactivity-threshold'];
+      if (settingsMap['app-work-start']) workStart.value = settingsMap['app-work-start'];
+      if (settingsMap['app-work-end']) workEnd.value = settingsMap['app-work-end'];
+      if (settingsMap['app-work-days']) workDays.value = settingsMap['app-work-days'];
+      if (settingsMap['app-auto-pause-work']) autoPauseOutsideWork.value = settingsMap['app-auto-pause-work'];
+      if (settingsMap['app-bg-image']) backgroundImage.value = settingsMap['app-bg-image'];
+      if (settingsMap['app-bg-blur']) backgroundBlur.value = settingsMap['app-bg-blur'];
+      if (settingsMap['app-card-opacity']) cardOpacity.value = settingsMap['app-card-opacity'];
+      if (settingsMap['app-card-radius']) cardBorderRadius.value = settingsMap['app-card-radius'];
+      if (settingsMap['app-rounded-icons']) roundedIcons.value = settingsMap['app-rounded-icons'];
+      if (settingsMap['app-font-family']) fontFamily.value = settingsMap['app-font-family'];
+      if (settingsMap['app-opacity-targets']) opacityTargets.value = settingsMap['app-opacity-targets'];
+      if (settingsMap['app-custom-wallpapers']) customWallpapers.value = settingsMap['app-custom-wallpapers'];
+      if (settingsMap['app-task-number-size']) taskNumberSize.value = settingsMap['app-task-number-size'];
+      if (settingsMap['app-task-desc-size']) taskDescriptionSize.value = settingsMap['app-task-desc-size'];
+      if (settingsMap['app-notes-side']) notesSide.value = settingsMap['app-notes-side'];
+      if (settingsMap['app-notes-btn-top']) notesButtonTop.value = settingsMap['app-notes-btn-top'];
+      if (settingsMap['app-notes-width']) notesWidth.value = settingsMap['app-notes-width'];
+      if (settingsMap['app-note-color']) noteColor.value = settingsMap['app-note-color'];
+      if (settingsMap['app-card-padding']) cardPadding.value = settingsMap['app-card-padding'];
 
-      for (const [key, config] of Object.entries(legacyKeys)) {
-        let value = settingsMap[key];
-
-        if (needsMigration) {
-          const lsValue = localStorage.getItem(key);
-          if (lsValue !== null) {
-            if (config.type === 'number') value = parseInt(lsValue);
-            else if (config.type === 'boolean') value = lsValue === 'true';
-            else if (config.type === 'object') {
-              try { value = JSON.parse(lsValue); } catch(e) { value = config.default; }
-            }
-            else value = lsValue;
-            await db.settings.put({ key, value });
-          } else {
-            value = config.default;
-          }
-        } else if (value === undefined || (key === 'app-custom-wallpapers' && Array.isArray(value) && value.length === 0)) {
-          value = config.default;
-        }
-
-        config.ref.value = value;
-      }
-      
       isInitialized.value = true;
     } catch (error) {
       console.error("Failed to load settings from IndexedDB", error);
     }
   };
 
-  // Função para salvar uma única configuração (usada em interações de UI diretas)
   const saveSetting = async (key, value) => {
     try {
-      // Clone reactive values to avoid DataCloneError in IndexedDB
-      const plainValue = JSON.parse(JSON.stringify(value));
-      await db.settings.put({ key, value: plainValue });
+      await db.settings.put({ key, value });
     } catch (error) {
       console.error(`Failed to save setting ${key}`, error);
     }
   };
 
-  // Função para salvar TODAS as configurações atuais (chamada no botão Salvar do Modal)
-
   const saveAllSettings = async () => {
+    const settingsToSave = [
+      { key: 'app-theme', value: theme.value },
+      { key: 'app-columns', value: columns.value },
+      { key: 'app-format-text', value: formatText.value },
+      { key: 'app-width', value: appWidth.value },
+      { key: 'app-active-sprint', value: activeSprintId.value },
+      { key: 'app-gitlab-url', value: gitlabUrl.value },
+      { key: 'app-gitlab-mode', value: gitlabIntegrationMode.value },
+      { key: 'app-gitlab-project-id', value: gitlabProjectId.value },
+      { key: 'app-gitlab-token', value: gitlabToken.value },
+      { key: 'app-gitlab-base-branch', value: gitlabBaseBranch.value },
+      { key: 'app-water-enabled', value: waterReminderEnabled.value },
+      { key: 'app-water-interval', value: waterReminderInterval.value },
+      { key: 'app-track-inactivity', value: trackInactivity.value },
+      { key: 'app-inactivity-threshold', value: inactivityThreshold.value },
+      { key: 'app-work-start', value: workStart.value },
+      { key: 'app-work-end', value: workEnd.value },
+      { key: 'app-work-days', value: [...workDays.value] },
+      { key: 'app-auto-pause-work', value: autoPauseOutsideWork.value },
+      { key: 'app-bg-image', value: backgroundImage.value },
+      { key: 'app-bg-blur', value: backgroundBlur.value },
+      { key: 'app-card-opacity', value: cardOpacity.value },
+      { key: 'app-card-radius', value: cardBorderRadius.value },
+      { key: 'app-rounded-icons', value: roundedIcons.value },
+      { key: 'app-font-family', value: fontFamily.value },
+      { key: 'app-opacity-targets', value: { ...opacityTargets.value } },
+      { key: 'app-custom-wallpapers', value: [...customWallpapers.value] },
+      { key: 'app-task-number-size', value: taskNumberSize.value },
+      { key: 'app-task-desc-size', value: taskDescriptionSize.value },
+      { key: 'app-notes-side', value: notesSide.value },
+      { key: 'app-notes-btn-top', value: notesButtonTop.value },
+      { key: 'app-notes-width', value: notesWidth.value },
+      { key: 'app-note-color', value: noteColor.value },
+      { key: 'app-card-padding', value: cardPadding.value }
+    ];
+
     try {
-      const promises = Object.entries(legacyKeys).map(([key, config]) => {
-        const plainValue = JSON.parse(JSON.stringify(config.ref.value));
-        return db.settings.put({ key, value: plainValue });
-      });
-      await Promise.all(promises);
+      await db.settings.bulkPut(settingsToSave);
       console.log("All settings saved to database");
     } catch (error) {
       console.error("Failed to save all settings", error);
@@ -166,41 +154,13 @@ export const useSettingsStore = defineStore('settings', () => {
   };
 
   return {
-    theme,
-    columns,
-    formatText,
-    appWidth,
-    gitlabUrl,
-    gitlabIntegrationMode,
-    gitlabProjectId,
-    gitlabToken,
-    gitlabBaseBranch,
-    waterReminderEnabled,
-    waterReminderInterval,
-    activeSprintId,
-    taskNumberSize,
-    taskDescriptionSize,
-    notesSide,
-    noteColor,
-    backgroundImage,
-    backgroundBlur,
-    notesButtonTop,
-    notesWidth,
-    cardPadding,
-    fontFamily,
-    trackInactivity,
-    workStart,
-    workEnd,
-    workDays,
-    autoPauseOutsideWork,
-    cardOpacity,
-    cardBorderRadius,
-    roundedIcons,
-    opacityTargets,
-    customWallpapers,
-    loadSettings,
-    saveSetting,
-    saveAllSettings,
-    isInitialized
+    theme, columns, formatText, appWidth, gitlabUrl, gitlabIntegrationMode,
+    gitlabProjectId, gitlabToken, gitlabBaseBranch, waterReminderEnabled,
+    waterReminderInterval, inactivityThreshold, activeSprintId, taskNumberSize,
+    taskDescriptionSize, notesSide, noteColor, backgroundImage, backgroundBlur,
+    notesButtonTop, notesWidth, cardPadding, fontFamily, trackInactivity,
+    workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,
+    cardBorderRadius, opacityTargets, roundedIcons, customWallpapers,
+    isInitialized, loadSettings, saveSetting, saveAllSettings
   };
 });
