@@ -198,18 +198,24 @@ const openLink = (url) => {
             fontSize: settings.taskNumberSize + 'px'
           }"
           :class="!task.color ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 dark:bg-indigo-500/20' : ''"
-          :title="task.title"
+          :title="task.isRunning ? 'Tempo Decorrido' : task.title"
         >
-          {{ task.title }}
+          {{ task.isRunning ? formattedTime : task.title }}
         </span>
         <span 
-          v-if="task.description" 
+          v-if="task.description || task.isRunning" 
           class="text-sm truncate flex-1 min-w-0" 
           :class="task.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'"
           :style="{ fontSize: settings.taskDescriptionSize + 'px' }"
-          :title="task.description"
+          :title="task.isRunning ? `${task.title} - ${task.description}` : task.description"
         >
-          {{ task.description }}
+          <template v-if="task.isRunning">
+            <span class="font-bold text-indigo-500 dark:text-indigo-400 mr-1">{{ task.title }}</span>
+            <span v-if="task.description" class="opacity-60">- {{ task.description }}</span>
+          </template>
+          <template v-else>
+            {{ task.description }}
+          </template>
         </span>
       </div>
       <div class="flex items-center gap-1.5 shrink-0 ml-auto flex-row-reverse">
@@ -320,8 +326,8 @@ const openLink = (url) => {
           </div>
         </div>
 
-        <!-- 6. Contador (Tempo) -->
-        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-none mr-1">{{ formattedTime }}</span>
+        <!-- 6. Contador (Tempo) - Escondido quando rodando para evitar duplicidade -->
+        <span v-if="!task.isRunning" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-none mr-1">{{ formattedTime }}</span>
       </div>
     </div>
 
