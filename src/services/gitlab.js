@@ -1,4 +1,4 @@
-import { toast as sToast, confirm as sConfirm } from '../utils/swal.js';
+import { toast as sToast } from '../utils/swal.js';
 import { db } from '../db.js';
 import { slugify } from '../utils/string.js';
 

@@ -1,6 +1,5 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { db } from './db.js';
 import TaskCard from './components/TaskCard.vue';
 import TaskModal from './components/TaskModal.vue';
 import SettingsModal from './components/SettingsModal.vue';
@@ -19,7 +18,7 @@ import { useGlobalPulse } from './composables/useGlobalPulse.js';
 
 // Stores
 import { notificationService } from './services/notificationService';
-import { ClipboardList, Plus, Sun, Moon, Settings, Calendar, Maximize, StickyNote, RotateCcw, Pencil, CheckCircle, Trash2, X, Clock, Monitor } from 'lucide-vue-next';
+import { ClipboardList, Plus, Sun, Moon, Settings, Calendar, Maximize, RotateCcw, Pencil, CheckCircle, Trash2, X, Clock } from 'lucide-vue-next';
 
 import { useSettingsStore } from './stores/settingsStore';
 import { useTaskStore } from './stores/taskStore';
@@ -100,7 +99,7 @@ const handleSaveTask = async (taskData) => {
   try {
     await taskStore.updateTask(taskData.id, taskData);
     showModal.value = false;
-    sToast.fire({ icon: 'success', title: 'Tarefa atualizada!' });
+    notificationService.toast('Tarefa atualizada!', 'success');
   } catch (error) {
     console.error("Failed to update task:", error);
   }

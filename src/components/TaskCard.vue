@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { Play, Square, GitBranch, ExternalLink, MessageSquare, StickyNote, X } from 'lucide-vue-next';
-import { toast as sToast } from '../utils/swal.js';
+import { notificationService } from '../services/notificationService';
 import { slugify } from '../utils/string.js';
 import { formatMsToHMS } from '../utils/time.js';
 
@@ -47,7 +47,7 @@ const handleGitlabAction = async () => {
     await gitlabService.handleGitlabFlow(props.task, settings);
   } catch (error) {
     console.error("GitLab Action failed:", error);
-    sToast.fire({ icon: 'error', title: 'Falha na ação do GitLab' });
+    notificationService.toast('Falha na ação do GitLab', 'error');
   } finally {
     isCreatingBranch.value = false;
   }

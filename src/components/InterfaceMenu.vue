@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { 
-  X, Palette, Monitor, Trash2, Plus,
+  X, Palette, Trash2, Plus,
   Image as ImageIcon, Sliders, Eraser,
   LayoutGrid, StickyNote, Layers, Type as TypeIcon, Droplets
 } from 'lucide-vue-next';
