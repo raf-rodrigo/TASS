@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import TaskCard from './components/TaskCard.vue';
 import TaskModal from './components/TaskModal.vue';
 import SettingsModal from './components/SettingsModal.vue';
@@ -27,7 +27,18 @@ import { backupService } from './services/backupService';
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
 
-// Local UI State
+// Board State Proxy (A Ponte de Dados)
+const boardColumns = ref([[], [], [], []]);
+
+const syncBoardWithStore = () => {
+  for (let i = 1; i <= 4; i++) {
+    boardColumns.value[i-1] = filteredTasks.value
+      .filter(t => t.columnId === i)
+      .sort((a, b) => a.position - b.position);
+  }
+};
+
+// UI State
 const statusFilter = ref('all');
 const showModal = ref(false);
 const showSettings = ref(false);
@@ -35,8 +46,6 @@ const showSprints = ref(false);
 const showInterfaceMenu = ref(false);
 const showNotes = ref(false);
 const taskToEdit = ref(null);
-
-
 
 // Lógica de Filtros
 const filteredTasks = computed(() => {
@@ -56,8 +65,22 @@ const filteredTasks = computed(() => {
   return result;
 });
 
-const handleReorder = () => {
-  taskStore.updateTaskPositions(filteredTasks.value);
+// Sincroniza o board local quando as tarefas ou filtros mudam
+watch(() => filteredTasks.value, () => {
+  syncBoardWithStore();
+}, { deep: true, immediate: true });
+
+const handleBoardChange = async (evt, columnId) => {
+  if (evt.added) {
+    const task = evt.added.element;
+    await taskStore.updateTask(task.id, { columnId });
+  }
+  
+  const allOrderedTasks = [];
+  for (let i = 0; i < settings.columns; i++) {
+    allOrderedTasks.push(...boardColumns.value[i]);
+  }
+  await taskStore.updateAllPositions(allOrderedTasks);
 };
 
 // Methods
@@ -69,7 +92,7 @@ const openAddModal = () => {
 const openEditModal = (task) => {
   taskToEdit.value = { ...task };
   showModal.value = true;
-  taskStore.selectedTask = null; // Limpa a seleção ao editar
+  taskStore.selectedTask = null;
 };
 
 // Composable initialization
@@ -80,15 +103,9 @@ useShortcuts({
   onOpenSettings: () => showSettings.value = true
 });
 
-const { onMouseDown: handleNotesDrag, hasMoved: notesMoved, isDragging: isNotesDragging } = useNotesDrag(settings, showNotes, 'vertical');
-
-// Theme Management
+const { onMouseDown: handleNotesDrag, isDragging: isNotesDragging } = useNotesDrag(settings, showNotes, 'vertical');
 const { toggleTheme, applyTheme } = useTheme(settings);
-
-// System Monitoring (Inactivity & Work Schedule)
 const { checkMonitoring } = useSystemMonitoring(settings, taskStore);
-
-// Global Pulse (Timers & Auto-save)
 useGlobalPulse(taskStore, checkMonitoring);
 
 const handleToggleNotes = () => {
@@ -131,12 +148,6 @@ const deleteTask = async (id) => {
   await taskStore.deleteTask(id);
 };
 
-// Os métodos startGlobalTimer e startAutoSave foram movidos para o useGlobalPulse
-
-const toggleThemeLocal = () => {
-  toggleTheme();
-};
-
 // --- BACKUP HANDLERS ---
 const handleExportTasks = () => backupService.exportTasks();
 const handleExportSystem = () => backupService.exportSystem();
@@ -153,15 +164,19 @@ const handleImportSystem = async (event) => {
   const file = event.target.files[0];
   if (file) {
     await backupService.importSystem(file, settings, taskStore);
-    applyTheme(); // Reaplica o tema após restauração das configs
+    applyTheme();
     event.target.value = '';
   }
 };
 
-const resetFilters = () => {
-  statusFilter.value = 'all';
-  settings.activeSprintId = 'all';
-  notificationService.toast('Filtros limpos', 'info', 1500);
+const isDraggingTask = ref(false);
+
+const handleDragStart = () => {
+  isDraggingTask.value = true;
+};
+
+const handleDragEnd = () => {
+  isDraggingTask.value = false;
 };
 
 onMounted(async () => {
@@ -170,10 +185,7 @@ onMounted(async () => {
   await taskStore.loadTasks();
   await taskStore.loadSprints();
   startWaterReminder();
-});
-
-onUnmounted(() => {
-  // Timers e listeners agora são limpos pelos composables
+  syncBoardWithStore();
 });
 </script>
 
@@ -191,7 +203,16 @@ onUnmounted(() => {
     }"
   ></div>
 
-  <div v-if="settings.isInitialized" class="relative z-10 mx-auto w-full flex flex-col items-center p-4 md:p-8 pb-32 ease-in-out" :class="isNotesDragging ? '' : 'transition-all duration-500'" :style="{ maxWidth: settings.appWidth + 'px', fontFamily: settings.fontFamily }" @click="taskStore.selectedTask = null">
+  <div 
+    v-if="settings.isInitialized" 
+    class="relative z-10 mx-auto w-full flex flex-col items-center p-4 md:p-8 pb-32 ease-in-out" 
+    :class="[
+      isNotesDragging ? '' : 'transition-all duration-500',
+      isDraggingTask ? 'is-dragging-mode' : ''
+    ]" 
+    :style="{ maxWidth: settings.appWidth + 'px', fontFamily: settings.fontFamily }" 
+    @click="taskStore.selectedTask = null"
+  >
     <!-- TASS Branding (Top Left) -->
     <div class="fixed top-6 left-8 z-20 flex flex-col items-start animate-[fadeInLeft_0.8s_ease-out] select-none pointer-events-none">
       <div class="flex items-center gap-2">
@@ -280,31 +301,77 @@ onUnmounted(() => {
 
       <NotesPanel :isOpen="showNotes" @toggle="showNotes = !showNotes" @close="showNotes = false" />
 
-      <section>
-        <div v-if="taskStore.tasks.length === 0" class="text-center py-16 text-slate-500 dark:text-slate-400">
-          <ClipboardList class="w-16 h-16 mx-auto mb-4 opacity-50" />
-          <p>Nenhuma tarefa encontrada.</p>
-        </div>
+      <!-- Board de Colunas Dinâmicas -->
+      <section 
+        class="grid gap-6 w-full items-start" 
+        :class="{
+          'grid-cols-1': settings.columns === 1,
+          'grid-cols-1 md:grid-cols-2': settings.columns === 2,
+          'grid-cols-1 md:grid-cols-3': settings.columns === 3,
+          'grid-cols-1 md:grid-cols-4': settings.columns === 4
+        }"
+      >
+        <div v-for="colIdx in settings.columns" :key="colIdx" class="flex flex-col gap-4 min-h-[500px] relative">
+          <!-- Cabeçalho da Coluna -->
+          <div 
+            v-if="settings.columnTitles[colIdx-1]" 
+            class="flex items-center gap-2 px-3 py-2 bg-white/5 dark:bg-white/[0.02] rounded-2xl border border-slate-200/50 dark:border-white/5 mb-2 group transition-all hover:bg-white/10"
+          >
+            <div class="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+            <h3 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest truncate">
+              {{ settings.columnTitles[colIdx-1] }}
+            </h3>
+            <span class="ml-auto text-[9px] font-bold text-slate-400 opacity-50">
+              {{ boardColumns[colIdx-1].length }}
+            </span>
+          </div>
 
-        <draggable :list="filteredTasks" @end="handleReorder" item-key="id" class="grid gap-4 w-full" :class="{
-            'grid-cols-1': settings.columns === 1,
-            'grid-cols-1 md:grid-cols-2': settings.columns === 2,
-            'grid-cols-1 md:grid-cols-3': settings.columns === 3,
-            'grid-cols-1 md:grid-cols-4': settings.columns === 4
-          }" ghost-class="opacity-50" drag-class="scale-95" animation="300" handle=".cursor-grab">
-          <template #item="{ element: task }">
-            <TaskCard :task="task" @toggle-completion="toggleTaskCompletion" @delete-task="deleteTask" @edit-task="openEditModal" @toggle-timer="taskStore.toggleTimer" />
-          </template>
-        </draggable>
+          <!-- A Camada Mestra: O card que você gosta, como guia de fundo -->
+          <div 
+            v-if="boardColumns[colIdx-1].length === 0" 
+            class="absolute inset-0 flex items-center justify-center p-2 pt-14 pointer-events-none"
+          >
+            <div class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-slate-200/30 dark:border-white/5 rounded-[2.5rem] text-slate-400">
+              <Plus class="w-10 h-10 mb-4 opacity-20" />
+              <span class="text-[10px] font-black uppercase tracking-[0.3em] opacity-30 text-center px-8">
+                Arraste para cá
+              </span>
+            </div>
+          </div>
+
+          <!-- Área de Arrastar da Coluna (Transparente e por cima) -->
+          <draggable 
+            v-model="boardColumns[colIdx-1]" 
+            item-key="id" 
+            group="tasks"
+            class="flex flex-col gap-4 flex-1 transition-all duration-500 relative z-10"
+            :class="{ 'justify-center': boardColumns[colIdx-1].length === 0 }"
+            ghost-class="tass-ghost-effect" 
+            drag-class="tass-drag-effect" 
+            animation="400" 
+            handle=".cursor-grab"
+            @start="handleDragStart"
+            @end="handleDragEnd"
+            @change="(evt) => handleBoardChange(evt, colIdx)"
+          >
+            <template #item="{ element: task }">
+              <TaskCard 
+                :task="task" 
+                @toggle-completion="toggleTaskCompletion" 
+                @delete-task="deleteTask" 
+                @edit-task="openEditModal" 
+                @toggle-timer="taskStore.toggleTimer" 
+              />
+            </template>
+          </draggable>
+        </div>
       </section>
     </main>
 
     <footer class="fixed bottom-0 left-0 w-full grid grid-cols-1 md:grid-cols-3 items-center gap-4 py-6 px-8 z-40 pointer-events-none">
-      <!-- Esquerda: Vazia para manter o botão de Add na direita -->
       <div class="hidden md:block"></div>
 
       <div class="flex flex-col md:flex-row justify-center items-center gap-3 pointer-events-auto w-full md:w-auto">
-        <!-- Actions Capsule -->
         <div class="bottom-capsule !gap-1" :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-action-opacity))` }">
           <button class="p-1.5 hover:scale-110 transition-transform" @click="toggleTheme" :title="settings.theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'">
             <Sun v-if="settings.theme === 'dark'" class="w-5 h-5 text-amber-500" />
@@ -317,13 +384,11 @@ onUnmounted(() => {
             <Settings class="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
           </button>
         </div>
-        <!-- Status Filters Capsule -->
         <div class="bottom-capsule">
           <button class="filter-btn" :class="{ 'active': statusFilter === 'all' }" @click="statusFilter = 'all'">Todas</button>
           <button class="filter-btn" :class="{ 'active': statusFilter === 'active' }" @click="statusFilter = 'active'">Ativas</button>
           <button class="filter-btn" :class="{ 'active': statusFilter === 'completed' }" @click="statusFilter = 'completed'">Concluídas</button>
           
-          <!-- Add Task Button Integrated -->
           <button 
             class="ml-1 w-8 h-8 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-500/30 hover:rotate-90 transition-all duration-300 active:scale-90"
             @click="openAddModal" 
@@ -333,7 +398,6 @@ onUnmounted(() => {
           </button>
         </div>
 
-        <!-- Metrics Info Capsule -->
         <div class="bottom-capsule">
           <div 
             @click="showSprints = true"
@@ -357,7 +421,6 @@ onUnmounted(() => {
             <span class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{{ taskStore.activeSprintTotalTime }}</span>
           </div>
 
-          <!-- Active Task Monitor -->
           <div v-if="taskStore.activeTask" class="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-xl border border-emerald-500/20 animate-scaleIn">
             <span class="text-[10px] font-medium text-slate-600 dark:text-slate-300 truncate max-w-[80px] md:max-w-[120px]">{{ taskStore.activeTask.title }}</span>
             <span class="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
@@ -373,7 +436,6 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Direita: Vazia -->
       <div class="hidden md:block"></div>
     </footer>
   </div>
@@ -381,5 +443,3 @@ onUnmounted(() => {
     <div class="animate-pulse text-indigo-500 font-bold">Carregando TASS...</div>
   </div>
 </template>
-
-

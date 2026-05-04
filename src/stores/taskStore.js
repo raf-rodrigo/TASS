@@ -14,7 +14,6 @@ export const useTaskStore = defineStore('task', () => {
 
   const activeTask = computed(() => tasks.value.find(t => t.isRunning));
 
-  // --- GETTERS / METRICS ---
   const activeTaskTimeFormatted = computed(() => {
     return activeTask.value ? formatMsToHMS(activeTask.value.totalTimeSpent) : '00:00:00';
   });
@@ -35,7 +34,7 @@ export const useTaskStore = defineStore('task', () => {
       filtered = filtered.filter(t => t.sprintId === id);
     }
     const totalMs = filtered.reduce((acc, t) => acc + (t.totalTimeSpent || 0), 0);
-    return formatMsToHMS(totalMs, true); // true para formato curto (h m)
+    return formatMsToHMS(totalMs, true);
   });
 
   const loadTasks = async () => {
@@ -43,10 +42,21 @@ export const useTaskStore = defineStore('task', () => {
     try {
       let dbTasks = await db.tasks.toArray();
       
-      // Migration for position if needed
-      const needsMigration = dbTasks.some(t => typeof t.position !== 'number');
-      if (needsMigration) {
-        dbTasks.sort((a, b) => b.createdAt - a.createdAt);
+      const needsColumnMigration = dbTasks.some(t => t.columnId === undefined);
+      if (needsColumnMigration) {
+        const updates = [];
+        dbTasks.forEach(t => {
+          if (t.columnId === undefined) {
+            t.columnId = 1;
+            updates.push(db.tasks.update(t.id, { columnId: 1 }));
+          }
+        });
+        await Promise.all(updates);
+      }
+
+      const needsPositionMigration = dbTasks.some(t => typeof t.position !== 'number');
+      if (needsPositionMigration) {
+        dbTasks.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         const updates = [];
         dbTasks.forEach((t, index) => {
           t.position = index + 1;
@@ -55,29 +65,21 @@ export const useTaskStore = defineStore('task', () => {
         await Promise.all(updates);
       }
       
-      // Sync running task time (Safety check for system shutdown/sleep)
       const now = Date.now();
       const settings = useSettingsStore();
       const runningTask = dbTasks.find(t => t.isRunning);
       if (runningTask && runningTask.lastStartTime) {
         const timePassed = now - runningTask.lastStartTime;
-        
-        // Se o tempo passado for maior que 1 minuto e a configuração de inatividade estiver DESATIVADA
         if (timePassed > 60000 && !settings.trackInactivity) { 
           runningTask.isRunning = false;
           runningTask.lastStartTime = null;
-          await db.tasks.update(runningTask.id, { 
-            isRunning: false,
-            lastStartTime: null
-          });
-          console.log(`[Timer] Auto-pause ativado: Detectado salto de tempo de ${Math.round(timePassed/60000)}min.`);
+          await db.tasks.update(runningTask.id, { isRunning: false, lastStartTime: null });
         } else {
-          // Se estiver ATIVADO ou for um tempo curto, somamos normalmente.
           runningTask.totalTimeSpent += timePassed;
           runningTask.lastStartTime = now;
           await db.tasks.update(runningTask.id, { 
-            totalTimeSpent: runningTask.totalTimeSpent,
-            lastStartTime: runningTask.lastStartTime
+            totalTimeSpent: runningTask.totalTimeSpent, 
+            lastStartTime: runningTask.lastStartTime 
           });
         }
       }
@@ -100,6 +102,7 @@ export const useTaskStore = defineStore('task', () => {
   };
 
   const addTask = async (taskData) => {
+    const targetColumn = 1;
     const updates = [];
     tasks.value.forEach(t => {
       t.position += 1;
@@ -110,6 +113,7 @@ export const useTaskStore = defineStore('task', () => {
     const taskToAdd = {
       ...taskData,
       position: 1,
+      columnId: targetColumn,
       completed: false,
       totalTimeSpent: 0,
       isRunning: false,
@@ -148,10 +152,7 @@ export const useTaskStore = defineStore('task', () => {
     try {
       const taskToDelete = tasks.value.find(t => t.id === id);
       if (!taskToDelete) return;
-      
-      // Backup da tarefa antes de excluir
       lastDeletedTask.value = { ...taskToDelete };
-      
       await db.tasks.delete(id);
       
       const updates = [];
@@ -162,11 +163,8 @@ export const useTaskStore = defineStore('task', () => {
         }
       });
       await Promise.all(updates);
-
       tasks.value = tasks.value.filter(t => t.id !== id);
-      
       notificationService.toast('Tarefa excluída');
-
     } catch (error) {
       console.error("Failed to delete task:", error);
     }
@@ -174,11 +172,8 @@ export const useTaskStore = defineStore('task', () => {
 
   const restoreTask = async () => {
     if (!lastDeletedTask.value) return;
-    
     try {
       const taskToRestore = { ...lastDeletedTask.value };
-      
-      // Ajustar posições para abrir espaço
       const updates = [];
       tasks.value.forEach(t => {
         if (t.position >= taskToRestore.position) {
@@ -187,60 +182,38 @@ export const useTaskStore = defineStore('task', () => {
         }
       });
       await Promise.all(updates);
-      
       delete taskToRestore.id;
-      
       const id = await db.tasks.add(taskToRestore);
       taskToRestore.id = id;
-      
       tasks.value.push(taskToRestore);
       tasks.value.sort((a, b) => a.position - b.position);
-      
       lastDeletedTask.value = null;
       notificationService.toast('Tarefa restaurada!');
     } catch (error) {
       console.error("Failed to restore task:", error);
-      notificationService.alert('Erro ao restaurar tarefa.', '', 'error');
     }
   };
 
   const toggleTimer = async (task) => {
     if (task.completed) return;
     const now = Date.now();
-
     if (task.isRunning) {
       task.isRunning = false;
-      if (task.lastStartTime) {
-        task.totalTimeSpent += (now - task.lastStartTime);
-      }
+      if (task.lastStartTime) task.totalTimeSpent += (now - task.lastStartTime);
       task.lastStartTime = null;
-      await updateTask(task.id, {
-        isRunning: false,
-        totalTimeSpent: task.totalTimeSpent,
-        lastStartTime: null
-      });
+      await updateTask(task.id, { isRunning: false, totalTimeSpent: task.totalTimeSpent, lastStartTime: null });
     } else {
       for (const t of tasks.value) {
         if (t.isRunning && t.id !== task.id) {
           t.isRunning = false;
-          if (t.lastStartTime) {
-            t.totalTimeSpent += (now - t.lastStartTime);
-          }
+          if (t.lastStartTime) t.totalTimeSpent += (now - t.lastStartTime);
           t.lastStartTime = null;
-          await db.tasks.update(t.id, {
-            isRunning: false,
-            totalTimeSpent: t.totalTimeSpent,
-            lastStartTime: null
-          });
+          await db.tasks.update(t.id, { isRunning: false, totalTimeSpent: t.totalTimeSpent, lastStartTime: null });
         }
       }
-
       task.isRunning = true;
       task.lastStartTime = now;
-      await updateTask(task.id, {
-        isRunning: true,
-        lastStartTime: now
-      });
+      await updateTask(task.id, { isRunning: true, lastStartTime: now });
     }
   };
 
@@ -257,64 +230,40 @@ export const useTaskStore = defineStore('task', () => {
   const autoSaveRunningTasks = async () => {
     const promises = tasks.value
       .filter(t => t.isRunning)
-      .map(t => db.tasks.update(t.id, {
-        totalTimeSpent: t.totalTimeSpent,
-        lastStartTime: t.lastStartTime
-      }));
+      .map(t => db.tasks.update(t.id, { totalTimeSpent: t.totalTimeSpent, lastStartTime: t.lastStartTime }));
     await Promise.all(promises);
   };
 
-  const updateTaskPositions = async (newTasks) => {
-    if (newTasks.length < tasks.value.length) {
-      const updatedTasks = [...tasks.value];
-      const visibleIds = newTasks.map(t => t.id);
-      const originalIndices = updatedTasks
-        .map((t, idx) => visibleIds.includes(t.id) ? idx : -1)
-        .filter(idx => idx !== -1)
-        .sort((a, b) => a - b);
-      
-      originalIndices.forEach((originalIdx, i) => {
-        updatedTasks[originalIdx] = newTasks[i];
-      });
-      
-      tasks.value = updatedTasks;
-    } else {
-      tasks.value = [...newTasks];
-    }
-    
-    const updates = tasks.value.map((task, index) => {
-      const newPos = index + 1;
-      task.position = newPos;
-      return db.tasks.update(task.id, { position: newPos });
+  const migrateOrphanTasks = async (maxColumns) => {
+    const orphans = tasks.value.filter(t => t.columnId > maxColumns);
+    if (orphans.length === 0) return;
+
+    const updates = [];
+    orphans.forEach(t => {
+      t.columnId = 1;
+      updates.push(db.tasks.update(t.id, { columnId: 1 }));
     });
-    
-    try {
-      await Promise.all(updates);
-    } catch (error) {
-      console.error("Failed to persist new task positions:", error);
-    }
+    await Promise.all(updates);
+    notificationService.toast(`${orphans.length} tarefas órfãs movidas para a Coluna 1`);
+  };
+
+  const updateAllPositions = async (allTasksOrdered) => {
+    const updates = [];
+    allTasksOrdered.forEach((task, index) => {
+      const newPos = index + 1;
+      if (task.position !== newPos) {
+        task.position = newPos;
+        updates.push(db.tasks.update(task.id, { position: newPos }));
+      }
+    });
+    if (updates.length > 0) await Promise.all(updates);
   };
 
   return {
-    tasks,
-    sprints,
-    filter,
-    isLoading,
-    selectedTask,
-    activeTask,
-    loadTasks,
-    loadSprints,
-    addTask,
-    updateTask,
-    deleteTask,
-    restoreTask,
-    lastDeletedTask,
-    toggleTimer,
-    updateRunningTasks,
-    autoSaveRunningTasks,
-    updateTaskPositions,
-    activeTaskTimeFormatted,
-    activeSprintName,
-    activeSprintTotalTime
+    tasks, sprints, filter, isLoading, selectedTask, activeTask,
+    loadTasks, loadSprints, addTask, updateTask, deleteTask, restoreTask,
+    lastDeletedTask, toggleTimer, updateRunningTasks, autoSaveRunningTasks,
+    migrateOrphanTasks, updateAllPositions,
+    activeTaskTimeFormatted, activeSprintName, activeSprintTotalTime
   };
 });

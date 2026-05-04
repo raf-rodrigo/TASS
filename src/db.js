@@ -2,8 +2,8 @@ import Dexie from 'dexie';
 
 export const db = new Dexie('TaskManagerDB');
 
-db.version(4).stores({
-  tasks: '++id, title, position, sprintId, color',
+db.version(5).stores({
+  tasks: '++id, title, position, sprintId, color, columnId',
   sprints: '++id, endDate',
   settings: 'key',
   notes: '++id, content, updatedAt'

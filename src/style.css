@@ -188,3 +188,35 @@
 .swal2-confirm, .swal2-cancel, .swal2-deny {
   @apply !m-0;
 }
+
+/* Efeitos de Drag and Drop Premium */
+.tass-drag-effect {
+  @apply rotate-2 scale-95 shadow-2xl opacity-90 !important;
+  backdrop-filter: blur(8px) saturate(150%);
+  z-index: 9999;
+}
+
+.tass-ghost-effect {
+  @apply opacity-0 !important; /* Escondemos o original para criar o efeito de "salto" */
+}
+
+/* Pulsação para colunas vazias durante o arraste */
+.is-dragging-mode .border-dashed {
+  animation: pulse-border 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-border {
+  0% { border-color: rgba(99, 102, 241, 0.2); transform: scale(1); }
+  50% { border-color: rgba(99, 102, 241, 0.8); box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); transform: scale(1.01); }
+  100% { border-color: rgba(99, 102, 241, 0.2); transform: scale(1); }
+}
+
+/* Brilho quando a tarefa entra na coluna */
+.sortable-drag-over {
+  @apply border-indigo-500/50 bg-indigo-500/5 !important;
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.3) !important;
+}
+
+.tass-ghost-effect {
+  @apply opacity-30 !important;
+}

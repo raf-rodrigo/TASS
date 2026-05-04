@@ -43,6 +43,7 @@ export const useSettingsStore = defineStore('settings', () => {
     alerts: true
   });
   const roundedIcons = ref(false);
+  const columnTitles = ref(['', '', '', '']);
 
   const customWallpapers = ref([
     { name: 'Dark Abstract', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop' },
@@ -93,6 +94,7 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-notes-width']) notesWidth.value = settingsMap['app-notes-width'];
       if (settingsMap['app-note-color']) noteColor.value = settingsMap['app-note-color'];
       if (settingsMap['app-card-padding']) cardPadding.value = settingsMap['app-card-padding'];
+      if (settingsMap['app-column-titles']) columnTitles.value = settingsMap['app-column-titles'];
 
       isInitialized.value = true;
     } catch (error) {
@@ -142,7 +144,8 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-notes-btn-top', value: notesButtonTop.value },
       { key: 'app-notes-width', value: notesWidth.value },
       { key: 'app-note-color', value: noteColor.value },
-      { key: 'app-card-padding', value: cardPadding.value }
+      { key: 'app-card-padding', value: cardPadding.value },
+      { key: 'app-column-titles', value: [...columnTitles.value] }
     ];
 
     try {
@@ -160,7 +163,7 @@ export const useSettingsStore = defineStore('settings', () => {
     taskDescriptionSize, notesSide, noteColor, backgroundImage, backgroundBlur,
     notesButtonTop, notesWidth, cardPadding, fontFamily, trackInactivity,
     workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,
-    cardBorderRadius, opacityTargets, roundedIcons, customWallpapers,
+    cardBorderRadius, opacityTargets, roundedIcons, customWallpapers, columnTitles,
     isInitialized, loadSettings, saveSetting, saveAllSettings
   };
 });

@@ -7,8 +7,10 @@ import {
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useModalDrag } from '../composables/useModalDrag';
+import { useTaskStore } from '../stores/taskStore';
 
 const settings = useSettingsStore();
+const taskStore = useTaskStore();
 const { position, onMouseDown } = useModalDrag();
 
 defineProps({
@@ -67,6 +69,16 @@ const removeWallpaper = (index) => {
 const clearWallpaper = () => {
   settings.backgroundImage = '';
   settings.saveSetting('app-bg-image', '');
+};
+
+const handleColumnChange = (n) => {
+  const oldColumns = settings.columns;
+  settings.columns = n;
+  settings.saveSetting('app-columns', n);
+  
+  if (n < oldColumns) {
+    taskStore.migrateOrphanTasks(n);
+  }
 };
 </script>
 
@@ -150,13 +162,34 @@ const clearWallpaper = () => {
                     <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Configure a estrutura principal do seu quadro de tarefas.</p>
                   </div>
 
-                  <div class="space-y-6">
+                  <div class="space-y-8">
+                    <!-- Seleção de Colunas -->
                     <div class="space-y-3">
-                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Colunas do Board</label>
+                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Quantidade de Colunas</label>
                       <div class="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200 dark:border-white/5 w-full">
-                        <button v-for="n in 4" :key="n" @click="settings.columns = n; settings.saveSetting('app-columns', n)"
+                        <button v-for="n in 4" :key="n" @click="handleColumnChange(n)"
                           class="flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300"
                           :class="settings.columns === n ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400'">{{ n }} Colunas</button>
+                      </div>
+                    </div>
+
+                    <!-- Títulos das Colunas -->
+                    <div class="space-y-4 animate-fadeIn">
+                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Nomes das Colunas (Opcional)</label>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div v-for="n in settings.columns" :key="n" class="space-y-1.5">
+                          <div class="flex items-center gap-2 mb-1">
+                            <div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Coluna {{ n }}</span>
+                          </div>
+                          <input 
+                            v-model="settings.columnTitles[n-1]" 
+                            type="text" 
+                            placeholder="Ex: Backlog, Fazendo..."
+                            class="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                            @change="settings.saveSetting('app-column-titles', settings.columnTitles)"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -281,7 +314,8 @@ const clearWallpaper = () => {
                     </div>
                   </div>
                 </div>
-                             <!-- ABA: Imersão e Fundo -->
+
+                <!-- ABA: Imersão e Fundo -->
                 <div v-else-if="activeTab === 'immersion'" :key="'immersion'" class="space-y-6">
                   <!-- Galeria de Fundos -->
                   <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-6">
@@ -456,4 +490,3 @@ const clearWallpaper = () => {
 
 <style scoped>
 </style>
-
