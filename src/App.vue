@@ -20,6 +20,7 @@ import { ClipboardList, Plus, Sun, Moon, Settings, Calendar, Maximize, StickyNot
 
 import { useSettingsStore } from './stores/settingsStore';
 import { useTaskStore } from './stores/taskStore';
+import { backupService } from './services/backupService';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -179,93 +180,25 @@ const applyTheme = () => {
   }
 };
 
-// --- BACKUP LOGIC ---
+// --- BACKUP HANDLERS ---
+const handleExportTasks = () => backupService.exportTasks();
+const handleExportSystem = () => backupService.exportSystem();
 
-const exportTasks = async () => {
-  try {
-    const data = await db.tasks.toArray();
-    downloadJson(data, 'tass_tasks_backup.json');
-    notificationService.toast('Backup de tarefas exportado!');
-  } catch (error) {
-    console.error("Export failed:", error);
+const handleImportTasks = async (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    await backupService.importTasks(file, taskStore);
+    event.target.value = '';
   }
 };
 
-const exportSystem = async () => {
-  try {
-    const fullData = {
-      tasks: await db.tasks.toArray(),
-      sprints: await db.sprints.toArray(),
-      settings: await db.settings.toArray(),
-      notes: await db.notes.toArray(),
-      version: '1.0',
-      timestamp: new Date().toISOString()
-    };
-    downloadJson(fullData, 'tass_full_system_backup.json');
-    notificationService.toast('Backup completo do sistema exportado!');
-  } catch (error) {
-    console.error("System export failed:", error);
+const handleImportSystem = async (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    await backupService.importSystem(file, settings, taskStore);
+    applyTheme(); // Reaplica o tema após restauração das configs
+    event.target.value = '';
   }
-};
-
-const downloadJson = (data, filename) => {
-  const dataStr = JSON.stringify(data, null, 2);
-  const blob = new Blob([dataStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
-};
-
-const importTasks = async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      const tasks = Array.isArray(data) ? data : (data.tasks || null);
-      if (!tasks) throw new Error("Invalid task format");
-      await db.tasks.bulkPut(tasks);
-      await taskStore.loadTasks();
-      notificationService.toast('Tarefas importadas com sucesso!');
-    } catch (error) {
-      notificationService.alert('Falha na importação de tarefas', '', 'error');
-    }
-    event.target.value = '';
-  };
-  reader.readAsText(file);
-};
-
-const importSystem = async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (!data.tasks || !data.settings) throw new Error("Invalid system backup format");
-      
-      // Import sequentially to avoid conflicts
-      if (data.tasks) await db.tasks.bulkPut(data.tasks);
-      if (data.sprints) await db.sprints.bulkPut(data.sprints);
-      if (data.settings) await db.settings.bulkPut(data.settings);
-      if (data.notes) await db.notes.bulkPut(data.notes);
-      
-      await settings.loadSettings();
-      await taskStore.loadTasks();
-      await taskStore.loadSprints();
-      applyTheme();
-      
-      notificationService.toast('Sistema restaurado completamente!');
-    } catch (error) {
-      notificationService.alert('Falha na restauração do sistema', 'O arquivo não parece ser um backup completo válido.', 'error');
-    }
-    event.target.value = '';
-  };
-  reader.readAsText(file);
 };
 
 const resetFilters = () => {
@@ -342,10 +275,10 @@ onUnmounted(() => {
         v-if="showSettings"
         @close="showSettings = false"
         @save="startWaterReminder"
-        @export-tasks="exportTasks"
-        @import-tasks="importTasks"
-        @export-system="exportSystem"
-        @import-system="importSystem"
+        @export-tasks="handleExportTasks"
+        @import-tasks="handleImportTasks"
+        @export-system="handleExportSystem"
+        @import-system="handleImportSystem"
       />
 
       <SprintModal
