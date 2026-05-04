@@ -25,10 +25,18 @@ O **TASS** é um gerenciador de tarefas avançado, focado em produtividade para 
 - **Cópia Automática:** Copia o nome da branch formatada para o clipboard ao abrir o link.
 
 ### 🎨 Interface e Experiência (UI/UX)
-- **Design Moderno:** Interface estilo Glassmorphism com micro-animações fluídas.
-- **Modo Escuro/Claro:** Suporte nativo a temas, preservando a saúde visual.
-- **Layout Customizável:** Escolha entre visualização em 1 ou 2 colunas.
-- **Notificações em Tempo Real:** Feedback visual imediato para todas as ações através de toasts elegantes.
+- **Glassmorphism Design:** Interface moderna e translúcida com efeitos de desfoque (blur) em tempo real.
+- **Modo Escuro/Claro:** Suporte nativo a temas que adaptam automaticamente as tonalidades de vidro.
+- **Layout Dinâmico:** Escolha entre visualizações de 1 ou 2 colunas para melhor aproveitamento do espaço.
+- **Micro-animações:** Transições fluídas e feedbacks visuais imediatos via Toasts elegantes.
+
+### 🎭 Personalização Avançada (Engine de Design)
+- **Galeria de Fundos:** Engine nativa com 11 slots para papéis de parede customizados via URL.
+- **Transparência Global:** Controle granular da opacidade de cards, modais, menus, barra de ações e menus de contexto.
+- **Tonalidade de Cards:** Paleta curada para aplicar "tints" sutis nos cards de tarefa, harmonizando-os com o fundo escolhido.
+- **Tipografia Premium:** Seleção de 12 fontes modernas (Inter, Outfit, Lexend, JetBrains Mono, etc.) para todo o sistema.
+- **Escala de Texto:** Ajuste independente do tamanho do Título (ID) e da Descrição das tarefas para máxima ergonomia visual.
+- **Controle de Desfoque:** Ajuste dinâmico do nível de Blur do wallpaper para aumentar o contraste e foco.
 
 ### 🔐 Segurança e Backup
 - **Offline-First:** Todos os dados são armazenados localmente no seu navegador via **IndexedDB** (usando Dexie.js). Zero dependência de servidores externos.
