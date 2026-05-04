@@ -124,7 +124,8 @@ const handleImportSystem = (event) => emit('import-system', event);
       <div class="flex flex-col md:flex-row h-full overflow-hidden">
         <!-- Sidebar de Abas (Handle de Arraste) -->
         <aside 
-          class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex flex-col p-4 cursor-grab active:cursor-grabbing group"
+          class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-4 cursor-grab active:cursor-grabbing group"
+          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-slate-50/50 dark:bg-white/[0.02]'"
           @mousedown="onMouseDown"
         >
         <div class="hidden md:flex items-center gap-3 px-2 mb-8">
@@ -157,7 +158,10 @@ const handleImportSystem = (event) => emit('import-system', event);
       </aside>
 
       <!-- Conteúdo da Aba -->
-      <main class="flex-1 flex flex-col bg-white dark:bg-slate-950 overflow-hidden relative">
+      <main 
+        class="flex-1 flex flex-col overflow-hidden relative"
+        :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+      >
         <!-- Close Button Top Right -->
         <button class="absolute top-6 right-6 icon-btn z-10" @click="emit('close')">
           <X class="w-5 h-5" />

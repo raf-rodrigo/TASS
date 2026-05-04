@@ -1,7 +1,9 @@
 <script setup>
 import { X } from 'lucide-vue-next';
 import { useModalDrag } from '../composables/useModalDrag';
+import { useSettingsStore } from '../stores/settingsStore';
 
+const settings = useSettingsStore();
 const props = defineProps({
   title: String,
   showClose: { type: Boolean, default: true },
@@ -20,7 +22,12 @@ const { position, onMouseDown } = useModalDrag();
     <section 
       class="glass-panel w-full flex flex-col shadow-2xl border-white/20 dark:border-white/5 overflow-hidden"
       :class="[maxWidth, customClass, { 'animate-scaleIn': animate }]"
-      :style="{ transform: `translate(${position.x}px, ${position.y}px)` }"
+      :style="{ 
+        transform: `translate(${position.x}px, ${position.y}px)`,
+        backgroundColor: settings.theme === 'dark' 
+          ? `rgba(15, 23, 42, ${settings.opacityTargets.modals ? settings.cardOpacity / 100 : 0.98})` 
+          : `rgba(255, 255, 255, ${settings.opacityTargets.modals ? settings.cardOpacity / 100 : 0.95})`
+      }"
     >
       <!-- Header / Drag Handle -->
       <header 

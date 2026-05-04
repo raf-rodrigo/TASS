@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { 
   X, Palette, Monitor, Trash2, Plus,
   Image as ImageIcon, Sliders, Eraser,
-  LayoutGrid, StickyNote, Layers
+  LayoutGrid, StickyNote, Layers, Type as TypeIcon, Droplets
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useModalDrag } from '../composables/useModalDrag';
@@ -23,9 +23,10 @@ const newWallpaperUrl = ref('');
 
 const tabs = [
   { id: 'board', label: 'Board & Layout', icon: LayoutGrid, color: 'text-indigo-500' },
-  { id: 'cards', label: 'Design dos Cards', icon: Layers, color: 'text-purple-500' },
-  { id: 'notes', label: 'Notas Rápidas', icon: StickyNote, color: 'text-amber-500' },
-  { id: 'immersion', label: 'Imersão & Fundo', icon: ImageIcon, color: 'text-emerald-500' },
+  { id: 'tasks', label: 'Estilo das Tarefas', icon: Layers, color: 'text-indigo-500' },
+  { id: 'typography', label: 'Tipografia', icon: TypeIcon, color: 'text-indigo-500' },
+  { id: 'notes', label: 'Notas Rápidas', icon: StickyNote, color: 'text-indigo-500' },
+  { id: 'immersion', label: 'Imersão e Fundo', icon: ImageIcon, color: 'text-indigo-500' },
 ];
 
 const fontOptions = [
@@ -81,13 +82,19 @@ const clearWallpaper = () => {
     <div v-if="isOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-transparent" @click.self="emit('close')">
       <section 
         class="glass-panel w-[95%] max-w-4xl p-0 animate-scaleIn h-[90vh] md:h-[600px] flex flex-col overflow-hidden shadow-2xl border-indigo-500/10"
-        :style="{ transform: `translate(${position.x}px, ${position.y}px)` }"
+        :style="{ 
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          backgroundColor: settings.theme === 'dark' 
+            ? `rgba(15, 23, 42, ${settings.opacityTargets.modals ? settings.cardOpacity / 100 : 0.98})` 
+            : `rgba(255, 255, 255, ${settings.opacityTargets.modals ? settings.cardOpacity / 100 : 0.95})`
+        }"
       >
         
         <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
           <!-- Sidebar de Abas (Handle de Arraste) -->
           <aside 
-            class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex flex-col p-4 cursor-grab active:cursor-grabbing group"
+            class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-4 cursor-grab active:cursor-grabbing group"
+            :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-slate-50/50 dark:bg-white/[0.02]'"
             @mousedown="onMouseDown"
           >
             <div class="hidden md:flex items-center gap-3 px-2 mb-8">
@@ -120,7 +127,10 @@ const clearWallpaper = () => {
           </aside>
 
           <!-- Conteúdo da Aba -->
-          <main class="flex-1 flex flex-col bg-white dark:bg-slate-950 overflow-hidden relative">
+          <main 
+            class="flex-1 flex flex-col overflow-hidden relative"
+            :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+          >
             <!-- Close Button Top Right -->
             <button class="absolute top-6 right-6 icon-btn z-10" @click="emit('close')">
               <X class="w-5 h-5" />
@@ -144,24 +154,14 @@ const clearWallpaper = () => {
                           :class="settings.columns === n ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400'">{{ n }} Colunas</button>
                       </div>
                     </div>
-
-                    <div class="space-y-3">
-                      <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Tipografia</label>
-                      <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        <button v-for="font in fontOptions" :key="font" @click="settings.fontFamily = font; settings.saveSetting('app-font-family', font)"
-                          class="px-2 py-2.5 text-[10px] font-medium rounded-xl border transition-all truncate"
-                          :class="settings.fontFamily === font ? 'bg-indigo-500 text-white border-indigo-500 shadow-md' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10'"
-                          :style="{ fontFamily: font }">{{ font }}</button>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
-                <!-- ABA: Cards -->
-                <div v-else-if="activeTab === 'cards'" :key="'cards'" class="space-y-8">
+                <!-- ABA: Estilo das Tarefas -->
+                <div v-else-if="activeTab === 'tasks'" :key="'tasks'" class="space-y-8">
                   <div>
-                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Design dos Cards</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Ajuste a ergonomia visual das suas tarefas.</p>
+                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Estilo das Tarefas</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Personalize a aparência visual dos seus cards de tarefa.</p>
                   </div>
 
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -181,6 +181,15 @@ const clearWallpaper = () => {
                       <input type="range" v-model="settings.cardPadding" min="8" max="40" step="2" class="w-full tass-range" @change="settings.saveSetting('app-card-padding', settings.cardPadding)" />
                     </div>
 
+                    <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4 md:col-span-2">
+                      <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Arredondamento</span>
+                        <span class="text-xs font-black text-indigo-500">{{ settings.cardBorderRadius }}px</span>
+                      </div>
+                      <input type="range" v-model="settings.cardBorderRadius" min="0" max="40" step="1" class="w-full tass-range" @change="settings.saveSetting('app-card-radius', settings.cardBorderRadius)" />
+                    </div>
+
+                    <!-- Escala de Texto -->
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
                       <div class="flex justify-between items-center">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tamanho do ID</span>
@@ -196,58 +205,28 @@ const clearWallpaper = () => {
                       </div>
                       <input type="range" v-model="settings.taskDescriptionSize" min="10" max="28" step="1" class="w-full tass-range" @change="settings.saveSetting('app-task-desc-size', settings.taskDescriptionSize)" />
                     </div>
+                  </div>
+                </div>
 
-                    <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4 md:col-span-2">
-                      <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Arredondamento</span>
-                        <span class="text-xs font-black text-indigo-500">{{ settings.cardBorderRadius }}px</span>
+                <!-- ABA: Tipografia -->
+                <div v-else-if="activeTab === 'typography'" :key="'typography'" class="space-y-8">
+                  <div>
+                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Tipografia</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Escolha a fonte que melhor se adapta ao seu estilo de trabalho.</p>
+                  </div>
+
+                  <div class="space-y-6">
+                    <!-- Família de Fontes -->
+                    <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
+                      <div class="flex items-center gap-3 mb-2">
+                        <TypeIcon class="w-5 h-5 text-indigo-500" />
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Família de Fontes</span>
                       </div>
-                      <input type="range" v-model="settings.cardBorderRadius" min="0" max="40" step="1" class="w-full tass-range" @change="settings.saveSetting('app-card-radius', settings.cardBorderRadius)" />
-                    </div>
-
-                    <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4 md:col-span-2">
-                      <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nível de Transparência</span>
-                        <span class="text-xs font-black text-indigo-500">{{ settings.cardOpacity }}%</span>
-                      </div>
-                      <input type="range" v-model="settings.cardOpacity" min="10" max="100" step="5" class="w-full tass-range" @change="settings.saveSetting('app-card-opacity', settings.cardOpacity)" />
-                      
-                      <div class="pt-6 border-t border-slate-200 dark:border-white/5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block">Aplicar transparência em:</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Tarefas</span>
-                            <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.cards" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
-                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
-                            </div>
-                          </label>
-
-
-                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Menu Inferior</span>
-                            <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.bottomBar" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
-                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
-                            </div>
-                          </label>
-
-                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Menu de Contexto</span>
-                            <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.contextMenu" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
-                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
-                            </div>
-                          </label>
-
-                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Barra de Ações</span>
-                            <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.actionBar" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
-                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
-                            </div>
-                          </label>
-                        </div>
+                      <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        <button v-for="font in fontOptions" :key="font" @click="settings.fontFamily = font; settings.saveSetting('app-font-family', font)"
+                          class="px-2 py-2.5 text-[10px] font-medium rounded-xl border transition-all truncate"
+                          :class="settings.fontFamily === font ? 'bg-indigo-500 text-white border-indigo-500 shadow-md' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10'"
+                          :style="{ fontFamily: font }">{{ font }}</button>
                       </div>
                     </div>
                   </div>
@@ -276,9 +255,9 @@ const clearWallpaper = () => {
                     </div>
                   </div>
                 </div>
-
-                <!-- ABA: Imersão e Fundo -->
+                             <!-- ABA: Imersão e Fundo -->
                 <div v-else-if="activeTab === 'immersion'" :key="'immersion'" class="space-y-6">
+                  <!-- Galeria de Fundos -->
                   <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-6">
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
@@ -363,9 +342,70 @@ const clearWallpaper = () => {
                           type="range" 
                           v-model="settings.backgroundBlur" 
                           min="0" max="20" step="1" 
-                          class="w-full tass-range" 
-                          @change="settings.saveSetting('app-bg-blur', settings.backgroundBlur)"
+                          class="w-full tass-range-indigo" 
+                          @change="settings.saveSetting('app-bg-blur', settings.backgroundBlur)" 
                         />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Efeito de Transparência -->
+                  <div class="p-6 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-3xl border border-indigo-500/10 space-y-6">
+                    <div class="flex items-center gap-3">
+                      <Droplets class="w-5 h-5 text-indigo-500" />
+                      <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Transparência e Vidro</h3>
+                    </div>
+
+                    <div class="space-y-4">
+                      <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nível de Opacidade</span>
+                        <span class="text-xs font-black text-indigo-500">{{ settings.cardOpacity }}%</span>
+                      </div>
+                      <input type="range" v-model="settings.cardOpacity" min="10" max="100" step="5" class="w-full tass-range" @change="settings.saveSetting('app-card-opacity', settings.cardOpacity)" />
+                      
+                      <div class="pt-6 border-t border-slate-200 dark:border-white/5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block">Aplicar efeito em:</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Tarefas</span>
+                            <div class="relative inline-flex items-center">
+                              <input type="checkbox" v-model="settings.opacityTargets.cards" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
+                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
+                            </div>
+                          </label>
+
+                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Janelas e Menus</span>
+                            <div class="relative inline-flex items-center">
+                              <input type="checkbox" v-model="settings.opacityTargets.modals" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
+                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
+                            </div>
+                          </label>
+
+                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Menu Inferior</span>
+                            <div class="relative inline-flex items-center">
+                              <input type="checkbox" v-model="settings.opacityTargets.bottomBar" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
+                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
+                            </div>
+                          </label>
+
+                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Menu de Contexto</span>
+                            <div class="relative inline-flex items-center">
+                              <input type="checkbox" v-model="settings.opacityTargets.contextMenu" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
+                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
+                            </div>
+                          </label>
+
+                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all md:col-span-2">
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Barra de Ações (Filtros)</span>
+                            <div class="relative inline-flex items-center">
+                              <input type="checkbox" v-model="settings.opacityTargets.actionBar" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
+                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
+                            </div>
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </div>
