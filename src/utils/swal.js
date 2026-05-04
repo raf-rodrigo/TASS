@@ -30,9 +30,9 @@ export const confirm = async (options) => {
     customClass: {
       popup: 'tass-modal',
       title: 'swal2-title',
-      confirmButton: options.confirmButtonClass || 'btn btn-primary',
-      cancelButton: options.cancelButtonClass || 'btn btn-secondary',
-      denyButton: options.denyButtonClass || 'btn btn-secondary'
+      confirmButton: options.confirmClass || 'btn btn-primary',
+      cancelButton: options.cancelClass || 'btn btn-secondary',
+      denyButton: options.denyClass || 'btn btn-secondary'
     },
     buttonsStyling: false,
   });

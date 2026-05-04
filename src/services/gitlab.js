@@ -158,7 +158,7 @@ export const gitlabService = {
         title: 'Alerta de Exclusão',
         message: `Deseja realmente EXCLUIR a branch '${branchName}'?`,
         confirmText: 'Sim, Excluir',
-        confirmButtonClass: 'btn btn-danger',
+        confirmClass: 'btn btn-danger',
         cancelText: 'Cancelar',
         type: 'danger'
       });
