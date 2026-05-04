@@ -36,59 +36,27 @@ const taskToEdit = ref(null);
 let timerInterval = null;
 let autoSaveInterval = null;
 
-const activeTaskTimeFormatted = computed(() => {
-  if (!taskStore.activeTask) return '00:00:00';
-  const totalSeconds = Math.floor(taskStore.activeTask.totalTimeSpent / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
+// Lógica de Filtros
+const filteredTasks = computed(() => {
+  let result = [...taskStore.tasks];
   
-  const pad = (num) => String(num).padStart(2, '0');
-  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-});
-
-const activeSprintName = computed(() => {
-  if (settings.activeSprintId === 'all') return 'Todas as Sprints';
-  const sprint = taskStore.sprints.find(s => s.id === parseInt(settings.activeSprintId));
-  if (!sprint) return 'Sprint...';
-  return `Sprint ${new Date(sprint.endDate).toLocaleDateString('pt-BR')}`;
-});
-
-const activeSprintTotalTime = computed(() => {
-  let filtered = taskStore.tasks;
   if (settings.activeSprintId !== 'all') {
     const id = parseInt(settings.activeSprintId);
-    filtered = filtered.filter(t => t.sprintId === id);
+    result = result.filter(t => t.sprintId === id);
   }
-  const totalMs = filtered.reduce((acc, t) => acc + (t.totalTimeSpent || 0), 0);
-  const totalSeconds = Math.floor(totalMs / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  return `${hours}h ${minutes}m`;
+
+  if (statusFilter.value === 'active') {
+    result = result.filter(t => !t.completed);
+  } else if (statusFilter.value === 'completed') {
+    result = result.filter(t => t.completed);
+  }
+  
+  return result;
 });
 
-// Lógica de Filtros
-const filteredTasks = computed({
-  get() {
-    let result = [...taskStore.tasks];
-    
-    if (settings.activeSprintId !== 'all') {
-      const id = parseInt(settings.activeSprintId);
-      result = result.filter(t => t.sprintId === id);
-    }
-
-    if (statusFilter.value === 'active') {
-      result = result.filter(t => !t.completed);
-    } else if (statusFilter.value === 'completed') {
-      result = result.filter(t => t.completed);
-    }
-    
-    return result;
-  },
-  set(newValue) {
-    taskStore.updateTaskPositions(newValue);
-  }
-});
+const handleReorder = () => {
+  taskStore.updateTaskPositions(filteredTasks.value);
+};
 
 // Methods
 const openAddModal = () => {
@@ -439,7 +407,7 @@ onUnmounted(() => {
           <p>Nenhuma tarefa encontrada.</p>
         </div>
 
-        <draggable v-model="filteredTasks" item-key="id" class="grid gap-4 w-full" :class="{
+        <draggable :list="filteredTasks" @end="handleReorder" item-key="id" class="grid gap-4 w-full" :class="{
             'grid-cols-1': settings.columns === 1,
             'grid-cols-1 md:grid-cols-2': settings.columns === 2,
             'grid-cols-1 md:grid-cols-3': settings.columns === 3,
@@ -505,11 +473,11 @@ onUnmounted(() => {
         >
           <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-100/50 dark:bg-white/5 rounded-xl border border-slate-200/50 dark:border-white/5">
             <Calendar class="w-3.5 h-3.5 text-indigo-500" />
-            <span class="text-[10px] font-bold text-slate-700 dark:text-slate-200 uppercase whitespace-nowrap">{{ activeSprintName }}</span>
+            <span class="text-[10px] font-bold text-slate-700 dark:text-slate-200 uppercase whitespace-nowrap">{{ taskStore.activeSprintName }}</span>
           </div>
           <div class="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
             <Clock class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{{ activeSprintTotalTime }}</span>
+            <span class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{{ taskStore.activeSprintTotalTime }}</span>
           </div>
 
           <!-- Active Task Monitor -->
@@ -517,7 +485,7 @@ onUnmounted(() => {
             <span class="text-[10px] font-medium text-slate-600 dark:text-slate-300 truncate max-w-[80px] md:max-w-[120px]">{{ taskStore.activeTask.title }}</span>
             <span class="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
             <span class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">
-              {{ activeTaskTimeFormatted }}
+              {{ taskStore.activeTaskTimeFormatted }}
             </span>
             <span class="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse"></span>
           </div>

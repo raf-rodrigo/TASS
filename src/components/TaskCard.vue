@@ -2,6 +2,8 @@
 import { computed, ref } from 'vue';
 import { Play, Square, GitBranch, ExternalLink, MessageSquare, StickyNote, X } from 'lucide-vue-next';
 import { toast as sToast } from '../utils/swal.js';
+import { slugify } from '../utils/string.js';
+import { formatMsToHMS } from '../utils/time.js';
 
 // Stores & Services
 import { useSettingsStore } from '../stores/settingsStore';
@@ -24,25 +26,17 @@ const emit = defineEmits([
 
 const showObservations = ref(false);
 
-const formattedTime = computed(() => {
-  const totalSeconds = Math.floor(props.task.totalTimeSpent / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  
-  const pad = (num) => String(num).padStart(2, '0');
-  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-});
+const formattedTime = computed(() => formatMsToHMS(props.task.totalTimeSpent));
 
 const formattedTitle = computed(() => {
   if (!settings.formatText) return props.task.title;
-  return props.task.title.toLowerCase().replace(/\s+/g, '-');
+  return slugify(props.task.title);
 });
 
 const formattedDescription = computed(() => {
   if (!props.task.description) return '';
   if (!settings.formatText) return props.task.description;
-  return props.task.description.toLowerCase().replace(/\s+/g, '-');
+  return slugify(props.task.description);
 });
 
 const isCreatingBranch = ref(false);

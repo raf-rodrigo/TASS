@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { db } from '../db.js';
 import { notificationService } from '../services/notificationService';
 import { useSettingsStore } from './settingsStore';
+import { formatMsToHMS } from '../utils/time.js';
 
 export const useTaskStore = defineStore('task', () => {
   const tasks = ref([]);
@@ -12,6 +13,30 @@ export const useTaskStore = defineStore('task', () => {
   const selectedTask = ref(null);
 
   const activeTask = computed(() => tasks.value.find(t => t.isRunning));
+
+  // --- GETTERS / METRICS ---
+  const activeTaskTimeFormatted = computed(() => {
+    return activeTask.value ? formatMsToHMS(activeTask.value.totalTimeSpent) : '00:00:00';
+  });
+
+  const activeSprintName = computed(() => {
+    const settings = useSettingsStore();
+    if (settings.activeSprintId === 'all') return 'Todas as Sprints';
+    const sprint = sprints.value.find(s => s.id === parseInt(settings.activeSprintId));
+    if (!sprint) return 'Sprint...';
+    return `Sprint ${new Date(sprint.endDate).toLocaleDateString('pt-BR')}`;
+  });
+
+  const activeSprintTotalTime = computed(() => {
+    const settings = useSettingsStore();
+    let filtered = tasks.value;
+    if (settings.activeSprintId !== 'all') {
+      const id = parseInt(settings.activeSprintId);
+      filtered = filtered.filter(t => t.sprintId === id);
+    }
+    const totalMs = filtered.reduce((acc, t) => acc + (t.totalTimeSpent || 0), 0);
+    return formatMsToHMS(totalMs, true); // true para formato curto (h m)
+  });
 
   const loadTasks = async () => {
     isLoading.value = true;
@@ -287,6 +312,9 @@ export const useTaskStore = defineStore('task', () => {
     toggleTimer,
     updateRunningTasks,
     autoSaveRunningTasks,
-    updateTaskPositions
+    updateTaskPositions,
+    activeTaskTimeFormatted,
+    activeSprintName,
+    activeSprintTotalTime
   };
 });

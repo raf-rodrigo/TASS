@@ -1,5 +1,6 @@
 import { toast as sToast, confirm as sConfirm } from '../utils/swal.js';
 import { db } from '../db.js';
+import { slugify } from '../utils/string.js';
 
 export const gitlabService = {
   getBranchName(task) {
@@ -7,7 +8,7 @@ export const gitlabService = {
     if (task.description) {
       combined += '-' + task.description;
     }
-    return combined.toLowerCase().replace(/\s+/g, '-');
+    return slugify(combined);
   },
 
   async deleteLocalBranchLink(task) {
