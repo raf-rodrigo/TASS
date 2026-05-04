@@ -187,7 +187,7 @@ const handleColumnChange = (n) => {
                             type="text" 
                             placeholder="Ex: Backlog, Fazendo..."
                             class="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                            @change="settings.saveSetting('app-column-titles', settings.columnTitles)"
+                            @input="settings.saveSetting('app-column-titles', [...settings.columnTitles])"
                           />
                         </div>
                       </div>

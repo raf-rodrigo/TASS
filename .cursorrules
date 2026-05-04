@@ -67,3 +67,18 @@ Para manter a consistência visual nos alertas e prompts:
 - **Nativo**: Nunca utilizar o atributo `title` do navegador.
 - **Custom**: Utilizar o atributo `data-tip` nos elementos. O sistema CSS em `style.css` cuidará da exibição opaca e centralizada.
 - **Z-Index**: Elementos com tooltips devem garantir um `z-index` maior em estado de hover (`hover:z-[100]`) para evitar sobreposição por elementos vizinhos.
+
+## 10. Inteligência Artificial e Fluxo de Trabalho
+
+### 10.1 Mensagens de Commit
+Após qualquer alteração ou conjunto de alterações, a IA deve sugerir a mensagem de commit no padrão **Conventional Commits**, fornecendo sempre o **comando completo pronto para o terminal** (PowerShell/Bash) em uma única linha:
+- **Formato do Comando**: `git commit -m "tipo(escopo): título" -m "- detalhe 1" -m "- detalhe 2"`
+- **Conteúdo**: O título deve ser curto e o corpo deve utilizar bullet points detalhados.
+- **Praticidade**: O comando deve ser gerado de forma que o usuário possa apenas copiar e colar no terminal sem erros.
+
+### 10.2 Idioma e Raciocínio
+- **Raciocínio Interno**: A IA deve realizar todo o seu processo de raciocínio (pensamento) em **Português**, garantindo que a lógica e a criatividade estejam alinhadas com o idioma do usuário.
+- **Respostas**: Todas as explicações e comunicações devem ser em Português.
+
+### 10.3 Criatividade e UX Premium
+- A IA deve sempre buscar soluções criativas que elevem a experiência do usuário, sugerindo micro-interações, animações ou melhorias de fluxo que sigam a estética "Premium" definida nas seções anteriores.
