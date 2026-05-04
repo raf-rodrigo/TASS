@@ -18,23 +18,26 @@ export const toast = Swal.mixin({
 
 // Função para Confirmação
 export const confirm = async (options) => {
+  // Destruturamos nossas chaves customizadas para não enviá-las ao SweetAlert
+  const { 
+    confirmClass, cancelClass, denyClass, 
+    message, confirmText, cancelText,
+    ...nativeOptions 
+  } = options;
+
   return Swal.fire({
-    title: options.title || 'Tem certeza?',
-    text: options.message || '',
-    icon: options.type === 'danger' ? 'warning' : 'info',
+    title: 'Tem certeza?',
+    icon: 'info',
     showCancelButton: true,
-    showDenyButton: options.showDenyButton || false,
-    confirmButtonText: options.confirmText || 'Confirmar',
-    cancelButtonText: options.cancelText || 'Cancelar',
-    denyButtonText: options.denyButtonText || 'Recusar',
+    buttonsStyling: false,
+    ...nativeOptions, // Passa apenas o que sobrou (parâmetros nativos)
     customClass: {
       popup: 'tass-modal',
-      title: 'swal2-title',
-      confirmButton: options.confirmClass || 'btn btn-primary',
-      cancelButton: options.cancelClass || 'btn btn-secondary',
-      denyButton: options.denyClass || 'btn btn-secondary'
-    },
-    buttonsStyling: false,
+      confirmButton: confirmClass || 'btn btn-primary',
+      cancelButton: cancelClass || 'btn btn-secondary',
+      denyButton: denyClass || 'btn btn-secondary',
+      ...(options.customClass || {})
+    }
   });
 };
 

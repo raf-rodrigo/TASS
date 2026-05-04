@@ -300,14 +300,12 @@ onUnmounted(() => {
     </main>
 
     <footer class="fixed bottom-0 left-0 w-full grid grid-cols-1 md:grid-cols-3 items-center gap-4 py-6 px-8 z-40 pointer-events-none">
-      <div class="flex justify-center md:justify-start gap-2 pointer-events-auto">
-        <div 
-          class="flex items-center gap-1 p-1 rounded-2xl border border-slate-200 dark:border-white/10 shadow-lg backdrop-blur-md transition-all duration-300"
-          :style="{ backgroundColor: settings.theme === 'dark' 
-            ? `rgba(30, 41, 59, ${settings.opacityTargets.actionBar ? settings.cardOpacity / 100 : 0.98})` 
-            : `rgba(255, 255, 255, ${settings.opacityTargets.actionBar ? settings.cardOpacity / 100 : 0.95})` 
-          }"
-        >
+      <!-- Esquerda: Vazia para manter o botão de Add na direita -->
+      <div class="hidden md:block"></div>
+
+      <div class="flex flex-col md:flex-row justify-center items-center gap-3 pointer-events-auto w-full md:w-auto">
+        <!-- Actions Capsule -->
+        <div class="bottom-capsule !gap-1" :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-action-opacity))` }">
           <button class="p-1.5 hover:scale-110 transition-transform" @click="toggleTheme" :title="settings.theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'">
             <Sun v-if="settings.theme === 'dark'" class="w-5 h-5 text-amber-500" />
             <Moon v-else class="w-5 h-5 text-indigo-500" />
@@ -322,15 +320,21 @@ onUnmounted(() => {
             <Settings class="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
           </button>
         </div>
-      </div>
-
-      <!-- Center: Separate Filters & Metrics (Grouped for Layout) -->
-      <div class="flex flex-col md:flex-row justify-center items-center gap-3 pointer-events-auto w-full md:w-auto">
         <!-- Status Filters Capsule -->
         <div class="bottom-capsule">
           <button class="filter-btn" :class="{ 'active': statusFilter === 'all' }" @click="resetFilters">Todas</button>
           <button class="filter-btn" :class="{ 'active': statusFilter === 'active' }" @click="statusFilter = 'active'">Ativas</button>
           <button class="filter-btn" :class="{ 'active': statusFilter === 'completed' }" @click="statusFilter = 'completed'">Concluídas</button>
+          
+          <!-- Add Task Button Integrated -->
+          <button 
+            class="ml-1 w-8 h-8 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-500/30 hover:rotate-90 transition-all duration-300 active:scale-90"
+            @click="openAddModal" 
+            title="Nova Task"
+          >
+            <Plus class="w-5 h-5" />
+          </button>
+
           <button v-if="statusFilter !== 'all' || settings.activeSprintId !== 'all'" @click="resetFilters" class="icon-btn hover:text-red-500 ml-1 px-2 !bg-transparent !border-none">
             <X class="w-4 h-4" />
           </button>
@@ -363,15 +367,8 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="flex justify-center md:justify-end pointer-events-auto">
-        <button 
-          class="btn btn-primary !rounded-full !p-4 shadow-xl hover:rotate-90 transition-all duration-300 flex items-center justify-center w-14 h-14" 
-          @click="openAddModal" 
-          title="Nova Task"
-        >
-          <Plus class="w-7 h-7" />
-        </button>
-      </div>
+      <!-- Direita: Vazia -->
+      <div class="hidden md:block"></div>
     </footer>
   </div>
   <div v-else class="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">

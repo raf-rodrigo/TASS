@@ -1,4 +1,4 @@
-import { toast as sToast } from '../utils/swal.js';
+import { toast as sToast, confirm as sConfirm } from '../utils/swal.js';
 import { db } from '../db.js';
 import { slugify } from '../utils/string.js';
 
@@ -62,27 +62,30 @@ export const gitlabService = {
         // We have a link but branch is gone
         const result = await sConfirm({
           title: 'Branch Não Encontrada',
-          message: `O branch vinculado a esta tarefa não existe mais no GitLab.\nO que deseja fazer?`,
-          confirmText: 'Recriar Branch',
-          cancelText: 'Excluir Link Local',
+          text: `O branch vinculado a esta tarefa não existe mais no GitLab.\nO que deseja fazer?`,
+          confirmButtonText: 'Recriar Branch',
+          cancelButtonText: 'Fechar',
+          cancelClass: 'btn btn-secondary',
           showDenyButton: true,
-          denyButtonText: 'Cancelar',
-          type: 'danger'
+          denyButtonText: 'Excluir Link Local',
+          denyClass: 'btn btn-danger',
+          icon: 'warning'
         });
 
         if (result.isConfirmed) {
           return await this.createBranch(task, settings);
-        } else if (result.dismiss === 'cancel') {
+        } else if (result.isDenied) {
           await this.deleteLocalBranchLink(task);
         }
       } else {
         // No link, no branch -> Ask to create
         const result = await sConfirm({
           title: 'Criar Branch',
-          message: `Deseja criar a branch '${branchName}' no GitLab?`,
-          confirmText: 'Sim, Criar',
-          cancelText: 'Cancelar',
-          type: 'primary'
+          text: `Deseja criar a branch '${branchName}' no GitLab?`,
+          confirmButtonText: 'Sim, Criar',
+          cancelButtonText: 'Fechar',
+          cancelClass: 'btn btn-secondary',
+          icon: 'question'
         });
 
         if (result.isConfirmed) {
@@ -143,13 +146,14 @@ export const gitlabService = {
     
     const result = await sConfirm({
       title: 'Branch já existe',
-      message: `A branch '${branchName}' já existe no GitLab.\nDeseja abrir no navegador ou excluí-la?`,
-      confirmText: 'Abrir Branch',
-      cancelText: 'Excluir Branch',
-      cancelButtonClass: 'btn btn-danger',
+      html: `A branch <b>${branchName}</b> já existe no GitLab.<br><br>O que deseja fazer?`,
+      confirmButtonText: 'Abrir Branch',
+      cancelButtonText: 'Excluir Branch',
+      cancelClass: 'btn btn-danger',
       showDenyButton: true,
-      denyButtonText: 'Cancelar',
-      type: 'primary'
+      denyButtonText: 'Fechar',
+      denyClass: 'btn btn-secondary',
+      icon: 'info'
     });
 
     if (result.isConfirmed) {
@@ -157,11 +161,11 @@ export const gitlabService = {
     } else if (result.dismiss === 'cancel') {
       const confirmDelete = await sConfirm({
         title: 'Alerta de Exclusão',
-        message: `Deseja realmente EXCLUIR a branch '${branchName}'?`,
-        confirmText: 'Sim, Excluir',
+        text: `Deseja realmente EXCLUIR a branch '${branchName}'?`,
+        confirmButtonText: 'Sim, Excluir',
         confirmClass: 'btn btn-danger',
-        cancelText: 'Cancelar',
-        type: 'danger'
+        cancelButtonText: 'Fechar',
+        icon: 'warning'
       });
 
       if (confirmDelete.isConfirmed) {
@@ -170,12 +174,14 @@ export const gitlabService = {
           headers: { 'PRIVATE-TOKEN': gitlabToken }
         });
 
-        if (deleteResponse.ok) {
-          sToast.fire({ icon: 'success', title: `Branch excluída!` });
-          await this.deleteLocalBranchLink(task);
+        if (deleteResponse.ok || deleteResponse.status === 404) {
+          sToast.fire({ icon: 'success', title: `Branch removida!` });
         } else {
-          sToast.fire({ icon: 'error', title: `Erro ao excluir branch.` });
+          sToast.fire({ icon: 'error', title: `Erro ao excluir no GitLab, mas limpando link local.` });
         }
+        
+        // Sempre removemos o link local se o usuário confirmou a intenção de excluir
+        await this.deleteLocalBranchLink(task);
       }
     }
     return treeUrl;
