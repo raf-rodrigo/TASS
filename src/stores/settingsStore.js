@@ -63,32 +63,32 @@ export const useSettingsStore = defineStore('settings', () => {
       const allSettings = await db.settings.toArray();
       const settingsMap = Object.fromEntries(allSettings.map(s => [s.key, s.value]));
 
-      if (settingsMap['app-theme']) theme.value = settingsMap['app-theme'];
-      if (settingsMap['app-columns']) columns.value = settingsMap['app-columns'];
-      if (settingsMap['app-width']) appWidth.value = settingsMap['app-width'];
-      if (settingsMap['app-show-placeholders']) showEmptyPlaceholders.value = settingsMap['app-show-placeholders'] === true;
-      if (settingsMap['app-wellness-enabled']) wellnessEnabled.value = settingsMap['app-wellness-enabled'] === true;
-      if (settingsMap['app-wellness-interval']) wellnessInterval.value = parseInt(settingsMap['app-wellness-interval']);
-      if (settingsMap['app-active-sprint']) activeSprintId.value = settingsMap['app-active-sprint'];
-      if (settingsMap['app-gitlab-url']) gitlabUrl.value = settingsMap['app-gitlab-url'];
-      if (settingsMap['app-gitlab-mode']) gitlabIntegrationMode.value = settingsMap['app-gitlab-mode'];
-      if (settingsMap['app-gitlab-project-id']) gitlabProjectId.value = settingsMap['app-gitlab-project-id'];
-      if (settingsMap['app-gitlab-token']) gitlabToken.value = settingsMap['app-gitlab-token'];
-      if (settingsMap['app-gitlab-base-branch']) gitlabBaseBranch.value = settingsMap['app-gitlab-base-branch'];
-      if (settingsMap['app-track-inactivity']) trackInactivity.value = settingsMap['app-track-inactivity'];
-      if (settingsMap['app-inactivity-threshold']) inactivityThreshold.value = settingsMap['app-inactivity-threshold'];
-      if (settingsMap['app-work-start']) workStart.value = settingsMap['app-work-start'];
-      if (settingsMap['app-work-end']) workEnd.value = settingsMap['app-work-end'];
-      if (settingsMap['app-work-days']) workDays.value = settingsMap['app-work-days'];
-      if (settingsMap['app-auto-pause-work']) autoPauseOutsideWork.value = settingsMap['app-auto-pause-work'];
-      if (settingsMap['app-bg-image']) backgroundImage.value = settingsMap['app-bg-image'];
-      if (settingsMap['app-bg-blur']) backgroundBlur.value = settingsMap['app-bg-blur'];
-      if (settingsMap['app-card-opacity']) cardOpacity.value = settingsMap['app-card-opacity'];
-      if (settingsMap['app-card-radius']) cardBorderRadius.value = settingsMap['app-card-radius'];
-      if (settingsMap['app-rounded-icons']) roundedIcons.value = settingsMap['app-rounded-icons'];
-      if (settingsMap['app-font-family']) fontFamily.value = settingsMap['app-font-family'];
-      if (settingsMap['app-opacity-targets']) opacityTargets.value = settingsMap['app-opacity-targets'];
-      if (settingsMap['app-custom-wallpapers']) {
+      if (settingsMap['app-theme'] !== undefined) theme.value = settingsMap['app-theme'];
+      if (settingsMap['app-columns'] !== undefined) columns.value = settingsMap['app-columns'];
+      if (settingsMap['app-width'] !== undefined) appWidth.value = settingsMap['app-width'];
+      if (settingsMap['app-show-placeholders'] !== undefined) showEmptyPlaceholders.value = settingsMap['app-show-placeholders'] === true;
+      if (settingsMap['app-wellness-enabled'] !== undefined) wellnessEnabled.value = settingsMap['app-wellness-enabled'] === true;
+      if (settingsMap['app-wellness-interval'] !== undefined) wellnessInterval.value = parseInt(settingsMap['app-wellness-interval']);
+      if (settingsMap['app-active-sprint'] !== undefined) activeSprintId.value = settingsMap['app-active-sprint'];
+      if (settingsMap['app-gitlab-url'] !== undefined) gitlabUrl.value = settingsMap['app-gitlab-url'];
+      if (settingsMap['app-gitlab-mode'] !== undefined) gitlabIntegrationMode.value = settingsMap['app-gitlab-mode'];
+      if (settingsMap['app-gitlab-project-id'] !== undefined) gitlabProjectId.value = settingsMap['app-gitlab-project-id'];
+      if (settingsMap['app-gitlab-token'] !== undefined) gitlabToken.value = settingsMap['app-gitlab-token'];
+      if (settingsMap['app-gitlab-base-branch'] !== undefined) gitlabBaseBranch.value = settingsMap['app-gitlab-base-branch'];
+      if (settingsMap['app-track-inactivity'] !== undefined) trackInactivity.value = settingsMap['app-track-inactivity'];
+      if (settingsMap['app-inactivity-threshold'] !== undefined) inactivityThreshold.value = settingsMap['app-inactivity-threshold'];
+      if (settingsMap['app-work-start'] !== undefined) workStart.value = settingsMap['app-work-start'];
+      if (settingsMap['app-work-end'] !== undefined) workEnd.value = settingsMap['app-work-end'];
+      if (settingsMap['app-work-days'] !== undefined) workDays.value = settingsMap['app-work-days'];
+      if (settingsMap['app-auto-pause-work'] !== undefined) autoPauseOutsideWork.value = settingsMap['app-auto-pause-work'];
+      if (settingsMap['app-bg-image'] !== undefined) backgroundImage.value = settingsMap['app-bg-image'];
+      if (settingsMap['app-bg-blur'] !== undefined) backgroundBlur.value = settingsMap['app-bg-blur'];
+      if (settingsMap['app-card-opacity'] !== undefined) cardOpacity.value = settingsMap['app-card-opacity'];
+      if (settingsMap['app-card-radius'] !== undefined) cardBorderRadius.value = settingsMap['app-card-radius'];
+      if (settingsMap['app-rounded-icons'] !== undefined) roundedIcons.value = settingsMap['app-rounded-icons'];
+      if (settingsMap['app-font-family'] !== undefined) fontFamily.value = settingsMap['app-font-family'];
+      if (settingsMap['app-opacity-targets'] !== undefined) opacityTargets.value = settingsMap['app-opacity-targets'];
+      if (settingsMap['app-custom-wallpapers'] !== undefined) {
         // Limpeza de Órfãos: Remove links locais que não existem mais (/wallpapers/)
         customWallpapers.value = settingsMap['app-custom-wallpapers'].filter(wp => 
           wp.url && !wp.url.startsWith('/wallpapers/')
@@ -108,14 +108,14 @@ export const useSettingsStore = defineStore('settings', () => {
         customWallpapers.value = eliteWallpapers;
         saveAllSettings(); // Salva a carga inicial
       }
-      if (settingsMap['app-task-number-size']) taskNumberSize.value = settingsMap['app-task-number-size'];
-      if (settingsMap['app-task-desc-size']) taskDescriptionSize.value = settingsMap['app-task-desc-size'];
-      if (settingsMap['app-notes-side']) notesSide.value = settingsMap['app-notes-side'];
-      if (settingsMap['app-notes-btn-top']) notesButtonTop.value = settingsMap['app-notes-btn-top'];
-      if (settingsMap['app-notes-width']) notesWidth.value = settingsMap['app-notes-width'];
-      if (settingsMap['app-note-color']) noteColor.value = settingsMap['app-note-color'];
-      if (settingsMap['app-card-padding']) cardPadding.value = settingsMap['app-card-padding'];
-      if (settingsMap['app-column-titles']) columnTitles.value = settingsMap['app-column-titles'];
+      if (settingsMap['app-task-number-size'] !== undefined) taskNumberSize.value = settingsMap['app-task-number-size'];
+      if (settingsMap['app-task-desc-size'] !== undefined) taskDescriptionSize.value = settingsMap['app-task-desc-size'];
+      if (settingsMap['app-notes-side'] !== undefined) notesSide.value = settingsMap['app-notes-side'];
+      if (settingsMap['app-notes-btn-top'] !== undefined) notesButtonTop.value = settingsMap['app-notes-btn-top'];
+      if (settingsMap['app-notes-width'] !== undefined) notesWidth.value = settingsMap['app-notes-width'];
+      if (settingsMap['app-note-color'] !== undefined) noteColor.value = settingsMap['app-note-color'];
+      if (settingsMap['app-card-padding'] !== undefined) cardPadding.value = settingsMap['app-card-padding'];
+      if (settingsMap['app-column-titles'] !== undefined) columnTitles.value = settingsMap['app-column-titles'];
 
       isInitialized.value = true;
     } catch (error) {

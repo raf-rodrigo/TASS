@@ -70,7 +70,9 @@ export const useTaskStore = defineStore('task', () => {
       const runningTask = dbTasks.find(t => t.isRunning);
       if (runningTask && runningTask.lastStartTime) {
         const timePassed = now - runningTask.lastStartTime;
-        if (timePassed > 60000 && !settings.trackInactivity) { 
+        const thresholdMs = (settings.inactivityThreshold || 1) * 60000;
+
+        if (settings.trackInactivity && timePassed > thresholdMs) { 
           runningTask.isRunning = false;
           runningTask.lastStartTime = null;
           await db.tasks.update(runningTask.id, { isRunning: false, lastStartTime: null });
