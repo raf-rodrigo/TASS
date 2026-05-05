@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { 
   Download, Upload, Droplets, Globe, 
-  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X
+  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
@@ -14,7 +14,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
-const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'export-system', 'import-system']);
+const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'export-system', 'import-system', 'test-wellness', 'test-water']);
 
 const activeTab = ref('gitlab');
 
@@ -53,6 +53,8 @@ const localSettings = ref({
   workEnd: stringToTimeObj(settings.workEnd),
   workDays: [...settings.workDays],
   autoPauseOutsideWork: settings.autoPauseOutsideWork,
+  wellnessEnabled: settings.wellnessEnabled,
+  wellnessInterval: settings.wellnessInterval,
   inactivityThreshold: { 
     hours: Math.floor((settings.inactivityThreshold || 1) / 60), 
     minutes: (settings.inactivityThreshold || 1) % 60 
@@ -85,8 +87,7 @@ const handleWaterToggle = async () => {
 };
 
 const handleTestNotification = async () => {
-  notificationService.notify('Teste TASK 💧', 'Sua notificação está funcionando!');
-  notificationService.toast('Teste Disparado! 💧');
+  emit('test-water');
 };
 
 const handleSave = async () => {
@@ -102,6 +103,8 @@ const handleSave = async () => {
   settings.workEnd = timeObjToString(localSettings.value.workEnd);
   settings.workDays = [...localSettings.value.workDays];
   settings.autoPauseOutsideWork = localSettings.value.autoPauseOutsideWork;
+  settings.wellnessEnabled = localSettings.value.wellnessEnabled;
+  settings.wellnessInterval = localSettings.value.wellnessInterval;
   settings.inactivityThreshold = (localSettings.value.inactivityThreshold.hours * 60) + localSettings.value.inactivityThreshold.minutes;
 
   await settings.saveAllSettings();
@@ -301,30 +304,34 @@ const handleResetSystem = async () => {
                 <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Lembretes inteligentes para você se manter saudável enquanto produz.</p>
               </div>
 
-              <div class="p-6 bg-blue-500/5 dark:bg-blue-500/10 rounded-3xl border border-blue-500/10 space-y-6">
+              <!-- Novo: Lembretes de Bem-estar (Sussurro) -->
+              <div class="p-6 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-3xl border border-emerald-500/10 space-y-6">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-4">
-                    <div class="p-3 bg-blue-500 rounded-2xl text-white">
-                      <Droplets class="w-6 h-6" />
+                    <div class="p-3 bg-emerald-500 rounded-2xl text-white shadow-lg shadow-emerald-500/20">
+                      <Activity class="w-6 h-6" />
                     </div>
                     <div>
-                      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Alerta de Hidratação</p>
-                      <p class="text-[10px] text-slate-500">Lembrete para beber água periodicamente.</p>
+                      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Sussurro de Bem-estar</p>
+                      <p class="text-[10px] text-slate-500">Lembretes suaves de postura, olhos e pausas.</p>
                     </div>
                   </div>
                   <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" class="sr-only peer" v-model="localSettings.waterReminderEnabled" @change="handleWaterToggle">
-                    <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                    <input type="checkbox" class="sr-only peer" v-model="localSettings.wellnessEnabled">
+                    <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
                   </label>
                 </div>
 
-                <div v-if="localSettings.waterReminderEnabled" class="space-y-4 pt-4 border-t border-blue-500/10">
+                <div v-if="localSettings.wellnessEnabled" class="space-y-4 pt-4 border-t border-emerald-500/10">
                   <div class="flex justify-between">
-                    <span class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-tighter">Intervalo</span>
-                    <span class="text-sm font-black text-slate-700 dark:text-slate-200">{{ localSettings.waterReminderInterval }} min</span>
+                    <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tighter">Frequência</span>
+                    <span class="text-sm font-black text-slate-700 dark:text-slate-200">{{ localSettings.wellnessInterval }} min</span>
                   </div>
-                  <input type="range" v-model.number="localSettings.waterReminderInterval" min="5" max="180" step="5" class="w-full accent-blue-500 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none" />
-                  <button @click="handleTestNotification" class="text-[10px] font-bold text-blue-500 hover:underline">Testar Alerta</button>
+                  <input type="range" v-model.number="localSettings.wellnessInterval" min="5" max="120" step="5" class="w-full accent-emerald-500 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none" />
+                  <button @click="emit('test-wellness')" class="flex items-center gap-2 text-[10px] font-bold text-emerald-500 hover:underline">
+                    <Sparkles class="w-3 h-3" />
+                    Testar Sussurro Agora
+                  </button>
                 </div>
               </div>
             </div>

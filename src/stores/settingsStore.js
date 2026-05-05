@@ -11,10 +11,10 @@ export const useSettingsStore = defineStore('settings', () => {
   const gitlabProjectId = ref('');
   const gitlabToken = ref('');
   const gitlabBaseBranch = ref('develop');
-  const waterReminderEnabled = ref(false);
-  const waterReminderInterval = ref(60);
   const inactivityThreshold = ref(1); // Em minutos
   const showEmptyPlaceholders = ref(true);
+  const wellnessEnabled = ref(true);
+  const wellnessInterval = ref(20); // Em minutos
   const activeSprintId = ref('all');
   const taskNumberSize = ref(12);
   const taskDescriptionSize = ref(13);
@@ -67,14 +67,14 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-columns']) columns.value = settingsMap['app-columns'];
       if (settingsMap['app-width']) appWidth.value = settingsMap['app-width'];
       if (settingsMap['app-show-placeholders']) showEmptyPlaceholders.value = settingsMap['app-show-placeholders'] === true;
+      if (settingsMap['app-wellness-enabled']) wellnessEnabled.value = settingsMap['app-wellness-enabled'] === true;
+      if (settingsMap['app-wellness-interval']) wellnessInterval.value = parseInt(settingsMap['app-wellness-interval']);
       if (settingsMap['app-active-sprint']) activeSprintId.value = settingsMap['app-active-sprint'];
       if (settingsMap['app-gitlab-url']) gitlabUrl.value = settingsMap['app-gitlab-url'];
       if (settingsMap['app-gitlab-mode']) gitlabIntegrationMode.value = settingsMap['app-gitlab-mode'];
       if (settingsMap['app-gitlab-project-id']) gitlabProjectId.value = settingsMap['app-gitlab-project-id'];
       if (settingsMap['app-gitlab-token']) gitlabToken.value = settingsMap['app-gitlab-token'];
       if (settingsMap['app-gitlab-base-branch']) gitlabBaseBranch.value = settingsMap['app-gitlab-base-branch'];
-      if (settingsMap['app-water-enabled']) waterReminderEnabled.value = settingsMap['app-water-enabled'];
-      if (settingsMap['app-water-interval']) waterReminderInterval.value = settingsMap['app-water-interval'];
       if (settingsMap['app-track-inactivity']) trackInactivity.value = settingsMap['app-track-inactivity'];
       if (settingsMap['app-inactivity-threshold']) inactivityThreshold.value = settingsMap['app-inactivity-threshold'];
       if (settingsMap['app-work-start']) workStart.value = settingsMap['app-work-start'];
@@ -141,19 +141,19 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-columns', value: columns.value },
       { key: 'app-width', value: appWidth.value },
       { key: 'app-show-placeholders', value: showEmptyPlaceholders.value },
+      { key: 'app-wellness-enabled', value: wellnessEnabled.value },
+      { key: 'app-wellness-interval', value: wellnessInterval.value },
       { key: 'app-active-sprint', value: activeSprintId.value },
       { key: 'app-gitlab-url', value: gitlabUrl.value },
       { key: 'app-gitlab-mode', value: gitlabIntegrationMode.value },
       { key: 'app-gitlab-project-id', value: gitlabProjectId.value },
       { key: 'app-gitlab-token', value: gitlabToken.value },
       { key: 'app-gitlab-base-branch', value: gitlabBaseBranch.value },
-      { key: 'app-water-enabled', value: waterReminderEnabled.value },
-      { key: 'app-water-interval', value: waterReminderInterval.value },
       { key: 'app-track-inactivity', value: trackInactivity.value },
       { key: 'app-inactivity-threshold', value: inactivityThreshold.value },
       { key: 'app-work-start', value: workStart.value },
       { key: 'app-work-end', value: workEnd.value },
-      { key: 'app-work-days', value: [...workDays.value] },
+      { key: 'app-work-days', value: workDays.value },
       { key: 'app-auto-pause-work', value: autoPauseOutsideWork.value },
       { key: 'app-bg-image', value: backgroundImage.value },
       { key: 'app-bg-blur', value: backgroundBlur.value },
@@ -161,8 +161,8 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-card-radius', value: cardBorderRadius.value },
       { key: 'app-rounded-icons', value: roundedIcons.value },
       { key: 'app-font-family', value: fontFamily.value },
-      { key: 'app-opacity-targets', value: { ...opacityTargets.value } },
-      { key: 'app-custom-wallpapers', value: [...customWallpapers.value] },
+      { key: 'app-opacity-targets', value: opacityTargets.value },
+      { key: 'app-custom-wallpapers', value: customWallpapers.value },
       { key: 'app-task-number-size', value: taskNumberSize.value },
       { key: 'app-task-desc-size', value: taskDescriptionSize.value },
       { key: 'app-notes-side', value: notesSide.value },
@@ -170,8 +170,14 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-notes-width', value: notesWidth.value },
       { key: 'app-note-color', value: noteColor.value },
       { key: 'app-card-padding', value: cardPadding.value },
-      { key: 'app-column-titles', value: [...columnTitles.value] }
-    ];
+      { key: 'app-column-titles', value: columnTitles.value }
+    ].map(item => ({
+      key: item.key,
+      // "Limpa" o dado para remover proxies do Vue
+      value: (item.value && typeof item.value === 'object') 
+        ? JSON.parse(JSON.stringify(item.value)) 
+        : item.value
+    }));
 
     try {
       await db.settings.bulkPut(settingsToSave);
@@ -183,12 +189,13 @@ export const useSettingsStore = defineStore('settings', () => {
 
   return {
     theme, columns, appWidth, gitlabUrl, gitlabIntegrationMode,
-    gitlabProjectId, gitlabToken, gitlabBaseBranch, waterReminderEnabled,
-    waterReminderInterval, inactivityThreshold, activeSprintId, taskNumberSize,
+    gitlabProjectId, gitlabToken, gitlabBaseBranch,
+    inactivityThreshold, activeSprintId, taskNumberSize,
     taskDescriptionSize, notesSide, noteColor, backgroundImage, backgroundBlur,
     notesButtonTop, notesWidth, cardPadding, fontFamily, trackInactivity,
     workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,
     cardBorderRadius, opacityTargets, roundedIcons, customWallpapers, columnTitles,
+    wellnessEnabled, wellnessInterval,
     isInitialized, loadSettings, saveSetting, saveAllSettings
   };
 });

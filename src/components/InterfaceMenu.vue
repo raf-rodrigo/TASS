@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { 
   X, Palette, Trash2, Plus,
   Image as ImageIcon, Sliders, Eraser,
-  LayoutGrid, StickyNote, Layers, Type as TypeIcon, Droplets
+  LayoutGrid, StickyNote, Layers, Type as TypeIcon, Droplets, Heart, Activity, Sparkles
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useModalDrag } from '../composables/useModalDrag';
@@ -17,7 +17,7 @@ defineProps({
   isOpen: Boolean
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'test-wellness']);
 
 const activeTab = ref('wallpapers');
 const showAddWallpaper = ref(false);
@@ -337,7 +337,7 @@ const handleColumnChange = (n) => {
                 <!-- ABA: Papéis de Parede -->
                 <div v-else-if="activeTab === 'wallpapers'" :key="'wallpapers'" class="space-y-6">
                   <div>
-                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Galeria de Fundos</h3>
+                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Galeria de Papéis de Parede</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Troque o clima do seu workspace instantaneamente.</p>
                   </div>
 
@@ -345,7 +345,7 @@ const handleColumnChange = (n) => {
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
                         <ImageIcon class="w-5 h-5 text-emerald-500" />
-                        <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Wallpapers Premium</h3>
+                        <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Papéis de Parede Premium</h3>
                       </div>
                       <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">{{ settings.customWallpapers.length }} / 17 Slots</span>
                     </div>

@@ -6,10 +6,11 @@ import SettingsModal from './components/SettingsModal.vue';
 import SprintModal from './components/SprintModal.vue';
 import InterfaceMenu from './components/InterfaceMenu.vue';
 import NotesPanel from './components/NotesPanel.vue';
+import WellnessToast from './components/WellnessToast.vue';
 import draggable from 'vuedraggable';
 
 // Composables
-import { useWaterReminder } from './composables/useWaterReminder.js';
+import { useWellness } from './composables/useWellness.js';
 import { useShortcuts } from './composables/useShortcuts.js';
 import { useNotesDrag } from './composables/useNotesDrag.js';
 import { useTheme } from './composables/useTheme.js';
@@ -23,6 +24,7 @@ import { ClipboardList, Plus, Sun, Moon, Settings, Calendar, Maximize, RotateCcw
 import { useSettingsStore } from './stores/settingsStore';
 import { useTaskStore } from './stores/taskStore';
 import { backupService } from './services/backupService';
+import { db } from './db.js';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -95,12 +97,13 @@ const openEditModal = (task) => {
   taskStore.selectedTask = null;
 };
 
-// Composable initialization
-const { startWaterReminder } = useWaterReminder(settings);
+const { currentMessage, showMessage, triggerWellness } = useWellness(settings);
+
 useShortcuts({
   onToggleNotes: () => showNotes.value = !showNotes.value,
   onOpenAddModal: openAddModal,
-  onOpenSettings: () => showSettings.value = true
+  onOpenSettings: () => showSettings.value = true,
+  onWellnessTest: () => triggerWellness(true)
 });
 
 const { onMouseDown: handleNotesDrag, isDragging: isNotesDragging } = useNotesDrag(settings, showNotes, 'vertical');
@@ -180,11 +183,17 @@ const handleDragEnd = () => {
 };
 
 onMounted(async () => {
+  // Limpa dados legados de água do banco
+  try {
+    await db.settings.where('key').anyOf(['app-water-enabled', 'app-water-interval']).delete();
+  } catch (e) {
+    console.warn("Nada para limpar no DB");
+  }
+
   await settings.loadSettings();
   applyTheme();
   await taskStore.loadTasks();
   await taskStore.loadSprints();
-  startWaterReminder();
   syncBoardWithStore();
 });
 </script>
@@ -220,14 +229,17 @@ onMounted(async () => {
     >
     <!-- TASS Branding (Top Left) -->
     <div class="fixed top-4 left-6 md:top-8 md:left-12 z-20 flex flex-col items-start animate-[fadeInLeft_0.8s_ease-out] select-none pointer-events-none opacity-40 md:opacity-100">
-      <div class="flex items-center gap-2">
-        <div class="w-1 md:w-1.5 h-8 md:h-10 bg-gradient-to-b from-indigo-600 via-purple-500 to-blue-500 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.4)]"></div>
-        <h1 class="text-2xl md:text-4xl font-black tracking-tighter leading-none bg-gradient-to-r from-indigo-600 via-purple-500 to-blue-500 bg-clip-text text-transparent italic pr-2">
-          TASS
+      <div class="flex items-center gap-3">
+        <div class="w-1 md:w-1.5 h-8 md:h-12 bg-gradient-to-b from-[#00C4CC] to-[#7D2AE8] rounded-full shadow-[0_0_15px_rgba(0,196,204,0.3)]"></div>
+        <h1 
+          class="text-3xl md:text-5xl leading-none bg-gradient-to-r from-[#00C4CC] to-[#7D2AE8] bg-clip-text text-transparent pr-2"
+          style="font-family: 'Satisfy', cursive;"
+        >
+          Tass
         </h1>
       </div>
       <div class="mt-0.5 md:mt-1 flex items-center gap-2">
-        <span class="text-[7px] md:text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] ml-2 md:ml-3 whitespace-nowrap">
+        <span class="text-[7px] md:text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] ml-2 md:ml-4 whitespace-nowrap">
           Gerenciador de Tarefas
         </span>
         <div class="h-[0.5px] md:h-[1px] w-4 md:w-8 bg-slate-200 dark:bg-white/10"></div>
@@ -426,7 +438,8 @@ onMounted(async () => {
     <SettingsModal
       v-if="showSettings"
       @close="showSettings = false"
-      @save="startWaterReminder"
+      @save="() => {}"
+      @test-wellness="triggerWellness(true)"
       @export-tasks="handleExportTasks"
       @import-tasks="handleImportTasks"
       @export-system="handleExportSystem"
@@ -445,6 +458,11 @@ onMounted(async () => {
       v-if="showInterfaceMenu"
       :isOpen="showInterfaceMenu"
       @close="showInterfaceMenu = false"
+    />
+
+    <WellnessToast 
+      :message="currentMessage" 
+      :show="showMessage" 
     />
   </div>
   <div v-else class="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
