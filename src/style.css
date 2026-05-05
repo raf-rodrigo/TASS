@@ -99,10 +99,10 @@
 
   [data-tip]::after {
     content: attr(data-tip);
-    @apply absolute bottom-[130%] left-1/2 -translate-x-1/2 px-3 py-1.5 
-           bg-slate-900 dark:bg-slate-950 text-white text-[10px] font-black 
-           uppercase tracking-widest rounded-xl opacity-0 pointer-events-none 
-           transition-all duration-200 z-[110] whitespace-nowrap border border-white/10 shadow-2xl;
+    @apply absolute bottom-[130%] left-1/2 -translate-x-1/2 px-3 py-2
+           bg-slate-900 text-white text-sm font-medium
+           rounded-xl opacity-0 pointer-events-none border border-white/10
+           transition-all duration-200 z-[110] whitespace-nowrap shadow-sm;
   }
 
   [data-tip]::before {
