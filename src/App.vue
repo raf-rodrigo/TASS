@@ -291,16 +291,9 @@ onMounted(async () => {
             v-if="settings.columnTitles[colIdx-1]" 
             class="flex items-center gap-2 px-3 py-2 rounded-2xl border mb-2 group transition-all hover:brightness-110"
             :style="{ 
-              backgroundColor: !settings.opacityTargets.cards 
-                ? (settings.theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)')
-                : (settings.theme === 'dark' 
-                    ? `rgba(255, 255, 255, ${Math.max(0.02, (settings.cardOpacity / 100) * 0.08)})` 
-                    : `rgba(0, 0, 0, ${Math.max(0.02, (settings.cardOpacity / 100) * 0.05)})`),
-              borderColor: !settings.opacityTargets.cards
-                ? (settings.theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)')
-                : (settings.theme === 'dark'
-                    ? `rgba(255, 255, 255, ${Math.max(0.05, (settings.cardOpacity / 100) * 0.1)})`
-                    : `rgba(0, 0, 0, ${Math.max(0.05, (settings.cardOpacity / 100) * 0.1)})`)
+              backgroundColor: `rgba(var(--app-bg-raw), var(--app-card-opacity))`,
+              borderColor: settings.theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+              backdropFilter: settings.cardOpacity < 100 ? 'blur(8px)' : 'none'
             }"
           >
             <div class="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
@@ -314,17 +307,15 @@ onMounted(async () => {
 
           <!-- A Camada Mestra: O card que você gosta, como guia de fundo -->
           <div 
-            v-if="boardColumns[colIdx-1].length === 0" 
+            v-if="(settings.showEmptyPlaceholders || isDraggingTask) && boardColumns[colIdx-1].length === 0" 
             class="absolute inset-0 flex items-center justify-center p-2 pt-14 pointer-events-none"
           >
             <div 
-              class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-[2.5rem] text-slate-400"
+              class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-[2.5rem] text-slate-400 transition-all"
               :style="{ 
-                borderColor: !settings.opacityTargets.cards
-                  ? (settings.theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)')
-                  : (settings.theme === 'dark'
-                      ? `rgba(255, 255, 255, ${Math.max(0.02, (settings.cardOpacity / 100) * 0.1)})`
-                      : `rgba(0, 0, 0, ${Math.max(0.02, (settings.cardOpacity / 100) * 0.1)})`)
+                borderColor: `rgba(var(--app-bg-raw), 0.1)`,
+                backgroundColor: settings.cardOpacity < 100 ? `rgba(var(--app-bg-raw), 0.05)` : 'transparent',
+                backdropFilter: settings.cardOpacity < 100 ? 'blur(4px)' : 'none'
               }"
             >
               <Plus class="w-10 h-10 mb-4 opacity-20" />

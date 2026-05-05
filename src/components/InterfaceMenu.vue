@@ -63,8 +63,13 @@ const addCustomWallpaper = () => {
 };
 
 const removeWallpaper = (index) => {
-  settings.customWallpapers.splice(index, 1);
-  settings.saveSetting('app-custom-wallpapers', settings.customWallpapers);
+  try {
+    settings.customWallpapers.splice(index, 1);
+    // Salva a lista limpa para evitar DataCloneError e garantir reatividade
+    settings.saveSetting('app-custom-wallpapers', [...settings.customWallpapers]);
+  } catch (error) {
+    console.error("Erro ao remover wallpaper:", error);
+  }
 };
 
 const clearWallpaper = () => {
@@ -192,6 +197,19 @@ const handleColumnChange = (n) => {
                           />
                         </div>
                       </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-slate-200 dark:border-white/5">
+                      <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                        <div class="flex flex-col">
+                          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Guias Sempre Visíveis</span>
+                          <span class="text-[9px] text-slate-400">Desative para ocultar (aparecem apenas ao arrastar)</span>
+                        </div>
+                        <div class="relative inline-flex items-center">
+                          <input type="checkbox" v-model="settings.showEmptyPlaceholders" @change="settings.saveSetting('app-show-placeholders', settings.showEmptyPlaceholders)" class="sr-only peer" />
+                          <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
+                        </div>
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -346,11 +364,11 @@ const handleColumnChange = (n) => {
                       <div 
                         v-for="(wp, index) in settings.customWallpapers" 
                         :key="index"
-                        class="relative group aspect-video rounded-xl overflow-hidden border-2 transition-all cursor-pointer"
+                        class="relative group aspect-video rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-slate-200 dark:bg-white/10"
                         :class="settings.backgroundImage === wp.url ? 'border-emerald-500 scale-95 shadow-lg shadow-emerald-500/20' : 'border-transparent hover:border-slate-300 dark:hover:border-white/20'"
                         @click="setWallpaper(wp.url)"
                       >
-                        <img :src="wp.url" class="w-full h-full object-cover" alt="Wallpaper Preview" />
+                        <img :src="wp.url" class="w-full h-full object-cover" alt="Wallpaper Preview" loading="lazy" />
                         <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                           <button 
                             @click.stop="removeWallpaper(index)"

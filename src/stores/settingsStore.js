@@ -14,6 +14,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const waterReminderEnabled = ref(false);
   const waterReminderInterval = ref(60);
   const inactivityThreshold = ref(1); // Em minutos
+  const showEmptyPlaceholders = ref(true);
   const activeSprintId = ref('all');
   const taskNumberSize = ref(12);
   const taskDescriptionSize = ref(13);
@@ -65,6 +66,7 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-theme']) theme.value = settingsMap['app-theme'];
       if (settingsMap['app-columns']) columns.value = settingsMap['app-columns'];
       if (settingsMap['app-width']) appWidth.value = settingsMap['app-width'];
+      if (settingsMap['app-show-placeholders']) showEmptyPlaceholders.value = settingsMap['app-show-placeholders'] === true;
       if (settingsMap['app-active-sprint']) activeSprintId.value = settingsMap['app-active-sprint'];
       if (settingsMap['app-gitlab-url']) gitlabUrl.value = settingsMap['app-gitlab-url'];
       if (settingsMap['app-gitlab-mode']) gitlabIntegrationMode.value = settingsMap['app-gitlab-mode'];
@@ -86,20 +88,26 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-rounded-icons']) roundedIcons.value = settingsMap['app-rounded-icons'];
       if (settingsMap['app-font-family']) fontFamily.value = settingsMap['app-font-family'];
       if (settingsMap['app-opacity-targets']) opacityTargets.value = settingsMap['app-opacity-targets'];
-      if (settingsMap['app-custom-wallpapers']) customWallpapers.value = settingsMap['app-custom-wallpapers'];
+      if (settingsMap['app-custom-wallpapers']) {
+        // Limpeza de Órfãos: Remove links locais que não existem mais (/wallpapers/)
+        customWallpapers.value = settingsMap['app-custom-wallpapers'].filter(wp => 
+          wp.url && !wp.url.startsWith('/wallpapers/')
+        );
+      }
 
-      // Injeção de Elite: Garante que os novos wallpapers gerados apareçam na coleção
-      const eliteWallpapers = [
-        { name: 'Minimalist Zen', url: 'https://images.unsplash.com/photo-1510672981848-a1c4f1cb5ccf?q=80&w=1920&auto=format&fit=crop' },
-        { name: 'Deep Abstract', url: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?q=80&w=1920&auto=format&fit=crop' }
-      ];
-
-      eliteWallpapers.forEach(wp => {
-        const exists = customWallpapers.value.some(existing => existing.name === wp.name);
-        if (!exists && customWallpapers.value.length < 17) {
-          customWallpapers.value.push(wp);
-        }
-      });
+      // Injeção Inteligente: Sugere os wallpapers de elite apenas se a galeria estiver vazia
+      if (customWallpapers.value.length === 0) {
+        const eliteWallpapers = [
+          { name: 'Minimalist Zen', url: 'https://images.unsplash.com/photo-1510672981848-a1c4f1cb5ccf?q=80&w=1920&auto=format&fit=crop' },
+          { name: 'Deep Abstract', url: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?q=80&w=1920&auto=format&fit=crop' },
+          { name: 'Neon Rain', url: 'https://images.unsplash.com/photo-1493238792000-811347057630?q=80&w=1920&auto=format&fit=crop' },
+          { name: 'Foggy Silence', url: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1920&auto=format&fit=crop' },
+          { name: 'Liquid Obsidian', url: 'https://images.unsplash.com/photo-1614850523296-e811cf7ef895?q=80&w=1920&auto=format&fit=crop' },
+          { name: 'Scholar’s Retreat', url: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1920&auto=format&fit=crop' }
+        ];
+        customWallpapers.value = eliteWallpapers;
+        saveAllSettings(); // Salva a carga inicial
+      }
       if (settingsMap['app-task-number-size']) taskNumberSize.value = settingsMap['app-task-number-size'];
       if (settingsMap['app-task-desc-size']) taskDescriptionSize.value = settingsMap['app-task-desc-size'];
       if (settingsMap['app-notes-side']) notesSide.value = settingsMap['app-notes-side'];
@@ -132,6 +140,7 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-theme', value: theme.value },
       { key: 'app-columns', value: columns.value },
       { key: 'app-width', value: appWidth.value },
+      { key: 'app-show-placeholders', value: showEmptyPlaceholders.value },
       { key: 'app-active-sprint', value: activeSprintId.value },
       { key: 'app-gitlab-url', value: gitlabUrl.value },
       { key: 'app-gitlab-mode', value: gitlabIntegrationMode.value },
