@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import TaskCard from './components/TaskCard.vue';
+import TaskBoard from './components/TaskBoard.vue';
 import TaskModal from './components/TaskModal.vue';
 import SettingsModal from './components/SettingsModal.vue';
 import SprintModal from './components/SprintModal.vue';
@@ -34,14 +35,13 @@ const boardColumns = ref([[], [], [], []]);
 
 const syncBoardWithStore = () => {
   for (let i = 1; i <= 4; i++) {
-    boardColumns.value[i-1] = filteredTasks.value
+    boardColumns.value[i-1] = taskStore.filteredTasks
       .filter(t => t.columnId === i)
       .sort((a, b) => a.position - b.position);
   }
 };
 
 // UI State
-const statusFilter = ref('all');
 const showModal = ref(false);
 const showSettings = ref(false);
 const showSprints = ref(false);
@@ -49,28 +49,14 @@ const showInterfaceMenu = ref(false);
 const showNotes = ref(false);
 const taskToEdit = ref(null);
 
-// Lógica de Filtros
-const filteredTasks = computed(() => {
-  let result = [...taskStore.tasks];
-  
-  if (settings.activeSprintId !== 'all') {
-    const id = parseInt(settings.activeSprintId);
-    result = result.filter(t => t.sprintId === id);
-  }
-
-  if (statusFilter.value === 'active') {
-    result = result.filter(t => !t.completed);
-  } else if (statusFilter.value === 'completed') {
-    result = result.filter(t => t.completed);
-  }
-  
-  return result;
-});
-
 // Sincroniza o board local quando as tarefas ou filtros mudam
-watch(() => filteredTasks.value, () => {
-  syncBoardWithStore();
-}, { deep: true, immediate: true });
+watch(
+  [() => taskStore.filteredTasks, () => taskStore.statusFilter, () => settings.activeSprintId], 
+  () => {
+    syncBoardWithStore();
+  }, 
+  { deep: true, immediate: true }
+);
 
 const handleBoardChange = async (evt, columnId) => {
   if (evt.added) {
@@ -287,83 +273,17 @@ onMounted(async () => {
 
       <NotesPanel :isOpen="showNotes" @toggle="showNotes = !showNotes" @close="showNotes = false" />
 
-      <!-- Board de Colunas Dinâmicas -->
-      <section 
-        class="grid gap-6 w-full items-start" 
-        :class="{
-          'grid-cols-1': settings.columns === 1 || !settings.columns,
-          'grid-cols-1 md:grid-cols-2': settings.columns === 2,
-          'grid-cols-1 lg:grid-cols-3': settings.columns === 3,
-          'grid-cols-1 lg:grid-cols-4': settings.columns === 4
-        }"
-      >
-        <div v-for="colIdx in settings.columns" :key="colIdx" class="flex flex-col gap-4 min-h-[150px] md:min-h-[500px] relative">
-          <!-- Cabeçalho da Coluna -->
-          <div 
-            v-if="settings.columnTitles[colIdx-1]" 
-            class="flex items-center gap-2 px-3 py-2 rounded-2xl border mb-2 group transition-all hover:brightness-110"
-            :style="{ 
-              backgroundColor: `rgba(var(--app-bg-raw), var(--app-card-opacity))`,
-              borderColor: settings.theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-              backdropFilter: settings.cardOpacity < 100 ? 'blur(8px)' : 'none'
-            }"
-          >
-            <div class="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
-            <h3 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest truncate">
-              {{ settings.columnTitles[colIdx-1] }}
-            </h3>
-            <span class="ml-auto text-[9px] font-bold text-slate-400 opacity-50">
-              {{ boardColumns[colIdx-1].length }}
-            </span>
-          </div>
-
-          <!-- A Camada Mestra: O card que você gosta, como guia de fundo -->
-          <div 
-            v-if="(settings.showEmptyPlaceholders || isDraggingTask) && boardColumns[colIdx-1].length === 0" 
-            class="absolute inset-0 flex items-center justify-center p-2 pt-14 pointer-events-none"
-          >
-            <div 
-              class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-[2.5rem] text-slate-400 transition-all"
-              :style="{ 
-                borderColor: `rgba(var(--app-bg-raw), 0.1)`,
-                backgroundColor: settings.cardOpacity < 100 ? `rgba(var(--app-bg-raw), 0.05)` : 'transparent',
-                backdropFilter: settings.cardOpacity < 100 ? 'blur(4px)' : 'none'
-              }"
-            >
-              <Plus class="w-10 h-10 mb-4 opacity-20" />
-              <span class="text-[10px] font-black uppercase tracking-[0.3em] opacity-30 text-center px-8">
-                Arraste para cá
-              </span>
-            </div>
-          </div>
-
-          <!-- Área de Arrastar da Coluna (Transparente e por cima) -->
-          <draggable 
-            v-model="boardColumns[colIdx-1]" 
-            item-key="id" 
-            group="tasks"
-            class="flex flex-col gap-4 flex-1 relative z-10"
-            :class="{ 'justify-center': boardColumns[colIdx-1].length === 0 }"
-            ghost-class="tass-ghost-effect" 
-            drag-class="tass-drag-effect" 
-            animation="400" 
-            handle=".cursor-grab"
-            @start="handleDragStart"
-            @end="handleDragEnd"
-            @change="(evt) => handleBoardChange(evt, colIdx)"
-          >
-            <template #item="{ element: task }">
-              <TaskCard 
-                :task="task" 
-                @toggle-completion="toggleTaskCompletion" 
-                @delete-task="deleteTask" 
-                @edit-task="openEditModal" 
-                @toggle-timer="taskStore.toggleTimer" 
-              />
-            </template>
-          </draggable>
-        </div>
-      </section>
+      <!-- Quadro Kanban Principal -->
+      <TaskBoard 
+        :boardColumns="boardColumns"
+        :isDraggingTask="isDraggingTask"
+        @update-board="handleBoardChange"
+        @edit-task="openEditModal"
+        @toggle-completion="toggleTaskCompletion"
+        @delete-task="deleteTask"
+        @drag-start="handleDragStart"
+        @drag-end="handleDragEnd"
+      />
     </main>
   </div>
 
@@ -383,9 +303,9 @@ onMounted(async () => {
           </button>
         </div>
         <div class="bottom-capsule">
-          <button class="filter-btn" :class="{ 'active': statusFilter === 'all' }" @click="statusFilter = 'all'">Todas</button>
-          <button class="filter-btn" :class="{ 'active': statusFilter === 'active' }" @click="statusFilter = 'active'">Ativas</button>
-          <button class="filter-btn" :class="{ 'active': statusFilter === 'completed' }" @click="statusFilter = 'completed'">Concluídas</button>
+          <button class="filter-btn" :class="{ 'active': taskStore.statusFilter === 'all' }" @click="taskStore.statusFilter = 'all'">Todas</button>
+          <button class="filter-btn" :class="{ 'active': taskStore.statusFilter === 'active' }" @click="taskStore.statusFilter = 'active'">Ativas</button>
+          <button class="filter-btn" :class="{ 'active': taskStore.statusFilter === 'completed' }" @click="taskStore.statusFilter = 'completed'">Concluídas</button>
           
           <button 
             class="ml-1 w-8 h-8 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-500/30 hover:rotate-90 transition-all duration-300 active:scale-90"

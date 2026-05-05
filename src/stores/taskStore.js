@@ -8,9 +8,43 @@ import { formatMsToHMS } from '../utils/time.js';
 export const useTaskStore = defineStore('task', () => {
   const tasks = ref([]);
   const sprints = ref([]);
-  const filter = ref('all');
+  const statusFilter = ref('all');
   const isLoading = ref(false);
   const selectedTask = ref(null);
+
+  const filteredTasks = computed(() => {
+    const settings = useSettingsStore();
+    let result = [...tasks.value];
+    
+    if (settings.activeSprintId !== 'all') {
+      const id = parseInt(settings.activeSprintId);
+      result = result.filter(t => t.sprintId === id);
+    }
+
+    if (statusFilter.value === 'active') {
+      result = result.filter(t => !t.completed);
+    } else if (statusFilter.value === 'completed') {
+      result = result.filter(t => t.completed);
+    }
+    
+    return result;
+  });
+
+  const boardColumns = computed({
+    get: () => {
+      const settings = useSettingsStore();
+      const cols = [];
+      for (let i = 1; i <= settings.columns; i++) {
+        cols.push(
+          filteredTasks.value
+            .filter(t => t.columnId === i)
+            .sort((a, b) => a.position - b.position)
+        );
+      }
+      return cols;
+    },
+    set: () => {}
+  });
 
   const activeTask = computed(() => tasks.value.find(t => t.isRunning));
 
@@ -140,7 +174,8 @@ export const useTaskStore = defineStore('task', () => {
       await db.tasks.update(id, updates);
       const index = tasks.value.findIndex(t => t.id === id);
       if (index !== -1) {
-        Object.assign(tasks.value[index], updates);
+        // Substituímos o objeto inteiro para garantir reatividade total
+        tasks.value[index] = { ...tasks.value[index], ...updates };
       }
     } catch (error) {
       console.error("Failed to update task:", error);
@@ -267,7 +302,6 @@ export const useTaskStore = defineStore('task', () => {
       await db.sprints.clear();
       await db.notes.clear();
       
-      // Limpeza manual da memória para evitar o reload
       tasks.value = [];
       sprints.value = [];
       lastDeletedTask.value = null;
@@ -281,7 +315,8 @@ export const useTaskStore = defineStore('task', () => {
   };
 
   return {
-    tasks, sprints, filter, isLoading, selectedTask, activeTask,
+    tasks, sprints, isLoading, selectedTask, activeTask,
+    statusFilter, filteredTasks, boardColumns,
     loadTasks, loadSprints, addTask, updateTask, deleteTask, restoreTask,
     lastDeletedTask, toggleTimer, updateRunningTasks, autoSaveRunningTasks,
     migrateOrphanTasks, updateAllPositions, resetSystem,
