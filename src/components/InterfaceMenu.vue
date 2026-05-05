@@ -224,18 +224,10 @@ const handleColumnChange = (n) => {
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
                       <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Comprimento</span>
-                        <span class="text-xs font-black text-indigo-500">{{ settings.appWidth }}px</span>
-                      </div>
-                      <input type="range" v-model="settings.appWidth" min="800" max="2500" step="50" class="w-full tass-range" @change="settings.saveSetting('app-width', settings.appWidth)" />
-                    </div>
-
-                    <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
-                      <div class="flex justify-between items-center">
                         <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Espessura</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.cardPadding }}px</span>
                       </div>
-                      <input type="range" v-model="settings.cardPadding" min="8" max="40" step="2" class="w-full tass-range" @change="settings.saveSetting('app-card-padding', settings.cardPadding)" />
+                      <input type="range" v-model="settings.cardPadding" min="8" max="40" step="2" class="w-full tass-range" @change="settings.cardPadding = parseInt($event.target.value); settings.saveSetting('app-card-padding', settings.cardPadding)" />
                     </div>
 
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4 md:col-span-2">

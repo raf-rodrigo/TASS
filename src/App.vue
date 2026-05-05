@@ -205,12 +205,12 @@ onMounted(async () => {
     :style="{ fontFamily: settings.fontFamily }"
   >
     <div 
-      class="w-full flex flex-col items-center px-4 md:px-12 pt-4 pb-32"
+      class="w-full flex flex-col items-center px-4 md:px-6 pt-4 pb-32"
       :class="[
         isNotesDragging ? '' : 'transition-all duration-500',
         isDraggingTask ? 'is-dragging-mode' : ''
       ]"
-      :style="{ maxWidth: settings.appWidth + 'px' }"
+      :style="{ maxWidth: '98%' }"
       @click="taskStore.selectedTask = null"
     >
     <!-- TASS Branding (Top Left) -->

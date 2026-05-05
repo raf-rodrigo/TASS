@@ -5,7 +5,7 @@ import { db } from '../db.js';
 export const useSettingsStore = defineStore('settings', () => {
   const theme = ref('dark');
   const columns = ref(2);
-  const appWidth = ref(1000);
+  const appWidth = ref(1400);
   const gitlabUrl = ref('https://git.lliege.com.br/POCS/ci');
   const gitlabIntegrationMode = ref('link');
   const gitlabProjectId = ref('');
@@ -65,7 +65,14 @@ export const useSettingsStore = defineStore('settings', () => {
 
       if (settingsMap['app-theme'] !== undefined) theme.value = settingsMap['app-theme'];
       if (settingsMap['app-columns'] !== undefined) columns.value = settingsMap['app-columns'];
-      if (settingsMap['app-width'] !== undefined) appWidth.value = settingsMap['app-width'];
+      if (settingsMap['app-width'] !== undefined) {
+        appWidth.value = settingsMap['app-width'];
+        // Auto-upgrade: Se o usuário estiver no padrão antigo (1000px), sobe para o novo padrão (1400px)
+        if (appWidth.value === 1000) {
+          appWidth.value = 1400;
+          saveSetting('app-width', 1400);
+        }
+      }
       if (settingsMap['app-show-placeholders'] !== undefined) showEmptyPlaceholders.value = settingsMap['app-show-placeholders'] === true;
       if (settingsMap['app-wellness-enabled'] !== undefined) wellnessEnabled.value = settingsMap['app-wellness-enabled'] === true;
       if (settingsMap['app-wellness-interval'] !== undefined) wellnessInterval.value = parseInt(settingsMap['app-wellness-interval']);

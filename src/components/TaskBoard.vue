@@ -36,7 +36,7 @@ const handleBoardChange = (evt, colIdx) => {
 
 <template>
   <section 
-    class="grid gap-6 w-full items-start" 
+    class="grid gap-4 w-full items-start" 
     :class="{
       'grid-cols-1': settings.columns === 1 || !settings.columns,
       'grid-cols-1 md:grid-cols-2': settings.columns === 2,
@@ -44,7 +44,7 @@ const handleBoardChange = (evt, colIdx) => {
       'grid-cols-1 lg:grid-cols-4': settings.columns === 4
     }"
   >
-    <div v-for="colIdx in settings.columns" :key="colIdx" class="flex flex-col gap-4 min-h-[150px] md:min-h-[500px] relative">
+    <div v-for="colIdx in settings.columns" :key="colIdx" class="flex flex-col gap-4 min-h-[150px] md:min-h-[500px] relative min-w-0 w-full">
       <!-- Cabeçalho da Coluna -->
       <div 
         v-if="settings.columnTitles[colIdx-1]" 
