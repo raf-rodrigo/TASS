@@ -205,62 +205,36 @@ onMounted(async () => {
 
   <div 
     v-if="settings.isInitialized" 
-    class="relative z-10 mx-auto w-full flex flex-col items-center p-4 md:p-8 pb-32 ease-in-out" 
-    :class="[
-      isNotesDragging ? '' : 'transition-all duration-500',
-      isDraggingTask ? 'is-dragging-mode' : ''
-    ]" 
-    :style="{ maxWidth: settings.appWidth + 'px', fontFamily: settings.fontFamily }" 
-    @click="taskStore.selectedTask = null"
+    id="app-root"
+    class="relative z-10 mx-auto w-full min-h-screen flex flex-col items-center overflow-x-hidden"
+    :style="{ fontFamily: settings.fontFamily }"
   >
+    <div 
+      class="w-full flex flex-col items-center px-4 md:px-12 pt-4 pb-32"
+      :class="[
+        isNotesDragging ? '' : 'transition-all duration-500',
+        isDraggingTask ? 'is-dragging-mode' : ''
+      ]"
+      :style="{ maxWidth: settings.appWidth + 'px' }"
+      @click="taskStore.selectedTask = null"
+    >
     <!-- TASS Branding (Top Left) -->
-    <div class="fixed top-6 left-8 z-20 flex flex-col items-start animate-[fadeInLeft_0.8s_ease-out] select-none pointer-events-none">
+    <div class="fixed top-4 left-6 md:top-8 md:left-12 z-20 flex flex-col items-start animate-[fadeInLeft_0.8s_ease-out] select-none pointer-events-none opacity-40 md:opacity-100">
       <div class="flex items-center gap-2">
-        <div class="w-1.5 h-10 bg-gradient-to-b from-indigo-600 via-purple-500 to-blue-500 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.4)]"></div>
-        <h1 class="text-4xl font-black tracking-tighter leading-none bg-gradient-to-r from-indigo-600 via-purple-500 to-blue-500 bg-clip-text text-transparent italic pr-2">
+        <div class="w-1 md:w-1.5 h-8 md:h-10 bg-gradient-to-b from-indigo-600 via-purple-500 to-blue-500 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.4)]"></div>
+        <h1 class="text-2xl md:text-4xl font-black tracking-tighter leading-none bg-gradient-to-r from-indigo-600 via-purple-500 to-blue-500 bg-clip-text text-transparent italic pr-2">
           TASS
         </h1>
       </div>
-      <div class="mt-1 flex items-center gap-2">
-        <span class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] ml-3 whitespace-nowrap">
+      <div class="mt-0.5 md:mt-1 flex items-center gap-2">
+        <span class="text-[7px] md:text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] ml-2 md:ml-3 whitespace-nowrap">
           Gerenciador de Tarefas
         </span>
-        <div class="h-[1px] w-8 bg-slate-200 dark:bg-white/10"></div>
+        <div class="h-[0.5px] md:h-[1px] w-4 md:w-8 bg-slate-200 dark:bg-white/10"></div>
       </div>
     </div>
 
-    <main class="w-full mt-24">
-      <TaskModal 
-        v-if="showModal" 
-        :taskToEdit="taskToEdit"
-        @close="showModal = false" 
-        @add-task="handleAddTask" 
-        @save-task="handleSaveTask"
-      />
-
-      <SettingsModal
-        v-if="showSettings"
-        @close="showSettings = false"
-        @save="startWaterReminder"
-        @export-tasks="handleExportTasks"
-        @import-tasks="handleImportTasks"
-        @export-system="handleExportSystem"
-        @import-system="handleImportSystem"
-      />
-
-      <SprintModal
-        v-if="showSprints"
-        :activeSprintId="settings.activeSprintId"
-        @close="showSprints = false"
-        @select-sprint="(id) => settings.activeSprintId = id"
-        @updated="taskStore.loadSprints"
-      />
-
-      <InterfaceMenu
-        v-if="showInterfaceMenu"
-        :isOpen="showInterfaceMenu"
-        @close="showInterfaceMenu = false"
-      />
+      <main class="w-full mt-24 flex-1">
 
       <transition 
         enter-active-class="transition duration-300 ease-out"
@@ -305,13 +279,13 @@ onMounted(async () => {
       <section 
         class="grid gap-6 w-full items-start" 
         :class="{
-          'grid-cols-1': settings.columns === 1,
+          'grid-cols-1': settings.columns === 1 || !settings.columns,
           'grid-cols-1 md:grid-cols-2': settings.columns === 2,
-          'grid-cols-1 md:grid-cols-3': settings.columns === 3,
-          'grid-cols-1 md:grid-cols-4': settings.columns === 4
+          'grid-cols-1 lg:grid-cols-3': settings.columns === 3,
+          'grid-cols-1 lg:grid-cols-4': settings.columns === 4
         }"
       >
-        <div v-for="colIdx in settings.columns" :key="colIdx" class="flex flex-col gap-4 min-h-[500px] relative">
+        <div v-for="colIdx in settings.columns" :key="colIdx" class="flex flex-col gap-4 min-h-[150px] md:min-h-[500px] relative">
           <!-- Cabeçalho da Coluna -->
           <div 
             v-if="settings.columnTitles[colIdx-1]" 
@@ -344,7 +318,7 @@ onMounted(async () => {
             v-model="boardColumns[colIdx-1]" 
             item-key="id" 
             group="tasks"
-            class="flex flex-col gap-4 flex-1 transition-all duration-500 relative z-10"
+            class="flex flex-col gap-4 flex-1 relative z-10"
             :class="{ 'justify-center': boardColumns[colIdx-1].length === 0 }"
             ghost-class="tass-ghost-effect" 
             drag-class="tass-drag-effect" 
@@ -367,11 +341,11 @@ onMounted(async () => {
         </div>
       </section>
     </main>
+  </div>
 
-    <footer class="fixed bottom-0 left-0 w-full grid grid-cols-1 md:grid-cols-3 items-center gap-4 py-6 px-8 z-40 pointer-events-none">
-      <div class="hidden md:block"></div>
-
-      <div class="flex flex-col md:flex-row justify-center items-center gap-3 pointer-events-auto w-full md:w-auto">
+    <!-- 3. Bottom Bar Layer -->
+    <footer class="fixed bottom-0 left-0 w-full flex justify-center items-center py-6 px-2 md:px-8 z-40 pointer-events-none">
+      <div class="flex flex-col md:flex-row justify-center items-center gap-3 pointer-events-auto">
         <div class="bottom-capsule !gap-1" :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-action-opacity))` }">
           <button class="p-1.5 hover:scale-110 transition-transform" @click="toggleTheme" :title="settings.theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'">
             <Sun v-if="settings.theme === 'dark'" class="w-5 h-5 text-amber-500" />
@@ -406,7 +380,7 @@ onMounted(async () => {
             title="Gerenciar Sprints"
           >
             <Calendar class="w-3.5 h-3.5 text-indigo-500" />
-            <span class="text-[10px] font-bold text-slate-700 dark:text-slate-200 uppercase whitespace-nowrap">{{ taskStore.activeSprintName }}</span>
+            <span class="text-[10px] font-bold text-slate-700 dark:text-slate-200 uppercase whitespace-nowrap truncate max-w-[100px] md:max-w-none">{{ taskStore.activeSprintName }}</span>
             <button 
               v-if="settings.activeSprintId !== 'all'" 
               @click.stop="settings.activeSprintId = 'all'" 
@@ -421,15 +395,45 @@ onMounted(async () => {
             <span class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{{ taskStore.activeSprintTotalTime }}</span>
           </div>
 
-
           <button v-if="taskStore.lastDeletedTask" @click="taskStore.restoreTask" class="flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 rounded-md transition-all animate-pulse ml-1 border border-amber-500/20">
             <RotateCcw class="w-3.5 h-3.5" /> Desfazer
           </button>
         </div>
       </div>
-
-      <div class="hidden md:block"></div>
     </footer>
+
+    <!-- 4. Modal Layer (Teleport-like behavior) -->
+    <TaskModal 
+      v-if="showModal" 
+      :taskToEdit="taskToEdit"
+      @close="showModal = false" 
+      @add-task="handleAddTask" 
+      @save-task="handleSaveTask"
+    />
+
+    <SettingsModal
+      v-if="showSettings"
+      @close="showSettings = false"
+      @save="startWaterReminder"
+      @export-tasks="handleExportTasks"
+      @import-tasks="handleImportTasks"
+      @export-system="handleExportSystem"
+      @import-system="handleImportSystem"
+    />
+
+    <SprintModal
+      v-if="showSprints"
+      :activeSprintId="settings.activeSprintId"
+      @close="showSprints = false"
+      @select-sprint="(id) => settings.activeSprintId = id"
+      @updated="taskStore.loadSprints"
+    />
+
+    <InterfaceMenu
+      v-if="showInterfaceMenu"
+      :isOpen="showInterfaceMenu"
+      @close="showInterfaceMenu = false"
+    />
   </div>
   <div v-else class="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
     <div class="animate-pulse text-indigo-500 font-bold">Carregando TASS...</div>

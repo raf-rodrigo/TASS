@@ -287,8 +287,8 @@ const openLink = (url) => {
           <ExternalLink class="w-3 h-3" />
         </button>
 
-        <!-- 5. Ambientes (PRD, HML, DEV) -->
-        <div class="flex items-center ml-1" :class="settings.roundedIcons ? 'gap-1' : 'gap-1.5'">
+        <!-- 5. Ambientes (PRD, HML, DEV) - Escondidos no Mobile para evitar transbordo -->
+        <div class="hidden md:flex items-center ml-1" :class="settings.roundedIcons ? 'gap-1' : 'gap-1.5'">
           <div 
             @click.stop="handleQuickAction('prodUrl', 'Merge com Produção', 'url')"
             class="font-black tracking-tighter transition-all flex items-center justify-center border"
@@ -330,8 +330,8 @@ const openLink = (url) => {
           </div>
         </div>
 
-        <!-- 6. Contador (Tempo) - Escondido quando rodando para evitar duplicidade -->
-        <span v-if="!task.isRunning" class="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-none mr-1">{{ formattedTime }}</span>
+        <!-- 6. Contador (Tempo) - Escondido quando rodando ou no mobile -->
+        <span v-if="!task.isRunning" class="hidden sm:inline text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-none mr-1">{{ formattedTime }}</span>
       </div>
     </div>
 
