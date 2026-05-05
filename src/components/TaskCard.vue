@@ -214,7 +214,7 @@ const openLink = (url) => {
           :title="task.isRunning ? `${task.title} - ${task.description}` : task.description"
         >
           <template v-if="task.isRunning">
-            <span class="font-bold text-indigo-500 dark:text-indigo-400 mr-1">{{ task.title }}</span>
+            <span class="font-bold mr-1" :style="{ color: task.color || 'var(--app-indigo-500)' }">{{ task.title }}</span>
             <span v-if="task.description" class="opacity-60">- {{ task.description }}</span>
           </template>
           <template v-else>

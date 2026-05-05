@@ -8,9 +8,12 @@ import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import BaseModal from './BaseModal.vue';
+import { useTaskStore } from '../stores/taskStore';
+import Swal from '../utils/swal';
 import '@vuepic/vue-datepicker/dist/main.css';
 
 const settings = useSettingsStore();
+const taskStore = useTaskStore();
 const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'export-system', 'import-system']);
 
 const activeTab = ref('gitlab');
@@ -108,6 +111,41 @@ const handleSave = async () => {
 
 const handleImportTasks = (event) => emit('import-tasks', event);
 const handleImportSystem = (event) => emit('import-system', event);
+
+const handleResetSystem = async () => {
+  const result = await Swal.fire({
+    title: 'Zerar Sistema?',
+    text: 'Isso apagará TODAS as tarefas e sprints permanentemente. Esta ação não pode ser desfeita!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, Apagar Tudo',
+    cancelButtonText: 'Cancelar',
+    customClass: {
+      popup: 'tass-modal',
+      confirmButton: 'btn btn-danger !px-8',
+      cancelButton: 'btn btn-secondary !px-6'
+    }
+  });
+
+  if (result.isConfirmed) {
+    const success = await taskStore.resetSystem();
+    
+    if (success) {
+      Swal.fire({
+        title: 'Sistema Resetado',
+        text: 'A limpeza foi concluída com sucesso.',
+        timer: 1500,
+        showConfirmButton: false,
+        customClass: {
+          popup: 'tass-modal !rounded-3xl'
+        }
+      });
+      emit('close');
+    } else {
+      Swal.fire('Erro', 'Não foi possível resetar o sistema.', 'error');
+    }
+  }
+};
 </script>
 
 <template>
@@ -385,6 +423,18 @@ const handleImportSystem = (event) => emit('import-system', event);
                       <input type="file" accept=".json" class="hidden" @change="handleImportSystem" />
                     </label>
                   </div>
+                </div>
+
+                <!-- Reset de Fábrica -->
+                <div class="p-6 bg-red-500/5 dark:bg-red-500/10 rounded-3xl border border-red-500/20 space-y-4">
+                  <div class="flex items-center gap-3 mb-2">
+                    <Activity class="w-5 h-5 text-red-500" />
+                    <h4 class="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-tight">Zona de Perigo</h4>
+                  </div>
+                  <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4">Deseja limpar tudo e começar do zero? Esta ação removerá todas as tarefas e sprints do seu banco de dados local.</p>
+                  <button @click="handleResetSystem" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 active:scale-95">
+                    Zerar Banco de Dados
+                  </button>
                 </div>
               </div>
             </div>

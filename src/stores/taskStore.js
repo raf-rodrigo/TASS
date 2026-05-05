@@ -259,11 +259,30 @@ export const useTaskStore = defineStore('task', () => {
     if (updates.length > 0) await Promise.all(updates);
   };
 
+  const resetSystem = async () => {
+    try {
+      await db.tasks.clear();
+      await db.sprints.clear();
+      await db.notes.clear();
+      
+      // Limpeza manual da memória para evitar o reload
+      tasks.value = [];
+      sprints.value = [];
+      lastDeletedTask.value = null;
+      selectedTask.value = null;
+      
+      return true;
+    } catch (error) {
+      console.error("Failed to reset system:", error);
+      return false;
+    }
+  };
+
   return {
     tasks, sprints, filter, isLoading, selectedTask, activeTask,
     loadTasks, loadSprints, addTask, updateTask, deleteTask, restoreTask,
     lastDeletedTask, toggleTimer, updateRunningTasks, autoSaveRunningTasks,
-    migrateOrphanTasks, updateAllPositions,
+    migrateOrphanTasks, updateAllPositions, resetSystem,
     activeTaskTimeFormatted, activeSprintName, activeSprintTotalTime
   };
 });
