@@ -289,7 +289,19 @@ onMounted(async () => {
           <!-- Cabeçalho da Coluna -->
           <div 
             v-if="settings.columnTitles[colIdx-1]" 
-            class="flex items-center gap-2 px-3 py-2 bg-white/5 dark:bg-white/[0.02] rounded-2xl border border-slate-200/50 dark:border-white/5 mb-2 group transition-all hover:bg-white/10"
+            class="flex items-center gap-2 px-3 py-2 rounded-2xl border mb-2 group transition-all hover:brightness-110"
+            :style="{ 
+              backgroundColor: !settings.opacityTargets.cards 
+                ? (settings.theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)')
+                : (settings.theme === 'dark' 
+                    ? `rgba(255, 255, 255, ${Math.max(0.02, (settings.cardOpacity / 100) * 0.08)})` 
+                    : `rgba(0, 0, 0, ${Math.max(0.02, (settings.cardOpacity / 100) * 0.05)})`),
+              borderColor: !settings.opacityTargets.cards
+                ? (settings.theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)')
+                : (settings.theme === 'dark'
+                    ? `rgba(255, 255, 255, ${Math.max(0.05, (settings.cardOpacity / 100) * 0.1)})`
+                    : `rgba(0, 0, 0, ${Math.max(0.05, (settings.cardOpacity / 100) * 0.1)})`)
+            }"
           >
             <div class="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
             <h3 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest truncate">
@@ -305,7 +317,16 @@ onMounted(async () => {
             v-if="boardColumns[colIdx-1].length === 0" 
             class="absolute inset-0 flex items-center justify-center p-2 pt-14 pointer-events-none"
           >
-            <div class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-slate-200/30 dark:border-white/5 rounded-[2.5rem] text-slate-400">
+            <div 
+              class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-[2.5rem] text-slate-400"
+              :style="{ 
+                borderColor: !settings.opacityTargets.cards
+                  ? (settings.theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)')
+                  : (settings.theme === 'dark'
+                      ? `rgba(255, 255, 255, ${Math.max(0.02, (settings.cardOpacity / 100) * 0.1)})`
+                      : `rgba(0, 0, 0, ${Math.max(0.02, (settings.cardOpacity / 100) * 0.1)})`)
+              }"
+            >
               <Plus class="w-10 h-10 mb-4 opacity-20" />
               <span class="text-[10px] font-black uppercase tracking-[0.3em] opacity-30 text-center px-8">
                 Arraste para cá

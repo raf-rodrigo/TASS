@@ -19,16 +19,17 @@ defineProps({
 
 const emit = defineEmits(['close']);
 
-const activeTab = ref('board');
+const activeTab = ref('wallpapers');
 const showAddWallpaper = ref(false);
 const newWallpaperUrl = ref('');
 
 const tabs = [
+  { id: 'wallpapers', label: 'Papéis de Parede', icon: ImageIcon, color: 'text-emerald-500' },
   { id: 'board', label: 'Board & Layout', icon: LayoutGrid, color: 'text-indigo-500' },
   { id: 'tasks', label: 'Estilo das Tarefas', icon: Layers, color: 'text-indigo-500' },
   { id: 'typography', label: 'Tipografia', icon: TypeIcon, color: 'text-indigo-500' },
   { id: 'notes', label: 'Notas Rápidas', icon: StickyNote, color: 'text-indigo-500' },
-  { id: 'immersion', label: 'Imersão e Fundo', icon: ImageIcon, color: 'text-indigo-500' },
+  { id: 'effects', label: 'Efeitos e Vidro', icon: Droplets, color: 'text-indigo-500' },
 ];
 
 const fontOptions = [
@@ -50,7 +51,7 @@ const setWallpaper = (url) => {
 
 const addCustomWallpaper = () => {
   if (!newWallpaperUrl.value.trim()) return;
-  if (settings.customWallpapers.length >= 11) return;
+  if (settings.customWallpapers.length >= 17) return;
   
   settings.customWallpapers.push({
     name: `Custom ${settings.customWallpapers.length + 1}`,
@@ -315,20 +316,23 @@ const handleColumnChange = (n) => {
                   </div>
                 </div>
 
-                <!-- ABA: Imersão e Fundo -->
-                <div v-else-if="activeTab === 'immersion'" :key="'immersion'" class="space-y-6">
-                  <!-- Galeria de Fundos -->
+                <!-- ABA: Papéis de Parede -->
+                <div v-else-if="activeTab === 'wallpapers'" :key="'wallpapers'" class="space-y-6">
+                  <div>
+                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Galeria de Fundos</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Troque o clima do seu workspace instantaneamente.</p>
+                  </div>
+
                   <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-6">
                     <div class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
                         <ImageIcon class="w-5 h-5 text-emerald-500" />
-                        <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Galeria de Fundos</h3>
+                        <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Wallpapers Premium</h3>
                       </div>
-                      <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">{{ settings.customWallpapers.length }} / 11 Slots</span>
+                      <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">{{ settings.customWallpapers.length }} / 17 Slots</span>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      <!-- Clear Wallpaper Card -->
                       <button 
                         v-if="settings.customWallpapers.length > 0"
                         @click="clearWallpaper"
@@ -336,10 +340,9 @@ const handleColumnChange = (n) => {
                         :class="!settings.backgroundImage ? 'border-indigo-500 bg-indigo-500/5 text-indigo-500' : 'border-slate-200 dark:border-white/10 text-slate-400 hover:border-red-500/50 hover:text-red-500'"
                       >
                         <Eraser class="w-6 h-6" />
-                        <span class="text-[10px] font-bold uppercase tracking-tighter">Nenhum</span>
+                        <span class="text-[10px] font-bold uppercase tracking-tighter">Limpar</span>
                       </button>
 
-                      <!-- Wallpaper Presets Loop -->
                       <div 
                         v-for="(wp, index) in settings.customWallpapers" 
                         :key="index"
@@ -352,25 +355,22 @@ const handleColumnChange = (n) => {
                           <button 
                             @click.stop="removeWallpaper(index)"
                             class="p-2 bg-red-500/80 hover:bg-red-500 text-white rounded-lg transition-colors"
-                            title="Remover Wallpaper"
                           >
                             <Trash2 class="w-4 h-4" />
                           </button>
                         </div>
                       </div>
 
-                      <!-- Add New Wallpaper Button -->
                       <button 
-                        v-if="settings.customWallpapers.length < 11"
+                        v-if="settings.customWallpapers.length < 17"
                         @click="showAddWallpaper = !showAddWallpaper"
                         class="aspect-video rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-500"
                       >
                         <Plus class="w-6 h-6" />
-                        <span class="text-[10px] font-bold uppercase tracking-tighter">Novo</span>
+                        <span class="text-[10px] font-bold uppercase tracking-tighter">Novo Link</span>
                       </button>
                     </div>
 
-                    <!-- Add Wallpaper Input Field -->
                     <div v-if="showAddWallpaper" class="animate-fadeIn p-4 bg-white dark:bg-white/5 rounded-2xl border border-emerald-500/30 space-y-4">
                       <div class="space-y-2">
                         <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">URL da Imagem</label>
@@ -388,8 +388,18 @@ const handleColumnChange = (n) => {
                         </div>
                       </div>
                     </div>
+                  </div>
+                </div>
 
-                    <div class="pt-4 border-t border-slate-200 dark:border-white/10 space-y-4">
+                <!-- ABA: Efeitos e Vidro -->
+                <div v-else-if="activeTab === 'effects'" :key="'effects'" class="space-y-6">
+                  <div>
+                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Efeitos e Vidro</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Ajuste o desfoque e as transparências do sistema.</p>
+                  </div>
+
+                  <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-6">
+                    <div class="space-y-4">
                       <div class="flex justify-between items-center">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Desfoque do Fundo</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.backgroundBlur }}px</span>
@@ -404,11 +414,10 @@ const handleColumnChange = (n) => {
                     </div>
                   </div>
 
-                  <!-- Efeito de Transparência -->
                   <div class="p-6 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-3xl border border-indigo-500/10 space-y-6">
                     <div class="flex items-center gap-3">
                       <Droplets class="w-5 h-5 text-indigo-500" />
-                      <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Transparência e Vidro</h3>
+                      <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Transparência</h3>
                     </div>
 
                     <div class="space-y-4">
@@ -422,9 +431,9 @@ const handleColumnChange = (n) => {
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block">Aplicar efeito em:</label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Tarefas</span>
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Cards e Estrutura do Quadro</span>
                             <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.cards" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
+                              <input type="checkbox" v-model="settings.opacityTargets.cards" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
                               <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
                             </div>
                           </label>
@@ -432,7 +441,7 @@ const handleColumnChange = (n) => {
                           <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
                             <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Janelas e Menus</span>
                             <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.modals" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
+                              <input type="checkbox" v-model="settings.opacityTargets.modals" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
                               <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
                             </div>
                           </label>
@@ -440,7 +449,7 @@ const handleColumnChange = (n) => {
                           <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
                             <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Menu Inferior</span>
                             <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.bottomBar" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
+                              <input type="checkbox" v-model="settings.opacityTargets.bottomBar" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
                               <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
                             </div>
                           </label>
@@ -448,7 +457,7 @@ const handleColumnChange = (n) => {
                           <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
                             <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Menu de Contexto</span>
                             <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.contextMenu" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
+                              <input type="checkbox" v-model="settings.opacityTargets.contextMenu" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
                               <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
                             </div>
                           </label>
@@ -456,7 +465,7 @@ const handleColumnChange = (n) => {
                           <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
                             <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Alertas e Mensagens</span>
                             <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.alerts" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
+                              <input type="checkbox" v-model="settings.opacityTargets.alerts" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
                               <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
                             </div>
                           </label>
@@ -464,7 +473,7 @@ const handleColumnChange = (n) => {
                           <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
                             <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Barra de Ações (Filtros)</span>
                             <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.actionBar" @change="settings.saveSetting('app-opacity-targets', settings.opacityTargets)" class="sr-only peer" />
+                              <input type="checkbox" v-model="settings.opacityTargets.actionBar" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
                               <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
                             </div>
                           </label>

@@ -50,7 +50,9 @@ export const useSettingsStore = defineStore('settings', () => {
     { name: 'Minimal Nature', url: 'https://images.unsplash.com/photo-1477346611705-65d1883cee1e?q=80&w=1920&auto=format&fit=crop' },
     { name: 'Modern Scenic', url: 'https://images.unsplash.com/photo-1776811805307-a0e0289c672f?q=80&w=1920&auto=format&fit=crop' },
     { name: 'Cozy Desk', url: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=1920&auto=format&fit=crop' },
-    { name: 'Studio Night', url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1920&auto=format&fit=crop' }
+    { name: 'Studio Night', url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1920&auto=format&fit=crop' },
+    { name: 'Minimalist Zen', url: 'https://images.unsplash.com/photo-1510672981848-a1c4f1cb5ccf?q=80&w=1920&auto=format&fit=crop' },
+    { name: 'Deep Abstract', url: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?q=80&w=1920&auto=format&fit=crop' }
   ]);
 
   const isInitialized = ref(false);
@@ -85,6 +87,19 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-font-family']) fontFamily.value = settingsMap['app-font-family'];
       if (settingsMap['app-opacity-targets']) opacityTargets.value = settingsMap['app-opacity-targets'];
       if (settingsMap['app-custom-wallpapers']) customWallpapers.value = settingsMap['app-custom-wallpapers'];
+
+      // Injeção de Elite: Garante que os novos wallpapers gerados apareçam na coleção
+      const eliteWallpapers = [
+        { name: 'Minimalist Zen', url: 'https://images.unsplash.com/photo-1510672981848-a1c4f1cb5ccf?q=80&w=1920&auto=format&fit=crop' },
+        { name: 'Deep Abstract', url: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?q=80&w=1920&auto=format&fit=crop' }
+      ];
+
+      eliteWallpapers.forEach(wp => {
+        const exists = customWallpapers.value.some(existing => existing.name === wp.name);
+        if (!exists && customWallpapers.value.length < 17) {
+          customWallpapers.value.push(wp);
+        }
+      });
       if (settingsMap['app-task-number-size']) taskNumberSize.value = settingsMap['app-task-number-size'];
       if (settingsMap['app-task-desc-size']) taskDescriptionSize.value = settingsMap['app-task-desc-size'];
       if (settingsMap['app-notes-side']) notesSide.value = settingsMap['app-notes-side'];
@@ -102,7 +117,11 @@ export const useSettingsStore = defineStore('settings', () => {
 
   const saveSetting = async (key, value) => {
     try {
-      await db.settings.put({ key, value });
+      // "Limpa" o dado para remover proxies do Vue e evitar DataCloneError no IndexedDB
+      const cleanValue = (value && typeof value === 'object') 
+        ? JSON.parse(JSON.stringify(value)) 
+        : value;
+      await db.settings.put({ key, value: cleanValue });
     } catch (error) {
       console.error(`Failed to save setting ${key}`, error);
     }
