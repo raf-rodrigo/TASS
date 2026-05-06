@@ -64,51 +64,52 @@ const handleBoardChange = (evt, colIdx) => {
         </span>
       </div>
 
-      <!-- Placeholders vazios -->
-      <div 
-        v-if="(settings.showEmptyPlaceholders || isDraggingTask) && boardColumns[colIdx-1]?.length === 0" 
-        class="absolute inset-0 flex items-center justify-center p-2 pt-14 pointer-events-none"
-      >
+      <!-- Área de Conteúdo da Coluna (Placeholder + Draggable) -->
+      <div class="flex-1 relative flex flex-col">
         <div 
-          class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-[2.5rem] text-slate-400 transition-all"
-          :style="{ 
-            borderColor: `rgba(var(--app-bg-raw), 0.1)`,
-            backgroundColor: settings.cardOpacity < 100 ? `rgba(var(--app-bg-raw), 0.05)` : 'transparent',
-            backdropFilter: settings.cardOpacity < 100 ? 'blur(4px)' : 'none'
-          }"
+          v-if="(settings.showEmptyPlaceholders || isDraggingTask) && boardColumns[colIdx-1]?.length === 0" 
+          class="absolute inset-0 flex items-center justify-center pointer-events-none"
         >
-          <Plus class="w-10 h-10 mb-4 opacity-20" />
-          <span class="text-[10px] font-black uppercase tracking-[0.3em] opacity-30 text-center px-8">
-            Arraste para cá
-          </span>
+          <div 
+            class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-2xl text-slate-400/30 transition-all"
+            :style="{ 
+              borderColor: `rgba(var(--app-bg-raw), 0.1)`,
+              backgroundColor: settings.cardOpacity < 100 ? `rgba(var(--app-bg-raw), 0.05)` : 'transparent',
+              backdropFilter: settings.cardOpacity < 100 ? 'blur(4px)' : 'none'
+            }"
+          >
+            <Plus class="w-10 h-10 mb-4 opacity-20" />
+            <span class="text-[10px] font-black uppercase tracking-[0.3em] opacity-30 text-center px-8">
+              Arraste para cá
+            </span>
+          </div>
         </div>
-      </div>
 
-      <!-- Área de Arrastar da Coluna -->
-      <draggable 
-        v-model="boardColumns[colIdx-1]" 
-        item-key="id" 
-        group="tasks"
-        class="flex flex-col gap-4 flex-1 relative z-10"
-        :class="{ 'justify-center': boardColumns[colIdx-1]?.length === 0 }"
-        ghost-class="tass-ghost-effect" 
-        drag-class="tass-drag-effect" 
-        animation="400" 
-        handle=".cursor-grab"
-        @start="emit('drag-start')"
-        @end="emit('drag-end')"
-        @change="(evt) => handleBoardChange(evt, colIdx)"
-      >
-        <template #item="{ element: task }">
-          <TaskCard 
-            :task="task" 
-            @toggle-completion="(t) => emit('toggle-completion', t)" 
-            @delete-task="(id) => emit('delete-task', id)" 
-            @edit-task="(t) => emit('edit-task', t)" 
-            @toggle-timer="taskStore.toggleTimer" 
-          />
-        </template>
-      </draggable>
+        <!-- Área de Arrastar da Coluna -->
+        <draggable 
+          v-model="boardColumns[colIdx-1]" 
+          item-key="id" 
+          group="tasks"
+          class="flex flex-col gap-4 flex-1 relative z-10 min-h-[150px]"
+          ghost-class="tass-ghost-effect" 
+          drag-class="tass-drag-effect" 
+          animation="400" 
+          handle=".cursor-grab"
+          @start="emit('drag-start')"
+          @end="emit('drag-end')"
+          @change="(evt) => handleBoardChange(evt, colIdx)"
+        >
+          <template #item="{ element: task }">
+            <TaskCard 
+              :task="task" 
+              @toggle-completion="(t) => emit('toggle-completion', t)" 
+              @delete-task="(id) => emit('delete-task', id)" 
+              @edit-task="(t) => emit('edit-task', t)" 
+              @toggle-timer="taskStore.toggleTimer" 
+            />
+          </template>
+        </draggable>
+      </div>
     </div>
   </section>
 </template>
