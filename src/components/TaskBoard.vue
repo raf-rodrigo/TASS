@@ -48,14 +48,12 @@ const handleBoardChange = (evt, colIdx) => {
       <!-- Cabeçalho da Coluna -->
       <div 
         v-if="settings.columnTitles[colIdx-1]" 
-        class="flex items-center gap-2 px-3 py-2 rounded-2xl border mb-2 group transition-all hover:brightness-110"
-        :style="{ 
-          backgroundColor: `rgba(var(--app-bg-raw), var(--app-card-opacity))`,
-          borderColor: settings.theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-          backdropFilter: settings.cardOpacity < 100 ? 'blur(8px)' : 'none'
-        }"
+        class="flex items-center px-4 py-2 bg-slate-400/5 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 backdrop-blur-sm"
       >
-        <div class="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+        <div 
+          class="w-2 h-2 rounded-full mr-2" 
+          :style="{ backgroundColor: settings.accentColor || '#6366f1' }"
+        ></div>
         <h3 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest truncate">
           {{ settings.columnTitles[colIdx-1] }}
         </h3>
@@ -87,14 +85,15 @@ const handleBoardChange = (evt, colIdx) => {
 
         <!-- Área de Arrastar da Coluna -->
         <draggable 
-          v-model="boardColumns[colIdx-1]" 
+          :list="boardColumns[colIdx-1]" 
           item-key="id" 
           group="tasks"
           class="flex flex-col gap-4 flex-1 relative z-10 min-h-[150px]"
           ghost-class="tass-ghost-effect" 
           drag-class="tass-drag-effect" 
+          :force-fallback="true"
+          :fallback-on-body="true"
           animation="400" 
-          handle=".cursor-grab"
           @start="emit('drag-start')"
           @end="emit('drag-end')"
           @change="(evt) => handleBoardChange(evt, colIdx)"

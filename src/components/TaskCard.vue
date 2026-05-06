@@ -34,7 +34,7 @@ const handleSelect = () => {
 
 <template>
   <div 
-    class="glass-panel transition-all duration-300 animate-scaleIn cursor-pointer cursor-grab hover:-translate-y-0.5 group relative hover:z-[100]"
+    class="glass-panel cursor-pointer cursor-grab hover:-translate-y-0.5 group relative hover:z-[100]"
     :class="[
       task.isRunning ? 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : '',
       taskStore.selectedTask?.id === task.id ? 'ring-2 ring-indigo-500/50 border-indigo-500 z-[50]' : 'hover:border-indigo-400/40',
@@ -113,7 +113,5 @@ const handleSelect = () => {
 </template>
 
 <style scoped>
-.glass-panel {
-  transition: all 0.3s ease;
-}
+/* Estilos específicos do card se necessário */
 </style>
