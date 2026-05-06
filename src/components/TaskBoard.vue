@@ -52,16 +52,15 @@ const handleBoardChange = (evt, colIdx) => {
       <!-- Cabeçalho da Coluna -->
       <div 
         v-if="settings.columnTitles[colIdx-1]" 
-        class="flex items-center px-4 py-2 bg-slate-400/5 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 backdrop-blur-sm"
+        class="flex items-center mb-1 px-1"
       >
         <div 
-          class="w-2 h-2 rounded-full mr-2" 
-          :style="{ backgroundColor: settings.accentColor || '#6366f1' }"
+          class="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)] mr-2"
         ></div>
-        <h3 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest truncate">
+        <h3 class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] truncate">
           {{ settings.columnTitles[colIdx-1] }}
         </h3>
-        <span class="ml-auto text-[9px] font-bold text-slate-400 opacity-50">
+        <span class="ml-2 text-[9px] font-black text-indigo-500/50">
           {{ boardColumns[colIdx-1]?.length || 0 }}
         </span>
       </div>

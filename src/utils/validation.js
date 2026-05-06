@@ -9,12 +9,17 @@
 export const isValidUrl = (url) => {
   if (!url) return true; // Campos vazios são válidos (não obrigatórios)
   
-  const pattern = new RegExp('^(https?:\\/\\/)?'+ // protocolo
-    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // nome de domínio
-    '((\\d{1,3}\\.){3}\\d{1,3}))'+ // ou ip (v4)
-    '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // porta e caminho
-    '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
-    '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+  // Regex mais moderno e permissivo para suportar URLs complexas (como as do Odoo/Vision)
+  // que contêm pontos e caracteres especiais no fragmento (#) e na query (?)
+  const pattern = new RegExp(
+    '^(https?:\\/\\/)?' + // protocolo opcional
+    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domínio
+    '((\\d{1,3}\\.){3}\\d{1,3}))' + // ou IP
+    '(\\:\\d+)?' + // porta
+    '(\\/[-a-z\\d%_.~+]*)*' + // caminho
+    '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+    '(\\#[-a-z\\d%_.~+=&]*)?$', 'i' // fragmento (hífen movido para o final para evitar erro de range)
+  );
     
   return !!pattern.test(url);
 };

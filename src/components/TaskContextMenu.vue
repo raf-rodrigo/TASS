@@ -25,7 +25,20 @@ const taskStore = useTaskStore();
 const isCreatingBranch = ref(false);
 
 // Handlers migrados do TaskCard
-const handleQuickAction = async (field, label, type = 'url') => {
+const handleAction = async (field, label, type = 'url') => {
+  const currentValue = props.task[field];
+  
+  // Se já existe um valor e é do tipo URL, o clique abre o link
+  if (currentValue && type === 'url') {
+    openLink(currentValue);
+  } else {
+    // Se não existe ou não é URL, abre o prompt de edição
+    await taskActionService.promptQuickUpdate(props.task, taskStore, field, label, type);
+  }
+};
+
+// Handler específico para editar um link que já existe (via clique longo ou menu)
+const handleEditAction = async (field, label, type = 'url') => {
   await taskActionService.promptQuickUpdate(props.task, taskStore, field, label, type);
 };
 
@@ -60,16 +73,16 @@ const openLink = (url) => {
       }"
     >
       <!-- Seção 1: Identificação e Timer Rápido -->
-      <div class="flex items-center gap-3 px-3 py-1 border-r border-slate-200 dark:border-white/10 pr-4">
-        <div 
-          class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs shadow-inner"
-          :style="{ backgroundColor: task.color ? `${task.color}20` : 'rgba(99, 102, 241, 0.1)', color: task.color || 'var(--app-indigo-500)' }"
-        >
-          {{ task.title }}
+      <div class="flex items-center gap-4 px-4 py-1 border-r border-slate-200 dark:border-white/10 pr-6 min-w-0 max-w-[280px]">
+        <div class="flex flex-col min-w-0">
+          <span class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-1">Tarefa Ativa</span>
+          <h4 class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate leading-tight">
+            {{ task.description || task.title }}
+          </h4>
         </div>
         <button 
           @click="taskStore.toggleTimer(task)" 
-          class="p-2 rounded-xl transition-all active:scale-90"
+          class="p-2 rounded-xl transition-all active:scale-90 shrink-0"
           :class="task.isRunning ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'"
         >
           <Square v-if="task.isRunning" class="w-5 h-5" />
@@ -93,7 +106,7 @@ const openLink = (url) => {
 
         <!-- Observações -->
         <button 
-          @click="handleQuickAction('moreInfo', 'Observações', 'text')"
+          @click="handleAction('moreInfo', 'Observações', 'text')"
           class="icon-btn-large"
           :class="{ 'active-action-amber': task.moreInfo }"
           data-tip="Observações"
@@ -103,10 +116,11 @@ const openLink = (url) => {
 
         <!-- Link Externo -->
         <button 
-          @click="handleQuickAction('taskUrl', 'Link da Tarefa', 'url')"
+          @click="handleAction('taskUrl', 'Link da Tarefa', 'url')"
+          @contextmenu.prevent="handleEditAction('taskUrl', 'Link da Tarefa', 'url')"
           class="icon-btn-large"
           :class="{ 'active-action-indigo': task.taskUrl }"
-          data-tip="Link da Tarefa"
+          :data-tip="task.taskUrl ? 'Abrir Link (Botão direito para editar)' : 'Configurar Link'"
         >
           <ExternalLink class="w-5 h-5" />
         </button>
@@ -117,19 +131,22 @@ const openLink = (url) => {
         <!-- Ambientes (PRD, HML, DEV) -->
         <div class="flex items-center gap-1.5">
           <button 
-            @click="handleQuickAction('prodUrl', 'Merge com Produção', 'url')"
+            @click="handleAction('prodUrl', 'Merge com Produção', 'url')"
+            @contextmenu.prevent="handleEditAction('prodUrl', 'Merge com Produção', 'url')"
             class="env-btn" :class="{ 'env-active-prd': task.prodUrl }"
-            data-tip="URL da branch com Produção"
+            :data-tip="task.prodUrl ? 'Abrir Produção (Botão direito para editar)' : 'Configurar PRD'"
           >PRD</button>
           <button 
-            @click="handleQuickAction('homologUrl', 'Merge com Homologação', 'url')"
+            @click="handleAction('homologUrl', 'Merge com Homologação', 'url')"
+            @contextmenu.prevent="handleEditAction('homologUrl', 'Merge com Homologação', 'url')"
             class="env-btn" :class="{ 'env-active-hml': task.homologUrl }"
-            data-tip="URL da branch com Homologação"
+            :data-tip="task.homologUrl ? 'Abrir Homologação (Botão direito para editar)' : 'Configurar HML'"
           >HML</button>
           <button 
-            @click="handleQuickAction('devUrl', 'Merge com Desenvolvimento', 'url')"
+            @click="handleAction('devUrl', 'Merge com Desenvolvimento', 'url')"
+            @contextmenu.prevent="handleEditAction('devUrl', 'Merge com Desenvolvimento', 'url')"
             class="env-btn" :class="{ 'env-active-dev': task.devUrl }"
-            data-tip="URL da branch com Desenvolvimento"
+            :data-tip="task.devUrl ? 'Abrir Desenvolvimento (Botão direito para editar)' : 'Configurar DEV'"
           >DEV</button>
         </div>
       </div>
