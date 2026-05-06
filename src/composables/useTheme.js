@@ -7,10 +7,19 @@ export function useTheme(settings) {
   const applyStyles = () => {
     const root = document.documentElement;
     
+    // Ajusta o fundo do body: 
+    // Se tiver wallpaper, usamos um fundo escuro para evitar bordas brancas no blur.
+    // Se não tiver, usamos a cor do tema.
+    if (settings.backgroundImage) {
+      document.body.style.backgroundColor = '#0f172a'; // Slate 900 (padrão para blur)
+    } else {
+      document.body.style.backgroundColor = settings.theme === 'dark' ? '#0f172a' : '#f8fafc';
+    }
+    
     // Cores base baseadas no tema
     if (settings.theme === 'dark') {
       root.classList.add('dark');
-      root.style.setProperty('--app-bg-raw', '30, 41, 59'); // slate-800
+      root.style.setProperty('--app-bg-raw', '15, 23, 42'); // Slate 900
     } else {
       root.classList.remove('dark');
       root.style.setProperty('--app-bg-raw', '255, 255, 255');
@@ -26,7 +35,7 @@ export function useTheme(settings) {
     root.style.setProperty('--app-bottom-opacity', getOpacity(settings.opacityTargets.bottomBar));
     root.style.setProperty('--app-action-opacity', getOpacity(settings.opacityTargets.actionBar));
     root.style.setProperty('--app-modal-opacity', getOpacity(settings.opacityTargets.modals));
-    root.style.setProperty('--app-alert-opacity', getOpacity(settings.opacityTargets.alerts));
+    root.style.setProperty('--app-alert-opacity', getOpacity(settings.opacityTargets.modals));
     root.style.setProperty('--app-menu-opacity', getOpacity(settings.opacityTargets.contextMenu));
     
     // Outras medidas

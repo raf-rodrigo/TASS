@@ -60,12 +60,11 @@ const handleSelect = () => {
           }"
           :class="[
             (!task.color && !task.isRunning) ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 dark:bg-indigo-500/20 border-indigo-500/20' : '',
-            task.isRunning ? 'bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-mono text-xs' : ''
+            task.isRunning ? 'bg-slate-100 dark:bg-slate-900/50 text-indigo-600 dark:text-indigo-400 border-indigo-500/40 font-mono text-[11px] shadow-sm shadow-indigo-500/10' : ''
           ]"
           :title="task.isRunning ? 'Tempo Decorrido' : task.title"
         >
           {{ task.isRunning ? formattedTime : task.title }}
-          <span v-if="task.isRunning" class="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse"></span>
         </span>
         <span 
           v-if="task.description || task.isRunning" 
@@ -91,13 +90,13 @@ const handleSelect = () => {
           :class="[
             settings.roundedIcons ? 'w-[26px] h-[26px] rounded-xl' : 'px-1.5 py-1 rounded border-transparent',
             task.isRunning 
-              ? 'bg-red-500/10 text-red-500 dark:text-red-400 border-red-500/20' 
-              : 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
+              ? 'bg-red-500/10 text-red-500 dark:text-red-400 border-red-500/20 hover:bg-red-500/20' 
+              : 'bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
           ]" 
           @click.stop="emit('toggle-timer', task)" 
           data-tip="Iniciar/Parar Cronômetro"
         >
-          <Square v-if="task.isRunning" class="w-3.5 h-3.5" />
+          <Square v-if="task.isRunning" class="w-3.5 h-3.5 animate-pulse" />
           <Play v-else class="w-3.5 h-3.5" />
         </button>
 

@@ -47,6 +47,6 @@ defineProps({
 <style scoped>
 .glass-panel {
   /* Garante que o toast tenha o estilo de vidro mesmo se as globais mudarem */
-  border-radius: 20px;
+  border-radius: var(--app-card-radius);
 }
 </style>

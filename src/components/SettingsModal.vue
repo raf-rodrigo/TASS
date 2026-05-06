@@ -59,7 +59,8 @@ const localSettings = ref({
   inactivityThreshold: { 
     hours: Math.floor((settings.inactivityThreshold || 1) / 60), 
     minutes: (settings.inactivityThreshold || 1) % 60 
-  }
+  },
+  cardBorderRadius: settings.cardBorderRadius
 });
 
 const dayNames = [
@@ -107,6 +108,7 @@ const handleSave = async () => {
   settings.wellnessEnabled = localSettings.value.wellnessEnabled;
   settings.wellnessInterval = localSettings.value.wellnessInterval;
   settings.inactivityThreshold = (localSettings.value.inactivityThreshold.hours * 60) + localSettings.value.inactivityThreshold.minutes;
+  settings.cardBorderRadius = localSettings.value.cardBorderRadius;
 
   await settings.saveAllSettings();
   notificationService.toast('Configurações Salvas!');
@@ -387,6 +389,17 @@ const handleResetSystem = async () => {
                     </div>
                   </div>
                 </div>
+
+                <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 group space-y-4">
+                  <div class="flex justify-between items-center">
+                    <div>
+                      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Arredondamento de Cantos</p>
+                      <p class="text-[10px] text-slate-500">Define o nível de arredondamento dos elementos da interface.</p>
+                    </div>
+                    <span class="text-xs font-black text-indigo-500">{{ localSettings.cardBorderRadius }}px</span>
+                  </div>
+                  <input type="range" v-model="localSettings.cardBorderRadius" min="0" max="40" step="1" class="w-full app-range" />
+                </div>
               </div>
             </div>
 
@@ -455,8 +468,8 @@ const handleResetSystem = async () => {
 
         <!-- Footer Manual -->
         <footer class="p-4 md:p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex flex-col md:flex-row gap-2 md:gap-4">
-          <button @click="emit('close')" class="flex-1 px-6 py-2.5 md:py-3 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/5 rounded-2xl transition-all">Terminei</button>
-          <button @click="handleSave" class="flex-2 px-12 py-2.5 md:py-3 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-2xl transition-all shadow-xl shadow-indigo-500/20">Salvar Alterações</button>
+          <button @click="emit('close')" class="flex-1 px-6 py-2.5 md:py-3 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/5 rounded-2xl transition-all">Fechar</button>
+          <button @click="handleSave" class="flex-2 px-12 py-2.5 md:py-3 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-2xl transition-all shadow-xl shadow-indigo-500/20">Salvar</button>
         </footer>
       </main>
     </div>

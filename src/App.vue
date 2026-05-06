@@ -170,6 +170,12 @@ const handleDragEnd = () => {
   isDraggingTask.value = false;
 };
 
+// Sincroniza estado de arraste com o body para evitar seleção de texto
+watch(isDraggingTask, (val) => {
+  if (val) document.body.classList.add('dragging-task');
+  else document.body.classList.remove('dragging-task');
+});
+
 onMounted(async () => {
   // Limpa dados legados de água do banco
   try {
@@ -188,22 +194,33 @@ onMounted(async () => {
 
 <template>
   <!-- Background Wallpaper Layer -->
-  <div 
-    v-if="settings.backgroundImage" 
-    class="fixed inset-0 z-[-1] pointer-events-none transition-all duration-1000 ease-in-out"
-    :style="{ 
-      backgroundImage: `url(${settings.backgroundImage})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundAttachment: 'fixed',
-      filter: `blur(${settings.backgroundBlur}px) brightness(${settings.theme === 'dark' ? 0.6 : 0.9})`
-    }"
-  ></div>
+  <template v-if="settings.backgroundImage">
+    <!-- Camada 1: A Imagem (Limpa e com folga) -->
+    <div 
+      class="fixed -top-[40px] -left-[40px] -right-[40px] -bottom-[40px] z-[-2] pointer-events-none"
+      :style="{ 
+        backgroundImage: `url(${settings.backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }"
+    ></div>
+    <!-- Camada 2: O Vidro (Aplica o Blur e Brilho via Backdrop) -->
+    <div 
+      class="fixed inset-0 z-[-1] pointer-events-none transition-all duration-700 ease-in-out"
+      :style="{ 
+        backdropFilter: `blur(${settings.backgroundBlur}px) brightness(${settings.theme === 'dark' ? 0.6 : 0.85})`,
+        '-webkit-backdrop-filter': `blur(${settings.backgroundBlur}px) brightness(${settings.theme === 'dark' ? 0.6 : 0.85})`,
+        backgroundColor: settings.theme === 'dark' ? 'rgba(15, 23, 42, 0.2)' : 'rgba(255, 255, 255, 0.05)'
+      }"
+    ></div>
+  </template>
 
   <div 
     v-if="settings.isInitialized" 
     id="app-root"
-    class="relative z-10 mx-auto w-full min-h-screen flex flex-col items-center overflow-x-hidden"
+    class="relative z-10 mx-auto w-full min-h-screen flex flex-col items-center overflow-x-hidden transition-all duration-300"
+    :class="{ 'select-none': isDraggingTask }"
     :style="{ fontFamily: settings.fontFamily }"
   >
     <div 

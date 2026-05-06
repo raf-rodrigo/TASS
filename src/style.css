@@ -24,7 +24,15 @@
 }
 
 @layer components {
-  .glass-panel {
+  /* Dragging State - Disable text selection */
+body.dragging-modal,
+body.dragging-task,
+.select-none {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.glass-panel {
     background-color: rgba(var(--app-bg-raw), var(--app-card-opacity));
     border-radius: var(--app-card-radius);
     padding: var(--app-card-padding);
@@ -136,7 +144,8 @@
 
 /* SweetAlert2 Theme Integration */
 .swal2-popup.app-toast {
-  @apply !bg-white dark:!bg-slate-800 !text-slate-800 dark:!text-slate-100 !shadow-xl !border !border-slate-200 dark:!border-white/10;
+  @apply !bg-white dark:!bg-slate-800 !text-slate-800 dark:!text-slate-100 !shadow-xl !border !border-slate-200 dark:!border-white/10 !mt-4;
+  border-radius: var(--app-card-radius) !important;
 }
 
 /* Otimização de Performance para Arraste */
@@ -177,6 +186,25 @@
   20%, 80% { transform: translate3d(2px, 0, 0); }
   30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
   40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+/* Smooth Toast Animations */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-20px); }
+}
+
+.animate-toast-in {
+  animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-toast-out {
+  animation: toastOut 0.3s ease-in;
 }
 
 .swal2-confirm, .swal2-cancel, .swal2-deny {

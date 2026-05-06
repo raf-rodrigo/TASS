@@ -221,60 +221,39 @@ const handleColumnChange = (n) => {
                     <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Personalize a aparência visual dos seus cards de tarefa.</p>
                   </div>
 
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
+                  <div class="grid grid-cols-1 gap-6">
+                    <!-- Espessura -->
+                    <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-5">
                       <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Espessura</span>
-                        <span class="text-xs font-black text-indigo-500">{{ settings.cardPadding }}px</span>
+                        <div>
+                          <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Espessura (Padding)</span>
+                        </div>
+                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.cardPadding }}px</span>
                       </div>
                       <input type="range" v-model="settings.cardPadding" min="8" max="40" step="2" class="w-full app-range" @change="settings.cardPadding = parseInt($event.target.value); settings.saveSetting('app-card-padding', settings.cardPadding)" />
                     </div>
 
-                    <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4 md:col-span-2">
+                    <!-- Escala de Texto: Título -->
+                    <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-5">
                       <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Arredondamento</span>
-                        <span class="text-xs font-black text-indigo-500">{{ settings.cardBorderRadius }}px</span>
-                      </div>
-                      <input type="range" v-model="settings.cardBorderRadius" min="0" max="40" step="1" class="w-full app-range" @change="settings.saveSetting('app-card-radius', settings.cardBorderRadius)" />
-                    </div>
-
-                    <!-- Escala de Texto -->
-                    <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
-                      <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho do Título</span>
-                        <span class="text-xs font-black text-indigo-500">{{ settings.taskNumberSize }}px</span>
+                        <div>
+                          <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho do Título</span>
+                        </div>
+                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskNumberSize }}px</span>
                       </div>
                       <input type="range" v-model="settings.taskNumberSize" min="8" max="24" step="1" class="w-full app-range" @change="settings.saveSetting('app-task-number-size', settings.taskNumberSize)" />
                     </div>
 
-                    <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
+                    <!-- Escala de Texto: Descrição -->
+                    <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-5">
                       <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho da Descrição</span>
-                        <span class="text-xs font-black text-indigo-500">{{ settings.taskDescriptionSize }}px</span>
+                        <div>
+                          <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho da Descrição</span>
+                        </div>
+                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskDescriptionSize }}px</span>
                       </div>
                       <input type="range" v-model="settings.taskDescriptionSize" min="10" max="28" step="1" class="w-full app-range" @change="settings.saveSetting('app-task-desc-size', settings.taskDescriptionSize)" />
                     </div>
-
-                    <label class="p-5 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-3xl border border-indigo-500/10 md:col-span-2 flex items-center justify-between group transition-all hover:bg-indigo-500/10 cursor-pointer">
-                      <div class="flex items-center gap-3">
-                        <div class="p-2 bg-indigo-500 rounded-lg text-white">
-                          <Layers class="w-4 h-4" />
-                        </div>
-                        <div>
-                          <span class="text-[10px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest">Ícones Arredondados</span>
-                          <p class="text-[9px] text-slate-500 font-bold uppercase tracking-tighter mt-0.5">Unifica o tamanho e arredondamento dos botões</p>
-                        </div>
-                      </div>
-                      <div class="relative inline-flex items-center">
-                        <input 
-                          type="checkbox" 
-                          v-model="settings.roundedIcons"
-                          @change="settings.saveSetting('app-rounded-icons', settings.roundedIcons)" 
-                          class="sr-only peer" 
-                        />
-                        <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
-                      </div>
-                    </label>
                   </div>
                 </div>
 
@@ -398,21 +377,12 @@ const handleColumnChange = (n) => {
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                <!-- ABA: Efeitos e Vidro -->
-                <div v-else-if="activeTab === 'effects'" :key="'effects'" class="space-y-6">
-                  <div>
-                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Efeitos e Vidro</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Ajuste o desfoque e as transparências do sistema.</p>
-                  </div>
-
-                  <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-6">
-                    <div class="space-y-4">
+                    <!-- Desfoque do Fundo -->
+                    <div class="mt-6 p-6 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-3xl border border-indigo-500/10 space-y-4">
                       <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Desfoque do Fundo</span>
-                        <span class="text-xs font-black text-indigo-500">{{ settings.backgroundBlur }}px</span>
+                        <span class="text-[10px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest">Desfoque do Workspace</span>
+                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.backgroundBlur }}px</span>
                       </div>
                       <input 
                         type="range" 
@@ -423,6 +393,15 @@ const handleColumnChange = (n) => {
                       />
                     </div>
                   </div>
+                </div>
+
+                <!-- ABA: Efeitos e Vidro -->
+                <div v-else-if="activeTab === 'effects'" :key="'effects'" class="space-y-6">
+                  <div>
+                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Efeitos e Vidro</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Ajuste o desfoque e as transparências do sistema.</p>
+                  </div>
+
 
                   <div class="p-6 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-3xl border border-indigo-500/10 space-y-6">
                     <div class="flex items-center gap-3">
@@ -441,7 +420,7 @@ const handleColumnChange = (n) => {
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block">Aplicar efeito em:</label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Cards e Estrutura do Quadro</span>
+                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Cards</span>
                             <div class="relative inline-flex items-center">
                               <input type="checkbox" v-model="settings.opacityTargets.cards" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
                               <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
@@ -470,30 +449,14 @@ const handleColumnChange = (n) => {
                               <input type="checkbox" v-model="settings.opacityTargets.contextMenu" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
                               <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
                             </div>
-                          </label>
-
-                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Alertas e Mensagens</span>
-                            <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.alerts" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
-                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
-                            </div>
-                          </label>
-
-                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Barra de Ações (Filtros)</span>
-                            <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.actionBar" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
-                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
-                            </div>
-                          </label>
+                                    </label>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </transition>
-            </div>
+                </transition>
+              </div>
 
             <footer class="p-5 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
               <button @click="emit('close')" class="w-full py-4 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-xl shadow-indigo-500/20 uppercase tracking-widest active:scale-95">

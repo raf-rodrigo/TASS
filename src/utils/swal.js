@@ -3,12 +3,18 @@ import Swal from 'sweetalert2';
 // Mixin para Toasts (Notificações)
 export const toast = Swal.mixin({
   toast: true,
-  position: 'top-end',
+  position: 'top',
   showConfirmButton: false,
   timer: 3000,
   timerProgressBar: true,
   customClass: {
     popup: 'app-toast'
+  },
+  showClass: {
+    popup: 'animate-toast-in'
+  },
+  hideClass: {
+    popup: 'animate-toast-out'
   },
   didOpen: (toast) => {
     toast.addEventListener('mouseenter', Swal.stopTimer);

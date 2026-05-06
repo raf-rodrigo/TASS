@@ -18,10 +18,7 @@ const taskStore = useTaskStore();
   <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] w-full max-w-fit px-2 md:px-4 pointer-events-none">
     <div 
       class="glass-panel !p-1.5 flex items-center gap-1 md:gap-2 shadow-2xl border-indigo-500/20 backdrop-blur-xl rounded-2xl ring-1 ring-black/5 pointer-events-auto transition-all duration-500"
-      :style="{ backgroundColor: settings.theme === 'dark' 
-        ? `rgba(15, 23, 42, 0.8)` 
-        : `rgba(255, 255, 255, 0.8)` 
-      }"
+      :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-bottom-opacity))` }"
     >
       <!-- Botão Principal: Adicionar Tarefa -->
       <button 
