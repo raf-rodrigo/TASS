@@ -42,7 +42,6 @@ export const useSettingsStore = defineStore('settings', () => {
     modals: true,
     alerts: true
   });
-  const roundedIcons = ref(false);
   const columnTitles = ref(['', '', '', '']);
 
   const customWallpapers = ref([
@@ -92,7 +91,6 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-bg-blur'] !== undefined) backgroundBlur.value = settingsMap['app-bg-blur'];
       if (settingsMap['app-card-opacity'] !== undefined) cardOpacity.value = settingsMap['app-card-opacity'];
       if (settingsMap['app-card-radius'] !== undefined) cardBorderRadius.value = settingsMap['app-card-radius'];
-      if (settingsMap['app-rounded-icons'] !== undefined) roundedIcons.value = settingsMap['app-rounded-icons'];
       if (settingsMap['app-font-family'] !== undefined) fontFamily.value = settingsMap['app-font-family'];
       if (settingsMap['app-opacity-targets'] !== undefined) opacityTargets.value = settingsMap['app-opacity-targets'];
       if (settingsMap['app-custom-wallpapers'] !== undefined) {
@@ -166,7 +164,6 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-bg-blur', value: backgroundBlur.value },
       { key: 'app-card-opacity', value: cardOpacity.value },
       { key: 'app-card-radius', value: cardBorderRadius.value },
-      { key: 'app-rounded-icons', value: roundedIcons.value },
       { key: 'app-font-family', value: fontFamily.value },
       { key: 'app-opacity-targets', value: opacityTargets.value },
       { key: 'app-custom-wallpapers', value: customWallpapers.value },
@@ -201,7 +198,7 @@ export const useSettingsStore = defineStore('settings', () => {
     taskDescriptionSize, notesSide, noteColor, backgroundImage, backgroundBlur,
     notesButtonTop, notesWidth, cardPadding, fontFamily, trackInactivity,
     workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,
-    cardBorderRadius, opacityTargets, roundedIcons, customWallpapers, columnTitles,
+    cardBorderRadius, opacityTargets, customWallpapers, columnTitles,
     wellnessEnabled, wellnessInterval,
     isInitialized, loadSettings, saveSetting, saveAllSettings
   };

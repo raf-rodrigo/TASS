@@ -86,9 +86,8 @@ const handleSelect = () => {
         <!-- 1. Play/Stop Task (Timer) -->
         <button 
           v-if="!task.completed"
-          class="transition-all flex items-center justify-center border" 
+          class="transition-all flex items-center justify-center border w-[26px] h-[26px] rounded-xl" 
           :class="[
-            settings.roundedIcons ? 'w-[26px] h-[26px] rounded-xl' : 'px-1.5 py-1 rounded border-transparent',
             task.isRunning 
               ? 'bg-red-500/10 text-red-500 dark:text-red-400 border-red-500/20 hover:bg-red-500/20' 
               : 'bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
