@@ -175,7 +175,13 @@ export const useTaskStore = defineStore('task', () => {
       const index = tasks.value.findIndex(t => t.id === id);
       if (index !== -1) {
         // Substituímos o objeto inteiro para garantir reatividade total
-        tasks.value[index] = { ...tasks.value[index], ...updates };
+        const updatedTask = { ...tasks.value[index], ...updates };
+        tasks.value[index] = updatedTask;
+        
+        // Sincroniza a tarefa selecionada se for a mesma que foi editada
+        if (selectedTask.value && selectedTask.value.id === id) {
+          selectedTask.value = updatedTask;
+        }
       }
     } catch (error) {
       console.error("Failed to update task:", error);

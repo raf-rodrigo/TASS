@@ -8,6 +8,8 @@ import SprintModal from './components/SprintModal.vue';
 import InterfaceMenu from './components/InterfaceMenu.vue';
 import NotesPanel from './components/NotesPanel.vue';
 import WellnessToast from './components/WellnessToast.vue';
+import TaskContextMenu from './components/TaskContextMenu.vue';
+import GlobalDock from './components/GlobalDock.vue';
 import draggable from 'vuedraggable';
 
 // Composables
@@ -211,7 +213,6 @@ onMounted(async () => {
         isDraggingTask ? 'is-dragging-mode' : ''
       ]"
       :style="{ maxWidth: '98%' }"
-      @click="taskStore.selectedTask = null"
     >
     <!-- TASS Branding (Top Left) -->
     <div class="fixed top-4 left-6 md:top-8 md:left-12 z-20 flex flex-col items-start animate-[fadeInLeft_0.8s_ease-out] select-none pointer-events-none opacity-40 md:opacity-100">
@@ -234,42 +235,6 @@ onMounted(async () => {
 
       <main class="w-full mt-24 flex-1">
 
-      <transition 
-        enter-active-class="transition duration-300 ease-out"
-        enter-from-class="translate-y-10 opacity-0 scale-95"
-        enter-to-class="translate-y-0 opacity-100 scale-100"
-        leave-active-class="transition duration-200 ease-in"
-        leave-from-class="translate-y-0 opacity-100 scale-100"
-        leave-to-class="translate-y-10 opacity-0 scale-95"
-      >
-        <div v-if="taskStore.selectedTask" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-3 w-auto" @click.stop>
-          <div 
-            class="glass-panel !py-2 !px-4 flex items-center gap-4 shadow-2xl border-indigo-500/30 backdrop-blur-md rounded-2xl ring-1 ring-black/5 transition-all duration-300"
-            :style="{ backgroundColor: settings.theme === 'dark' 
-              ? `rgba(30, 41, 59, ${settings.opacityTargets.contextMenu ? settings.cardOpacity / 100 : 0.98})` 
-              : `rgba(255, 255, 255, ${settings.opacityTargets.contextMenu ? settings.cardOpacity / 100 : 0.95})` 
-            }"
-          >
-
-            <div class="flex items-center gap-2">
-              <button @click="openEditModal(taskStore.selectedTask)" class="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all">
-                <Pencil class="w-4 h-4 text-indigo-500" /> Editar
-              </button>
-              <button @click="() => { toggleTaskCompletion(taskStore.selectedTask); taskStore.selectedTask = null; }" class="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all">
-                <RotateCcw v-if="taskStore.selectedTask.completed" class="w-4 h-4 text-emerald-500" />
-                <CheckCircle v-else class="w-4 h-4 text-emerald-500" />
-                {{ taskStore.selectedTask.completed ? 'Reabrir' : 'Concluir' }}
-              </button>
-              <button @click="() => { taskStore.deleteTask(taskStore.selectedTask.id); taskStore.selectedTask = null; }" class="flex items-center gap-2 px-3 py-2 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all">
-                <Trash2 class="w-4 h-4" /> Excluir
-              </button>
-            </div>
-            <button @click="taskStore.selectedTask = null" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg transition-colors">
-              <X class="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </transition>
 
       <NotesPanel :isOpen="showNotes" @toggle="showNotes = !showNotes" @close="showNotes = false" />
 
@@ -287,64 +252,37 @@ onMounted(async () => {
     </main>
   </div>
 
-    <!-- 3. Bottom Bar Layer -->
-    <footer class="fixed bottom-0 left-0 w-full flex justify-center items-center py-6 px-2 md:px-8 z-40 pointer-events-none">
-      <div class="flex flex-col md:flex-row justify-center items-center gap-3 pointer-events-auto">
-        <div class="bottom-capsule !gap-1" :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-action-opacity))` }">
-          <button class="p-1.5 hover:scale-110 transition-transform" @click="toggleTheme" :title="settings.theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'">
-            <Sun v-if="settings.theme === 'dark'" class="w-5 h-5 text-amber-500" />
-            <Moon v-else class="w-5 h-5 text-indigo-500" />
-          </button>
-          <button class="p-1.5 hover:scale-110 transition-transform group" @click="showInterfaceMenu = true" title="Ajustes de Interface">
-            <Maximize class="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
-          </button>
-          <button class="p-1.5 hover:scale-110 transition-transform group" @click="showSettings = true" title="Configurações">
-            <Settings class="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-indigo-500 transition-colors" />
-          </button>
-        </div>
-        <div class="bottom-capsule">
-          <button class="filter-btn" :class="{ 'active': taskStore.statusFilter === 'all' }" @click="taskStore.statusFilter = 'all'">Todas</button>
-          <button class="filter-btn" :class="{ 'active': taskStore.statusFilter === 'active' }" @click="taskStore.statusFilter = 'active'">Ativas</button>
-          <button class="filter-btn" :class="{ 'active': taskStore.statusFilter === 'completed' }" @click="taskStore.statusFilter = 'completed'">Concluídas</button>
-          
-          <button 
-            class="ml-1 w-8 h-8 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-500/30 hover:rotate-90 transition-all duration-300 active:scale-90"
-            @click="openAddModal" 
-            title="Nova Task"
-          >
-            <Plus class="w-5 h-5" />
-          </button>
-        </div>
+    <!-- Camada de Interface Binária: Global Dock vs Task Context Menu -->
+    <transition 
+      mode="out-in"
+      enter-active-class="transition duration-500 ease-out"
+      enter-from-class="translate-y-20 opacity-0 scale-95"
+      enter-to-class="translate-y-0 opacity-100 scale-100"
+      leave-active-class="transition duration-300 ease-in"
+      leave-from-class="translate-y-0 opacity-100 scale-100"
+      leave-to-class="translate-y-20 opacity-0 scale-95"
+    >
+      <!-- MODO FOCADO: Menu de Contexto da Tarefa -->
+      <TaskContextMenu 
+        v-if="taskStore.selectedTask"
+        :task="taskStore.selectedTask"
+        @close="taskStore.selectedTask = null"
+        @edit="openEditModal(taskStore.selectedTask)"
+        @toggle-completion="() => { toggleTaskCompletion(taskStore.selectedTask); taskStore.selectedTask = null; }"
+        @delete="() => { taskStore.deleteTask(taskStore.selectedTask.id); taskStore.selectedTask = null; }"
+      />
 
-        <div class="bottom-capsule">
-          <div 
-            @click="showSprints = true"
-            class="flex items-center gap-2 px-3 py-1.5 bg-slate-100/50 dark:bg-white/5 rounded-xl border border-slate-200/50 dark:border-white/5 relative group pr-7 transition-all cursor-pointer hover:bg-indigo-500/5 hover:border-indigo-500/30" 
-            :class="{ 'pr-3': settings.activeSprintId === 'all' }"
-            title="Gerenciar Sprints"
-          >
-            <Calendar class="w-3.5 h-3.5 text-indigo-500" />
-            <span class="text-[10px] font-bold text-slate-700 dark:text-slate-200 uppercase whitespace-nowrap truncate max-w-[100px] md:max-w-none">{{ taskStore.activeSprintName }}</span>
-            <button 
-              v-if="settings.activeSprintId !== 'all'" 
-              @click.stop="settings.activeSprintId = 'all'" 
-              class="absolute right-1.5 p-0.5 rounded-md hover:bg-red-500 hover:text-white text-slate-400 transition-all z-10"
-              title="Limpar Filtro de Sprint"
-            >
-              <X class="w-3 h-3" />
-            </button>
-          </div>
-          <div class="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
-            <Clock class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 whitespace-nowrap">{{ taskStore.activeSprintTotalTime }}</span>
-          </div>
-
-          <button v-if="taskStore.lastDeletedTask" @click="taskStore.restoreTask" class="flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 rounded-md transition-all animate-pulse ml-1 border border-amber-500/20">
-            <RotateCcw class="w-3.5 h-3.5" /> Desfazer
-          </button>
-        </div>
-      </div>
-    </footer>
+      <!-- MODO GLOBAL: Dock de Controle Geral -->
+      <GlobalDock 
+        v-else
+        @add-task="openAddModal"
+        @open-sprints="showSprints = true"
+        @open-notes="showNotes = !showNotes"
+        @open-interface="showInterfaceMenu = true"
+        @open-settings="showSettings = true"
+        @toggle-theme="toggleTheme"
+      />
+    </transition>
 
     <!-- 4. Modal Layer (Teleport-like behavior) -->
     <TaskModal 
