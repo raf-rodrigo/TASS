@@ -56,15 +56,15 @@
   }
 
 
-  .tass-range {
+  .app-range {
     @apply h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 outline-none appearance-none cursor-pointer;
   }
 
-  .tass-range::-webkit-slider-thumb {
+  .app-range::-webkit-slider-thumb {
     @apply appearance-none w-[18px] h-[18px] rounded-full bg-indigo-500 border-[3px] border-white dark:border-slate-900 shadow-md cursor-pointer transition-all active:scale-95;
   }
 
-  .tass-input {
+  .app-input {
     @apply w-full px-4 py-3 bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all block;
   }
 }
@@ -135,7 +135,7 @@
 
 
 /* SweetAlert2 Theme Integration */
-.swal2-popup.tass-toast {
+.swal2-popup.app-toast {
   @apply !bg-white dark:!bg-slate-800 !text-slate-800 dark:!text-slate-100 !shadow-xl !border !border-slate-200 dark:!border-white/10;
 }
 
@@ -152,7 +152,7 @@
   backdrop-filter: none !important;
 }
 
-.swal2-popup.tass-modal {
+.swal2-popup.app-modal {
   background-color: rgba(var(--app-bg-raw), var(--app-alert-opacity)) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -184,7 +184,7 @@
 }
 
 /* Efeitos de Drag and Drop Premium */
-.tass-drag-effect {
+.app-drag-effect {
   z-index: 9999 !important;
   transition: none !important;
   pointer-events: none !important;
@@ -192,14 +192,14 @@
 }
 
 /* Versão Equilibrada: Neon Suave */
-.tass-ghost-effect {
+.app-ghost-effect {
   @apply bg-indigo-500/10 border-2 border-dashed border-indigo-500/60 opacity-100 !important;
   animation: pulse-border 1.6s infinite ease-in-out;
   border-radius: var(--app-card-radius) !important;
   visibility: visible !important;
 }
 
-.tass-ghost-effect > * {
+.app-ghost-effect > * {
   @apply opacity-0 !important;
 }
 

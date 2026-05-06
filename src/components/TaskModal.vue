@@ -41,7 +41,7 @@ const sprintId = ref(props.taskToEdit?.sprintId || '');
 const color = ref(props.taskToEdit?.color || '#6366f1');
 
 const tabs = [
-  { id: 'basic', label: 'Cadastro', icon: Layout, color: 'text-indigo-500' },
+  { id: 'basic', label: 'Geral', icon: Layout, color: 'text-indigo-500' },
   { id: 'links', label: 'Conectividade', icon: Globe, color: 'text-emerald-500' },
   { id: 'data', label: 'Documentação', icon: FileText, color: 'text-amber-500' },
 ];
@@ -407,7 +407,7 @@ const submitTask = () => {
             <button type="submit" class="px-10 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition-all shadow-xl shadow-indigo-500/25 uppercase tracking-widest flex items-center gap-2 active:scale-95">
               <Save v-if="taskToEdit" class="w-4 h-4" />
               <PlusCircle v-else class="w-4 h-4" />
-              {{ taskToEdit ? 'Salvar Alterações' : 'Criar Nova Tarefa' }}
+              {{ 'Salvar' }}
             </button>
           </footer>
         </form>

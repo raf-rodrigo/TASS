@@ -10,6 +10,7 @@ import { VueDatePicker } from '@vuepic/vue-datepicker';
 import BaseModal from './BaseModal.vue';
 import { useTaskStore } from '../stores/taskStore';
 import Swal from '../utils/swal';
+import { ptBR } from 'date-fns/locale';
 import '@vuepic/vue-datepicker/dist/main.css';
 
 const settings = useSettingsStore();
@@ -124,7 +125,7 @@ const handleResetSystem = async () => {
     confirmButtonText: 'Sim, Apagar Tudo',
     cancelButtonText: 'Cancelar',
     customClass: {
-      popup: 'tass-modal',
+      popup: 'app-modal',
       confirmButton: 'btn btn-danger !px-8',
       cancelButton: 'btn btn-secondary !px-6'
     }
@@ -140,7 +141,7 @@ const handleResetSystem = async () => {
         timer: 1500,
         showConfirmButton: false,
         customClass: {
-          popup: 'tass-modal !rounded-3xl'
+          popup: 'app-modal !rounded-3xl'
         }
       });
       emit('close');
@@ -257,7 +258,7 @@ const handleResetSystem = async () => {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   <div class="input-group">
                     <label class="!text-amber-600 dark:!text-amber-400">Início</label>
-                    <VueDatePicker v-model="localSettings.workStart" time-picker auto-apply :dark="settings.theme === 'dark'" class="tass-timepicker">
+                    <VueDatePicker v-model="localSettings.workStart" time-picker auto-apply :dark="settings.theme === 'dark'" class="app-timepicker" teleport="body" :format-locale="ptBR" :locale="ptBR" format="HH:mm">
                       <template #input-icon>
                         <Clock class="w-4 h-4 ml-2 text-amber-500" />
                       </template>
@@ -265,7 +266,7 @@ const handleResetSystem = async () => {
                   </div>
                   <div class="input-group">
                     <label class="!text-amber-600 dark:!text-amber-400">Término</label>
-                    <VueDatePicker v-model="localSettings.workEnd" time-picker auto-apply :dark="settings.theme === 'dark'" class="tass-timepicker">
+                    <VueDatePicker v-model="localSettings.workEnd" time-picker auto-apply :dark="settings.theme === 'dark'" class="app-timepicker" teleport="body" :format-locale="ptBR" :locale="ptBR" format="HH:mm">
                       <template #input-icon>
                         <Clock class="w-4 h-4 ml-2 text-amber-500" />
                       </template>
@@ -366,7 +367,11 @@ const handleResetSystem = async () => {
                           time-picker 
                           auto-apply 
                           :dark="settings.theme === 'dark'" 
-                          class="tass-timepicker"
+                          class="app-timepicker"
+                          teleport="body"
+                          :format-locale="ptBR"
+                          :locale="ptBR"
+                          format="HH:mm"
                         >
                           <template #input-icon>
                             <Clock class="w-4 h-4 ml-2 text-slate-400" />
@@ -468,7 +473,7 @@ const handleResetSystem = async () => {
   @apply w-full px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all;
 }
 
-.tass-timepicker {
+.app-timepicker {
   --dp-border-radius: 12px;
 }
 </style>

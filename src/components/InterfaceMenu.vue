@@ -227,7 +227,7 @@ const handleColumnChange = (n) => {
                         <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Espessura</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.cardPadding }}px</span>
                       </div>
-                      <input type="range" v-model="settings.cardPadding" min="8" max="40" step="2" class="w-full tass-range" @change="settings.cardPadding = parseInt($event.target.value); settings.saveSetting('app-card-padding', settings.cardPadding)" />
+                      <input type="range" v-model="settings.cardPadding" min="8" max="40" step="2" class="w-full app-range" @change="settings.cardPadding = parseInt($event.target.value); settings.saveSetting('app-card-padding', settings.cardPadding)" />
                     </div>
 
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4 md:col-span-2">
@@ -235,7 +235,7 @@ const handleColumnChange = (n) => {
                         <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Arredondamento</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.cardBorderRadius }}px</span>
                       </div>
-                      <input type="range" v-model="settings.cardBorderRadius" min="0" max="40" step="1" class="w-full tass-range" @change="settings.saveSetting('app-card-radius', settings.cardBorderRadius)" />
+                      <input type="range" v-model="settings.cardBorderRadius" min="0" max="40" step="1" class="w-full app-range" @change="settings.saveSetting('app-card-radius', settings.cardBorderRadius)" />
                     </div>
 
                     <!-- Escala de Texto -->
@@ -244,7 +244,7 @@ const handleColumnChange = (n) => {
                         <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho do Título</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.taskNumberSize }}px</span>
                       </div>
-                      <input type="range" v-model="settings.taskNumberSize" min="8" max="24" step="1" class="w-full tass-range" @change="settings.saveSetting('app-task-number-size', settings.taskNumberSize)" />
+                      <input type="range" v-model="settings.taskNumberSize" min="8" max="24" step="1" class="w-full app-range" @change="settings.saveSetting('app-task-number-size', settings.taskNumberSize)" />
                     </div>
 
                     <div class="p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
@@ -252,7 +252,7 @@ const handleColumnChange = (n) => {
                         <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho da Descrição</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.taskDescriptionSize }}px</span>
                       </div>
-                      <input type="range" v-model="settings.taskDescriptionSize" min="10" max="28" step="1" class="w-full tass-range" @change="settings.saveSetting('app-task-desc-size', settings.taskDescriptionSize)" />
+                      <input type="range" v-model="settings.taskDescriptionSize" min="10" max="28" step="1" class="w-full app-range" @change="settings.saveSetting('app-task-desc-size', settings.taskDescriptionSize)" />
                     </div>
 
                     <label class="p-5 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-3xl border border-indigo-500/10 md:col-span-2 flex items-center justify-between group transition-all hover:bg-indigo-500/10 cursor-pointer">
@@ -418,7 +418,7 @@ const handleColumnChange = (n) => {
                         type="range" 
                         v-model="settings.backgroundBlur" 
                         min="0" max="20" step="1" 
-                        class="w-full tass-range" 
+                        class="w-full app-range" 
                         @change="settings.saveSetting('app-bg-blur', settings.backgroundBlur)" 
                       />
                     </div>
@@ -435,7 +435,7 @@ const handleColumnChange = (n) => {
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nível de Opacidade</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.cardOpacity }}%</span>
                       </div>
-                      <input type="range" v-model="settings.cardOpacity" min="10" max="100" step="5" class="w-full tass-range" @change="settings.saveSetting('app-card-opacity', settings.cardOpacity)" />
+                      <input type="range" v-model="settings.cardOpacity" min="10" max="100" step="5" class="w-full app-range" @change="settings.saveSetting('app-card-opacity', settings.cardOpacity)" />
                       
                       <div class="pt-6 border-t border-slate-200 dark:border-white/5">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block">Aplicar efeito em:</label>

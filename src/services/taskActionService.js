@@ -16,23 +16,23 @@ export const taskActionService = {
     const isTextArea = field === 'moreInfo';
 
     const { value: newValue } = await Swal.fire({
-      title: `Cadastrar ${label}`,
+      title: label,
       html: `
         <div class="p-1">
           <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 text-center">
-            Insira o ${label.toLowerCase()} para esta tarefa
+            Informe o ${label.toLowerCase()} abaixo
           </p>
           <div class="max-w-[calc(100%-2.25em)] mx-auto">
             ${isTextArea ? `
               <textarea 
                 id="swal-input-custom" 
-                class="tass-input my-4 min-h-[120px] py-3 leading-relaxed" 
+                class="app-input my-4 min-h-[120px] py-3 leading-relaxed" 
                 placeholder="Escreva aqui suas observações..."
               >${currentValue}</textarea>
             ` : `
               <input 
                 id="swal-input-custom" 
-                class="tass-input my-4" 
+                class="app-input my-4" 
                 placeholder="${type === 'url' ? 'https://...' : 'Escreva aqui...'}"
                 value="${currentValue}"
               >
@@ -46,10 +46,10 @@ export const taskActionService = {
       cancelButtonText: 'Cancelar',
       buttonsStyling: false,
       customClass: {
-        popup: 'tass-modal',
+        popup: 'app-modal',
         confirmButton: 'btn btn-primary !px-8',
         cancelButton: 'btn btn-secondary !px-6',
-        title: 'tass-modal-title'
+        title: 'app-modal-title'
       },
       didOpen: () => {
         const input = document.getElementById('swal-input-custom');

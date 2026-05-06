@@ -8,7 +8,7 @@ export const toast = Swal.mixin({
   timer: 3000,
   timerProgressBar: true,
   customClass: {
-    popup: 'tass-toast'
+    popup: 'app-toast'
   },
   didOpen: (toast) => {
     toast.addEventListener('mouseenter', Swal.stopTimer);
@@ -34,7 +34,7 @@ export const confirm = async (options) => {
     confirmButtonText: options.confirmButtonText || options.confirmText || 'Sim',
     cancelButtonText: options.cancelButtonText || options.cancelText || 'Cancelar',
     customClass: {
-      popup: 'tass-modal',
+      popup: 'app-modal',
       confirmButton: confirmClass || 'btn btn-primary',
       cancelButton: cancelClass || 'btn btn-secondary',
       denyButton: denyClass || 'btn btn-secondary',

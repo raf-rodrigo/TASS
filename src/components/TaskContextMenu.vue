@@ -85,7 +85,7 @@ const openLink = (url) => {
           :disabled="isCreatingBranch"
           class="icon-btn-large group"
           :class="{ 'active-action': task.branchUrl }"
-          title="Ações no GitLab"
+          data-tip="Ações no GitLab"
         >
           <GitBranch v-if="!isCreatingBranch" class="w-5 h-5" />
           <div v-else class="w-5 h-5 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
@@ -96,7 +96,7 @@ const openLink = (url) => {
           @click="handleQuickAction('moreInfo', 'Observações', 'text')"
           class="icon-btn-large"
           :class="{ 'active-action-amber': task.moreInfo }"
-          title="Observações"
+          data-tip="Observações"
         >
           <MessageSquare class="w-5 h-5" />
         </button>
@@ -106,7 +106,7 @@ const openLink = (url) => {
           @click="handleQuickAction('taskUrl', 'Link da Tarefa', 'url')"
           class="icon-btn-large"
           :class="{ 'active-action-indigo': task.taskUrl }"
-          title="Link da Tarefa"
+          data-tip="Link da Tarefa"
         >
           <ExternalLink class="w-5 h-5" />
         </button>
@@ -119,14 +119,17 @@ const openLink = (url) => {
           <button 
             @click="handleQuickAction('prodUrl', 'Merge com Produção', 'url')"
             class="env-btn" :class="{ 'env-active-prd': task.prodUrl }"
+            data-tip="URL da branch com Produção"
           >PRD</button>
           <button 
             @click="handleQuickAction('homologUrl', 'Merge com Homologação', 'url')"
             class="env-btn" :class="{ 'env-active-hml': task.homologUrl }"
+            data-tip="URL da branch com Homologação"
           >HML</button>
           <button 
             @click="handleQuickAction('devUrl', 'Merge com Desenvolvimento', 'url')"
             class="env-btn" :class="{ 'env-active-dev': task.devUrl }"
+            data-tip="URL da branch com Desenvolvimento"
           >DEV</button>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { notificationService } from '../services/notificationService';
 import { useTaskStore } from '../stores/taskStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
+import { ptBR } from 'date-fns/locale';
 import BaseModal from './BaseModal.vue';
 import '@vuepic/vue-datepicker/dist/main.css';
 
@@ -34,7 +35,7 @@ const addSprint = async () => {
     newSprintDate.value = null;
     showAddForm.value = false;
     await taskStore.loadSprints();
-    notificationService.toast('Sprint cadastrada!');
+    notificationService.toast('Sprint criada!');
     emit('updated');
   } catch (error) {
     console.error("Failed to add sprint:", error);
@@ -145,12 +146,16 @@ const isPast = (dateStr) => {
             placeholder="Selecione a data..."
             auto-apply
             :enable-time-picker="false"
-            class="tass-datepicker"
+            class="app-datepicker"
+            teleport="body"
+            :format-locale="ptBR"
+            :locale="ptBR"
+            format="dd/MM/yyyy"
           />
           <div class="flex gap-3">
             <button @click="showAddForm = false" class="flex-1 py-3 text-xs font-black text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all uppercase tracking-widest">Cancelar</button>
             <button @click="addSprint" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 uppercase tracking-widest" :disabled="!newSprintDate">
-              Salvar Sprint
+              Salvar
             </button>
           </div>
         </div>
@@ -214,11 +219,11 @@ const isPast = (dateStr) => {
 </template>
 
 <style>
-.tass-datepicker {
+.app-datepicker {
   --dp-border-radius: 12px;
   --dp-font-family: inherit;
 }
-.dark .tass-datepicker {
+.dark .app-datepicker {
   --dp-background-color: #0f172a;
   --dp-border-color: rgba(255, 255, 255, 0.1);
 }
