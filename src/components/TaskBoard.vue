@@ -36,15 +36,19 @@ const handleBoardChange = (evt, colIdx) => {
 
 <template>
   <section 
-    class="grid gap-4 w-full items-start" 
+    class="flex flex-nowrap lg:grid gap-6 w-full items-start overflow-x-auto lg:overflow-x-visible pb-8 lg:pb-0 snap-x snap-mandatory custom-scrollbar min-h-[80vh] lg:min-h-0" 
     :class="{
-      'grid-cols-1': settings.columns === 1 || !settings.columns,
-      'grid-cols-1 md:grid-cols-2': settings.columns === 2,
-      'grid-cols-1 lg:grid-cols-3': settings.columns === 3,
-      'grid-cols-1 lg:grid-cols-4': settings.columns === 4
+      'lg:grid-cols-1': settings.columns === 1 || !settings.columns,
+      'lg:grid-cols-2': settings.columns === 2,
+      'lg:grid-cols-3': settings.columns === 3,
+      'lg:grid-cols-4': settings.columns === 4
     }"
   >
-    <div v-for="colIdx in settings.columns" :key="colIdx" class="flex flex-col gap-4 min-h-[150px] md:min-h-[500px] relative min-w-0 w-full">
+    <div 
+      v-for="colIdx in settings.columns" 
+      :key="colIdx" 
+      class="flex flex-col gap-4 min-h-[150px] md:min-h-[500px] relative flex-shrink-0 lg:flex-shrink snap-center lg:snap-align-none w-[90vw] md:w-[45vw] lg:w-full first:ml-[5vw] last:mr-[5vw] lg:first:ml-0 lg:last:mr-0"
+    >
       <!-- Cabeçalho da Coluna -->
       <div 
         v-if="settings.columnTitles[colIdx-1]" 
