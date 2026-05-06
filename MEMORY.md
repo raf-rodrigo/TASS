@@ -62,3 +62,31 @@ Para evitar o retorno à "bagunça" técnica, as seguintes regras devem ser segu
 - **Tooltips:** Utilizar exclusivamente o atributo `data-tip`. Estilo Premium (z-110, fundo dark, borda neon suave, animação de subida).
 - **Background Blur:** Para evitar bordas claras, o fundo usa margens fixas de -20px (`-top-[20px]`, etc) em vez de zoom dinâmico.
 - **Timers:** Estética "Deep Tech". Pulso de atividade focado no ícone de Stop, não no contador.
+
+
+## Design System: Vidro Jateado (Glassmorphism) & Contraste Inteligente
+
+Para garantir a legibilidade em interfaces altamente transparentes sem sacrificar a estética, foi implementada uma solução baseada em física de renderização do navegador, evitando códigos complexos de JavaScript ou poluição de regras CSS.
+
+### 1. O Paradigma do Vidro Jateado
+Diferente da transparência pura (que apenas reduz a opacidade), o TASS utiliza **Backdrop Filtering**. Isso cria uma superfície onde o texto pode "pousar" com segurança.
+*   **Implementação:** `backdrop-filter: blur(12px) saturate(x) brightness(x)`.
+*   **Vantagem:** O desfoque "limpa" os detalhes do papel de parede atrás do card, transformando ruído visual em manchas de cor suaves.
+
+### 2. Motor de Contraste Inteligente (Realce de Leitura)
+Implementado como um "filtro dinâmico" que se ajusta ao tema e à transparência escolhida pelo usuário.
+
+#### Lógica Centralizada (`useTheme.js`):
+O sistema injeta variáveis CSS dinâmicas no `:root` baseadas no estado da configuração `contrastEnhanced`:
+*   **Modo Escuro:** Aplica `brightness(0.85)`. Reduz levemente o brilho do que está atrás do vidro para destacar o texto claro.
+*   **Modo Claro:** Aplica `brightness(1.05)`. Clareia levemente o fundo para proteger o texto escuro.
+*   **Saturação:** Aumenta `saturate(160%)` para separar melhor as formas cromáticas no desfoque.
+*   **Sombra de Leitura:** Adiciona uma `text-shadow` ultra sutil (quase invisível) para garantir contorno em fundos "barulhentos".
+
+### 3. Manutenção e Escalabilidade
+*   **Variáveis de Design:** Toda a lógica visual consome variáveis CSS (`--app-glass-brightness`, etc).
+*   **Localização:** Centralizado em `src/composables/useTheme.js` e consumido globalmente pela classe `.glass-panel` no `src/style.css`.
+*   **Independência:** O sistema funciona de forma híbrida com o Tailwind CSS, sem sobrescrever suas classes utilitárias, evitando quebras de layout.
+
+---
+*Nota: Esta solução foi adotada para evitar o "Shotgun Surgery" (ter que alterar 20 arquivos para mudar um detalhe visual) e manter o código acessível para desenvolvedores de todos os níveis.*
