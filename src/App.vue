@@ -8,6 +8,7 @@ import SprintModal from './components/SprintModal.vue';
 import InterfaceMenu from './components/InterfaceMenu.vue';
 import NotesPanel from './components/NotesPanel.vue';
 import WellnessToast from './components/WellnessToast.vue';
+import NotificationContainer from './components/NotificationContainer.vue';
 import TaskContextMenu from './components/TaskContextMenu.vue';
 import GlobalDock from './components/GlobalDock.vue';
 import draggable from 'vuedraggable';
@@ -347,6 +348,8 @@ onMounted(async () => {
       :isOpen="showInterfaceMenu"
       @close="showInterfaceMenu = false"
     />
+
+    <NotificationContainer />
 
     <WellnessToast 
       :message="currentMessage" 

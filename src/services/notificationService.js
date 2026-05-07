@@ -1,5 +1,6 @@
-import Swal, { toast as sToast, confirm as sConfirm } from '../utils/swal.js';
+import Swal, { confirm as sConfirm } from '../utils/swal.js';
 import { sendNotification as nativeSend, playNotificationSound, requestNotificationPermission } from '../utils/notifications.js';
+import { useNotificationStore } from '../stores/notificationStore';
 
 /**
  * Unified Notification Service for TASS
@@ -7,10 +8,11 @@ import { sendNotification as nativeSend, playNotificationSound, requestNotificat
  */
 export const notificationService = {
   /**
-   * Send a quick toast message
+   * Send a quick toast message (Custom Tailwind UI style)
    */
-  toast(title, icon = 'success', timer = 3000) {
-    return sToast.fire({ title, icon, timer });
+  toast(title, type = 'success', message = '') {
+    const store = useNotificationStore();
+    return store.add({ title, message, type });
   },
 
   /**
