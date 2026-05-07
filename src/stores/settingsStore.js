@@ -19,8 +19,8 @@ export const useSettingsStore = defineStore('settings', () => {
   const taskNumberSize = ref(12);
   const taskDescriptionSize = ref(13);
   const notesSide = ref('right');
-  const noteColor = ref('#fef9c3');
   const backgroundImage = ref('');
+
   const backgroundBlur = ref(0);
   const notesButtonTop = ref(128);
   const notesWidth = ref(350);
@@ -120,8 +120,8 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-notes-side'] !== undefined) notesSide.value = settingsMap['app-notes-side'];
       if (settingsMap['app-notes-btn-top'] !== undefined) notesButtonTop.value = settingsMap['app-notes-btn-top'];
       if (settingsMap['app-notes-width'] !== undefined) notesWidth.value = settingsMap['app-notes-width'];
-      if (settingsMap['app-note-color'] !== undefined) noteColor.value = settingsMap['app-note-color'];
       if (settingsMap['app-card-padding'] !== undefined) cardPadding.value = settingsMap['app-card-padding'];
+
       if (settingsMap['app-column-titles'] !== undefined) columnTitles.value = settingsMap['app-column-titles'];
       if (settingsMap['app-contrast-enhanced'] !== undefined) contrastEnhanced.value = settingsMap['app-contrast-enhanced'] === true;
 
@@ -176,8 +176,8 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-notes-side', value: notesSide.value },
       { key: 'app-notes-btn-top', value: notesButtonTop.value },
       { key: 'app-notes-width', value: notesWidth.value },
-      { key: 'app-note-color', value: noteColor.value },
       { key: 'app-card-padding', value: cardPadding.value },
+
       { key: 'app-column-titles', value: columnTitles.value },
       { key: 'app-contrast-enhanced', value: contrastEnhanced.value }
 
@@ -201,8 +201,9 @@ export const useSettingsStore = defineStore('settings', () => {
     theme, columns, appWidth, gitlabUrl, gitlabIntegrationMode,
     gitlabProjectId, gitlabToken, gitlabBaseBranch,
     inactivityThreshold, activeSprintId, taskNumberSize,
-    taskDescriptionSize, notesSide, noteColor, backgroundImage, backgroundBlur,
+    taskDescriptionSize, notesSide, backgroundImage, backgroundBlur,
     notesButtonTop, notesWidth, cardPadding, fontFamily, trackInactivity,
+
     workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,
     cardBorderRadius, opacityTargets, customWallpapers, columnTitles,
     wellnessEnabled, wellnessInterval, contrastEnhanced,

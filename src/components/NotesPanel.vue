@@ -12,30 +12,53 @@ const props = defineProps({
 const emit = defineEmits(['close', 'toggle']);
 const noteStore = useNoteStore();
 const settings = useSettingsStore();
-const localContent = ref('');
+const terminalColor = ref('emerald');
+const editableRef = ref(null);
+
+const colorMap = {
+  emerald: '#10b981',
+  amber: '#f59e0b',
+  rose: '#f43f5e'
+};
+
+const setTerminalColor = (color) => {
+  terminalColor.value = color;
+  if (editableRef.value) {
+    editableRef.value.focus();
+    document.execCommand('foreColor', false, colorMap[color]);
+  }
+};
+
+
 
 // Lógica de arraste e redimensionamento unificada (Aba Mestra)
 const { onMouseDown: handleResize, isDragging: isResizingLocal, hasMoved: notesMoved } = useNotesDrag(settings, toRef(props, 'isOpen'));
 
 onMounted(async () => {
   await noteStore.loadNote();
-  localContent.value = noteStore.note;
+  if (editableRef.value) {
+    editableRef.value.innerHTML = noteStore.note || '<div><br></div>';
+  }
 });
 
+
 watch(() => noteStore.note, (newVal) => {
-  if (newVal !== localContent.value) {
-    localContent.value = newVal;
+  if (editableRef.value && newVal !== editableRef.value.innerHTML) {
+    editableRef.value.innerHTML = newVal || '<div><br></div>';
   }
 });
 
 const handleBlur = () => {
-  noteStore.saveNote(localContent.value);
+  if (editableRef.value) {
+    noteStore.saveNote(editableRef.value.innerHTML);
+  }
 };
 
 const close = () => {
-  noteStore.saveNote(localContent.value);
+  handleBlur();
   emit('close');
 };
+
 
 const handleHandleClick = () => {
   if (!notesMoved.value) {
@@ -61,102 +84,117 @@ const handleHandleClick = () => {
     ></div>
   </transition>
 
-  <!-- Painel de Notas -->
+  <!-- Painel de Notas (Terminal Edition) -->
   <aside 
-    class="fixed top-0 h-full max-w-[90vw] z-[70] shadow-2xl flex flex-col"
+    class="fixed top-0 h-full max-w-[90vw] z-[70] shadow-2xl flex flex-col glass-panel !p-0"
     :class="[
       isResizingLocal ? '' : 'transition-all duration-500 ease-in-out',
       settings.notesSide === 'right' ? 'right-0' : 'left-0',
       isOpen ? 'translate-x-0' : (settings.notesSide === 'right' ? 'translate-x-full' : '-translate-x-full')
     ]"
-    :style="{ backgroundColor: settings.noteColor, width: settings.notesWidth + 'px' }" 
+    :style="{ width: settings.notesWidth + 'px' }" 
   >
-    <!-- Aba de Arraste Física (Mestre - Versão Discreta) -->
+    <!-- Scanline Effect -->
+    <div class="scanline"></div>
+
+    <!-- Aba de Arraste Física (Versão Dark Terminal) -->
     <div 
-      class="absolute w-7 h-20 cursor-move flex items-center justify-center group z-[100] shadow-lg transition-all"
+      class="absolute w-7 h-20 cursor-move flex items-center justify-center group z-[100] shadow-lg transition-all bg-slate-900 border-y border-white/5"
       :class="[
-        settings.notesSide === 'right' ? 'right-full rounded-l-xl' : 'left-full rounded-r-xl',
+        settings.notesSide === 'right' ? 'right-full rounded-l-xl border-l' : 'left-full rounded-r-xl border-r',
         isResizingLocal ? '!transition-none' : ''
       ]"
       :style="{ 
-        backgroundColor: settings.noteColor, 
-        filter: 'brightness(0.97)',
         top: settings.notesButtonTop + 'px'
       }"
       @mousedown.stop="handleResize"
       @click.stop="handleHandleClick"
       :title="isOpen ? 'Arraste para redimensionar / Clique para fechar' : 'Arraste para mover / Clique para abrir'"
     >
-      <!-- Grip Visual (Mínimo) -->
       <div class="flex flex-col gap-1 opacity-20 group-hover:opacity-40 transition-opacity">
-        <div class="w-1 h-1 rounded-full bg-black"></div>
-        <div class="w-1 h-1 rounded-full bg-black"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
       </div>
     </div>
 
-    <!-- Header -->
-    <div 
-      class="pb-4 px-4 pt-8 flex flex-col gap-3 border-b border-black/10"
-      :class="settings.notesSide === 'right' ? 'pr-12' : 'pl-12'"
-    >
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2 text-slate-900">
-          <StickyNote class="w-5 h-5" />
-          <h2 class="text-sm font-bold uppercase tracking-widest">Quick Notes</h2>
+    <div class="flex-1 flex flex-col overflow-hidden rounded-[var(--app-card-radius)]">
+      <!-- Terminal Header (macOS/Linux Style) -->
+      <div class="flex items-center gap-4 px-5 py-3.5 bg-black/40 border-b border-white/10 select-none">
+         <div class="flex gap-2">
+            <div 
+              @click="setTerminalColor('rose')" 
+              class="w-3 h-3 rounded-full bg-red-500/80 shadow-[0_0_8px_rgba(239,68,68,0.3)] cursor-pointer hover:scale-110 active:scale-90 transition-transform"
+              title="Tema Red Alert"
+            ></div>
+            <div 
+              @click="setTerminalColor('amber')" 
+              class="w-3 h-3 rounded-full bg-amber-500/80 shadow-[0_0_8px_rgba(245,158,11,0.3)] cursor-pointer hover:scale-110 active:scale-90 transition-transform"
+              title="Tema Vintage Gold"
+            ></div>
+            <div 
+              @click="setTerminalColor('emerald')" 
+              class="w-3 h-3 rounded-full bg-emerald-500/80 shadow-[0_0_8px_rgba(16,185,129,0.3)] cursor-pointer hover:scale-110 active:scale-90 transition-transform"
+              title="Tema Classic Terminal"
+            ></div>
+         </div>
+         <div class="flex-1 text-center">
+            <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] font-mono">tass_notes.sh</span>
+         </div>
+         <button @click="close" class="text-white/20 hover:text-white/60 transition-colors">
+            <X class="w-4 h-4" />
+         </button>
+      </div>
+
+      <!-- Área de Texto (Rich Terminal Edition) -->
+      <div class="flex-1 p-6 relative flex flex-col terminal-text">
+        <div class="flex items-start gap-3 h-full overflow-hidden">
+          <span 
+            class="font-black mt-1 select-none transition-colors duration-500"
+            :class="{
+              'text-emerald-500': terminalColor === 'emerald',
+              'text-amber-500': terminalColor === 'amber',
+              'text-rose-500': terminalColor === 'rose'
+            }"
+          >$</span>
+          <div
+            ref="editableRef"
+            contenteditable="true"
+            @blur="handleBlur"
+            class="flex-1 h-full bg-transparent border-none focus:ring-0 font-mono leading-relaxed overflow-y-auto custom-scrollbar-note text-lg outline-none transition-all duration-500 whitespace-pre-wrap"
+            :class="{
+              'caret-emerald-500': terminalColor === 'emerald',
+              'caret-amber-500': terminalColor === 'amber',
+              'caret-rose-500': terminalColor === 'rose'
+            }"
+            style="color: #10b981;"
+          ></div>
         </div>
-        <button @click="close" class="p-1 hover:bg-black/10 rounded-full transition-colors text-slate-900">
-          <X class="w-5 h-5" />
-        </button>
       </div>
-    </div>
 
-    <!-- Área de Texto -->
-    <div class="flex-1 p-6 relative">
-      <div class="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:20px_20px]"></div>
-      
-      <textarea
-        v-model="localContent"
-        @blur="handleBlur"
-        placeholder="Escreva seus rascunhos aqui..."
-        class="w-full h-full bg-transparent border-none focus:ring-0 text-black/80 placeholder-black/30 font-medium leading-relaxed resize-none custom-scrollbar-note text-lg outline-none"
-      ></textarea>
+
     </div>
   </aside>
+
+
 </template>
 
 <style scoped>
 .custom-scrollbar-note::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 .custom-scrollbar-note::-webkit-scrollbar-track {
   background: transparent;
 }
 .custom-scrollbar-note::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.1);
+  background: rgba(16, 185, 129, 0.1);
   border-radius: 10px;
 }
 .custom-scrollbar-note::-webkit-scrollbar-thumb:hover {
-  background: rgba(0,0,0,0.2);
+  background: rgba(16, 185, 129, 0.2);
 }
 
 aside {
-  box-shadow: 0 0 30px rgba(0,0,0,0.1);
   will-change: width, transform;
 }
-
-/* Efeito de papel dobrado */
-aside::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  width: 40px;
-  height: 40px;
-  background: v-bind('`linear-gradient(225deg, ${settings.noteColor} 45%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.05) 55%, ${settings.noteColor} 100%)`');
-  box-shadow: -2px 2px 5px rgba(0,0,0,0.05);
-  pointer-events: none;
-  z-index: 10;
-}
-
-.right-0::before { right: 0; }
-.left-0::before { left: 0; transform: scaleX(-1); }
 </style>
+

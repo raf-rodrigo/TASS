@@ -28,8 +28,8 @@ const tabs = [
   { id: 'board', label: 'Board & Layout', icon: LayoutGrid, color: 'text-indigo-500' },
   { id: 'tasks', label: 'Estilo das Tarefas', icon: Layers, color: 'text-indigo-500' },
   { id: 'typography', label: 'Tipografia', icon: TypeIcon, color: 'text-indigo-500' },
-  { id: 'notes', label: 'Notas Rápidas', icon: StickyNote, color: 'text-indigo-500' },
   { id: 'effects', label: 'Efeitos e Vidro', icon: Droplets, color: 'text-indigo-500' },
+
 ];
 
 const fontOptions = [
@@ -39,10 +39,7 @@ const fontOptions = [
   'Mulish', 'Quicksand', 'JetBrains Mono'
 ];
 
-const noteColors = [
-  '#fef9c3', '#FA6495', '#a3ff33', '#bae6fd', 
-  '#e9d5ff', '#fed7aa', '#fbcfe8', '#f1f5f9'
-];
+
 
 const setWallpaper = (url) => {
   settings.backgroundImage = url;
@@ -281,29 +278,7 @@ const handleColumnChange = (n) => {
                   </div>
                 </div>
 
-                <!-- ABA: Notas Rápidas -->
-                <div v-else-if="activeTab === 'notes'" :key="'notes'" class="space-y-8">
-                  <div>
-                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Notas Rápidas</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Personalize a aparência do seu bloco de notas lateral.</p>
-                  </div>
 
-                  <div class="space-y-6">
-                    <div class="p-6 bg-amber-500/5 dark:bg-amber-500/10 rounded-3xl border border-amber-500/10 space-y-5">
-                      <div class="flex items-center gap-3">
-                        <Palette class="w-5 h-5 text-amber-500" />
-                        <span class="text-xs font-bold text-slate-700 dark:text-slate-200">Cor do Papel</span>
-                      </div>
-                      <p class="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Escolha o tom que melhor se adapta ao seu foco:</p>
-                      <div class="flex flex-wrap gap-3">
-                        <button v-for="color in noteColors" :key="color" @click="settings.noteColor = color; settings.saveSetting('app-note-color', color)"
-                          class="w-10 h-10 rounded-2xl border-2 transition-all hover:scale-110 shadow-sm"
-                          :class="settings.noteColor === color ? 'border-amber-500 shadow-xl shadow-amber-500/20 scale-110' : 'border-transparent'"
-                          :style="{ backgroundColor: color }"></button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
                 <!-- ABA: Papéis de Parede -->
                 <div v-else-if="activeTab === 'wallpapers'" :key="'wallpapers'" class="space-y-6">
