@@ -32,15 +32,28 @@ export const notificationService = {
 
   /**
    * Confirm an action via Custom Modal (Tailwind UI Style)
+   * @param {string} title
+   * @param {string} text
+   * @param {string} confirmText
+   * @param {string} icon (success, error, warning, info)
+   * @param {string|null} denyText - If provided, the function returns 'confirmed' | 'denied' | 'cancelled'
+   * @returns {Promise<boolean|string>}
    */
-  async confirm(title, text, confirmText = 'Sim', icon = 'info') {
+  async confirm(title, text, confirmText = 'Sim', icon = 'info', denyText = null) {
     const store = useModalStore();
-    return await store.confirm({
+    const result = await store.confirm({
       title,
       text,
       confirmText,
-      type: icon
+      type: icon,
+      denyText
     });
+
+    // If it's a simple confirm (no deny button), return boolean
+    if (!denyText) return result === 'confirmed';
+
+    // If it's a complex confirm, return the exact action
+    return result;
   },
 
   /**
@@ -57,9 +70,10 @@ export const notificationService = {
 
   /**
    * Prompt user for input via Custom Modal
+   * @param {Object} options { title, message, value, placeholder, promptType }
    */
   prompt(options) {
-    const store = useModalStore();
-    return store.prompt(options);
+    const modalStore = useModalStore();
+    return modalStore.prompt(options);
   }
 };

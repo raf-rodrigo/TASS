@@ -23,8 +23,9 @@ export const taskActionService = {
       confirmText: 'Salvar'
     });
 
-    if (newValue !== undefined) {
-      const formattedValue = (newValue && type === 'url') ? ensureProtocol(newValue.trim()) : newValue.trim();
+    if (newValue) {
+      const trimmedValue = newValue.trim();
+      const formattedValue = type === 'url' ? ensureProtocol(trimmedValue) : trimmedValue;
       try {
         await taskStore.updateTask(task.id, { [field]: formattedValue });
         notificationService.toast(`${label} atualizado com sucesso!`, 'success');

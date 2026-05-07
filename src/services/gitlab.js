@@ -1,27 +1,19 @@
-import { toast as sToast, confirm as sConfirm } from '../utils/swal.js';
 import { db } from '../db.js';
 import { slugify } from '../utils/string.js';
+import { notificationService } from './notificationService.js';
 
 export const gitlabService = {
   getBranchName(task) {
-    // Título/Número: Preservamos o original, apenas trocando espaços por hifens
     const titlePart = task.title.trim().replace(/\s+/g, '-');
-    
-    // Descrição: Aplicamos a formatação completa (slugify)
     const descPart = task.description ? slugify(task.description) : '';
-    
-    // Combinamos ambos. Se não houver descrição, usamos apenas o título.
     const combined = descPart ? `${titlePart}-${descPart}` : titlePart;
-    
-    // Limpeza final mínima para garantir que o Git aceite o nome da branch 
-    // (remove caracteres ilegais como *, ?, :, [, ], etc)
     return combined.replace(/[^\w\d\-\/\.\u00C0-\u00FF]/g, '');
   },
 
   async deleteLocalBranchLink(task) {
     await db.tasks.update(task.id, { branchUrl: undefined });
     task.branchUrl = undefined;
-    sToast.fire({ icon: 'success', title: 'Link local removido.' });
+    notificationService.toast('Link local removido.', 'success');
   },
 
   async checkBranchExists(settings, branchName) {
@@ -43,8 +35,6 @@ export const gitlabService = {
     }
   },
 
-
-
   async handleGitlabFlow(task, settings) {
     const { gitlabUrl, gitlabIntegrationMode } = settings;
     const branchName = this.getBranchName(task);
@@ -56,7 +46,6 @@ export const gitlabService = {
       return;
     }
 
-    // API Mode
     const exists = await this.checkBranchExists(settings, branchName);
 
     if (exists) {
@@ -66,38 +55,29 @@ export const gitlabService = {
       const safeProjectId = encodeURIComponent(decodeURIComponent(gitlabProjectId));
       return await this.handleExistingBranch(task, branchName, gitlabUrl, gitlabOrigin, safeProjectId, gitlabToken);
     } else {
-      // Branch does NOT exist on GitLab
       if (task.branchUrl) {
-        // We have a link but branch is gone
-        const result = await sConfirm({
-          title: 'Branch Não Encontrada',
-          text: `O branch vinculado a esta tarefa não existe mais no GitLab.\nO que deseja fazer?`,
-          confirmButtonText: 'Recriar Branch',
-          cancelButtonText: 'Fechar',
-          cancelClass: 'btn btn-secondary',
-          showDenyButton: true,
-          denyButtonText: 'Excluir Link Local',
-          denyClass: 'btn btn-danger',
-          icon: 'warning'
-        });
+        const result = await notificationService.confirm(
+          'Branch Não Encontrada',
+          `O branch vinculado a esta tarefa não existe mais no GitLab.\nO que deseja fazer?`,
+          'Recriar Branch',
+          'warning',
+          'Excluir Link Local' // denyText
+        );
 
-        if (result.isConfirmed) {
+        if (result === 'confirmed') {
           return await this.createBranch(task, settings);
-        } else if (result.isDenied) {
+        } else if (result === 'denied') {
           await this.deleteLocalBranchLink(task);
         }
       } else {
-        // No link, no branch -> Ask to create
-        const result = await sConfirm({
-          title: 'Criar Branch',
-          text: `Deseja criar a branch '${branchName}' no GitLab?`,
-          confirmButtonText: 'Sim, Criar',
-          cancelButtonText: 'Fechar',
-          cancelClass: 'btn btn-secondary',
-          icon: 'question'
-        });
+        const confirmed = await notificationService.confirm(
+          'Criar Branch',
+          `Deseja criar a branch '${branchName}' no GitLab?`,
+          'Sim, Criar',
+          'info'
+        );
 
-        if (result.isConfirmed) {
+        if (confirmed) {
           return await this.createBranch(task, settings);
         }
       }
@@ -109,7 +89,7 @@ export const gitlabService = {
     const branchName = this.getBranchName(task);
     
     if (!gitlabToken || !gitlabProjectId) {
-      sToast.fire({ icon: 'error', title: "Configuração incompleta: Preencha o Token e o Project ID." });
+      notificationService.toast("Configuração incompleta: Preencha o Token e o ID.", "error");
       return;
     }
 
@@ -133,19 +113,17 @@ export const gitlabService = {
       if (response.ok) {
         const baseUrl = gitlabUrl.replace(/\/$/, '');
         const treeUrl = `${baseUrl}/-/tree/${encodeURIComponent(branchName)}`;
-        
         await db.tasks.update(task.id, { branchUrl: treeUrl });
         task.branchUrl = treeUrl;
-        
-        sToast.fire({ icon: 'success', title: 'Branch criada com sucesso!' });
+        notificationService.toast('Branch criada com sucesso!', 'success');
         return { treeUrl, branchName };
       } else {
         const errorData = await response.json().catch(() => ({}));
         const errorMsg = errorData.message || errorData.error || response.statusText;
-        sToast.fire({ icon: 'error', title: `Erro do GitLab: ${errorMsg}` });
+        notificationService.toast(`Erro do GitLab: ${errorMsg}`, 'error');
       }
     } catch (err) {
-      sToast.fire({ icon: 'error', title: `Falha na comunicação: ${err.message}` });
+      notificationService.toast(`Falha na comunicação: ${err.message}`, 'error');
     }
   },
 
@@ -153,47 +131,38 @@ export const gitlabService = {
     const baseUrl = gitlabUrl.replace(/\/$/, '');
     const treeUrl = `${baseUrl}/-/tree/${encodeURIComponent(branchName)}`;
     
-    const result = await sConfirm({
-      title: 'Branch já existe',
-      html: `A branch <b>${branchName}</b> já existe no GitLab.<br><br>O que deseja fazer?`,
-      confirmButtonText: 'Abrir Branch',
-      cancelButtonText: 'Deletar Branch',
-      cancelClass: 'btn btn-danger',
-      showDenyButton: true,
-      denyButtonText: 'Fechar',
-      denyClass: 'btn btn-secondary',
-      icon: 'info'
-    });
+    const result = await notificationService.confirm(
+      'Branch já existe',
+      `A branch ${branchName} já existe no GitLab.\nO que deseja fazer?`,
+      'Abrir Branch',
+      'info',
+      'Deletar Branch' // denyText
+    );
 
-    if (result.isConfirmed) {
+    if (result === 'confirmed') {
       window.open(treeUrl, '_blank');
-    } else if (result.dismiss === 'cancel') {
-      const confirmDelete = await sConfirm({
-        title: 'Alerta de Exclusão',
-        text: `Deseja realmente DELETAR a branch '${branchName}'?`,
-        confirmButtonText: 'Sim, Deletar',
-        confirmClass: 'btn btn-danger',
-        cancelButtonText: 'Fechar',
-        icon: 'warning'
-      });
+    } else if (result === 'denied') {
+      const confirmed = await notificationService.confirm(
+        'Alerta de Exclusão',
+        `Deseja realmente DELETAR a branch '${branchName}'?`,
+        'Sim, Deletar',
+        'warning'
+      );
 
-      if (confirmDelete.isConfirmed) {
+      if (confirmed) {
         const deleteResponse = await fetch(`${gitlabOrigin}/api/v4/projects/${safeProjectId}/repository/branches/${encodeURIComponent(branchName)}`, {
           method: 'DELETE',
           headers: { 'PRIVATE-TOKEN': gitlabToken }
         });
 
         if (deleteResponse.ok || deleteResponse.status === 404) {
-          sToast.fire({ icon: 'success', title: `Branch removida!` });
+          notificationService.toast(`Branch removida!`, 'success');
         } else {
-          sToast.fire({ icon: 'error', title: `Erro ao excluir no GitLab, mas limpando link local.` });
+          notificationService.toast(`Erro ao excluir no GitLab.`, 'error');
         }
-        
-        // Sempre removemos o link local se o usuário confirmou a intenção de excluir
         await this.deleteLocalBranchLink(task);
       }
     }
     return treeUrl;
   }
 };
-

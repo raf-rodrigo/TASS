@@ -17,18 +17,25 @@ const icons = {
   success: CheckCircle
 };
 
-const iconClasses = {
-  info: 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400',
-  warning: 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400',
-  error: 'bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400',
-  success: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
+const iconColors = {
+  info: 'text-blue-500',
+  warning: 'text-amber-500',
+  error: 'text-rose-500',
+  success: 'text-emerald-500'
 };
 
-const buttonClasses = {
-  info: 'bg-blue-600 hover:bg-blue-700 text-white',
-  warning: 'bg-amber-600 hover:bg-amber-700 text-white',
-  error: 'bg-rose-600 hover:bg-rose-700 text-white',
-  success: 'bg-emerald-600 hover:bg-emerald-700 text-white'
+const iconBgColors = {
+  info: 'bg-blue-500/10',
+  warning: 'bg-amber-500/10',
+  error: 'bg-rose-500/10',
+  success: 'bg-emerald-500/10'
+};
+
+const primaryButtonClasses = {
+  info: 'bg-indigo-600 hover:bg-indigo-500',
+  warning: 'bg-amber-600 hover:bg-amber-500',
+  error: 'bg-red-600 hover:bg-red-500',
+  success: 'bg-emerald-600 hover:bg-emerald-500'
 };
 
 // Auto-focus logic
@@ -50,108 +57,121 @@ watch(() => modalStore.isOpen, (newVal) => {
     leave-from-class="opacity-100"
     leave-to-class="opacity-0"
   >
-    <div v-if="modalStore.isOpen" class="relative z-[10000]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div v-if="modalStore.isOpen" class="fixed inset-0 z-[10000] overflow-y-auto" role="dialog" aria-modal="true">
       <!-- Backdrop -->
       <div 
-        class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
+        class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity"
         @click="modalStore.handleCancel"
       ></div>
 
-      <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
-        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-          <transition
-            enter-active-class="ease-out duration-300"
-            enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            enter-to-class="opacity-100 translate-y-0 sm:scale-100"
-            leave-active-class="ease-in duration-200"
-            leave-from-class="opacity-100 translate-y-0 sm:scale-100"
-            leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+      <!-- Container -->
+      <div class="flex min-h-full items-center justify-center p-6 text-center sm:p-0">
+        <transition
+          appear
+          enter-active-class="ease-out duration-300"
+          enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+          leave-active-class="ease-in duration-200"
+          leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+          leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        >
+          <div 
+            class="relative transform overflow-hidden rounded-[2rem] text-center shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-[360px] border border-white/5"
+            :style="{ 
+              backgroundColor: settings.theme === 'dark' ? '#1e2533' : '#ffffff',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)'
+            }"
+            @click.stop
           >
-            <div 
-              class="relative transform overflow-hidden glass-panel text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border-white/10"
-              :style="{ 
-                backgroundColor: settings.theme === 'dark' ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.98)',
-                backdropFilter: 'blur(16px)'
-              }"
-            >
-              <div class="px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                <div class="sm:flex sm:items-start">
-                  <!-- Ícone de Alerta -->
-                  <div 
-                    class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10"
-                    :class="iconClasses[modalStore.type]"
-                  >
-                    <component :is="icons[modalStore.type]" class="h-6 w-6" aria-hidden="true" />
+            <!-- Content Area (Centered) -->
+            <div class="px-6 pt-8 pb-5 sm:px-8">
+              <div class="flex flex-col items-center">
+                <!-- Center Icon -->
+                <div 
+                  class="flex size-12 shrink-0 items-center justify-center rounded-full mb-4"
+                  :class="iconBgColors[modalStore.type]"
+                >
+                  <component :is="icons[modalStore.type]" class="size-6" :class="iconColors[modalStore.type]" aria-hidden="true" />
+                </div>
+
+                <!-- Center Text Content -->
+                <div class="w-full">
+                  <h3 class="text-lg font-bold text-slate-900 dark:text-white" id="modal-title">
+                    {{ modalStore.title }}
+                  </h3>
+                  <div class="mt-2">
+                    <p class="text-sm text-slate-500 dark:text-slate-400 leading-snug px-2">
+                      {{ modalStore.message }}
+                    </p>
                   </div>
 
-                  <!-- Conteúdo -->
-                  <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
-                    <h3 
-                      class="text-lg font-bold leading-6 text-slate-900 dark:text-white" 
-                      id="modal-title"
-                    >
-                      {{ modalStore.title }}
-                    </h3>
-                    <div class="mt-2">
-                      <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                        {{ modalStore.message }}
-                      </p>
-                    </div>
+                  <!-- Centered Prompt Input -->
+                  <div v-if="modalStore.isPrompt" class="mt-5">
+                    <textarea
+                      v-if="modalStore.promptType === 'textarea'"
+                      ref="inputRef"
+                      v-model="modalStore.promptValue"
+                      :placeholder="modalStore.promptPlaceholder"
+                      class="w-full rounded-xl bg-black/10 dark:bg-black/30 border border-white/10 px-4 py-3 text-sm text-center text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/40 outline-none transition-all min-h-[80px] placeholder:text-slate-500"
+                      @keydown.enter.ctrl="modalStore.handleConfirm"
+                    ></textarea>
+                    <input
+                      v-else
+                      ref="inputRef"
+                      type="text"
+                      v-model="modalStore.promptValue"
+                      :placeholder="modalStore.promptPlaceholder"
+                      class="w-full rounded-xl bg-black/10 dark:bg-black/30 border border-white/10 px-4 py-2.5 text-sm text-center text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/40 outline-none transition-all placeholder:text-slate-500"
+                      @keydown.enter="modalStore.handleConfirm"
+                      @keydown.esc="modalStore.handleCancel"
+                    />
+                  </div>
+                </div>
 
-                    <!-- Prompt Input Area -->
-                    <div v-if="modalStore.isPrompt" class="mt-4">
-                      <textarea
-                        v-if="modalStore.promptType === 'textarea'"
-                        ref="inputRef"
-                        v-model="modalStore.promptValue"
-                        :placeholder="modalStore.promptPlaceholder"
-                        class="app-input min-h-[120px] py-3 text-sm"
-                        @keydown.enter.ctrl="modalStore.handleConfirm"
-                      ></textarea>
-                      <input
-                        v-else
-                        ref="inputRef"
-                        type="text"
-                        v-model="modalStore.promptValue"
-                        :placeholder="modalStore.promptPlaceholder"
-                        class="app-input"
-                        @keydown.enter="modalStore.handleConfirm"
-                        @keydown.esc="modalStore.handleCancel"
-                      />
-                    </div>
+                <!-- Actions (Tighter bottom) -->
+                <div class="mt-6 w-full flex flex-col items-center gap-3">
+                  <button 
+                    type="button" 
+                    class="w-full inline-flex justify-center rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all active:scale-95"
+                    :class="primaryButtonClasses[modalStore.type]"
+                    @click="modalStore.handleConfirm"
+                  >
+                    {{ modalStore.confirmText }}
+                  </button>
+
+                  <div class="flex gap-4 items-center" v-if="modalStore.denyText || modalStore.cancelText">
+                    <button 
+                      v-if="modalStore.denyText"
+                      @click="modalStore.handleDeny"
+                      class="text-[11px] font-bold text-rose-500/80 hover:text-rose-500 transition-colors"
+                    >
+                      {{ modalStore.denyText }}
+                    </button>
+                    
+                    <button 
+                      v-if="modalStore.cancelText"
+                      @click="modalStore.handleCancel"
+                      class="text-[11px] font-bold text-slate-500/80 hover:text-slate-400 transition-colors"
+                    >
+                      {{ modalStore.cancelText }}
+                    </button>
                   </div>
                 </div>
               </div>
-
-              <!-- Botões de Ação -->
-              <div class="px-4 py-4 sm:flex sm:flex-row-reverse sm:px-6 bg-slate-50/50 dark:bg-black/20 gap-3 border-t border-white/5">
-                <button 
-                  type="button" 
-                  class="inline-flex w-full justify-center rounded-xl px-6 py-2.5 text-sm font-semibold shadow-sm sm:w-auto transition-all active:scale-95"
-                  :class="buttonClasses[modalStore.type]"
-                  @click="modalStore.handleConfirm"
-                >
-                  {{ modalStore.confirmText }}
-                </button>
-                <button 
-                  v-if="modalStore.cancelText"
-                  type="button" 
-                  class="mt-3 inline-flex w-full justify-center rounded-xl px-6 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm ring-1 ring-inset ring-slate-300 dark:ring-white/10 hover:bg-slate-100 dark:hover:bg-white/5 sm:mt-0 sm:w-auto transition-all active:scale-95"
-                  @click="modalStore.handleCancel"
-                >
-                  {{ modalStore.cancelText }}
-                </button>
-              </div>
             </div>
-          </transition>
-        </div>
+          </div>
+        </transition>
       </div>
     </div>
   </transition>
 </template>
 
 <style scoped>
-.glass-panel {
-  border-radius: var(--app-card-radius);
+/* Transição suave para o fundo */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
 </style>
