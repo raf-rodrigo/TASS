@@ -17,13 +17,14 @@ const taskStore = useTaskStore();
 <template>
   <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] w-full max-w-fit px-2 md:px-4 pointer-events-none">
     <div 
-      class="glass-panel !p-1.5 flex items-center gap-1 md:gap-2 shadow-2xl border-indigo-500/20 backdrop-blur-xl rounded-2xl ring-1 ring-black/5 pointer-events-auto transition-all duration-500"
-      :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-bottom-opacity))` }"
+      class="glass-panel !p-1.5 flex items-center gap-1 md:gap-2 shadow-2xl border-indigo-500/20 backdrop-blur-xl ring-1 ring-black/5 pointer-events-auto transition-all duration-500"
+      :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-bottom-opacity))`, borderRadius: 'var(--app-card-radius)' }"
     >
       <!-- Botão Principal: Adicionar Tarefa -->
       <button 
         @click="emit('add-task')"
-        class="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-500/30 transition-all active:scale-90 group shrink-0"
+        class="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 transition-all active:scale-90 group shrink-0"
+        :style="{ borderRadius: 'var(--app-input-radius)' }"
         title="Nova Tarefa (N)"
       >
         <Plus class="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-90 transition-transform duration-300" />
@@ -32,12 +33,16 @@ const taskStore = useTaskStore();
       <div class="w-px h-6 bg-slate-200 dark:bg-white/10 mx-0.5 md:mx-1"></div>
 
       <!-- Seção: Filtros de Status -->
-      <div class="flex items-center gap-0.5 md:gap-1 bg-slate-100 dark:bg-white/5 p-1 rounded-xl border border-slate-200/50 dark:border-white/5">
+      <div 
+        class="flex items-center gap-0.5 md:gap-1 bg-slate-100 dark:bg-white/5 p-1 border border-slate-200/50 dark:border-white/5"
+        :style="{ borderRadius: 'var(--app-input-radius)' }"
+      >
         <button 
           v-for="filter in ['all', 'active', 'completed']" 
           :key="filter"
           @click="taskStore.statusFilter = filter"
-          class="px-2 md:px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-tighter transition-all"
+          class="px-2 md:px-3 py-1.5 text-[9px] font-black uppercase tracking-tighter transition-all"
+          :style="{ borderRadius: 'calc(var(--app-input-radius) * 0.8)' }"
           :class="taskStore.statusFilter === filter 
             ? 'bg-white dark:bg-indigo-500 shadow-sm text-indigo-600 dark:text-white' 
             : 'text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400'"
@@ -100,7 +105,8 @@ const taskStore = useTaskStore();
         <button 
           v-if="taskStore.lastDeletedTask" 
           @click="taskStore.restoreTask" 
-          class="ml-1 md:ml-2 flex items-center gap-1 md:gap-2 px-2 md:px-3 py-2 bg-amber-500 text-white text-[8px] md:text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-amber-500/30 hover:bg-amber-600 transition-all animate-pulse"
+          class="ml-1 md:ml-2 flex items-center gap-1 md:gap-2 px-2 md:px-3 py-2 bg-amber-500 text-white text-[8px] md:text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/30 hover:bg-amber-600 transition-all animate-pulse"
+          :style="{ borderRadius: 'var(--app-input-radius)' }"
         >
           <RotateCcw class="w-3 h-3 md:w-3.5 md:h-3.5" /> 
           <span class="hidden xs:inline">Desfazer</span>
@@ -112,7 +118,8 @@ const taskStore = useTaskStore();
 
 <style scoped>
 .dock-item {
-  @apply flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200/50 dark:border-white/5 transition-all cursor-pointer hover:bg-slate-200 dark:hover:bg-white/10;
+  @apply flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 transition-all cursor-pointer hover:bg-slate-200 dark:hover:bg-white/10;
+  border-radius: var(--app-input-radius);
 }
 
 .dock-label {
@@ -120,6 +127,7 @@ const taskStore = useTaskStore();
 }
 
 .util-btn {
-  @apply p-2 rounded-xl text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-indigo-500 transition-all active:scale-90;
+  @apply p-2 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-indigo-500 transition-all active:scale-90;
+  border-radius: var(--app-input-radius);
 }
 </style>

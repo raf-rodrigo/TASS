@@ -86,7 +86,7 @@ const isPast = (dateStr) => {
   >
     <template #header>
       <div class="flex items-center gap-3">
-        <div class="p-2.5 bg-indigo-500 rounded-2xl text-white shadow-lg shadow-indigo-500/20">
+        <div class="p-2.5 bg-indigo-500 text-white shadow-lg shadow-indigo-500/20" :style="{ borderRadius: 'var(--app-input-radius)' }">
           <Calendar class="w-5 h-5" />
         </div>
         <div>
@@ -102,9 +102,10 @@ const isPast = (dateStr) => {
         <!-- Botão: Nova Sprint -->
         <button 
           @click="showAddForm = !showAddForm"
-          class="flex items-center gap-3 p-4 bg-indigo-500/5 hover:bg-indigo-500/10 border border-indigo-500/20 rounded-2xl transition-all group"
+          class="flex items-center gap-3 p-4 bg-indigo-500/5 hover:bg-indigo-500/10 border border-indigo-500/20 transition-all group"
+          :style="{ borderRadius: 'var(--app-input-radius)' }"
         >
-          <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 bg-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform" :style="{ borderRadius: 'calc(var(--app-input-radius) * 0.8)' }">
             <Plus class="w-5 h-5" />
           </div>
           <div class="text-left">
@@ -116,12 +117,14 @@ const isPast = (dateStr) => {
         <!-- Botão: Todas as Tarefas -->
         <button 
           @click="emit('select-sprint', 'all')"
-          class="flex items-center gap-3 p-4 rounded-2xl border transition-all group relative overflow-hidden"
+          class="flex items-center gap-3 p-4 border transition-all group relative overflow-hidden"
+          :style="{ borderRadius: 'var(--app-input-radius)' }"
           :class="activeSprintId === 'all' 
             ? 'bg-indigo-600 border-indigo-500 text-white shadow-xl shadow-indigo-500/30' 
             : 'bg-white dark:bg-slate-800/40 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300 hover:border-indigo-500/50'"
         >
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+          <div class="w-10 h-10 flex items-center justify-center transition-all"
+            :style="{ borderRadius: 'calc(var(--app-input-radius) * 0.8)' }"
             :class="activeSprintId === 'all' ? 'bg-white/20' : 'bg-slate-100 dark:bg-white/5 text-slate-400 group-hover:text-indigo-500'">
             <Layers class="w-5 h-5" />
           </div>
@@ -134,7 +137,7 @@ const isPast = (dateStr) => {
       </div>
 
       <!-- Formulário de Cadastro (Ocultável) -->
-      <div v-if="showAddForm" class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/10 animate-scaleIn space-y-5">
+      <div v-if="showAddForm" class="p-6 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 animate-scaleIn space-y-5" :style="{ borderRadius: 'var(--app-card-radius)' }">
         <div class="flex items-center gap-2">
            <div class="w-1 h-4 bg-emerald-500 rounded-full"></div>
            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Configurar Novo Ciclo</span>
@@ -153,8 +156,8 @@ const isPast = (dateStr) => {
             format="dd/MM/yyyy"
           />
           <div class="flex gap-3">
-            <button @click="showAddForm = false" class="flex-1 py-3 text-xs font-black text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all uppercase tracking-widest">Cancelar</button>
-            <button @click="addSprint" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 uppercase tracking-widest" :disabled="!newSprintDate">
+            <button @click="showAddForm = false" class="flex-1 py-3 text-xs font-black text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 transition-all uppercase tracking-widest" :style="{ borderRadius: 'var(--app-input-radius)' }">Cancelar</button>
+            <button @click="addSprint" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 uppercase tracking-widest" :disabled="!newSprintDate" :style="{ borderRadius: 'var(--app-input-radius)' }">
               Salvar
             </button>
           </div>
@@ -178,12 +181,14 @@ const isPast = (dateStr) => {
             >
               <button 
                 @click="emit('select-sprint', sprint.id)"
-                class="w-full flex items-center gap-4 p-4 rounded-2xl border transition-all"
+                class="w-full flex items-center gap-4 p-4 border transition-all"
+                :style="{ borderRadius: 'var(--app-input-radius)' }"
                 :class="activeSprintId == sprint.id 
                   ? 'bg-indigo-600 border-indigo-500 text-white shadow-xl shadow-indigo-500/30' 
                   : 'bg-white dark:bg-slate-800/40 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300 hover:border-indigo-500/50 hover:bg-slate-50 dark:hover:bg-white/[0.02]'"
               >
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-all flex-shrink-0"
+                <div class="w-10 h-10 flex items-center justify-center transition-all flex-shrink-0"
+                  :style="{ borderRadius: 'calc(var(--app-input-radius) * 0.8)' }"
                   :class="activeSprintId == sprint.id ? 'bg-white/20' : 'bg-slate-100 dark:bg-white/5 text-slate-400 group-hover:text-indigo-500'">
                   <span class="text-xs font-black">#{{ taskStore.sprints.length - index }}</span>
                 </div>
@@ -211,7 +216,7 @@ const isPast = (dateStr) => {
     </div>
 
     <template #footer>
-      <button @click="emit('close')" class="w-full py-4 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-xl shadow-indigo-500/20 uppercase tracking-widest active:scale-95">
+      <button @click="emit('close')" class="w-full py-4 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20 uppercase tracking-widest active:scale-95" :style="{ borderRadius: 'var(--app-input-radius)' }">
         Voltar ao Board
       </button>
     </template>
@@ -220,7 +225,7 @@ const isPast = (dateStr) => {
 
 <style>
 .app-datepicker {
-  --dp-border-radius: 12px;
+  --dp-border-radius: var(--app-input-radius);
   --dp-font-family: inherit;
 }
 .dark .app-datepicker {

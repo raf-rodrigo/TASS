@@ -65,11 +65,13 @@ const openLink = (url) => {
 <template>
   <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-full max-w-4xl px-4 pointer-events-none">
     <div 
-      class="glass-panel !p-2 flex flex-col md:flex-row items-center gap-4 shadow-2xl border-indigo-500/30 backdrop-blur-md rounded-2xl ring-1 ring-black/5 pointer-events-auto transition-all duration-300 animate-scaleIn"
+      class="glass-panel !p-2 flex flex-col md:flex-row items-center gap-4 shadow-2xl border-indigo-500/30 backdrop-blur-md ring-1 ring-black/5 pointer-events-auto transition-all duration-300 animate-scaleIn"
       @click.stop
-      :style="{ backgroundColor: settings.theme === 'dark' 
-        ? `rgba(30, 41, 59, ${settings.opacityTargets.contextMenu ? settings.cardOpacity / 100 : 0.98})` 
-        : `rgba(255, 255, 255, ${settings.opacityTargets.contextMenu ? settings.cardOpacity / 100 : 0.95})` 
+      :style="{ 
+        backgroundColor: settings.theme === 'dark' 
+          ? `rgba(30, 41, 59, ${settings.opacityTargets.contextMenu ? settings.cardOpacity / 100 : 0.98})` 
+          : `rgba(255, 255, 255, ${settings.opacityTargets.contextMenu ? settings.cardOpacity / 100 : 0.95})`,
+        borderRadius: 'var(--app-card-radius)'
       }"
     >
       <!-- Seção 1: Identificação e Timer Rápido -->
@@ -175,7 +177,8 @@ const openLink = (url) => {
 
 <style scoped>
 .icon-btn-large {
-  @apply p-2.5 rounded-xl text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-all active:scale-90 flex items-center justify-center;
+  @apply p-2.5 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-all active:scale-90 flex items-center justify-center;
+  border-radius: var(--app-input-radius);
 }
 
 .active-action {
@@ -194,7 +197,8 @@ const openLink = (url) => {
 }
 
 .env-btn {
-  @apply px-2 py-1.5 rounded-lg text-[9px] font-black tracking-tighter border border-transparent transition-all active:scale-95 bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-600 hover:bg-slate-200 dark:hover:bg-white/10;
+  @apply px-2 py-1.5 text-[9px] font-black tracking-tighter border border-transparent transition-all active:scale-95 bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-600 hover:bg-slate-200 dark:hover:bg-white/10;
+  border-radius: calc(var(--app-input-radius) * 0.8);
 }
 
 .env-active-prd { @apply bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/40 !important; }
@@ -202,6 +206,7 @@ const openLink = (url) => {
 .env-active-dev { @apply bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/40 !important; }
 
 .state-btn {
-  @apply flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 rounded-xl transition-all;
+  @apply flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 transition-all;
+  border-radius: var(--app-input-radius);
 }
 </style>

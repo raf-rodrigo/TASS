@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { 
   Download, Upload, Droplets, Globe, 
   ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles
@@ -68,6 +68,20 @@ const dayNames = [
   { id: 1, label: 'S' }, { id: 2, label: 'T' }, { id: 3, label: 'Q' }, 
   { id: 4, label: 'Q' }, { id: 5, label: 'S' }, { id: 6, label: 'S' }, { id: 0, label: 'D' }
 ];
+
+// Live Preview para arredondamento com proteção contra erros de concorrência
+watch(() => localSettings.value?.cardBorderRadius, (newVal) => {
+  if (newVal === undefined || newVal === null) return;
+  
+  // Usando requestAnimationFrame para garantir que o DOM está pronto e evitar erros de patch do Vue
+  requestAnimationFrame(() => {
+    const root = document.documentElement;
+    if (root) {
+      root.style.setProperty('--app-card-radius', newVal + 'px');
+      root.style.setProperty('--app-input-radius', Math.round(newVal * 0.6) + 'px');
+    }
+  });
+}, { immediate: false });
 
 const toggleDay = (dayId) => {
   const index = localSettings.value.workDays.indexOf(dayId);
@@ -170,17 +184,17 @@ const handleResetSystem = async () => {
             v-for="tab in tabs" 
             :key="tab.id"
             @click="activeTab = tab.id"
-            class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
+            class="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg transition-all group"
             :class="activeTab === tab.id 
               ? 'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-slate-200 dark:ring-white/10' 
               : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'"
           >
             <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
-            <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
+            <span class="text-[11px] font-bold whitespace-nowrap">{{ tab.label }}</span>
           </button>
         </nav>
-
-        <div class="hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10 mt-auto">
+        
+        <div class="hidden md:block p-3 bg-indigo-500/5 rounded-lg border border-indigo-500/10 mt-auto">
           <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
             Confirme as alterações no botão abaixo para persistir no banco de dados.
           </p>
@@ -196,7 +210,7 @@ const handleResetSystem = async () => {
         <button class="absolute top-6 right-6 icon-btn z-10" @click="emit('close')">
           <X class="w-5 h-5" />
         </button>
-        <div class="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
+        <div class="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
           <transition name="fade-slide" mode="out-in">
             <!-- ABA: GitLab -->
             <div v-if="activeTab === 'gitlab'" :key="'gitlab'" class="space-y-8">
@@ -268,7 +282,7 @@ const handleResetSystem = async () => {
                   <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Dias Ativos</label>
                   <div class="flex flex-wrap gap-2 justify-center">
                     <button v-for="day in dayNames" :key="day.id" @click="toggleDay(day.id)"
-                      class="w-10 h-10 rounded-xl text-xs font-black transition-all border"
+                      class="w-10 h-10 text-xs font-black transition-all border"
                       :class="localSettings.workDays.includes(day.id) ? 'bg-amber-500 border-amber-600 text-white shadow-lg shadow-amber-500/20' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-400'">
                       {{ day.label }}
                     </button>
@@ -470,9 +484,9 @@ const handleResetSystem = async () => {
         </div>
 
         <!-- Footer Manual -->
-        <footer class="p-4 md:p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex flex-col md:flex-row gap-2 md:gap-4">
-          <button @click="emit('close')" class="flex-1 px-6 py-2.5 md:py-3 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/5 rounded-2xl transition-all">Fechar</button>
-          <button @click="handleSave" class="flex-2 px-12 py-2.5 md:py-3 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-2xl transition-all shadow-xl shadow-indigo-500/20">Salvar</button>
+        <footer class="p-4 md:p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-end gap-3">
+          <button @click="emit('close')" class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 transition-all" :style="{ borderRadius: 'var(--app-input-radius)' }">Fechar</button>
+          <button @click="handleSave" class="px-10 py-2.5 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20" :style="{ borderRadius: 'var(--app-input-radius)' }">Salvar Alterações</button>
         </footer>
       </main>
     </div>
@@ -486,7 +500,7 @@ const handleResetSystem = async () => {
 }
 
 .input-group input {
-  @apply w-full px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all;
+  @apply w-full px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all;
 }
 
 .app-timepicker {

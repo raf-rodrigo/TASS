@@ -40,6 +40,7 @@ export function useTheme(settings) {
     
     // Outras medidas
     root.style.setProperty('--app-card-radius', settings.cardBorderRadius + 'px');
+    root.style.setProperty('--app-input-radius', Math.round(settings.cardBorderRadius * 0.6) + 'px');
     root.style.setProperty('--app-card-padding', settings.cardPadding + 'px');
 
     // --- Motor de Contraste Inteligente (Física de Renderização) ---
