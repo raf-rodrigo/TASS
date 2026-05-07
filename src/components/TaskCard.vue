@@ -40,6 +40,8 @@ const handleSelect = () => {
       taskStore.selectedTask?.id === task.id ? 'ring-2 ring-indigo-500/50 border-indigo-500 z-[50]' : 'hover:border-indigo-400/40',
       settings.cardOpacity < 1 ? 'backdrop-blur-xl' : ''
     ]"
+
+
     :style="{ 
       backgroundColor: taskStore.selectedTask?.id === task.id 
         ? (settings.cardOpacity < 1 ? 'rgba(99, 102, 241, 0.1)' : '') 

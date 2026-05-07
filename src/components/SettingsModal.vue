@@ -60,8 +60,10 @@ const localSettings = ref({
     hours: Math.floor((settings.inactivityThreshold || 1) / 60), 
     minutes: (settings.inactivityThreshold || 1) % 60 
   },
-  cardBorderRadius: settings.cardBorderRadius
+  cardBorderRadius: settings.cardBorderRadius,
+  contrastEnhanced: settings.contrastEnhanced
 });
+
 
 const dayNames = [
   { id: 1, label: 'S' }, { id: 2, label: 'T' }, { id: 3, label: 'Q' }, 
@@ -109,6 +111,8 @@ const handleSave = async () => {
   settings.wellnessInterval = localSettings.value.wellnessInterval;
   settings.inactivityThreshold = (localSettings.value.inactivityThreshold.hours * 60) + localSettings.value.inactivityThreshold.minutes;
   settings.cardBorderRadius = localSettings.value.cardBorderRadius;
+  settings.contrastEnhanced = localSettings.value.contrastEnhanced;
+
 
   await settings.saveAllSettings();
   notificationService.toast('Configurações Salvas!');
@@ -391,6 +395,21 @@ const handleResetSystem = async () => {
                 </div>
 
                 <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 group space-y-4">
+
+                  <label class="flex items-center justify-between cursor-pointer">
+                    <div>
+                      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Realce de Contraste</p>
+                      <p class="text-[10px] text-slate-500">Otimiza a legibilidade do texto em interfaces transparentes.</p>
+                    </div>
+                    <div class="relative inline-flex items-center">
+                      <input type="checkbox" class="sr-only peer" v-model="localSettings.contrastEnhanced">
+                      <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 group space-y-4">
+
                   <div class="flex justify-between items-center">
                     <div>
                       <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Arredondamento de Cantos</p>

@@ -41,6 +41,35 @@ export function useTheme(settings) {
     // Outras medidas
     root.style.setProperty('--app-card-radius', settings.cardBorderRadius + 'px');
     root.style.setProperty('--app-card-padding', settings.cardPadding + 'px');
+
+    // --- Motor de Contraste Inteligente (Física de Renderização) ---
+    const isEnhanced = settings.contrastEnhanced;
+    const isDark = settings.theme === 'dark';
+
+    // 1. Desfoque (Blur) - Glassmorphism 2.0 padrão 20px
+    root.style.setProperty('--app-glass-blur', '20px');
+
+    // 2. Brilho (Brightness) - Realça o fundo para destacar o texto
+    let brightness = '1';
+    if (isEnhanced) {
+      brightness = isDark ? '0.85' : '1.05';
+    }
+    root.style.setProperty('--app-glass-brightness', brightness);
+
+    // 3. Saturação (Saturate) - Separa cores no desfoque
+    root.style.setProperty('--app-glass-saturate', isEnhanced ? '160%' : '100%');
+
+    // 4. Sombra de Leitura (Text Shadow) - Proteção extra para o texto
+    let textShadow = 'none';
+    if (isEnhanced) {
+      textShadow = isDark 
+        ? '0 1px 1px rgba(0,0,0,0.4)' 
+        : '0 1px 1px rgba(255,255,255,0.3)';
+    }
+    root.style.setProperty('--app-text-shadow', textShadow);
+    
+    // 5. Opacidade da Borda
+    root.style.setProperty('--app-border-opacity', isDark ? '0.1' : '0.2');
   };
 
   const toggleTheme = () => {
@@ -55,7 +84,9 @@ export function useTheme(settings) {
     settings.cardBorderRadius, 
     settings.cardPadding, 
     settings.theme,
-    settings.opacityTargets
+    settings.opacityTargets,
+    settings.contrastEnhanced,
+    settings.backgroundImage
   ], applyStyles, { deep: true });
 
   onMounted(() => {

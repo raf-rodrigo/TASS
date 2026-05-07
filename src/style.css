@@ -9,7 +9,15 @@
   --app-card-opacity: 0.95;
   --app-card-radius: 16px;
   --app-card-padding: 16px;
+
+  /* Motor de Contraste - Default Safes */
+  --app-glass-blur: 12px;
+  --app-glass-brightness: 1;
+  --app-glass-saturate: 100%;
+  --app-text-shadow: none;
+  --app-border-opacity: 0.1;
 }
+
 
 @layer base {
   html, body {
@@ -36,8 +44,15 @@ body.dragging-task,
     background-color: rgba(var(--app-bg-raw), var(--app-card-opacity));
     border-radius: var(--app-card-radius);
     padding: var(--app-card-padding);
-    @apply border border-white/50 dark:border-white/10 shadow-lg dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
+    backdrop-filter: blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate));
+    -webkit-backdrop-filter: blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate));
+    text-shadow: var(--app-text-shadow);
+    border: 1px solid rgba(255, 255, 255, var(--app-border-opacity));
+    @apply shadow-lg dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
   }
+
+
+
 
   .icon-btn {
     @apply p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-500/10 transition-all flex items-center justify-center active:scale-90;
