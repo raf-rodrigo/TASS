@@ -3,9 +3,8 @@ import { onMounted, onUnmounted } from 'vue';
 export function useShortcuts({ onToggleNotes, onOpenAddModal, onOpenSettings, onWellnessTest }) {
   const handleGlobalKeydown = (e) => {
     if (e.key === 'Escape') {
-      // Se o Notes estiver aberto (onToggleNotes), fechamos.
-      // Como o useShortcuts recebe apenas o toggle, vamos garantir que ele só feche se algo estiver focado ou aberto
-      onToggleNotes(false); // Vou ajustar para que o App.vue entenda o fechamento forçado
+      e.preventDefault();
+      onToggleNotes(false);
       return;
     }
 

@@ -102,7 +102,8 @@ useShortcuts({
       showSettings.value = false;
       showInterfaceMenu.value = false;
       showModal.value = false;
-      showSprintModal.value = false;
+      showSprints.value = false;
+      taskStore.selectedTask = null;
     } else {
       showNotes.value = !showNotes.value;
     }
