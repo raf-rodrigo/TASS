@@ -182,7 +182,10 @@ body.dragging-task,
 
 /* SweetAlert2 Theme Integration */
 .swal2-popup.app-toast {
-  @apply !bg-white dark:!bg-slate-800 !text-slate-800 dark:!text-slate-100 !shadow-xl !border !border-slate-200 dark:!border-white/10 !mt-4;
+  background: rgba(var(--app-bg-raw), var(--app-modal-opacity)) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  @apply !text-slate-800 dark:!text-slate-100 !shadow-xl !border !border-slate-200 dark:!border-white/10 !mt-4;
   border-radius: var(--app-card-radius) !important;
 }
 
