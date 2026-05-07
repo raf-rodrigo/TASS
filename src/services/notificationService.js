@@ -1,6 +1,6 @@
-import Swal, { confirm as sConfirm } from '../utils/swal.js';
 import { sendNotification as nativeSend, playNotificationSound, requestNotificationPermission } from '../utils/notifications.js';
 import { useNotificationStore } from '../stores/notificationStore';
+import { useModalStore } from '../stores/modalStore';
 
 /**
  * Unified Notification Service for TASS
@@ -31,33 +31,35 @@ export const notificationService = {
   },
 
   /**
-   * Confirm an action via Modal
+   * Confirm an action via Custom Modal (Tailwind UI Style)
    */
-  async confirm(title, text, confirmText = 'Sim', icon = 'info', confirmClass = 'btn btn-primary') {
-    const result = await sConfirm({
+  async confirm(title, text, confirmText = 'Sim', icon = 'info') {
+    const store = useModalStore();
+    return await store.confirm({
       title,
       text,
       confirmText,
-      icon,
-      confirmClass
+      type: icon
     });
-    return result.isConfirmed;
   },
 
   /**
-   * Alert a warning or error
+   * Alert a warning or error via Custom Modal
    */
   alert(title, text, icon = 'warning') {
-    return Swal.fire({ 
+    const store = useModalStore();
+    return store.alert({ 
       title, 
       text, 
-      icon,
-      customClass: {
-        popup: 'app-modal',
-        confirmButton: 'btn btn-primary !px-10'
-      },
-      buttonsStyling: false,
-      confirmButtonText: 'Entendido'
+      type: icon
     });
+  },
+
+  /**
+   * Prompt user for input via Custom Modal
+   */
+  prompt(options) {
+    const store = useModalStore();
+    return store.prompt(options);
   }
 };

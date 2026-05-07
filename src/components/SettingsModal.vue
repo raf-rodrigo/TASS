@@ -9,7 +9,6 @@ import { notificationService } from '../services/notificationService';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import BaseModal from './BaseModal.vue';
 import { useTaskStore } from '../stores/taskStore';
-import Swal from '../utils/swal';
 import { ptBR } from 'date-fns/locale';
 import '@vuepic/vue-datepicker/dist/main.css';
 
@@ -123,36 +122,21 @@ const handleImportTasks = (event) => emit('import-tasks', event);
 const handleImportSystem = (event) => emit('import-system', event);
 
 const handleResetSystem = async () => {
-  const result = await Swal.fire({
-    title: 'Zerar Sistema?',
-    text: 'Isso apagará TODAS as tarefas e sprints permanentemente. Esta ação não pode ser desfeita!',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Sim, Apagar Tudo',
-    cancelButtonText: 'Cancelar',
-    customClass: {
-      popup: 'app-modal',
-      confirmButton: 'btn btn-danger !px-8',
-      cancelButton: 'btn btn-secondary !px-6'
-    }
-  });
+  const confirmed = await notificationService.confirm(
+    'Zerar Sistema?',
+    'Isso apagará TODAS as tarefas e sprints permanentemente. Esta ação não pode ser desfeita!',
+    'Sim, Apagar Tudo',
+    'error'
+  );
 
-  if (result.isConfirmed) {
+  if (confirmed) {
     const success = await taskStore.resetSystem();
     
     if (success) {
-      Swal.fire({
-        title: 'Sistema Resetado',
-        text: 'A limpeza foi concluída com sucesso.',
-        timer: 1500,
-        showConfirmButton: false,
-        customClass: {
-          popup: 'app-modal !rounded-3xl'
-        }
-      });
+      notificationService.toast('Sistema resetado com sucesso!', 'success');
       emit('close');
     } else {
-      Swal.fire('Erro', 'Não foi possível resetar o sistema.', 'error');
+      notificationService.alert('Erro', 'Não foi possível resetar o sistema.', 'error');
     }
   }
 };
