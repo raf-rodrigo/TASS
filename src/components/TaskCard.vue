@@ -38,13 +38,13 @@ const handleSelect = () => {
     :class="[
       task.isRunning ? 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : '',
       taskStore.selectedTask?.id === task.id ? 'ring-2 ring-indigo-500/50 border-indigo-500 z-[50]' : 'hover:border-indigo-400/40',
-      settings.cardOpacity < 1 ? 'backdrop-blur-xl' : ''
+      settings.cardOpacity > 0 ? 'backdrop-blur-xl' : ''
     ]"
 
 
     :style="{ 
       backgroundColor: taskStore.selectedTask?.id === task.id 
-        ? (settings.cardOpacity < 1 ? 'rgba(99, 102, 241, 0.1)' : '') 
+        ? (settings.cardOpacity > 0 ? 'rgba(99, 102, 241, 0.1)' : '') 
         : '' 
     }"
     @click.stop="handleSelect"

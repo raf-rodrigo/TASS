@@ -102,8 +102,8 @@ const handleColumnChange = (n) => {
           '--modal-y': `${position.y}px`,
           transform: `translate(var(--modal-x), var(--modal-y))`,
           backgroundColor: settings.theme === 'dark' 
-            ? `rgba(15, 23, 42, ${settings.opacityTargets.modals ? settings.cardOpacity / 100 : 0.98})` 
-            : `rgba(255, 255, 255, ${settings.opacityTargets.modals ? settings.cardOpacity / 100 : 0.95})`
+            ? `rgba(15, 23, 42, ${settings.opacityTargets.modals ? (100 - settings.cardOpacity) / 100 : 1.0})` 
+            : `rgba(255, 255, 255, ${settings.opacityTargets.modals ? (100 - settings.cardOpacity) / 100 : 1.0})`
         }"
       >
         
@@ -111,7 +111,7 @@ const handleColumnChange = (n) => {
           <!-- Sidebar de Abas (Handle de Arraste) -->
           <aside 
             class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-4 cursor-grab active:cursor-grabbing group"
-            :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-slate-50/50 dark:bg-white/[0.02]'"
+            :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
             @mousedown="onMouseDown"
           >
             <div class="hidden md:flex items-center gap-3 px-2 mb-8">
@@ -386,10 +386,10 @@ const handleColumnChange = (n) => {
 
                     <div class="space-y-4">
                       <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nível de Opacidade</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nível de Transparência</span>
                         <span class="text-xs font-black text-indigo-500">{{ settings.cardOpacity }}%</span>
                       </div>
-                      <input type="range" v-model="settings.cardOpacity" min="10" max="100" step="5" class="w-full app-range" @change="settings.saveSetting('app-card-opacity', settings.cardOpacity)" />
+                      <input type="range" v-model="settings.cardOpacity" min="0" max="100" step="5" class="w-full app-range" @change="settings.saveSetting('app-card-opacity', settings.cardOpacity)" />
                       
                       <div class="pt-6 border-t border-slate-200 dark:border-white/5">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block">Aplicar efeito em:</label>

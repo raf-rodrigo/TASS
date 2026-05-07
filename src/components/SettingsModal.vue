@@ -169,7 +169,7 @@ const handleResetSystem = async () => {
         <!-- Sidebar de Abas (Handle de Arraste) -->
         <aside 
           class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-4 cursor-grab active:cursor-grabbing group"
-          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-slate-50/50 dark:bg-white/[0.02]'"
+          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
           @mousedown="onMouseDown"
         >
         <div class="hidden md:flex items-center gap-3 px-2 mb-8">

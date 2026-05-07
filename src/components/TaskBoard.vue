@@ -75,8 +75,8 @@ const handleBoardChange = (evt, colIdx) => {
             class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-2xl text-slate-400/30 transition-all"
             :style="{ 
               borderColor: `rgba(var(--app-bg-raw), 0.1)`,
-              backgroundColor: settings.cardOpacity < 100 ? `rgba(var(--app-bg-raw), 0.05)` : 'transparent',
-              backdropFilter: settings.cardOpacity < 100 ? 'blur(4px)' : 'none'
+              backgroundColor: settings.cardOpacity > 0 ? `rgba(var(--app-bg-raw), 0.05)` : 'transparent',
+              backdropFilter: settings.cardOpacity > 0 ? 'blur(4px)' : 'none'
             }"
           >
             <Plus class="w-10 h-10 mb-4 opacity-20" />

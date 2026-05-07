@@ -69,8 +69,8 @@ const openLink = (url) => {
       @click.stop
       :style="{ 
         backgroundColor: settings.theme === 'dark' 
-          ? `rgba(30, 41, 59, ${settings.opacityTargets.contextMenu ? settings.cardOpacity / 100 : 0.98})` 
-          : `rgba(255, 255, 255, ${settings.opacityTargets.contextMenu ? settings.cardOpacity / 100 : 0.95})`,
+          ? `rgba(30, 41, 59, ${settings.opacityTargets.contextMenu ? (100 - settings.cardOpacity) / 100 : 0.98})` 
+          : `rgba(255, 255, 255, ${settings.opacityTargets.contextMenu ? (100 - settings.cardOpacity) / 100 : 0.95})`,
         borderRadius: 'var(--app-card-radius)'
       }"
     >

@@ -27,8 +27,8 @@ export function useTheme(settings) {
 
     // Variáveis reativas de Opacidade baseadas nos Alvos
     const getOpacity = (targetEnabled) => {
-      if (!targetEnabled) return settings.theme === 'dark' ? 0.98 : 0.95;
-      return settings.cardOpacity / 100;
+      if (!targetEnabled) return 1.0;
+      return (100 - settings.cardOpacity) / 100;
     };
 
     root.style.setProperty('--app-card-opacity', getOpacity(settings.opacityTargets.cards));
@@ -48,7 +48,7 @@ export function useTheme(settings) {
     const isDark = settings.theme === 'dark';
 
     // 1. Desfoque (Blur) - Glassmorphism 2.0 padrão 20px
-    root.style.setProperty('--app-glass-blur', '20px');
+    root.style.setProperty('--app-glass-blur', settings.cardOpacity > 0 ? '20px' : '0px');
 
     // 2. Brilho (Brightness) - Realça o fundo para destacar o texto
     let brightness = '1';

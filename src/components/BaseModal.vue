@@ -21,12 +21,12 @@ const { position, onMouseDown } = useModalDrag();
   <div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/20 dark:bg-black/40 backdrop-blur-sm" @click.self="emit('close')">
     <section 
       class="glass-panel w-full flex flex-col shadow-2xl border-white/20 dark:border-white/5 overflow-hidden"
-      :class="[maxWidth, customClass, { 'animate-scaleIn': animate, 'backdrop-blur-xl': settings.cardOpacity < 100 }]"
+      :class="[maxWidth, customClass, { 'animate-scaleIn': animate, 'backdrop-blur-xl': settings.cardOpacity > 0 }]"
       :style="{ 
         transform: `translate(${position.x}px, ${position.y}px)`,
         backgroundColor: settings.theme === 'dark' 
-          ? `rgba(15, 23, 42, ${settings.opacityTargets.modals ? settings.cardOpacity / 100 : 0.98})` 
-          : `rgba(255, 255, 255, ${settings.opacityTargets.modals ? settings.cardOpacity / 100 : 0.95})`
+          ? `rgba(15, 23, 42, ${settings.opacityTargets.modals ? (100 - settings.cardOpacity) / 100 : 0.98})` 
+          : `rgba(255, 255, 255, ${settings.opacityTargets.modals ? (100 - settings.cardOpacity) / 100 : 0.95})`
       }"
     >
       <!-- Header / Drag Handle -->
