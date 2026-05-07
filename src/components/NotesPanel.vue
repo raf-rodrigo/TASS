@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch, toRef } from 'vue';
+import { ref, onMounted, watch, toRef, nextTick } from 'vue';
 import { X, StickyNote } from 'lucide-vue-next';
 import { useNoteStore } from '../stores/noteStore';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -29,7 +29,18 @@ const setTerminalColor = (color) => {
   }
 };
 
-
+const focusAtEnd = () => {
+  if (editableRef.value) {
+    editableRef.value.focus();
+    // Move o cursor para o final do conteúdo HTML
+    const range = document.createRange();
+    const selection = window.getSelection();
+    range.selectNodeContents(editableRef.value);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+};
 
 // Lógica de arraste e redimensionamento unificada (Aba Mestra)
 const { onMouseDown: handleResize, isDragging: isResizingLocal, hasMoved: notesMoved } = useNotesDrag(settings, toRef(props, 'isOpen'));
@@ -41,6 +52,18 @@ onMounted(async () => {
   }
 });
 
+watch(() => props.isOpen, (newVal) => {
+  if (newVal) {
+    nextTick(() => {
+      focusAtEnd();
+    });
+  } else {
+    // Tira o foco para evitar que continue registrando teclas com o painel fechado
+    if (editableRef.value) {
+      editableRef.value.blur();
+    }
+  }
+});
 
 watch(() => noteStore.note, (newVal) => {
   if (editableRef.value && newVal !== editableRef.value.innerHTML) {
@@ -97,12 +120,13 @@ const handleHandleClick = () => {
     <!-- Scanline Effect -->
     <div class="scanline"></div>
 
-    <!-- Aba de Arraste Física (Versão Dark Terminal) -->
+    <!-- Aba de Arraste Física (Versão Adaptativa) -->
     <div 
-      class="absolute w-7 h-20 cursor-move flex items-center justify-center group z-[100] shadow-lg transition-all bg-slate-900 border-y border-white/5"
+      class="absolute w-7 h-20 cursor-move flex items-center justify-center group z-[100] shadow-lg transition-all backdrop-blur-md border-y"
       :class="[
         settings.notesSide === 'right' ? 'right-full rounded-l-xl border-l' : 'left-full rounded-r-xl border-r',
-        isResizingLocal ? '!transition-none' : ''
+        isResizingLocal ? '!transition-none' : '',
+        settings.theme === 'dark' ? 'bg-slate-950/80 border-white/10' : 'bg-white/80 border-slate-200'
       ]"
       :style="{ 
         top: settings.notesButtonTop + 'px'
@@ -111,15 +135,32 @@ const handleHandleClick = () => {
       @click.stop="handleHandleClick"
       :title="isOpen ? 'Arraste para redimensionar / Clique para fechar' : 'Arraste para mover / Clique para abrir'"
     >
-      <div class="flex flex-col gap-1 opacity-20 group-hover:opacity-40 transition-opacity">
-        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+      <div class="flex flex-col gap-1.5 opacity-40 group-hover:opacity-80 transition-all duration-500">
+        <div 
+          class="w-1.5 h-1.5 rounded-full transition-colors duration-500 shadow-[0_0_5px_rgba(0,0,0,0.2)]"
+          :class="{
+            'bg-emerald-500 shadow-emerald-500/20': terminalColor === 'emerald',
+            'bg-amber-500 shadow-amber-500/20': terminalColor === 'amber',
+            'bg-rose-500 shadow-rose-500/20': terminalColor === 'rose'
+          }"
+        ></div>
+        <div 
+          class="w-1.5 h-1.5 rounded-full transition-colors duration-500 shadow-[0_0_5px_rgba(0,0,0,0.2)]"
+          :class="{
+            'bg-emerald-500 shadow-emerald-500/20': terminalColor === 'emerald',
+            'bg-amber-500 shadow-amber-500/20': terminalColor === 'amber',
+            'bg-rose-500 shadow-rose-500/20': terminalColor === 'rose'
+          }"
+        ></div>
       </div>
     </div>
 
     <div class="flex-1 flex flex-col overflow-hidden rounded-[var(--app-card-radius)]">
-      <!-- Terminal Header (macOS/Linux Style) -->
-      <div class="flex items-center gap-4 px-5 py-3.5 bg-black/40 border-b border-white/10 select-none">
+      <!-- Terminal Header (Adaptativo) -->
+      <div 
+        class="flex items-center gap-4 px-5 py-3.5 border-b select-none transition-colors duration-500"
+        :class="settings.theme === 'dark' ? 'bg-black/40 border-white/10' : 'bg-slate-100/80 border-slate-200'"
+      >
          <div class="flex gap-2">
             <div 
               @click="setTerminalColor('rose')" 
@@ -138,12 +179,20 @@ const handleHandleClick = () => {
             ></div>
          </div>
          <div class="flex-1 text-center">
-            <span class="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] font-mono">tass_notes.sh</span>
+            <span 
+              class="text-[10px] font-black uppercase tracking-[0.4em] font-mono transition-colors duration-500"
+              :class="settings.theme === 'dark' ? 'text-white/30' : 'text-slate-900/30'"
+            >tass_notes.sh</span>
          </div>
-         <button @click="close" class="text-white/20 hover:text-white/60 transition-colors">
+         <button 
+           @click="close" 
+           class="transition-colors"
+           :class="settings.theme === 'dark' ? 'text-white/20 hover:text-white/60' : 'text-slate-900/20 hover:text-slate-900/60'"
+         >
             <X class="w-4 h-4" />
          </button>
       </div>
+
 
       <!-- Área de Texto (Rich Terminal Edition) -->
       <div class="flex-1 p-6 relative flex flex-col terminal-text">

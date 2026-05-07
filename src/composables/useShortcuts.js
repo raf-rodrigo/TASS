@@ -2,6 +2,13 @@ import { onMounted, onUnmounted } from 'vue';
 
 export function useShortcuts({ onToggleNotes, onOpenAddModal, onOpenSettings, onWellnessTest }) {
   const handleGlobalKeydown = (e) => {
+    if (e.key === 'Escape') {
+      // Se o Notes estiver aberto (onToggleNotes), fechamos.
+      // Como o useShortcuts recebe apenas o toggle, vamos garantir que ele só feche se algo estiver focado ou aberto
+      onToggleNotes(false); // Vou ajustar para que o App.vue entenda o fechamento forçado
+      return;
+    }
+
     const activeTag = document.activeElement.tagName.toLowerCase();
     const isInput = activeTag === 'input' || 
                     activeTag === 'textarea' || 
@@ -25,6 +32,7 @@ export function useShortcuts({ onToggleNotes, onOpenAddModal, onOpenSettings, on
     const key = e.key.toLowerCase();
     switch (key) {
       case 'n':
+        e.preventDefault();
         onToggleNotes();
         break;
       case 't':
@@ -32,6 +40,7 @@ export function useShortcuts({ onToggleNotes, onOpenAddModal, onOpenSettings, on
         onOpenAddModal();
         break;
       case 'c':
+        e.preventDefault();
         onOpenSettings();
         break;
     }

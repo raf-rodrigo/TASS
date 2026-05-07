@@ -96,7 +96,17 @@ const openEditModal = (task) => {
 const { currentMessage, showMessage, triggerWellness } = useWellness(settings);
 
 useShortcuts({
-  onToggleNotes: () => showNotes.value = !showNotes.value,
+  onToggleNotes: (val) => {
+    if (val === false) {
+      showNotes.value = false;
+      showSettings.value = false;
+      showInterfaceMenu.value = false;
+      showModal.value = false;
+      showSprintModal.value = false;
+    } else {
+      showNotes.value = !showNotes.value;
+    }
+  },
   onOpenAddModal: openAddModal,
   onOpenSettings: () => showSettings.value = true,
   onWellnessTest: () => triggerWellness(true)
