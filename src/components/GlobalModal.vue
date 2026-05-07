@@ -60,12 +60,12 @@ watch(() => modalStore.isOpen, (newVal) => {
     <div v-if="modalStore.isOpen" class="fixed inset-0 z-[10000] overflow-y-auto" role="dialog" aria-modal="true">
       <!-- Backdrop -->
       <div 
-        class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity"
+        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
         @click="modalStore.handleCancel"
       ></div>
 
       <!-- Container -->
-      <div class="flex min-h-full items-center justify-center p-6 text-center sm:p-0">
+      <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
         <transition
           appear
           enter-active-class="ease-out duration-300"
@@ -76,15 +76,14 @@ watch(() => modalStore.isOpen, (newVal) => {
           leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
         >
           <div 
-            class="relative transform overflow-hidden rounded-[2rem] text-center shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-[360px] border border-white/5"
+            class="relative transform overflow-hidden rounded-xl bg-white dark:bg-slate-900 text-center shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-white/5"
             :style="{ 
-              backgroundColor: settings.theme === 'dark' ? '#1e2533' : '#ffffff',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)'
+              backgroundColor: settings.theme === 'dark' ? '#1e2533' : '#ffffff'
             }"
             @click.stop
           >
-            <!-- Content Area (Centered) -->
-            <div class="px-6 pt-8 pb-5 sm:px-8">
+            <!-- Content Area (Matches Example Proportions) -->
+            <div class="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               <div class="flex flex-col items-center">
                 <!-- Center Icon -->
                 <div 
@@ -96,17 +95,17 @@ watch(() => modalStore.isOpen, (newVal) => {
 
                 <!-- Center Text Content -->
                 <div class="w-full">
-                  <h3 class="text-lg font-bold text-slate-900 dark:text-white" id="modal-title">
+                  <h3 class="text-base font-semibold text-slate-900 dark:text-white" id="modal-title">
                     {{ modalStore.title }}
                   </h3>
                   <div class="mt-2">
-                    <p class="text-sm text-slate-500 dark:text-slate-400 leading-snug px-2">
+                    <p class="text-sm text-slate-500 dark:text-slate-400">
                       {{ modalStore.message }}
                     </p>
                   </div>
 
                   <!-- Centered Prompt Input -->
-                  <div v-if="modalStore.isPrompt" class="mt-5">
+                  <div v-if="modalStore.isPrompt" class="mt-4">
                     <textarea
                       v-if="modalStore.promptType === 'textarea'"
                       ref="inputRef"
@@ -127,37 +126,37 @@ watch(() => modalStore.isOpen, (newVal) => {
                     />
                   </div>
                 </div>
-
-                <!-- Actions (Tighter bottom) -->
-                <div class="mt-6 w-full flex flex-col items-center gap-3">
-                  <button 
-                    type="button" 
-                    class="w-full inline-flex justify-center rounded-xl px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all active:scale-95"
-                    :class="primaryButtonClasses[modalStore.type]"
-                    @click="modalStore.handleConfirm"
-                  >
-                    {{ modalStore.confirmText }}
-                  </button>
-
-                  <div class="flex gap-4 items-center" v-if="modalStore.denyText || modalStore.cancelText">
-                    <button 
-                      v-if="modalStore.denyText"
-                      @click="modalStore.handleDeny"
-                      class="text-[11px] font-bold text-rose-500/80 hover:text-rose-500 transition-colors"
-                    >
-                      {{ modalStore.denyText }}
-                    </button>
-                    
-                    <button 
-                      v-if="modalStore.cancelText"
-                      @click="modalStore.handleCancel"
-                      class="text-[11px] font-bold text-slate-500/80 hover:text-slate-400 transition-colors"
-                    >
-                      {{ modalStore.cancelText }}
-                    </button>
-                  </div>
-                </div>
               </div>
+            </div>
+
+            <!-- Footer Area (Matches Example Exactly) -->
+            <div class="bg-slate-50 dark:bg-white/[0.03] px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-3">
+              <button 
+                type="button" 
+                class="inline-flex w-full justify-center rounded-xl px-3 py-2 text-sm font-semibold text-white shadow-sm transition-all active:scale-95 sm:w-auto"
+                :class="primaryButtonClasses[modalStore.type]"
+                @click="modalStore.handleConfirm"
+              >
+                {{ modalStore.confirmText }}
+              </button>
+
+              <button 
+                v-if="modalStore.denyText"
+                type="button" 
+                class="mt-3 sm:mt-0 inline-flex w-full justify-center rounded-xl px-3 py-2 text-sm font-semibold text-rose-500 hover:bg-rose-500/5 transition-all active:scale-95 sm:w-auto border border-rose-500/10"
+                @click="modalStore.handleDeny"
+              >
+                {{ modalStore.denyText }}
+              </button>
+              
+              <button 
+                v-if="modalStore.cancelText"
+                type="button" 
+                class="mt-3 sm:mt-0 inline-flex w-full justify-center rounded-xl bg-white dark:bg-white/5 px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 transition-all active:scale-95 sm:w-auto border border-slate-200 dark:border-white/10"
+                @click="modalStore.handleCancel"
+              >
+                {{ modalStore.cancelText }}
+              </button>
             </div>
           </div>
         </transition>
