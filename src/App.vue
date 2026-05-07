@@ -61,15 +61,23 @@ watch(
 );
 
 const handleBoardChange = async (evt, columnId) => {
+  // 1. Atualiza o columnId localmente se a tarefa foi adicionada a esta coluna
   if (evt.added) {
-    const task = evt.added.element;
-    await taskStore.updateTask(task.id, { columnId });
+    evt.added.element.columnId = columnId;
   }
   
+  // 2. Coleta o estado visual atual de todas as colunas para persistir posições e colunas
   const allOrderedTasks = [];
-  for (let i = 0; i < settings.columns; i++) {
-    allOrderedTasks.push(...boardColumns.value[i]);
-  }
+  boardColumns.value.forEach((col, colIdx) => {
+    const targetColumnId = colIdx + 1;
+    col.forEach((task) => {
+      task.columnId = targetColumnId; // Sincronização local garantida
+      allOrderedTasks.push(task);
+    });
+  });
+
+  // 3. Persiste o estado completo no banco. 
+  // Nota: Não usamos mais taskStore.updateTask individual aqui para evitar gatilhos parciais de reatividade (flicker).
   await taskStore.updateAllPositions(allOrderedTasks);
 };
 

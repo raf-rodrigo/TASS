@@ -291,15 +291,24 @@ export const useTaskStore = defineStore('task', () => {
   };
 
   const updateAllPositions = async (allTasksOrdered) => {
-    const updates = [];
-    allTasksOrdered.forEach((task, index) => {
-      const newPos = index + 1;
-      if (task.position !== newPos) {
+    try {
+      const updates = allTasksOrdered.map((task, index) => {
+        const newPos = index + 1;
+        // Atualiza o objeto local sincronamente
         task.position = newPos;
-        updates.push(db.tasks.update(task.id, { position: newPos }));
+        // Retorna a promise de update do banco
+        return db.tasks.update(task.id, { 
+          position: newPos, 
+          columnId: task.columnId 
+        });
+      });
+      
+      if (updates.length > 0) {
+        await Promise.all(updates);
       }
-    });
-    if (updates.length > 0) await Promise.all(updates);
+    } catch (error) {
+      console.error("Failed to update task positions:", error);
+    }
   };
 
   const resetSystem = async () => {
