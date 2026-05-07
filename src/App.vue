@@ -209,6 +209,27 @@ onMounted(async () => {
   applyTheme();
   await taskStore.loadTasks();
   await taskStore.loadSprints();
+
+  // Semeador de tarefas (roda apenas uma vez)
+  if (!localStorage.getItem('tass_seeded')) {
+    const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+    for (let i = 1; i <= 30; i++) {
+      await db.tasks.add({
+        title: `Tarefa de Teste #${i}`,
+        description: `Esta é uma tarefa de teste gerada automaticamente para validar o layout com muitos itens. #${i}`,
+        columnId: Math.floor(Math.random() * 3) + 1,
+        position: i,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        sprintId: 'all',
+        completed: false,
+        createdAt: Date.now()
+      });
+    }
+    localStorage.setItem('tass_seeded', 'true');
+    await taskStore.loadTasks();
+    notificationService.toast('30 tarefas de teste criadas!', 'success');
+  }
+
   syncBoardWithStore();
 });
 </script>

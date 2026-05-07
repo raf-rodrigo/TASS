@@ -36,7 +36,7 @@ const handleBoardChange = (evt, colIdx) => {
 
 <template>
   <section 
-    class="flex flex-nowrap lg:grid gap-6 w-full items-start overflow-x-auto lg:overflow-x-visible pb-8 lg:pb-0 snap-x snap-mandatory custom-scrollbar min-h-[80vh] lg:min-h-0" 
+    class="flex flex-nowrap lg:grid gap-6 w-full items-stretch overflow-x-auto lg:overflow-x-visible pb-8 lg:pb-0 snap-x snap-mandatory custom-scrollbar min-h-[80vh]" 
     :class="{
       'lg:grid-cols-1': settings.columns === 1 || !settings.columns,
       'lg:grid-cols-2': settings.columns === 2,
@@ -47,7 +47,7 @@ const handleBoardChange = (evt, colIdx) => {
     <div 
       v-for="colIdx in settings.columns" 
       :key="colIdx" 
-      class="flex flex-col gap-4 min-h-[150px] md:min-h-[500px] relative flex-shrink-0 lg:flex-shrink snap-center lg:snap-align-none w-[90vw] md:w-[45vw] lg:w-full first:ml-[5vw] last:mr-[5vw] lg:first:ml-0 lg:last:mr-0"
+      class="flex flex-col gap-4 min-h-[500px] relative flex-shrink-0 lg:flex-shrink snap-center lg:snap-align-none w-[90vw] md:w-[45vw] lg:w-full first:ml-[5vw] last:mr-[5vw] lg:first:ml-0 lg:last:mr-0 pb-20"
     >
       <!-- Cabeçalho da Coluna -->
       <div 
