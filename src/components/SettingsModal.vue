@@ -1,9 +1,9 @@
 <script setup>
+import { ref } from 'vue';
 import { 
   Download, Upload, Droplets, Globe, 
-  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles, Settings
+  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles
 } from 'lucide-vue-next';
-import { ref, watch, nextTick } from 'vue';
 import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
@@ -63,6 +63,7 @@ const localSettings = ref({
   contrastEnhanced: settings.contrastEnhanced
 });
 
+
 const dayNames = [
   { id: 1, label: 'S' }, { id: 2, label: 'T' }, { id: 3, label: 'Q' }, 
   { id: 4, label: 'Q' }, { id: 5, label: 'S' }, { id: 6, label: 'S' }, { id: 0, label: 'D' }
@@ -76,6 +77,20 @@ const toggleDay = (dayId) => {
     localSettings.value.workDays.push(dayId);
     localSettings.value.workDays.sort();
   }
+};
+
+const handleWaterToggle = async () => {
+  if (localSettings.value.waterReminderEnabled) {
+    const granted = await notificationService.requestPermission();
+    if (!granted) {
+      notificationService.alert('Notificações Bloqueadas', 'Permita as notificações para receber os lembretes.', 'warning');
+      localSettings.value.waterReminderEnabled = false;
+    }
+  }
+};
+
+const handleTestNotification = async () => {
+  emit('test-water');
 };
 
 const handleSave = async () => {
@@ -97,6 +112,7 @@ const handleSave = async () => {
   settings.cardBorderRadius = localSettings.value.cardBorderRadius;
   settings.contrastEnhanced = localSettings.value.contrastEnhanced;
 
+
   await settings.saveAllSettings();
   notificationService.toast('Configurações Salvas!');
   emit('save');
@@ -115,9 +131,12 @@ const handleResetSystem = async () => {
 
   if (confirmed) {
     const success = await taskStore.resetSystem();
+    
     if (success) {
       notificationService.toast('Sistema resetado com sucesso!', 'success');
       emit('close');
+    } else {
+      notificationService.alert('Erro', 'Não foi possível resetar o sistema.', 'error');
     }
   }
 };
@@ -126,175 +145,351 @@ const handleResetSystem = async () => {
 <template>
   <BaseModal 
     title="Ajustes TASS" 
-    maxWidth="max-w-5xl" 
-    customClass="h-[90vh] md:h-[650px] !p-0 overflow-hidden"
+    maxWidth="max-w-4xl" 
+    customClass="h-[90vh] md:h-[600px] !p-0"
     :hideHeader="true"
     @close="emit('close')"
   >
     <template #default="{ onMouseDown }">
-      <div class="flex flex-col md:flex-row h-full">
-        <!-- Sidebar de Navegação (Menu Lateral Estilo Premium) -->
+      <div class="flex flex-col md:flex-row h-full overflow-hidden">
+        <!-- Sidebar de Abas (Handle de Arraste) -->
         <aside 
-          class="w-full md:w-72 border-b md:border-b-0 md:border-r border-slate-200/60 dark:border-white/5 flex flex-col p-6 cursor-grab active:cursor-grabbing"
-          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-[#f8fafc] dark:bg-[#111827]'"
+          class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-4 cursor-grab active:cursor-grabbing group"
+          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-slate-50/50 dark:bg-white/[0.02]'"
           @mousedown="onMouseDown"
         >
-          <!-- Logo/Title Area -->
-          <div class="hidden md:flex items-center gap-3 mb-10 px-2">
-            <div class="p-2.5 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-500/20">
-              <Settings class="w-5 h-5" />
-            </div>
-            <div>
-              <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter leading-none">Ajustes</h2>
-              <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Configurações</p>
-            </div>
+        <div class="hidden md:flex items-center gap-3 px-2 mb-8">
+          <div class="p-2 bg-indigo-500 rounded-xl text-white">
+            <Monitor class="w-5 h-5" />
           </div>
+          <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter">Ajustes TASS</h2>
+        </div>
 
-          <!-- Navigation Links -->
-          <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-2 md:space-y-1">
-            <button 
-              v-for="tab in tabs" 
-              :key="tab.id"
-              @click="activeTab = tab.id"
-              class="flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group"
-              :class="activeTab === tab.id 
-                ? 'bg-white dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-transparent' 
-                : 'text-slate-700 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5 hover:text-indigo-600 dark:hover:text-white'"
-            >
-              <div 
-                class="p-1.5 rounded-lg transition-colors"
-                :class="activeTab === tab.id ? 'bg-indigo-50 dark:bg-indigo-500/20' : 'bg-transparent'"
-              >
-                <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
-              </div>
-              <span class="text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
-            </button>
-          </nav>
-
-          <!-- Footer Info Sidebar -->
-          <div class="hidden md:block mt-auto p-5 bg-white/50 dark:bg-white/5 rounded-[2rem] border border-slate-200/50 dark:border-white/5">
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-              As alterações são aplicadas instantaneamente na UI.
-            </p>
-          </div>
-        </aside>
-
-        <!-- Área de Conteúdo Principal -->
-        <main 
-          class="flex-1 flex flex-col overflow-hidden relative"
-          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-[#0f172a]'"
-        >
-          <!-- Botão Fechar (Top Right) -->
+        <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
           <button 
-            class="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 text-slate-400 transition-colors z-20" 
-            @click="emit('close')"
+            v-for="tab in tabs" 
+            :key="tab.id"
+            @click="activeTab = tab.id"
+            class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
+            :class="activeTab === tab.id 
+              ? 'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-slate-200 dark:ring-white/10' 
+              : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'"
           >
-            <X class="w-5 h-5" />
+            <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
+            <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
           </button>
+        </nav>
 
-          <!-- Scrollable Content Container -->
-          <div class="flex-1 overflow-y-auto p-8 md:p-14 custom-scrollbar">
-            <transition name="fade-slide" mode="out-in">
-              <div :key="activeTab" class="max-w-2xl mx-auto">
-                
-                <!-- ABA: GitLab -->
-                <div v-if="activeTab === 'gitlab'" class="space-y-10">
-                  <header>
-                    <h3 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Integração GitLab</h3>
-                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Automatize seu fluxo de trabalho conectando o TASS aos seus repositórios.</p>
-                  </header>
+        <div class="hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10 mt-auto">
+          <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
+            Confirme as alterações no botão abaixo para persistir no banco de dados.
+          </p>
+        </div>
+      </aside>
 
-                  <div class="space-y-8">
-                    <div class="flex bg-slate-100 dark:bg-white/5 p-1.5 rounded-2xl w-fit">
-                      <button @click="localSettings.gitlabIntegrationMode = 'link'" class="px-6 py-2 text-xs font-bold rounded-xl transition-all" :class="localSettings.gitlabIntegrationMode === 'link' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500'">Link Mágico</button>
-                      <button @click="localSettings.gitlabIntegrationMode = 'api'" class="px-6 py-2 text-xs font-bold rounded-xl transition-all" :class="localSettings.gitlabIntegrationMode === 'api' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500'">API Automática</button>
-                    </div>
+      <!-- Conteúdo da Aba -->
+      <main 
+        class="flex-1 flex flex-col overflow-hidden relative"
+        :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+      >
+        <!-- Close Button Top Right -->
+        <button class="absolute top-6 right-6 icon-btn z-10" @click="emit('close')">
+          <X class="w-5 h-5" />
+        </button>
+        <div class="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
+          <transition name="fade-slide" mode="out-in">
+            <!-- ABA: GitLab -->
+            <div v-if="activeTab === 'gitlab'" :key="'gitlab'" class="space-y-8">
+              <div>
+                <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Integração GitLab</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Conecte o TASS aos seus projetos e automatize seu workflow.</p>
+              </div>
 
-                    <div class="grid gap-6">
-                      <div class="input-group">
-                        <label>URL da Instância</label>
-                        <input type="url" v-model="localSettings.gitlabUrl" placeholder="https://gitlab.com" />
-                      </div>
-
-                      <template v-if="localSettings.gitlabIntegrationMode === 'api'">
-                        <div class="grid grid-cols-2 gap-6">
-                          <div class="input-group">
-                            <label>ID do Projeto</label>
-                            <input type="text" v-model="localSettings.gitlabProjectId" placeholder="1234" />
-                          </div>
-                          <div class="input-group">
-                            <label>Branch Base</label>
-                            <input type="text" v-model="localSettings.gitlabBaseBranch" placeholder="develop" />
-                          </div>
-                        </div>
-                        <div class="input-group">
-                          <label>Personal Access Token (PAT)</label>
-                          <input type="password" v-model="localSettings.gitlabToken" placeholder="glpat-..." />
-                        </div>
-                      </template>
-                    </div>
-                  </div>
+              <div class="space-y-6">
+                <div class="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl w-fit">
+                  <button @click="localSettings.gitlabIntegrationMode = 'link'" class="px-6 py-1.5 text-xs font-bold rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'link' ? 'bg-white dark:bg-slate-700 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-500'">Link Mágico</button>
+                  <button @click="localSettings.gitlabIntegrationMode = 'api'" class="px-6 py-1.5 text-xs font-bold rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'api' ? 'bg-white dark:bg-slate-700 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-500'">API Automática</button>
                 </div>
 
-                <!-- ABA: Jornada -->
-                <div v-else-if="activeTab === 'work'" class="space-y-10">
-                  <header>
-                    <h3 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Jornada de Trabalho</h3>
-                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Gerencie seu tempo e evite fadiga com horários bem definidos.</p>
-                  </header>
+                <div class="grid gap-4">
+                  <div class="input-group">
+                    <label>URL da Instância</label>
+                    <input type="url" v-model="localSettings.gitlabUrl" placeholder="https://gitlab.com" />
+                  </div>
 
-                  <div class="p-8 bg-amber-500/5 dark:bg-amber-500/10 rounded-[2.5rem] border border-amber-500/10 space-y-8">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <template v-if="localSettings.gitlabIntegrationMode === 'api'">
+                    <div class="grid grid-cols-2 gap-4">
                       <div class="input-group">
-                        <label class="!text-amber-600 dark:!text-amber-400">Início do Expediente</label>
-                        <VueDatePicker v-model="localSettings.workStart" time-picker auto-apply :dark="settings.theme === 'dark'" class="app-timepicker" teleport="body" :format-locale="ptBR" :locale="ptBR" format="HH:mm">
-                          <template #input-icon>
-                            <Clock class="w-4 h-4 ml-2 text-amber-500" />
-                          </template>
-                        </VueDatePicker>
+                        <label>ID do Projeto</label>
+                        <input type="text" v-model="localSettings.gitlabProjectId" placeholder="1234" />
                       </div>
                       <div class="input-group">
-                        <label class="!text-amber-600 dark:!text-amber-400">Término do Expediente</label>
-                        <VueDatePicker v-model="localSettings.workEnd" time-picker auto-apply :dark="settings.theme === 'dark'" class="app-timepicker" teleport="body" :format-locale="ptBR" :locale="ptBR" format="HH:mm">
-                          <template #input-icon>
-                            <Clock class="w-4 h-4 ml-2 text-amber-500" />
-                          </template>
-                        </VueDatePicker>
+                        <label>Branch Base</label>
+                        <input type="text" v-model="localSettings.gitlabBaseBranch" placeholder="develop" />
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                <!-- Outras abas mantidas com o estilo robusto -->
-                <div v-else class="py-10 text-center">
-                  <p class="text-slate-400">Seção em desenvolvimento ou configuração padrão.</p>
+                    <div class="input-group">
+                      <label>Personal Access Token (PAT)</label>
+                      <input type="password" v-model="localSettings.gitlabToken" placeholder="glpat-..." />
+                    </div>
+                  </template>
                 </div>
               </div>
-            </transition>
-          </div>
+            </div>
 
-          <!-- Footer Alinhado à Direita -->
-          <footer class="p-6 md:px-14 md:py-8 border-t border-slate-200/60 bg-slate-50/50 dark:bg-white/[0.02] flex flex-row-reverse gap-4">
-            <button @click="handleSave" class="px-10 py-3 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-2xl transition-all shadow-xl shadow-indigo-500/20 active:scale-95">Salvar Ajustes</button>
-            <button @click="emit('close')" class="px-8 py-3 text-sm font-bold text-slate-500 hover:bg-slate-200 dark:hover:bg-white/5 rounded-2xl transition-all active:scale-95">Cancelar</button>
-          </footer>
-        </main>
-      </div>
+            <!-- ABA: Jornada -->
+            <div v-else-if="activeTab === 'work'" :key="'work'" class="space-y-8">
+              <div>
+                <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Jornada de Trabalho</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Defina seu horário para evitar registros de tempo fora do expediente.</p>
+              </div>
+
+              <div class="p-6 bg-amber-500/5 dark:bg-amber-500/10 rounded-3xl border border-amber-500/10 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                  <div class="input-group">
+                    <label class="!text-amber-600 dark:!text-amber-400">Início</label>
+                    <VueDatePicker v-model="localSettings.workStart" time-picker auto-apply :dark="settings.theme === 'dark'" class="app-timepicker" teleport="body" :format-locale="ptBR" :locale="ptBR" format="HH:mm">
+                      <template #input-icon>
+                        <Clock class="w-4 h-4 ml-2 text-amber-500" />
+                      </template>
+                    </VueDatePicker>
+                  </div>
+                  <div class="input-group">
+                    <label class="!text-amber-600 dark:!text-amber-400">Término</label>
+                    <VueDatePicker v-model="localSettings.workEnd" time-picker auto-apply :dark="settings.theme === 'dark'" class="app-timepicker" teleport="body" :format-locale="ptBR" :locale="ptBR" format="HH:mm">
+                      <template #input-icon>
+                        <Clock class="w-4 h-4 ml-2 text-amber-500" />
+                      </template>
+                    </VueDatePicker>
+                  </div>
+                </div>
+
+                <div class="space-y-3">
+                  <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Dias Ativos</label>
+                  <div class="flex flex-wrap gap-2 justify-center">
+                    <button v-for="day in dayNames" :key="day.id" @click="toggleDay(day.id)"
+                      class="w-10 h-10 rounded-xl text-xs font-black transition-all border"
+                      :class="localSettings.workDays.includes(day.id) ? 'bg-amber-500 border-amber-600 text-white shadow-lg shadow-amber-500/20' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-400'">
+                      {{ day.label }}
+                    </button>
+                  </div>
+                </div>
+
+                <label class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl cursor-pointer border border-amber-500/10">
+                  <div>
+                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Pausa Automática</p>
+                    <p class="text-[10px] text-slate-500">Pausar tarefas ao atingir o horário de término.</p>
+                  </div>
+                  <div class="relative inline-flex items-center">
+                    <input type="checkbox" class="sr-only peer" v-model="localSettings.autoPauseOutsideWork">
+                    <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-amber-500 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- ABA: Saúde -->
+            <div v-else-if="activeTab === 'health'" :key="'health'" class="space-y-8">
+              <div>
+                <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Saúde e Bem-estar</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Lembretes inteligentes para você se manter saudável enquanto produz.</p>
+              </div>
+
+              <!-- Novo: Lembretes de Bem-estar (Sussurro) -->
+              <div class="p-6 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-3xl border border-emerald-500/10 space-y-6">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-4">
+                    <div class="p-3 bg-emerald-500 rounded-2xl text-white shadow-lg shadow-emerald-500/20">
+                      <Activity class="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Sussurro de Bem-estar</p>
+                      <p class="text-[10px] text-slate-500">Lembretes suaves de postura, olhos e pausas.</p>
+                    </div>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer" v-model="localSettings.wellnessEnabled">
+                    <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
+                  </label>
+                </div>
+
+                <div v-if="localSettings.wellnessEnabled" class="space-y-4 pt-4 border-t border-emerald-500/10">
+                  <div class="flex justify-between">
+                    <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tighter">Frequência</span>
+                    <span class="text-sm font-black text-slate-700 dark:text-slate-200">{{ localSettings.wellnessInterval }} min</span>
+                  </div>
+                  <input type="range" v-model.number="localSettings.wellnessInterval" min="5" max="120" step="5" class="w-full accent-emerald-500 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none" />
+                  <button @click="emit('test-wellness')" class="flex items-center gap-2 text-[10px] font-bold text-emerald-500 hover:underline">
+                    <Sparkles class="w-3 h-3" />
+                    Testar Sussurro Agora
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ABA: Sistema -->
+            <div v-else-if="activeTab === 'system'" :key="'system'" class="space-y-8">
+              <div>
+                <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Sistema e Interface</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Configurações globais de comportamento e automação.</p>
+              </div>
+
+              <div class="space-y-4">
+
+                <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 group space-y-4">
+                  <label class="flex items-center justify-between cursor-pointer">
+                    <div>
+                      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Monitor de Inatividade</p>
+                      <p class="text-[10px] text-slate-500">Pausar tarefa automaticamente após tempo de ócio.</p>
+                    </div>
+                    <div class="relative inline-flex items-center">
+                      <input type="checkbox" class="sr-only peer" v-model="localSettings.trackInactivity">
+                      <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                    </div>
+                  </label>
+                  
+                  <div v-if="localSettings.trackInactivity" class="pt-4 border-t border-slate-200 dark:border-white/5 animate-fadeIn">
+                    <div class="flex items-center justify-between gap-4">
+                      <div class="flex-1">
+                        <p class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1.5 ml-1">Tempo de Espera (HH:mm)</p>
+                        <VueDatePicker 
+                          v-model="localSettings.inactivityThreshold" 
+                          time-picker 
+                          auto-apply 
+                          :dark="settings.theme === 'dark'" 
+                          class="app-timepicker"
+                          teleport="body"
+                          :format-locale="ptBR"
+                          :locale="ptBR"
+                          format="HH:mm"
+                        >
+                          <template #input-icon>
+                            <Clock class="w-4 h-4 ml-2 text-slate-400" />
+                          </template>
+                        </VueDatePicker>
+                      </div>
+                      <div class="text-right">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase">Total</p>
+                        <p class="text-lg font-black text-indigo-600 dark:text-indigo-400">
+                          {{ (localSettings.inactivityThreshold.hours * 60) + localSettings.inactivityThreshold.minutes }} min
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 group space-y-4">
+
+                  <label class="flex items-center justify-between cursor-pointer">
+                    <div>
+                      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Realce de Contraste</p>
+                      <p class="text-[10px] text-slate-500">Otimiza a legibilidade do texto em interfaces transparentes.</p>
+                    </div>
+                    <div class="relative inline-flex items-center">
+                      <input type="checkbox" class="sr-only peer" v-model="localSettings.contrastEnhanced">
+                      <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 group space-y-4">
+
+                  <div class="flex justify-between items-center">
+                    <div>
+                      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Arredondamento de Cantos</p>
+                      <p class="text-[10px] text-slate-500">Define o nível de arredondamento dos elementos da interface.</p>
+                    </div>
+                    <span class="text-xs font-black text-indigo-500">{{ localSettings.cardBorderRadius }}px</span>
+                  </div>
+                  <input type="range" v-model="localSettings.cardBorderRadius" min="0" max="40" step="1" class="w-full app-range" />
+                </div>
+              </div>
+            </div>
+
+            <!-- ABA: Segurança -->
+            <div v-else-if="activeTab === 'security'" :key="'security'" class="space-y-8">
+              <div>
+                <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Dados e Segurança</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Gerencie seu banco de dados local com backups parciais ou totais.</p>
+              </div>
+
+              <div class="space-y-6">
+                <!-- Backup de Tarefas -->
+                <div class="p-6 bg-white dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/10 space-y-4">
+                  <div class="flex items-center gap-3 mb-2">
+                    <FileJson class="w-5 h-5 text-indigo-500" />
+                    <h4 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Backup de Tarefas</h4>
+                  </div>
+                  <p class="text-[11px] text-slate-500 leading-relaxed mb-4">Exporta apenas a sua lista de tarefas atual. Ideal para transferências rápidas ou backups frequentes.</p>
+                  <div class="flex flex-col sm:flex-row gap-3">
+                    <button @click="emit('export-tasks')" class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-slate-100 dark:bg-white/5 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-white/10">
+                      <Download class="w-4 h-4" /> Exportar Tarefas
+                    </button>
+                    <label class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-slate-100 dark:bg-white/5 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-white/10 cursor-pointer text-center">
+                      <Upload class="w-4 h-4" /> Importar Tarefas
+                      <input type="file" accept=".json" class="hidden" @change="handleImportTasks" />
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Backup Completo do Sistema -->
+                <div class="p-6 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-3xl border border-emerald-500/20 space-y-4 relative overflow-hidden">
+                  <div class="absolute top-0 right-0 p-4 opacity-5">
+                    <Server class="w-20 h-20" />
+                  </div>
+                  <div class="flex items-center gap-3 mb-2">
+                    <ShieldCheck class="w-5 h-5 text-emerald-500" />
+                    <h4 class="text-sm font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">Sistema Completo</h4>
+                  </div>
+                  <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4">Exporta <b>absolutamente tudo</b>: tarefas, sprints, notas rápidas e todas as suas configurações de interface e jornada.</p>
+                  <div class="flex flex-col sm:flex-row gap-3">
+                    <button @click="emit('export-system')" class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20">
+                      <Download class="w-4 h-4" /> Exportar Tudo
+                    </button>
+                    <label class="flex-1 flex items-center justify-center gap-3 py-2.5 bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer text-center">
+                      <Upload class="w-4 h-4" /> Restaurar Sistema
+                      <input type="file" accept=".json" class="hidden" @change="handleImportSystem" />
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Reset de Fábrica -->
+                <div class="p-6 bg-red-500/5 dark:bg-red-500/10 rounded-3xl border border-red-500/20 space-y-4">
+                  <div class="flex items-center gap-3 mb-2">
+                    <Activity class="w-5 h-5 text-red-500" />
+                    <h4 class="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-tight">Zona de Perigo</h4>
+                  </div>
+                  <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4">Deseja limpar tudo e começar do zero? Esta ação removerá todas as tarefas e sprints do seu banco de dados local.</p>
+                  <button @click="handleResetSystem" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 active:scale-95">
+                    Zerar Banco de Dados
+                  </button>
+                </div>
+              </div>
+            </div>
+          </transition>
+        </div>
+
+        <!-- Footer Manual -->
+        <footer class="p-4 md:p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex flex-col md:flex-row gap-2 md:gap-4">
+          <button @click="emit('close')" class="flex-1 px-6 py-2.5 md:py-3 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/5 rounded-2xl transition-all">Fechar</button>
+          <button @click="handleSave" class="flex-2 px-12 py-2.5 md:py-3 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-2xl transition-all shadow-xl shadow-indigo-500/20">Salvar</button>
+        </footer>
+      </main>
+    </div>
     </template>
   </BaseModal>
 </template>
 
 <style scoped>
 .input-group label {
-  @apply block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1;
+  @apply block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1;
 }
 
 .input-group input {
-  @apply w-full px-5 py-3 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200/60 rounded-2xl text-slate-800 dark:text-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/50 outline-none transition-all;
+  @apply w-full px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all;
 }
 
 .app-timepicker {
-  --dp-border-radius: 16px;
-  --dp-input-padding: 12px 12px 12px 40px;
+  --dp-border-radius: 12px;
 }
 </style>
