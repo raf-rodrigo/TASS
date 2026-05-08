@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { 
   Pencil, CheckCircle, RotateCcw, Trash2, X, 
   GitBranch, MessageSquare, ExternalLink, 
-  Play, Square, Globe
+  Play, Square, Globe, GitPullRequest
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
@@ -23,6 +23,7 @@ const emit = defineEmits(['close', 'edit', 'toggle-completion', 'delete']);
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
 const isCreatingBranch = ref(false);
+const isMerging = ref(false);
 
 // Handlers migrados do TaskCard
 const handleAction = async (field, label, type = 'url') => {
@@ -51,6 +52,18 @@ const handleGitlabAction = async () => {
     notificationService.toast('Falha na ação do GitLab', 'error');
   } finally {
     isCreatingBranch.value = false;
+  }
+};
+
+const handleMergeAction = async () => {
+  isMerging.value = true;
+  try {
+    await gitlabService.analyzeAndMerge(props.task, settings);
+  } catch (error) {
+    console.error("GitLab Merge failed:", error);
+    notificationService.toast('Falha na análise/merge do GitLab', 'error');
+  } finally {
+    isMerging.value = false;
   }
 };
 
@@ -97,13 +110,24 @@ const openLink = (url) => {
         <!-- GitLab -->
         <button 
           @click="handleGitlabAction"
-          :disabled="isCreatingBranch"
+          :disabled="isCreatingBranch || isMerging"
           class="icon-btn-large group"
           :class="{ 'active-action': task.branchUrl }"
           data-tip="Ações no GitLab"
         >
           <GitBranch v-if="!isCreatingBranch" class="w-5 h-5" />
           <div v-else class="w-5 h-5 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
+        </button>
+
+        <!-- GitLab Merge -->
+        <button 
+          @click="handleMergeAction"
+          :disabled="isCreatingBranch || isMerging"
+          class="icon-btn-large group"
+          data-tip="Analisar e Fazer Merge (dev-06)"
+        >
+          <GitPullRequest v-if="!isMerging" class="w-5 h-5" />
+          <div v-else class="w-5 h-5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
         </button>
 
         <!-- Observações -->
