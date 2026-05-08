@@ -60,7 +60,8 @@ const localSettings = ref({
     minutes: (settings.inactivityThreshold || 1) % 60 
   },
   cardBorderRadius: settings.cardBorderRadius,
-  contrastEnhanced: settings.contrastEnhanced
+  contrastEnhanced: settings.contrastEnhanced,
+  notesSide: settings.notesSide
 });
 
 
@@ -125,7 +126,7 @@ const handleSave = async () => {
   settings.inactivityThreshold = (localSettings.value.inactivityThreshold.hours * 60) + localSettings.value.inactivityThreshold.minutes;
   settings.cardBorderRadius = localSettings.value.cardBorderRadius;
   settings.contrastEnhanced = localSettings.value.contrastEnhanced;
-
+  settings.notesSide = localSettings.value.notesSide;
 
   await settings.saveAllSettings();
   notificationService.toast('Configurações Salvas!');
@@ -349,6 +350,17 @@ const handleResetSystem = async () => {
               </div>
 
               <div class="space-y-4">
+
+                <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 group space-y-4">
+                  <div>
+                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Painel de Notas Rápidas</p>
+                    <p class="text-[10px] text-slate-500">Escolha de qual lado da tela o terminal de notas deve deslizar.</p>
+                  </div>
+                  <div class="flex bg-slate-200 dark:bg-white/5 p-1 rounded-xl w-fit">
+                    <button @click="localSettings.notesSide = 'left'" class="px-6 py-1.5 text-xs font-bold rounded-lg transition-all" :class="localSettings.notesSide === 'left' ? 'bg-white dark:bg-slate-700 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-500'">Lado Esquerdo</button>
+                    <button @click="localSettings.notesSide = 'right'" class="px-6 py-1.5 text-xs font-bold rounded-lg transition-all" :class="localSettings.notesSide === 'right' ? 'bg-white dark:bg-slate-700 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-500'">Lado Direito</button>
+                  </div>
+                </div>
 
                 <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 group space-y-4">
                   <label class="flex items-center justify-between cursor-pointer">
