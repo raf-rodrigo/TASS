@@ -14,6 +14,17 @@ const noteStore = useNoteStore();
 const settings = useSettingsStore();
 const terminalColor = ref('emerald');
 const editableRef = ref(null);
+const linesRef = ref(null);
+const lineCount = ref(1);
+
+const updateLineCount = () => {
+  if (editableRef.value) {
+    const text = editableRef.value.innerText || '';
+    let count = text.split('\n').length;
+    if (text.endsWith('\n')) count = Math.max(1, count - 1);
+    lineCount.value = Math.max(1, count);
+  }
+};
 
 const colorMap = {
   emerald: '#10b981',
@@ -49,6 +60,7 @@ onMounted(async () => {
   await noteStore.loadNote();
   if (editableRef.value) {
     editableRef.value.innerHTML = noteStore.note || '<div><br></div>';
+    updateLineCount();
   }
 });
 
@@ -68,6 +80,7 @@ watch(() => props.isOpen, (newVal) => {
 watch(() => noteStore.note, (newVal) => {
   if (editableRef.value && newVal !== editableRef.value.innerHTML) {
     editableRef.value.innerHTML = newVal || '<div><br></div>';
+    updateLineCount();
   }
 });
 
@@ -197,19 +210,28 @@ const handleHandleClick = () => {
       <!-- Área de Texto (Rich Terminal Edition) -->
       <div class="flex-1 p-6 relative flex flex-col terminal-text">
         <div class="flex items-start gap-3 h-full overflow-hidden">
-          <span 
-            class="font-black mt-1 select-none transition-colors duration-500"
+          
+          <!-- Numeração de Linhas -->
+          <div 
+            ref="linesRef"
+            class="flex flex-col text-right pr-3 border-r border-current opacity-30 select-none font-mono text-lg h-full overflow-hidden leading-relaxed"
             :class="{
               'text-emerald-500': terminalColor === 'emerald',
               'text-amber-500': terminalColor === 'amber',
               'text-rose-500': terminalColor === 'rose'
             }"
-          >$</span>
+          >
+             <div v-for="n in lineCount" :key="n">{{ n }}</div>
+          </div>
+
           <div
             ref="editableRef"
             contenteditable="true"
             @blur="handleBlur"
-            class="flex-1 h-full bg-transparent border-none focus:ring-0 font-mono leading-relaxed overflow-y-auto custom-scrollbar-note text-lg outline-none transition-all duration-500 whitespace-pre-wrap"
+            @input="updateLineCount"
+            @keyup="updateLineCount"
+            @scroll="(e) => { if (linesRef) linesRef.scrollTop = e.target.scrollTop }"
+            class="flex-1 h-full bg-transparent border-none focus:ring-0 font-mono leading-relaxed overflow-auto custom-scrollbar-note text-lg outline-none transition-all duration-500 whitespace-pre"
             :class="{
               'caret-emerald-500': terminalColor === 'emerald',
               'caret-amber-500': terminalColor === 'amber',
