@@ -53,7 +53,7 @@ const handleSelect = () => {
     <div :class="task.completed ? 'opacity-50' : ''" class="flex justify-between items-center gap-2 transition-opacity">
       <div class="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
         <span 
-          class="font-bold px-2 py-1 rounded-lg leading-none flex-shrink-0 transition-all border flex items-center justify-center gap-2 mr-2 min-w-[85px]" 
+          class="font-bold px-2 py-1 rounded-lg leading-tight flex-shrink-0 transition-all border flex items-center justify-center gap-2 mr-2 min-w-[85px]" 
           :style="{ 
             backgroundColor: (!task.isRunning && task.color) ? `${task.color}26` : '', 
             color: (!task.isRunning && task.color) ? task.color : '',
@@ -70,7 +70,7 @@ const handleSelect = () => {
         </span>
           <span 
             v-if="task.description || task.isRunning" 
-            class="text-sm truncate flex-1 min-w-0" 
+            class="text-sm flex-1 min-w-0 line-clamp-1 py-0.5 leading-tight" 
             :class="task.completed ? 'line-through text-app-muted' : 'text-app-sub'"
             :style="{ fontSize: settings.taskDescriptionSize + 'px' }"
           :title="task.isRunning ? `${task.title} - ${task.description}` : task.description"
