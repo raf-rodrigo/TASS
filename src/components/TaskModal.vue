@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { 
   Save, PlusCircle, Clock, Layout, 
   Settings2, ChevronDown, Globe, 
@@ -41,10 +41,12 @@ const sprintId = ref(props.taskToEdit?.sprintId || '');
 const color = ref(props.taskToEdit?.color || '#6366f1');
 
 const tabs = [
-  { id: 'basic', label: 'Geral', icon: Layout, color: 'text-indigo-500' },
-  { id: 'links', label: 'Conectividade', icon: Globe, color: 'text-emerald-500' },
-  { id: 'data', label: 'Documentação', icon: FileText, color: 'text-amber-500' },
+  { id: 'basic', label: 'Geral', icon: Layout, color: 'text-indigo-500', desc: 'Dados essenciais para identificação da tarefa.' },
+  { id: 'links', label: 'Conectividade', icon: Globe, color: 'text-emerald-500', desc: 'Gerenciamento de repositórios e links.' },
+  { id: 'data', label: 'Documentação', icon: FileText, color: 'text-amber-500', desc: 'Queries, observações e detalhes técnicos.' },
 ];
+
+const activeTabObj = computed(() => tabs.find(t => t.id === activeTab.value) || tabs[0]);
 
 // Time State (Simple Hours)
 const parseEstimatedHours = (timeStr) => {
@@ -164,10 +166,11 @@ const submitTask = () => {
     @close="emit('close')"
     v-slot="{ onMouseDown }"
   >
-    <div class="flex flex-col md:flex-row h-[90vh] md:h-[650px] overflow-hidden">
+    <div class="flex flex-col md:flex-row h-[90vh] md:h-[600px] overflow-hidden">
       <!-- Sidebar (Navigation) -->
       <aside 
-        class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-5 bg-slate-500/5 dark:bg-black/20"
+        class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-4 cursor-grab active:cursor-grabbing group"
+        :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
         @mousedown="onMouseDown"
       >
         <div class="flex items-center gap-3 mb-8 px-1">
@@ -188,7 +191,7 @@ const submitTask = () => {
             type="button"
             class="flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative"
             :class="activeTab === tab.id 
-              ? 'bg-app-solid shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-app-border' 
+              ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' 
               : 'text-app-sub hover:bg-app-surface'"
           >
             <div class="relative">
@@ -211,21 +214,30 @@ const submitTask = () => {
       </aside>
 
       <!-- Main Content -->
-      <main class="flex-1 flex flex-col overflow-hidden bg-white/20 dark:bg-slate-900/40 relative">
+      <main 
+        class="flex-1 flex flex-col overflow-hidden relative"
+        :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+      >
         <!-- Close Button -->
         <button type="button" @click="emit('close')" class="absolute top-6 right-6 icon-btn z-20">
           <X class="w-5 h-5" />
         </button>
 
         <form @submit.prevent="submitTask" novalidate class="flex-1 flex flex-col overflow-hidden">
-          <div class="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
+          <!-- Header da seção ativa -->
+          <div class="flex items-center gap-2.5 px-6 md:px-10 py-3 border-b border-slate-200 dark:border-white/5 shrink-0 pr-16">
+            <component :is="activeTabObj.icon" class="w-3.5 h-3.5 shrink-0" :class="activeTabObj.color" />
+            <div>
+              <p class="text-[11px] font-black text-app-main leading-none uppercase tracking-wider">{{ activeTabObj.label }}</p>
+              <p class="text-[9px] text-app-muted font-medium mt-0.5">{{ activeTabObj.desc }}</p>
+            </div>
+          </div>
+
+          <div class="flex-1 overflow-y-auto px-6 md:px-10 py-6 custom-scrollbar">
             <transition name="fade-slide" mode="out-in">
               <!-- ABA 1: Cadastro Básico -->
               <div v-if="activeTab === 'basic'" :key="'basic'" class="space-y-6">
-                <div>
-                  <h3 class="text-xl font-black text-app-main mb-1">Informações Básicas</h3>
-                  <p class="text-xs text-app-sub font-medium italic">Dados essenciais para identificação da tarefa.</p>
-                </div>
+
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                   <div>
@@ -298,10 +310,7 @@ const submitTask = () => {
 
               <!-- ABA 2: Conectividade e Ambientes -->
               <div v-else-if="activeTab === 'links'" :key="'links'" class="space-y-8">
-                <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Conectividade</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium italic">Gerenciamento de repositórios e acesso rápido aos ambientes.</p>
-                </div>
+
 
                 <div class="grid grid-cols-1 gap-8">
                   <!-- Seção: Gestão de Código -->
@@ -375,10 +384,7 @@ const submitTask = () => {
 
               <!-- ABA 3: Documentação Técnica -->
               <div v-else-if="activeTab === 'data'" :key="'data'" class="space-y-6">
-                <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Documentação Técnica</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium italic">Queries, observações e detalhes técnicos da implementação.</p>
-                </div>
+
 
                 <div class="space-y-6">
                   <div>
