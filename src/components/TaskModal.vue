@@ -161,14 +161,8 @@ const submitTask = () => {
 </script>
 
 <template>
-  <BaseModal 
-    maxWidth="max-w-4xl" 
-    customClass="!p-0"
-    :hideHeader="true"
-    @close="emit('close')"
-    v-slot="{ onMouseDown }"
-  >
-    <div class="flex flex-col md:flex-row h-[90vh] md:h-[600px] overflow-hidden">
+  <BaseModal maxWidth="max-w-4xl" @close="emit('close')" layout="custom" customClass="md:h-[600px]" v-slot="{ onMouseDown }">
+    <div class="flex flex-col md:flex-row h-full w-full bg-transparent">
       <!-- Sidebar (Navigation) -->
       <aside 
         class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-4 cursor-grab active:cursor-grabbing group"

@@ -147,7 +147,6 @@ const handleAddTask = async (taskData) => {
 
 const handleToggleRadio = () => {
   showRadio.value = !showRadio.value;
-  notificationService.toast(showRadio.value ? 'Abrindo Rádio...' : 'Fechando Rádio...', 'success');
 };
 
 const handleTestModal = async (type) => {

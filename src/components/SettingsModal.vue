@@ -158,7 +158,7 @@ const handleResetSystem = async () => {
     title="Ajustes TASS" 
     maxWidth="max-w-4xl" 
     customClass="h-[90vh] md:h-[600px] !p-0"
-    :hideHeader="true"
+    layout="custom"
     @close="emit('close')"
   >
     <template #default="{ onMouseDown }">

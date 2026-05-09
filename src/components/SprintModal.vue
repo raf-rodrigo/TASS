@@ -81,23 +81,13 @@ const isPast = (dateStr) => {
 <template>
   <BaseModal 
     maxWidth="max-w-2xl" 
-    customClass="!p-0"
     @close="emit('close')"
+    :icon="Calendar"
+    title="Ciclos de Trabalho"
+    subtitle="Gestão de Sprints e Prazos"
+    layout="standard"
   >
-    <template #header>
-      <div class="flex items-center gap-3">
-        <div class="p-2.5 bg-indigo-500 text-white shadow-lg shadow-indigo-500/20" :style="{ borderRadius: 'var(--app-input-radius)' }">
-          <Calendar class="w-5 h-5" />
-        </div>
-        <div>
-          <h2 class="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tighter leading-none uppercase">Ciclos de Trabalho</h2>
-          <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestão de Sprints e Prazos</p>
-        </div>
-      </div>
-    </template>
-
-    <div class="p-6 space-y-6">
-      <!-- Linha Superior: Ações e Filtro Global -->
+    <!-- Linha Superior: Ações e Filtro Global -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Botão: Nova Sprint -->
         <button 
@@ -213,7 +203,6 @@ const isPast = (dateStr) => {
           </div>
         </div>
       </section>
-    </div>
 
     <template #footer>
       <button @click="emit('close')" class="w-full py-4 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20 uppercase tracking-widest active:scale-95" :style="{ borderRadius: 'var(--app-input-radius)' }">
