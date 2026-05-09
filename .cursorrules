@@ -24,22 +24,30 @@ A regra de ouro é o **Arredondamento Geométrico**: o raio interno deve ser o r
 - **Cápsulas de Barra de Status**: `rounded-2xl` com itens `rounded-xl`.
 
 ## 3. Tipografia e Rótulos
-- **Rótulos de Campo (Labels)**: `text-[10px] font-black text-slate-500 uppercase tracking-widest`.
+- **Rótulos de Campo (Labels)**: `text-[10px] font-black text-app-muted uppercase tracking-widest`.
 - **Botões de Ação**: `text-xs font-black uppercase tracking-tight`.
-- **Textos de Apoio/Placeholders**: `text-slate-400`.
+- **Textos de Apoio/Placeholders**: Usar `text-app-muted`. A regra global de placeholder no `style.css` já garante a visibilidade.
 
 ## 4. Paleta de Cores e Semântica
 - **Principal (Indigo)**: Preferencialmente `indigo-600` para botões e `indigo-500` para ícones/detalhes.
 - **Sucesso (Emerald)**: `emerald-500/600`.
 - **Perigo (Red)**: `red-500/600`.
-- **Fundo de Itens**: `bg-white dark:bg-white/5` com borda `border-slate-200 dark:border-white/10`.
+- **Sistema de Tokens (Obrigatório)**:
+  - Texto Principal: `text-app-main`.
+  - Texto Secundário: `text-app-sub`.
+  - Texto Desativado/Rótulo: `text-app-muted`.
+  - Fundos de Itens: `bg-app-surface` com borda `border-app-border-light`.
+  - Superfícies Sólidas: `bg-app-solid`.
+  - Vidro Dinâmico: `bg-app-glass`.
 
 ## 5. Interações e Feedback
-- **Hover**: Usar `transition-all duration-300`. Para botões, prefira `active:scale-95`.
+- **Hover**: Usar `transition-all`. Para botões, prefira `active:scale-95`.
 - **Ações Destrutivas**:
   - Botão: `btn-danger` (Vermelho).
   - Ícone de Confirmação: `danger` ou `error` (Vermelho), nunca amarelo (warning).
-- **Transparência**: Seguir as variáveis de CSS para opacidade (`var(--app-card-opacity)`).
+- **Transparência Reativa**:
+  - SEMPRE usar as variáveis centralizadas: `var(--app-card-opacity)`, `var(--app-bottom-opacity)`, `var(--app-modal-opacity)`.
+  - NUNCA usar valores fixos de opacidade em componentes estruturais.
 
 ## 6. Layout e Espaçamento
 - **Gaps de Seção**: Usar `space-y-6` ou `gap-6` para separar grandes blocos de formulário.
@@ -71,10 +79,9 @@ Para manter a consistência visual nos alertas e prompts:
 ## 10. Inteligência Artificial e Fluxo de Trabalho
 
 ### 10.1 Mensagens de Commit
-Após qualquer alteração ou conjunto de alterações, a IA deve sugerir a mensagem de commit no padrão **Conventional Commits**, fornecendo sempre o **comando completo pronto para o terminal** (PowerShell/Bash) em uma única linha:
-- **Formato do Comando**: `git commit -m "tipo(escopo): título" -m "- detalhe 1" -m "- detalhe 2"`
-- **Conteúdo**: O título deve ser curto e o corpo deve utilizar bullet points detalhados.
-- **Praticidade**: O comando deve ser gerado de forma que o usuário possa apenas copiar e colar no terminal sem erros.
+Após qualquer alteração, a IA deve sugerir a mensagem de commit no padrão **Conventional Commits**, fornecendo sempre o **comando completo em uma única linha** começando obrigatoriamente com `git commit -m "tipo(escopo): mensagem"`.
+- **Formato**: Tudo em uma única linha para facilitar o copiar/colar: `git commit -m "tipo(escopo): título e detalhes rápidos"`
+- **Praticidade**: O comando deve ser gerado sem quebras de linha.
 
 ### 10.2 Idioma e Raciocínio
 - **Raciocínio Interno**: A IA deve realizar todo o seu processo de raciocínio (pensamento) em **Português**, garantindo que a lógica e a criatividade estejam alinhadas com o idioma do usuário.
