@@ -2,7 +2,10 @@
 
 Este documento serve como referência para manter a consistência "Premium" da interface. Todos os novos componentes e refatorações devem seguir estas diretrizes.
 
----
+## 0. Uso Obrigatório do Design System (Design Tokens)
+**CRÍTICO:** É estritamente proibido o uso de cores hardcoded (ex: `text-slate-500`, `bg-white`, `dark:text-white`) em novos componentes ou refatorações. 
+- Utilize SEMPRE os tokens semânticos `app-*` definidos no `tailwind.config.js` e `style.css`.
+- Essa abordagem garante que o sistema de temas (Light/Dark) e a transparência reativa funcionem sem intervenção manual.
 
 ## 1. Modais (BaseModal)
 Todos os modais devem utilizar o componente `BaseModal` e seguir a estrutura de slots:
