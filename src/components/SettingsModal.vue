@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { 
   Download, Upload, Globe, 
   ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles
@@ -17,6 +17,19 @@ const taskStore = useTaskStore();
 const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'export-system', 'import-system', 'test-wellness']);
 
 const activeTab = ref('gitlab');
+
+onMounted(() => {
+  if (settings.keepWindowState) {
+    const saved = localStorage.getItem('app-last-settings-tab');
+    if (saved) activeTab.value = saved;
+  }
+});
+
+watch(activeTab, (newVal) => {
+  if (settings.keepWindowState) {
+    localStorage.setItem('app-last-settings-tab', newVal);
+  }
+});
 
 const tabs = [
   { id: 'gitlab', label: 'Integração GitLab', icon: Globe, color: 'text-orange-500' },
@@ -409,6 +422,28 @@ const handleResetSystem = async () => {
                     <span class="text-xs font-black text-indigo-500">{{ localSettings.cardBorderRadius }}px</span>
                   </div>
                   <input type="range" v-model="localSettings.cardBorderRadius" min="0" max="40" step="1" class="w-full app-range" />
+                </div>
+
+                <div class="glass-section p-4 space-y-4">
+                  <label class="flex items-center justify-between cursor-pointer">
+                    <div class="flex-1 pr-4">
+                      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Manter o estado das janelas</p>
+                      <p class="text-[10px] text-slate-500 leading-relaxed">
+                        Memoriza a última aba aberta nas configurações e ajustes gráficos. 
+                        <span class="text-indigo-500 font-bold block mt-1 italic">
+                          * Esta preferência é salva apenas no seu navegador (Local Storage).
+                        </span>
+                      </p>
+                    </div>
+                    <div class="relative inline-flex items-center shrink-0">
+                      <input 
+                        type="checkbox" 
+                        class="sr-only peer" 
+                        v-model="settings.keepWindowState"
+                      >
+                      <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                    </div>
+                  </label>
                 </div>
               </div>
             </div>

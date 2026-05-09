@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { 
   X, Palette, Trash2, Plus,
   Image as ImageIcon, Eraser,
@@ -19,6 +19,19 @@ defineProps({
 const emit = defineEmits(['close', 'test-wellness']);
 
 const activeTab = ref('wallpapers');
+
+onMounted(() => {
+  if (settings.keepWindowState) {
+    const saved = localStorage.getItem('app-last-interface-tab');
+    if (saved) activeTab.value = saved;
+  }
+});
+
+watch(activeTab, (newVal) => {
+  if (settings.keepWindowState) {
+    localStorage.setItem('app-last-interface-tab', newVal);
+  }
+});
 const showAddWallpaper = ref(false);
 const newWallpaperUrl = ref('');
 
