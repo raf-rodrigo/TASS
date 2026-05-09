@@ -8,3 +8,7 @@ db.version(5).stores({
   settings: 'key',
   notes: '++id, content, updatedAt'
 });
+
+db.version(6).stores({
+  radios: '++id, name, url, isDefault'
+});

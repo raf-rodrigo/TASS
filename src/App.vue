@@ -12,6 +12,7 @@ import NotificationContainer from './components/NotificationContainer.vue';
 import GlobalModal from './components/GlobalModal.vue';
 import TaskContextMenu from './components/TaskContextMenu.vue';
 import GlobalDock from './components/GlobalDock.vue';
+import RadioPlayer from './components/RadioPlayer.vue';
 import draggable from 'vuedraggable';
 
 // Composables
@@ -51,6 +52,7 @@ const showSettings = ref(false);
 const showSprints = ref(false);
 const showInterfaceMenu = ref(false);
 const showNotes = ref(false);
+const showRadio = ref(false);
 const taskToEdit = ref(null);
 
 // Sincroniza o board local quando as tarefas ou filtros mudam
@@ -141,6 +143,11 @@ const handleAddTask = async (taskData) => {
   } catch (error) {
     console.error("Failed to add task:", error);
   }
+};
+
+const handleToggleRadio = () => {
+  showRadio.value = !showRadio.value;
+  notificationService.toast(showRadio.value ? 'Abrindo Rádio...' : 'Fechando Rádio...', 'success');
 };
 
 const handleTestModal = async (type) => {
@@ -328,6 +335,7 @@ onMounted(async () => {
         @open-interface="showInterfaceMenu = true"
         @open-settings="showSettings = true"
         @toggle-theme="toggleTheme"
+        @open-radio="handleToggleRadio"
       />
     </transition>
 
@@ -366,6 +374,11 @@ onMounted(async () => {
       :isOpen="showInterfaceMenu"
       @close="showInterfaceMenu = false"
       @open-settings="() => { showInterfaceMenu = false; showSettings = true; }"
+    />
+
+    <RadioPlayer
+      :isOpen="showRadio"
+      @close="showRadio = false"
     />
 
     <NotificationContainer />

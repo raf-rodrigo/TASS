@@ -1,17 +1,19 @@
 <script setup>
 import { 
   Plus, Calendar, Clock, RotateCcw, X, 
-  Settings, Palette, Sun, Moon
+  Settings, Palette, Sun, Moon, Headphones
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
+import { useRadioStore } from '../stores/radioStore';
 
 const emit = defineEmits([
-  'add-task', 'open-settings', 'open-notes', 'open-interface', 'open-sprints', 'toggle-theme'
+  'add-task', 'open-settings', 'open-notes', 'open-interface', 'open-sprints', 'toggle-theme', 'open-radio'
 ]);
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
+const radioStore = useRadioStore();
 </script>
 
 <template>
@@ -91,6 +93,10 @@ const taskStore = useTaskStore();
 
       <!-- Seção: Menu de Utilidades -->
       <div class="hidden sm:flex items-center gap-0.5 md:gap-1">
+        <button @click="emit('open-radio')" class="util-btn group relative" title="Web Radio">
+          <Headphones class="w-4 h-4 text-indigo-500 group-hover:scale-110 transition-transform" />
+          <span v-if="radioStore.isPlaying" class="absolute -top-1 -right-1 w-2 h-2 bg-indigo-500 rounded-full animate-ping opacity-50"></span>
+        </button>
         <button @click="emit('toggle-theme')" class="util-btn" title="Alternar Tema">
           <Sun v-if="settings.theme === 'dark'" class="w-4 h-4 text-amber-500" />
           <Moon v-else class="w-4 h-4 text-indigo-500" />

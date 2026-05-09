@@ -20,7 +20,7 @@ const { position, onMouseDown } = useModalDrag();
 <template>
   <div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-transparent" @click.self="emit('close')">
     <section 
-      class="glass-panel w-full flex flex-col shadow-2xl border-indigo-500/10 overflow-hidden"
+      class="glass-panel !p-0 w-full flex flex-col shadow-2xl border-indigo-500/10 overflow-hidden"
       :class="[maxWidth, customClass, { 'animate-scaleIn': animate }]"
       :style="{ 
         '--modal-x': `${position.x}px`,
