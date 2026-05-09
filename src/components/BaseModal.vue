@@ -26,9 +26,7 @@ const { position, onMouseDown } = useModalDrag();
         '--modal-x': `${position.x}px`,
         '--modal-y': `${position.y}px`,
         transform: `translate(var(--modal-x), var(--modal-y))`,
-        backgroundColor: settings.theme === 'dark' 
-          ? `rgba(15, 23, 42, ${settings.opacityTargets.modals ? (100 - settings.cardOpacity) / 100 : 1.0})` 
-          : `rgba(255, 255, 255, ${settings.opacityTargets.modals ? (100 - settings.cardOpacity) / 100 : 1.0})`
+        backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-opacity))`
       }"
     >
       <!-- Header / Drag Handle -->
@@ -40,7 +38,7 @@ const { position, onMouseDown } = useModalDrag();
         <slot name="header" :onMouseDown="onMouseDown">
           <div class="flex items-center gap-3">
             <div class="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
-            <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter">{{ title }}</h2>
+            <h2 class="text-sm font-black text-app-main uppercase tracking-tighter">{{ title }}</h2>
           </div>
         </slot>
         
@@ -58,7 +56,7 @@ const { position, onMouseDown } = useModalDrag();
       </main>
 
       <!-- Footer Area -->
-      <footer v-if="$slots.footer" class="p-5 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
+      <footer v-if="$slots.footer" class="p-5 border-t border-app-border-light bg-app-surface">
         <slot name="footer"></slot>
       </footer>
     </section>

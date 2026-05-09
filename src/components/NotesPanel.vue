@@ -139,7 +139,7 @@ const handleHandleClick = () => {
       :class="[
         settings.notesSide === 'right' ? 'right-full rounded-l-xl border-l' : 'left-full rounded-r-xl border-r',
         isResizingLocal ? '!transition-none' : '',
-        settings.theme === 'dark' ? 'bg-slate-950/80 border-white/10' : 'bg-white/80 border-slate-200'
+        'bg-app-glass border-app-border-light'
       ]"
       :style="{ 
         top: settings.notesButtonTop + 'px'
@@ -171,8 +171,7 @@ const handleHandleClick = () => {
     <div class="flex-1 flex flex-col overflow-hidden rounded-[var(--app-card-radius)]">
       <!-- Terminal Header (Adaptativo) -->
       <div 
-        class="flex items-center gap-4 px-5 py-3.5 border-b select-none transition-colors duration-500"
-        :class="settings.theme === 'dark' ? 'bg-black/40 border-white/10' : 'bg-slate-100/80 border-slate-200'"
+        class="flex items-center gap-4 px-5 py-3.5 border-b select-none transition-colors duration-500 bg-app-surface border-app-border-light"
       >
          <div class="flex gap-2">
             <div 
@@ -193,14 +192,12 @@ const handleHandleClick = () => {
          </div>
          <div class="flex-1 text-center">
             <span 
-              class="text-[10px] font-black uppercase tracking-[0.4em] font-mono transition-colors duration-500"
-              :class="settings.theme === 'dark' ? 'text-white/30' : 'text-slate-900/30'"
+              class="text-[10px] font-black uppercase tracking-[0.4em] font-mono transition-colors duration-500 text-app-muted opacity-30"
             >tass_notes.sh</span>
          </div>
          <button 
            @click="close" 
-           class="transition-colors"
-           :class="settings.theme === 'dark' ? 'text-white/20 hover:text-white/60' : 'text-slate-900/20 hover:text-slate-900/60'"
+           class="transition-colors text-app-muted hover:text-app-main opacity-40 hover:opacity-100"
          >
             <X class="w-4 h-4" />
          </button>

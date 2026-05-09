@@ -17,8 +17,11 @@ const taskStore = useTaskStore();
 <template>
   <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] w-full max-w-fit px-2 md:px-4 pointer-events-none">
     <div 
-      class="!p-1.5 flex items-center gap-1 md:gap-2 shadow-2xl border border-app-border-light bg-app-glass backdrop-blur-xl ring-1 ring-black/5 pointer-events-auto transition-all duration-500"
-      :style="{ borderRadius: 'var(--app-card-radius)' }"
+      class="!p-1.5 flex items-center gap-1 md:gap-2 shadow-2xl border border-app-border-light backdrop-blur-xl ring-1 ring-black/5 pointer-events-auto transition-all"
+      :style="{ 
+        backgroundColor: `rgba(var(--app-bg-raw), var(--app-bottom-opacity))`,
+        borderRadius: 'var(--app-card-radius)' 
+      }"
     >
       <!-- Botão Principal: Adicionar Tarefa -->
       <button 

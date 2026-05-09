@@ -8,8 +8,8 @@
   /* Design Tokens - Modo Claro */
   --app-bg-raw: 255, 255, 255;
   --app-text-main: #0f172a;       /* Slate 900 */
-  --app-text-sub: #475569;        /* Slate 600 */
-  --app-text-muted: #94a3b8;      /* Slate 400 */
+  --app-text-sub: #334155;
+  --app-text-muted: rgba(15, 23, 42, 0.55);
   
   --app-surface-glass: rgba(255, 255, 255, 0.7);
   --app-surface-solid: #ffffff;
@@ -65,6 +65,15 @@ body.dragging-task,
 .select-none {
   user-select: none !important;
   -webkit-user-select: none !important;
+}
+
+input::placeholder, textarea::placeholder {
+    color: var(--app-text-muted);
+    opacity: 1;
+}
+
+input:focus::placeholder, textarea:focus::placeholder {
+    opacity: 0.7;
 }
 
 .glass-panel {
