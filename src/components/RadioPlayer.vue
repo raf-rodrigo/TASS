@@ -38,7 +38,7 @@ const togglePlay = () => radioStore.toggle();
     @close="emit('close')"
   >
     <template #default="{ onMouseDown }">
-      <div class="p-4 flex flex-col">
+      <div class="p-6 flex flex-col">
         <!-- Header Discreto e Arrastável -->
         <div 
           class="flex items-center justify-between cursor-grab active:cursor-grabbing text-slate-400 hover:text-amber-500 transition-colors pb-4"
@@ -54,75 +54,65 @@ const togglePlay = () => radioStore.toggle();
         </div>
 
         <!-- Área Superior: Player em Destaque -->
-        <div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex flex-col md:flex-row items-center gap-4">
-      
-      <!-- Informações da Rádio Atual -->
-      <div class="flex-1 text-center md:text-left space-y-2">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-widest mb-1">
-          <template v-if="radioStore.isLoading">
-            <span class="animate-pulse">Carregando Stream...</span>
-          </template>
-          <template v-else-if="radioStore.isPlaying">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
-            Transmissão Ao Vivo
-          </template>
-          <template v-else>
-            Em Pausa
-          </template>
+        <div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex flex-col gap-6">
+          <div class="flex flex-col md:flex-row items-center gap-4">
+            <!-- Informações da Rádio Atual -->
+            <div class="flex-1 text-center md:text-left space-y-2">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-widest mb-1">
+                <template v-if="radioStore.isLoading">
+                  <span class="animate-pulse">Carregando Stream...</span>
+                </template>
+                <template v-else-if="radioStore.isPlaying">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+                  Transmissão Ao Vivo
+                </template>
+                <template v-else>
+                  Em Pausa
+                </template>
+              </div>
+              
+              <h2 class="text-xl font-black text-app-main tracking-tighter truncate">
+                {{ radioStore.currentRadio ? radioStore.currentRadio.name : 'Nenhuma rádio selecionada' }}
+              </h2>
+            </div>
+
+            <!-- Controles de Reprodução Massivos -->
+            <div class="flex items-center gap-3 shrink-0">
+              <button @click="radioStore.prev" class="w-10 h-10 flex items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-slate-400 hover:text-amber-500 hover:scale-105 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all active:scale-95 border border-slate-100 dark:border-white/5">
+                <SkipBack class="w-4 h-4 fill-current" />
+              </button>
+              
+              <button 
+                @click="togglePlay" 
+                class="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-amber-400 to-amber-600 text-white rounded-2xl shadow-xl shadow-amber-500/40 hover:scale-105 transition-all active:scale-95"
+              >
+                <Pause v-if="radioStore.isPlaying" class="w-5 h-5 fill-current" />
+                <Play v-else class="w-5 h-5 fill-current ml-1" />
+              </button>
+
+              <button @click="radioStore.next" class="w-10 h-10 flex items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-slate-400 hover:text-amber-500 hover:scale-105 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all active:scale-95 border border-slate-100 dark:border-white/5">
+                <SkipForward class="w-4 h-4 fill-current" />
+              </button>
+            </div>
+          </div>
+
+          <!-- Controle de Volume Unificado (Full Width) -->
+          <div class="flex items-center gap-4 w-full px-1">
+            <button @click="radioStore.setVolume(radioStore.volume === 0 ? 0.5 : 0)" class="text-amber-500/70 hover:text-amber-500 transition-colors">
+              <VolumeX v-if="radioStore.volume === 0" class="w-4 h-4" />
+              <Volume2 v-else class="w-4 h-4" />
+            </button>
+            <input 
+              type="range" min="0" max="1" step="0.01" 
+              :value="radioStore.volume"
+              @input="e => radioStore.setVolume(parseFloat(e.target.value))"
+              class="flex-1 app-range h-1.5"
+            />
+            <span class="text-[10px] font-black text-amber-600/60 dark:text-amber-400/60 w-8 text-right tabular-nums">
+              {{ Math.round(radioStore.volume * 100) }}%
+            </span>
+          </div>
         </div>
-        
-        <h2 class="text-xl font-black text-app-main tracking-tighter truncate">
-          {{ radioStore.currentRadio ? radioStore.currentRadio.name : 'Nenhuma rádio selecionada' }}
-        </h2>
-        
-        <!-- Controle de Volume Embutido no Info (Desktop) -->
-        <div class="hidden md:flex items-center gap-2 w-32 mt-2">
-          <button @click="radioStore.setVolume(radioStore.volume === 0 ? 0.5 : 0)" class="text-amber-500/70 hover:text-amber-500 transition-colors">
-            <VolumeX v-if="radioStore.volume === 0" class="w-4 h-4" />
-            <Volume2 v-else class="w-4 h-4" />
-          </button>
-          <input 
-            type="range" min="0" max="1" step="0.01" 
-            :value="radioStore.volume"
-            @input="e => radioStore.setVolume(parseFloat(e.target.value))"
-            class="flex-1 app-range h-1"
-          />
-        </div>
-      </div>
-
-      <!-- Controles de Reprodução Massivos -->
-      <div class="flex items-center gap-3 shrink-0">
-        <button @click="radioStore.prev" class="w-10 h-10 flex items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-slate-400 hover:text-amber-500 hover:scale-105 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all active:scale-95 border border-slate-100 dark:border-white/5">
-          <SkipBack class="w-4 h-4 fill-current" />
-        </button>
-        
-        <button 
-          @click="togglePlay" 
-          class="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-amber-400 to-amber-600 text-white rounded-2xl shadow-xl shadow-amber-500/40 hover:scale-105 transition-all active:scale-95"
-        >
-          <Pause v-if="radioStore.isPlaying" class="w-5 h-5 fill-current" />
-          <Play v-else class="w-5 h-5 fill-current ml-1" />
-        </button>
-
-        <button @click="radioStore.next" class="w-10 h-10 flex items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-slate-400 hover:text-amber-500 hover:scale-105 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all active:scale-95 border border-slate-100 dark:border-white/5">
-          <SkipForward class="w-4 h-4 fill-current" />
-        </button>
-      </div>
-
-      <!-- Controle de Volume (Mobile) -->
-      <div class="flex md:hidden items-center justify-center gap-3 w-full mt-2">
-        <button @click="radioStore.setVolume(radioStore.volume === 0 ? 0.5 : 0)" class="text-amber-500/70">
-          <VolumeX v-if="radioStore.volume === 0" class="w-4 h-4" />
-          <Volume2 v-else class="w-4 h-4" />
-        </button>
-        <input 
-          type="range" min="0" max="1" step="0.01" 
-          :value="radioStore.volume"
-          @input="e => radioStore.setVolume(parseFloat(e.target.value))"
-          class="w-32 app-range h-1"
-        />
-      </div>
-    </div>
 
     <!-- Lista de Rádios (Corpo Principal) -->
     <div class="space-y-3 mt-4">
