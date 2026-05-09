@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import { 
   Download, Upload, Globe, Palette,
   ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles
@@ -32,12 +32,14 @@ watch(activeTab, (newVal) => {
 });
 
 const tabs = [
-  { id: 'gitlab', label: 'Integração GitLab', icon: Globe, color: 'text-indigo-500' },
-  { id: 'work', label: 'Jornada de Trabalho', icon: Briefcase, color: 'text-indigo-500' },
-  { id: 'health', label: 'Saúde e Bem-estar', icon: Activity, color: 'text-indigo-500' },
-  { id: 'system', label: 'Sistema e Interface', icon: Monitor, color: 'text-indigo-500' },
-  { id: 'security', label: 'Dados e Segurança', icon: ShieldCheck, color: 'text-indigo-500' },
+  { id: 'gitlab', label: 'Integração GitLab', icon: Globe, color: 'text-indigo-500', desc: 'Conecte ao GitLab e automatize seu workflow.' },
+  { id: 'work', label: 'Jornada de Trabalho', icon: Briefcase, color: 'text-indigo-500', desc: 'Defina seu horário e dias de trabalho.' },
+  { id: 'health', label: 'Saúde e Bem-estar', icon: Activity, color: 'text-indigo-500', desc: 'Lembretes inteligentes para manter sua saúde.' },
+  { id: 'system', label: 'Sistema e Interface', icon: Monitor, color: 'text-indigo-500', desc: 'Configurações globais de comportamento.' },
+  { id: 'security', label: 'Dados e Segurança', icon: ShieldCheck, color: 'text-indigo-500', desc: 'Gerencie backups e o banco de dados local.' },
 ];
+
+const activeTabObj = computed(() => tabs.find(t => t.id === activeTab.value) || tabs[0]);
 
 // Helper to convert "HH:mm" to { hours, minutes }
 const stringToTimeObj = (timeStr) => {
@@ -219,14 +221,21 @@ const handleResetSystem = async () => {
         <button class="absolute top-6 right-6 icon-btn z-10" @click="emit('close')">
           <X class="w-5 h-5" />
         </button>
-        <div class="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
+
+        <!-- Header da seção ativa -->
+        <div class="flex items-center gap-2.5 px-6 md:px-10 py-3 border-b border-slate-200 dark:border-white/5 shrink-0 pr-16">
+          <component :is="activeTabObj.icon" class="w-3.5 h-3.5 shrink-0" :class="activeTabObj.color" />
+          <div>
+            <p class="text-[11px] font-black text-app-main leading-none uppercase tracking-wider">{{ activeTabObj.label }}</p>
+            <p class="text-[9px] text-app-muted font-medium mt-0.5">{{ activeTabObj.desc }}</p>
+          </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-6 md:px-10 py-6 custom-scrollbar">
           <transition name="fade-slide" mode="out-in">
             <!-- ABA: GitLab -->
             <div v-if="activeTab === 'gitlab'" :key="'gitlab'" class="space-y-8">
-              <div>
-                <h3 class="text-xl font-black text-app-main mb-1">Integração GitLab</h3>
-                <p class="text-xs text-app-sub font-medium">Conecte o TASS aos seus projetos e automatize seu workflow.</p>
-              </div>
+
 
               <div class="space-y-6">
                 <div class="flex bg-app-surface p-1 rounded-xl w-fit">
@@ -262,10 +271,7 @@ const handleResetSystem = async () => {
 
             <!-- ABA: Jornada -->
             <div v-else-if="activeTab === 'work'" :key="'work'" class="space-y-8">
-              <div>
-                <h3 class="text-xl font-black text-app-main mb-1">Jornada de Trabalho</h3>
-                <p class="text-xs text-app-sub font-medium">Defina seu horário para evitar registros de tempo fora do expediente.</p>
-              </div>
+
 
               <div class="glass-section p-6 space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -313,10 +319,7 @@ const handleResetSystem = async () => {
 
             <!-- ABA: Saúde -->
             <div v-else-if="activeTab === 'health'" :key="'health'" class="space-y-8">
-              <div>
-                <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Saúde e Bem-estar</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Lembretes inteligentes para você se manter saudável enquanto produz.</p>
-              </div>
+
 
               <!-- Novo: Lembretes de Bem-estar (Sussurro) -->
               <div class="glass-section p-6 space-y-6">
@@ -352,10 +355,7 @@ const handleResetSystem = async () => {
 
             <!-- ABA: Sistema -->
             <div v-else-if="activeTab === 'system'" :key="'system'" class="space-y-8">
-              <div>
-                <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Sistema e Interface</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Configurações globais de comportamento e automação.</p>
-              </div>
+
 
               <div class="space-y-4">
 
@@ -464,10 +464,7 @@ const handleResetSystem = async () => {
 
             <!-- ABA: Segurança -->
             <div v-else-if="activeTab === 'security'" :key="'security'" class="space-y-8">
-              <div>
-                <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Dados e Segurança</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Gerencie seu banco de dados local com backups parciais ou totais.</p>
-              </div>
+
 
               <div class="space-y-6">
                 <!-- Backup de Tarefas -->

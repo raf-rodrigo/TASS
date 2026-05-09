@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import { 
   X, Palette, Trash2, Plus, Settings,
   Image as ImageIcon, Eraser,
@@ -36,12 +36,14 @@ const showAddWallpaper = ref(false);
 const newWallpaperUrl = ref('');
 
 const tabs = [
-  { id: 'wallpapers', label: 'Papéis de Parede', icon: ImageIcon, color: 'text-indigo-500' },
-  { id: 'board', label: 'Board & Layout', icon: LayoutGrid, color: 'text-indigo-500' },
-  { id: 'tasks', label: 'Estilo das Tarefas', icon: Layers, color: 'text-indigo-500' },
-  { id: 'typography', label: 'Tipografia', icon: TypeIcon, color: 'text-indigo-500' },
-  { id: 'effects', label: 'Efeitos e Vidro', icon: Droplets, color: 'text-indigo-500' },
+  { id: 'wallpapers', label: 'Papéis de Parede', icon: ImageIcon, color: 'text-indigo-500', desc: 'Troque o clima do seu workspace instantaneamente.' },
+  { id: 'board', label: 'Board & Layout', icon: LayoutGrid, color: 'text-indigo-500', desc: 'Configure a estrutura principal do seu quadro de tarefas.' },
+  { id: 'tasks', label: 'Estilo das Tarefas', icon: Layers, color: 'text-indigo-500', desc: 'Personalize a aparência visual dos seus cards.' },
+  { id: 'typography', label: 'Tipografia', icon: TypeIcon, color: 'text-indigo-500', desc: 'Escolha a fonte que melhor se adapta ao seu estilo.' },
+  { id: 'effects', label: 'Efeitos e Vidro', icon: Droplets, color: 'text-indigo-500', desc: 'Ajuste o desfoque e as transparências do sistema.' },
 ];
+
+const activeTabObj = computed(() => tabs.find(t => t.id === activeTab.value) || tabs[0]);
 
 const fontOptions = [
   'Inter', 'Outfit', 'Lexend', 
@@ -163,15 +165,19 @@ const handleColumnChange = (n) => {
             <X class="w-5 h-5" />
           </button>
 
-          <div class="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
+          <!-- Header da seção ativa -->
+          <div class="flex items-center gap-2.5 px-6 md:px-10 py-3 border-b border-slate-200 dark:border-white/5 shrink-0 pr-16">
+            <component :is="activeTabObj.icon" class="w-3.5 h-3.5 shrink-0" :class="activeTabObj.color" />
+            <div>
+              <p class="text-[11px] font-black text-app-main leading-none uppercase tracking-wider">{{ activeTabObj.label }}</p>
+              <p class="text-[9px] text-app-muted font-medium mt-0.5">{{ activeTabObj.desc }}</p>
+            </div>
+          </div>
+
+          <div class="flex-1 overflow-y-auto px-6 md:px-10 py-6 custom-scrollbar">
             <transition name="fade-slide" mode="out-in">
               <!-- ABA: Board -->
               <div v-if="activeTab === 'board'" :key="'board'" class="space-y-8">
-                <div>
-                  <h3 class="text-xl font-black text-app-main mb-1">Board & Layout</h3>
-                  <p class="text-xs text-app-sub font-medium">Configure a estrutura principal do seu quadro de tarefas.</p>
-                </div>
-
                 <div class="space-y-8">
                   <!-- Seleção de Colunas -->
                   <div class="space-y-3">
@@ -220,10 +226,7 @@ const handleColumnChange = (n) => {
 
               <!-- ABA: Estilo das Tarefas -->
               <div v-else-if="activeTab === 'tasks'" :key="'tasks'" class="space-y-8">
-                <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Estilo das Tarefas</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Personalize a aparência visual dos seus cards de tarefa.</p>
-                </div>
+
 
                 <div class="grid grid-cols-1 gap-6">
                   <!-- Espessura -->
@@ -263,10 +266,7 @@ const handleColumnChange = (n) => {
 
               <!-- ABA: Tipografia -->
               <div v-else-if="activeTab === 'typography'" :key="'typography'" class="space-y-8">
-                <div>
-                  <h3 class="text-xl font-black text-app-main mb-1">Tipografia</h3>
-                  <p class="text-xs text-app-sub font-medium">Escolha a fonte que melhor se adapta ao seu estilo de trabalho.</p>
-                </div>
+
 
                 <div class="space-y-6">
                   <!-- Família de Fontes -->
@@ -287,10 +287,7 @@ const handleColumnChange = (n) => {
 
               <!-- ABA: Papéis de Parede -->
               <div v-else-if="activeTab === 'wallpapers'" :key="'wallpapers'" class="space-y-6">
-                <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Galeria de Papéis de Parede</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Troque o clima do seu workspace instantaneamente.</p>
-                </div>
+
 
                 <div class="glass-section p-6 space-y-6">
                   <div class="flex items-center justify-between">
@@ -377,10 +374,7 @@ const handleColumnChange = (n) => {
 
               <!-- ABA: Efeitos e Vidro -->
               <div v-else-if="activeTab === 'effects'" :key="'effects'" class="space-y-6">
-                <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Efeitos e Vidro</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Ajuste o desfoque e as transparências do sistema.</p>
-                </div>
+
 
 
                 <div class="glass-section p-6 space-y-6">
