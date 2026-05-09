@@ -11,6 +11,8 @@ import { useSettingsStore } from '../stores/settingsStore';
 import { isValidUrl, ensureProtocol } from '../utils/validation';
 import { notificationService } from '../services/notificationService';
 import BaseModal from './BaseModal.vue';
+import AppInput from './base/AppInput.vue';
+import AppTextarea from './base/AppTextarea.vue';
 
 const taskStore = useTaskStore();
 const settings = useSettingsStore();
@@ -240,17 +242,16 @@ const submitTask = () => {
 
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                  <div>
-                    <label for="task-title" class="block mb-2 text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">Número da Tarefa</label>
-                    <input id="task-title" v-model="title" @input="clearError('title')" type="text" placeholder="Ex: TSK-1234" required 
-                      class="px-4 py-3 shadow-sm font-mono font-bold"
-                      :class="errors.title ? 'border-red-500/50 ring-1 ring-red-500/20' : ''"
-                      :style="{ color: color }"
-                    />
-                    <div v-if="errors.title" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1.5 animate-shake text-center">
-                      {{ errors.title }}
-                    </div>
-                  </div>
+                  <AppInput
+                    v-model="title"
+                    label="Número da Tarefa"
+                    placeholder="Ex: TSK-1234"
+                    :error="errors.title"
+                    @update:modelValue="clearError('title')"
+                    required
+                    class="font-mono font-bold"
+                    :style="{ color: color }"
+                  />
 
                   <div>
                     <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Cor da Categoria</label>
@@ -265,12 +266,13 @@ const submitTask = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label for="task-desc" class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Título da Tarefa</label>
-                  <textarea id="task-desc" v-model="description" placeholder="O que você precisa fazer?" rows="2"
-                    class="px-4 py-3 shadow-sm font-medium resize-none"
-                  ></textarea>
-                </div>
+                <AppTextarea
+                  v-model="description"
+                  label="Título da Tarefa"
+                  placeholder="O que você precisa fazer?"
+                  rows="2"
+                  class="font-medium"
+                />
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -315,26 +317,26 @@ const submitTask = () => {
                 <div class="grid grid-cols-1 gap-8">
                   <!-- Seção: Gestão de Código -->
                   <div class="grid grid-cols-1 gap-6">
-                      <div class="space-y-1.5">
-                        <div class="flex items-center gap-2 mb-1">
-                          <ExternalLink class="w-3.5 h-3.5" :class="errors.taskUrl ? 'text-red-500' : 'text-indigo-500'" />
-                          <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Link da Tarefa</label>
-                        </div>
-                        <input v-model="taskUrl" type="url" @input="clearError('taskUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.taskUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
-                        <div v-if="errors.taskUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1.5 animate-shake text-center">
-                          {{ errors.taskUrl }}
-                        </div>
-                      </div>
-                      <div class="space-y-1.5">
-                        <div class="flex items-center gap-2 mb-1">
-                          <GitBranch class="w-3.5 h-3.5" :class="errors.branchUrl ? 'text-red-500' : 'text-purple-500'" />
-                          <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">URL do Merge</label>
-                        </div>
-                        <input v-model="branchUrl" type="url" @input="clearError('branchUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.branchUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
-                        <div v-if="errors.branchUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1.5 animate-shake text-center">
-                          {{ errors.branchUrl }}
-                        </div>
-                      </div>
+                      <AppInput
+                        v-model="taskUrl"
+                        type="url"
+                        label="Link da Tarefa"
+                        :icon="ExternalLink"
+                        icon-color="text-indigo-500"
+                        placeholder="https://..."
+                        :error="errors.taskUrl"
+                        @update:modelValue="clearError('taskUrl')"
+                      />
+                      <AppInput
+                        v-model="branchUrl"
+                        type="url"
+                        label="URL do Merge"
+                        :icon="GitBranch"
+                        icon-color="text-purple-500"
+                        placeholder="https://..."
+                        :error="errors.branchUrl"
+                        @update:modelValue="clearError('branchUrl')"
+                      />
                   </div>
 
                   <!-- Seção: Ambientes de Deploy -->
@@ -345,38 +347,47 @@ const submitTask = () => {
                     </div>
                     
                     <div class="grid grid-cols-1 gap-6">
-                      <div class="space-y-2">
-                        <div class="flex items-center justify-between px-1">
-                          <span class="text-[9px] font-black uppercase tracking-widest" :class="errors.devUrl ? 'text-red-500' : 'text-orange-500'">Desenvolvimento</span>
+                      <AppInput
+                        v-model="devUrl"
+                        type="url"
+                        label="Desenvolvimento"
+                        label-color="text-orange-500"
+                        placeholder="https://..."
+                        :error="errors.devUrl"
+                        @update:modelValue="clearError('devUrl')"
+                      >
+                        <template #label-right>
                           <span class="w-1.5 h-1.5 rounded-full" :class="errors.devUrl ? 'bg-red-500' : 'bg-orange-500 animate-pulse'"></span>
-                        </div>
-                        <input v-model="devUrl" type="url" @input="clearError('devUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.devUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
-                        <div v-if="errors.devUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1 animate-shake text-center">
-                          {{ errors.devUrl }}
-                        </div>
-                      </div>
+                        </template>
+                      </AppInput>
                       
-                      <div class="space-y-2">
-                         <div class="flex items-center justify-between px-1">
-                          <span class="text-[9px] font-black uppercase tracking-widest" :class="errors.homologUrl ? 'text-red-500' : 'text-emerald-500'">Homologação</span>
+                      <AppInput
+                        v-model="homologUrl"
+                        type="url"
+                        label="Homologação"
+                        label-color="text-emerald-500"
+                        placeholder="https://..."
+                        :error="errors.homologUrl"
+                        @update:modelValue="clearError('homologUrl')"
+                      >
+                        <template #label-right>
                           <span class="w-1.5 h-1.5 rounded-full" :class="errors.homologUrl ? 'bg-red-500' : 'bg-emerald-500'"></span>
-                        </div>
-                        <input v-model="homologUrl" type="url" @input="clearError('homologUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.homologUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
-                        <div v-if="errors.homologUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1 animate-shake text-center">
-                          {{ errors.homologUrl }}
-                        </div>
-                      </div>
+                        </template>
+                      </AppInput>
 
-                      <div class="space-y-2">
-                         <div class="flex items-center justify-between px-1">
-                          <span class="text-[9px] font-black uppercase tracking-widest" :class="errors.prodUrl ? 'text-red-500' : 'text-blue-500'">Produção</span>
+                      <AppInput
+                        v-model="prodUrl"
+                        type="url"
+                        label="Produção"
+                        label-color="text-blue-500"
+                        placeholder="https://..."
+                        :error="errors.prodUrl"
+                        @update:modelValue="clearError('prodUrl')"
+                      >
+                        <template #label-right>
                           <span class="w-1.5 h-1.5 rounded-full" :class="errors.prodUrl ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]'"></span>
-                        </div>
-                        <input v-model="prodUrl" type="url" @input="clearError('prodUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.prodUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
-                        <div v-if="errors.prodUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1 animate-shake text-center">
-                          {{ errors.prodUrl }}
-                        </div>
-                      </div>
+                        </template>
+                      </AppInput>
                     </div>
                   </div>
                 </div>
@@ -387,21 +398,24 @@ const submitTask = () => {
 
 
                 <div class="space-y-6">
-                  <div>
-                    <div class="flex items-center gap-2 mb-2">
-                      <Database class="w-4 h-4 text-indigo-500" />
-                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Scripts de Banco (SQL)</label>
-                    </div>
-                    <textarea v-model="dbScripts" rows="4" placeholder="SELECT * FROM..." class="px-4 py-3 font-mono resize-none"></textarea>
-                  </div>
+                  <AppTextarea
+                    v-model="dbScripts"
+                    label="Scripts de Banco (SQL)"
+                    :icon="Database"
+                    icon-color="text-indigo-500"
+                    placeholder="SELECT * FROM..."
+                    rows="4"
+                    class="font-mono"
+                  />
 
-                  <div>
-                    <div class="flex items-center gap-2 mb-2">
-                      <FileText class="w-4 h-4 text-amber-500" />
-                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Observações Adicionais</label>
-                    </div>
-                    <textarea v-model="moreInfo" rows="4" placeholder="Ponto de atenção, requisitos extras..." class="px-4 py-3 resize-none"></textarea>
-                  </div>
+                  <AppTextarea
+                    v-model="moreInfo"
+                    label="Observações Adicionais"
+                    :icon="FileText"
+                    icon-color="text-amber-500"
+                    placeholder="Ponto de atenção, requisitos extras..."
+                    rows="4"
+                  />
                 </div>
               </div>
             </transition>
