@@ -7,6 +7,18 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      colors: {
+        app: {
+          main: 'var(--app-text-main)',
+          sub: 'var(--app-text-sub)',
+          muted: 'var(--app-text-muted)',
+          glass: 'var(--app-surface-glass)',
+          solid: 'var(--app-surface-solid)',
+          surface: 'var(--app-surface-muted)',
+          border: 'var(--app-border-main)',
+          'border-light': 'var(--app-border-light)'
+        }
+      },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
       },

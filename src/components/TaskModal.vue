@@ -175,8 +175,8 @@ const submitTask = () => {
             <Layout class="w-5 h-5" />
           </div>
           <div>
-            <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter">{{ taskToEdit ? 'Editar' : 'Nova' }} Task</h2>
-            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Gerenciamento</p>
+            <h2 class="text-sm font-black text-app-main uppercase tracking-tighter">{{ taskToEdit ? 'Editar' : 'Nova' }} Task</h2>
+            <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest">Gerenciamento</p>
           </div>
         </div>
 
@@ -188,8 +188,8 @@ const submitTask = () => {
             type="button"
             class="flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative"
             :class="activeTab === tab.id 
-              ? 'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-slate-200 dark:ring-white/10' 
-              : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'"
+              ? 'bg-app-solid shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-app-border' 
+              : 'text-app-sub hover:bg-app-surface'"
           >
             <div class="relative">
               <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
@@ -223,13 +223,13 @@ const submitTask = () => {
               <!-- ABA 1: Cadastro Básico -->
               <div v-if="activeTab === 'basic'" :key="'basic'" class="space-y-6">
                 <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Informações Básicas</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium italic">Dados essenciais para identificação da tarefa.</p>
+                  <h3 class="text-xl font-black text-app-main mb-1">Informações Básicas</h3>
+                  <p class="text-xs text-app-sub font-medium italic">Dados essenciais para identificação da tarefa.</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                   <div>
-                    <label for="task-title" class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Número da Tarefa</label>
+                    <label for="task-title" class="block mb-2 text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">Número da Tarefa</label>
                     <input id="task-title" v-model="title" @input="clearError('title')" type="text" placeholder="Ex: TSK-1234" required 
                       class="px-4 py-3 shadow-sm font-mono font-bold"
                       :class="errors.title ? 'border-red-500/50 ring-1 ring-red-500/20' : ''"
@@ -402,8 +402,8 @@ const submitTask = () => {
           </div>
 
           <!-- Footer (Persistent) -->
-          <footer class="p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex justify-end gap-3">
-            <button type="button" @click="emit('close')" class="px-6 py-3 text-xs font-black text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all uppercase tracking-widest">Cancelar</button>
+          <footer class="p-6 border-t border-app-border-light bg-app-surface flex justify-end gap-3">
+            <button type="button" @click="emit('close')" class="px-6 py-3 text-xs font-black text-app-sub hover:bg-app-surface-muted rounded-xl transition-all uppercase tracking-widest">Cancelar</button>
             <button type="submit" class="px-10 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition-all shadow-xl shadow-indigo-500/25 uppercase tracking-widest flex items-center gap-2 active:scale-95">
               <Save v-if="taskToEdit" class="w-4 h-4" />
               <PlusCircle v-else class="w-4 h-4" />

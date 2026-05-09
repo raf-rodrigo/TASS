@@ -5,18 +5,44 @@
 @tailwind utilities;
 
 :root {
+  /* Design Tokens - Modo Claro */
   --app-bg-raw: 255, 255, 255;
+  --app-text-main: #0f172a;       /* Slate 900 */
+  --app-text-sub: #475569;        /* Slate 600 */
+  --app-text-muted: #94a3b8;      /* Slate 400 */
+  
+  --app-surface-glass: rgba(255, 255, 255, 0.7);
+  --app-surface-solid: #ffffff;
+  --app-surface-muted: rgba(0, 0, 0, 0.03);   /* Levíssimo desfoque */
+  
+  --app-border-main: rgba(0, 0, 0, 0.1);
+  --app-border-light: rgba(0, 0, 0, 0.05);
+
+  /* Configurações Globais */
   --app-card-opacity: 0.95;
   --app-card-radius: 16px;
   --app-card-padding: 16px;
-
-  /* Motor de Contraste - Default Safes */
   --app-glass-blur: 12px;
   --app-glass-brightness: 1;
   --app-glass-saturate: 100%;
   --app-text-shadow: none;
   --app-border-opacity: 0.1;
   --app-input-radius: 8px;
+}
+
+.dark {
+  /* Design Tokens - Modo Escuro */
+  --app-bg-raw: 15, 23, 42;       /* Slate 900 */
+  --app-text-main: #f8fafc;       /* Slate 50 */
+  --app-text-sub: #cbd5e1;        /* Slate 300 */
+  --app-text-muted: #64748b;      /* Slate 500 */
+  
+  --app-surface-glass: rgba(15, 23, 42, 0.7);
+  --app-surface-solid: #0f172a;
+  --app-surface-muted: rgba(255, 255, 255, 0.03);
+  
+  --app-border-main: rgba(255, 255, 255, 0.1);
+  --app-border-light: rgba(255, 255, 255, 0.05);
 }
 
 

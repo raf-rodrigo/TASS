@@ -57,7 +57,7 @@ const handleBoardChange = (evt, colIdx) => {
         <div 
           class="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)] mr-2"
         ></div>
-        <h3 class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] truncate">
+        <h3 class="text-[10px] font-black text-app-sub uppercase tracking-[0.2em] truncate">
           {{ settings.columnTitles[colIdx-1] }}
         </h3>
         <span class="ml-2 text-[9px] font-black text-indigo-500/50">
@@ -72,7 +72,7 @@ const handleBoardChange = (evt, colIdx) => {
           class="absolute inset-0 flex items-center justify-center pointer-events-none"
         >
           <div 
-            class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-2xl text-slate-400/30 transition-all"
+            class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-2xl text-app-muted/30 transition-all"
             :style="{ 
               borderColor: `rgba(var(--app-bg-raw), 0.1)`,
               backgroundColor: settings.cardOpacity > 0 ? `rgba(var(--app-bg-raw), 0.05)` : 'transparent',

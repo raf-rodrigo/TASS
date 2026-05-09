@@ -154,12 +154,12 @@ const handleResetSystem = async () => {
           :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
           @mousedown="onMouseDown"
         >
-        <div class="hidden md:flex items-center gap-3 px-2 mb-8">
-          <div class="p-2 bg-indigo-500 rounded-xl text-white">
-            <Monitor class="w-5 h-5" />
+          <div class="hidden md:flex items-center gap-3 px-2 mb-8">
+            <div class="p-2 bg-indigo-500 rounded-xl text-white">
+              <Monitor class="w-5 h-5" />
+            </div>
+            <h2 class="text-sm font-black text-app-main uppercase tracking-tighter">Ajustes TASS</h2>
           </div>
-          <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter">Ajustes TASS</h2>
-        </div>
 
         <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
           <button 
@@ -168,8 +168,8 @@ const handleResetSystem = async () => {
             @click="activeTab = tab.id"
             class="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg transition-all group"
             :class="activeTab === tab.id 
-              ? 'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-slate-200 dark:ring-white/10' 
-              : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'"
+              ? 'bg-app-solid shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-app-border' 
+              : 'text-app-sub hover:bg-app-surface'"
           >
             <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
             <span class="text-[11px] font-bold whitespace-nowrap">{{ tab.label }}</span>
@@ -197,14 +197,14 @@ const handleResetSystem = async () => {
             <!-- ABA: GitLab -->
             <div v-if="activeTab === 'gitlab'" :key="'gitlab'" class="space-y-8">
               <div>
-                <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Integração GitLab</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Conecte o TASS aos seus projetos e automatize seu workflow.</p>
+                <h3 class="text-xl font-black text-app-main mb-1">Integração GitLab</h3>
+                <p class="text-xs text-app-sub font-medium">Conecte o TASS aos seus projetos e automatize seu workflow.</p>
               </div>
 
               <div class="space-y-6">
-                <div class="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl w-fit">
-                  <button @click="localSettings.gitlabIntegrationMode = 'link'" class="px-6 py-1.5 text-xs font-bold rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'link' ? 'bg-white dark:bg-slate-700 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-500'">Link Mágico</button>
-                  <button @click="localSettings.gitlabIntegrationMode = 'api'" class="px-6 py-1.5 text-xs font-bold rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'api' ? 'bg-white dark:bg-slate-700 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-500'">API Automática</button>
+                <div class="flex bg-app-surface p-1 rounded-xl w-fit">
+                  <button @click="localSettings.gitlabIntegrationMode = 'link'" class="px-6 py-1.5 text-xs font-bold rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'link' ? 'bg-app-solid shadow text-indigo-600 dark:text-indigo-400' : 'text-app-sub'">Link Mágico</button>
+                  <button @click="localSettings.gitlabIntegrationMode = 'api'" class="px-6 py-1.5 text-xs font-bold rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'api' ? 'bg-app-solid shadow text-indigo-600 dark:text-indigo-400' : 'text-app-sub'">API Automática</button>
                 </div>
 
                 <div class="grid gap-4">
@@ -236,8 +236,8 @@ const handleResetSystem = async () => {
             <!-- ABA: Jornada -->
             <div v-else-if="activeTab === 'work'" :key="'work'" class="space-y-8">
               <div>
-                <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Jornada de Trabalho</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Defina seu horário para evitar registros de tempo fora do expediente.</p>
+                <h3 class="text-xl font-black text-app-main mb-1">Jornada de Trabalho</h3>
+                <p class="text-xs text-app-sub font-medium">Defina seu horário para evitar registros de tempo fora do expediente.</p>
               </div>
 
               <div class="glass-section p-6 space-y-6">
@@ -271,10 +271,10 @@ const handleResetSystem = async () => {
                   </div>
                 </div>
 
-                <label class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl cursor-pointer border border-amber-500/10">
+                <label class="flex items-center justify-between p-4 bg-app-solid rounded-2xl cursor-pointer border border-amber-500/10">
                   <div>
-                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Pausa Automática</p>
-                    <p class="text-[10px] text-slate-500">Pausar tarefas ao atingir o horário de término.</p>
+                    <p class="text-sm font-bold text-app-main">Pausa Automática</p>
+                    <p class="text-[10px] text-app-sub">Pausar tarefas ao atingir o horário de término.</p>
                   </div>
                   <div class="relative inline-flex items-center">
                     <input type="checkbox" class="sr-only peer" v-model="localSettings.autoPauseOutsideWork">
@@ -299,8 +299,8 @@ const handleResetSystem = async () => {
                       <Activity class="w-6 h-6" />
                     </div>
                     <div>
-                      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Sussurro de Bem-estar</p>
-                      <p class="text-[10px] text-slate-500">Lembretes suaves de postura, olhos e pausas.</p>
+                      <p class="text-sm font-bold text-app-main">Sussurro de Bem-estar</p>
+                      <p class="text-[10px] text-app-sub">Lembretes suaves de postura, olhos e pausas.</p>
                     </div>
                   </div>
                   <label class="relative inline-flex items-center cursor-pointer">

@@ -68,11 +68,11 @@ const handleSelect = () => {
         >
           {{ task.isRunning ? formattedTime : task.title }}
         </span>
-        <span 
-          v-if="task.description || task.isRunning" 
-          class="text-sm truncate flex-1 min-w-0" 
-          :class="task.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'"
-          :style="{ fontSize: settings.taskDescriptionSize + 'px' }"
+          <span 
+            v-if="task.description || task.isRunning" 
+            class="text-sm truncate flex-1 min-w-0" 
+            :class="task.completed ? 'line-through text-app-muted' : 'text-app-sub'"
+            :style="{ fontSize: settings.taskDescriptionSize + 'px' }"
           :title="task.isRunning ? `${task.title} - ${task.description}` : task.description"
         >
           <template v-if="task.isRunning">
@@ -102,7 +102,7 @@ const handleSelect = () => {
         </button>
 
         <!-- Contador (Tempo) - Escondido quando rodando ou no mobile -->
-        <span v-if="!task.isRunning" class="hidden sm:inline text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-none mr-1">{{ formattedTime }}</span>
+        <span v-if="!task.isRunning" class="hidden sm:inline text-[10px] font-bold text-app-sub leading-none mr-1">{{ formattedTime }}</span>
       </div>
     </div>
 

@@ -102,8 +102,8 @@ const handleColumnChange = (n) => {
               <Palette class="w-5 h-5" />
             </div>
             <div>
-              <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter">Interface</h2>
-              <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Ajustes Visuais</p>
+              <h2 class="text-sm font-black text-app-main uppercase tracking-tighter">Interface</h2>
+              <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest">Ajustes Visuais</p>
             </div>
           </div>
 
@@ -114,8 +114,8 @@ const handleColumnChange = (n) => {
               @click="activeTab = tab.id"
               class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
               :class="activeTab === tab.id 
-                ? 'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-slate-200 dark:ring-white/10' 
-                : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'"
+                ? 'bg-app-solid shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-app-border' 
+                : 'text-app-sub hover:bg-app-surface'"
             >
               <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
               <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
@@ -144,18 +144,18 @@ const handleColumnChange = (n) => {
               <!-- ABA: Board -->
               <div v-if="activeTab === 'board'" :key="'board'" class="space-y-8">
                 <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Board & Layout</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Configure a estrutura principal do seu quadro de tarefas.</p>
+                  <h3 class="text-xl font-black text-app-main mb-1">Board & Layout</h3>
+                  <p class="text-xs text-app-sub font-medium">Configure a estrutura principal do seu quadro de tarefas.</p>
                 </div>
 
                 <div class="space-y-8">
                   <!-- Seleção de Colunas -->
                   <div class="space-y-3">
-                    <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Quantidade de Colunas</label>
-                    <div class="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200 dark:border-white/5 w-full">
+                    <label class="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">Quantidade de Colunas</label>
+                    <div class="flex bg-app-surface p-1 rounded-2xl border border-app-border-light w-full">
                       <button v-for="n in 4" :key="n" @click="handleColumnChange(n)"
                         class="flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300"
-                        :class="settings.columns === n ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400'">{{ n }} Colunas</button>
+                        :class="settings.columns === n ? 'bg-indigo-500 text-white shadow-lg' : 'text-app-muted'">{{ n }} Colunas</button>
                     </div>
                   </div>
 
@@ -240,8 +240,8 @@ const handleColumnChange = (n) => {
               <!-- ABA: Tipografia -->
               <div v-else-if="activeTab === 'typography'" :key="'typography'" class="space-y-8">
                 <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Tipografia</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Escolha a fonte que melhor se adapta ao seu estilo de trabalho.</p>
+                  <h3 class="text-xl font-black text-app-main mb-1">Tipografia</h3>
+                  <p class="text-xs text-app-sub font-medium">Escolha a fonte que melhor se adapta ao seu estilo de trabalho.</p>
                 </div>
 
                 <div class="space-y-6">
@@ -316,9 +316,9 @@ const handleColumnChange = (n) => {
                     </button>
                   </div>
 
-                  <div v-if="showAddWallpaper" class="animate-fadeIn p-4 bg-white dark:bg-white/5 rounded-2xl border border-emerald-500/30 space-y-4">
+                  <div v-if="showAddWallpaper" class="animate-fadeIn p-4 bg-app-solid rounded-2xl border border-emerald-500/30 space-y-4">
                     <div class="space-y-2">
-                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">URL da Imagem</label>
+                      <label class="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">URL da Imagem</label>
                       <div class="flex gap-2">
                         <input 
                           v-model="newWallpaperUrl" 
@@ -414,7 +414,7 @@ const handleColumnChange = (n) => {
             </transition>
           </div>
 
-          <footer class="p-5 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
+          <footer class="p-5 border-t border-app-border-light bg-app-surface">
             <button @click="emit('close')" class="w-full py-4 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-xl shadow-indigo-500/20 uppercase tracking-widest active:scale-95">
               Terminei os Ajustes
             </button>
