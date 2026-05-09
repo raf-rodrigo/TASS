@@ -328,6 +328,7 @@ onMounted(async () => {
     <SettingsModal
       v-if="showSettings"
       @close="showSettings = false"
+      @open-interface="() => { showSettings = false; showInterfaceMenu = true; }"
       @save="() => {}"
       @test-wellness="triggerWellness(true)"
       @export-tasks="handleExportTasks"
@@ -348,6 +349,7 @@ onMounted(async () => {
       v-if="showInterfaceMenu"
       :isOpen="showInterfaceMenu"
       @close="showInterfaceMenu = false"
+      @open-settings="() => { showInterfaceMenu = false; showSettings = true; }"
     />
 
     <NotificationContainer />

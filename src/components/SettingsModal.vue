@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
 import { 
-  Download, Upload, Globe, 
+  Download, Upload, Globe, Palette,
   ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -14,7 +14,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
-const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'export-system', 'import-system', 'test-wellness']);
+const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'export-system', 'import-system', 'test-wellness', 'open-interface']);
 
 const activeTab = ref('gitlab');
 
@@ -32,11 +32,11 @@ watch(activeTab, (newVal) => {
 });
 
 const tabs = [
-  { id: 'gitlab', label: 'Integração GitLab', icon: Globe, color: 'text-orange-500' },
-  { id: 'work', label: 'Jornada de Trabalho', icon: Briefcase, color: 'text-amber-500' },
-  { id: 'health', label: 'Saúde e Bem-estar', icon: Activity, color: 'text-blue-500' },
+  { id: 'gitlab', label: 'Integração GitLab', icon: Globe, color: 'text-indigo-500' },
+  { id: 'work', label: 'Jornada de Trabalho', icon: Briefcase, color: 'text-indigo-500' },
+  { id: 'health', label: 'Saúde e Bem-estar', icon: Activity, color: 'text-indigo-500' },
   { id: 'system', label: 'Sistema e Interface', icon: Monitor, color: 'text-indigo-500' },
-  { id: 'security', label: 'Dados e Segurança', icon: ShieldCheck, color: 'text-emerald-500' },
+  { id: 'security', label: 'Dados e Segurança', icon: ShieldCheck, color: 'text-indigo-500' },
 ];
 
 // Helper to convert "HH:mm" to { hours, minutes }
@@ -168,10 +168,13 @@ const handleResetSystem = async () => {
           @mousedown="onMouseDown"
         >
           <div class="hidden md:flex items-center gap-3 px-2 mb-8">
-            <div class="p-2 bg-indigo-500 rounded-xl text-white">
+            <div class="p-2.5 bg-indigo-500 rounded-2xl text-white shadow-lg shadow-indigo-500/20">
               <Monitor class="w-5 h-5" />
             </div>
-            <h2 class="text-sm font-black text-app-main uppercase tracking-tighter">Ajustes TASS</h2>
+            <div>
+              <h2 class="text-sm font-black text-app-main uppercase tracking-tighter">Ajustes TASS</h2>
+              <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest">Configurações</p>
+            </div>
           </div>
 
         <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
@@ -179,17 +182,28 @@ const handleResetSystem = async () => {
             v-for="tab in tabs" 
             :key="tab.id"
             @click="activeTab = tab.id"
-            class="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg transition-all group"
+            class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
             :class="activeTab === tab.id 
               ? 'bg-app-solid shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-app-border' 
               : 'text-app-sub hover:bg-app-surface'"
           >
             <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
-            <span class="text-[11px] font-bold whitespace-nowrap">{{ tab.label }}</span>
+            <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
+          </button>
+
+          <!-- Divisor e Link para Interface -->
+          <div class="hidden md:block w-full h-px bg-slate-200 dark:bg-white/5 my-2"></div>
+
+          <button 
+            @click="emit('open-interface')"
+            class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
+          >
+            <Palette class="w-4 h-4" />
+            <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">Ajustes Visuais</span>
           </button>
         </nav>
         
-        <div class="hidden md:block p-3 bg-indigo-500/5 rounded-lg border border-indigo-500/10 mt-auto">
+        <div class="hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10 mt-auto">
           <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
             Confirme as alterações no botão abaixo para persistir no banco de dados.
           </p>
@@ -205,7 +219,7 @@ const handleResetSystem = async () => {
         <button class="absolute top-6 right-6 icon-btn z-10" @click="emit('close')">
           <X class="w-5 h-5" />
         </button>
-        <div class="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+        <div class="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
           <transition name="fade-slide" mode="out-in">
             <!-- ABA: GitLab -->
             <div v-if="activeTab === 'gitlab'" :key="'gitlab'" class="space-y-8">

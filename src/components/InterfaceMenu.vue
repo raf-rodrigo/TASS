@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
 import { 
-  X, Palette, Trash2, Plus,
+  X, Palette, Trash2, Plus, Settings,
   Image as ImageIcon, Eraser,
   LayoutGrid, Layers, Type as TypeIcon, Droplets
 } from 'lucide-vue-next';
@@ -16,7 +16,7 @@ defineProps({
   isOpen: Boolean
 });
 
-const emit = defineEmits(['close', 'test-wellness']);
+const emit = defineEmits(['close', 'test-wellness', 'open-settings']);
 
 const activeTab = ref('wallpapers');
 
@@ -36,7 +36,7 @@ const showAddWallpaper = ref(false);
 const newWallpaperUrl = ref('');
 
 const tabs = [
-  { id: 'wallpapers', label: 'Papéis de Parede', icon: ImageIcon, color: 'text-emerald-500' },
+  { id: 'wallpapers', label: 'Papéis de Parede', icon: ImageIcon, color: 'text-indigo-500' },
   { id: 'board', label: 'Board & Layout', icon: LayoutGrid, color: 'text-indigo-500' },
   { id: 'tasks', label: 'Estilo das Tarefas', icon: Layers, color: 'text-indigo-500' },
   { id: 'typography', label: 'Tipografia', icon: TypeIcon, color: 'text-indigo-500' },
@@ -132,6 +132,17 @@ const handleColumnChange = (n) => {
             >
               <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
               <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
+            </button>
+
+            <!-- Divisor e Link para Configurações -->
+            <div class="hidden md:block w-full h-px bg-slate-200 dark:bg-white/5 my-2"></div>
+
+            <button 
+              @click="emit('open-settings')"
+              class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
+            >
+              <Settings class="w-4 h-4" />
+              <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">Configurações</span>
             </button>
           </nav>
 
@@ -427,8 +438,13 @@ const handleColumnChange = (n) => {
             </transition>
           </div>
 
-          <footer class="p-5 border-t border-app-border-light bg-app-surface">
-            <button @click="emit('close')" class="w-full py-4 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-xl shadow-indigo-500/20 uppercase tracking-widest active:scale-95">
+          <!-- Footer Padronizado (Ação Única para Interface Live) -->
+          <footer class="p-4 md:p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-end">
+            <button 
+              @click="emit('close')" 
+              class="px-10 py-2.5 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
+              :style="{ borderRadius: 'var(--app-input-radius)' }"
+            >
               Terminei os Ajustes
             </button>
           </footer>
