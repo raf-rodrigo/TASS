@@ -217,18 +217,18 @@ const handleResetSystem = async () => {
         class="flex-1 flex flex-col overflow-hidden relative"
         :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
       >
-        <!-- Close Button Top Right -->
-        <button class="absolute top-6 right-6 icon-btn z-10" @click="emit('close')">
-          <X class="w-5 h-5" />
-        </button>
-
-        <!-- Header da seção ativa -->
-        <div class="flex items-center gap-2.5 px-6 md:px-10 py-3 border-b border-slate-200 dark:border-white/5 shrink-0 pr-16">
-          <component :is="activeTabObj.icon" class="w-3.5 h-3.5 shrink-0" :class="activeTabObj.color" />
-          <div>
-            <p class="text-[11px] font-black text-app-main leading-none uppercase tracking-wider">{{ activeTabObj.label }}</p>
-            <p class="text-[9px] text-app-muted font-medium mt-0.5">{{ activeTabObj.desc }}</p>
+        <!-- Header da seção ativa (com botão de fechar) -->
+        <div class="flex items-center justify-between px-6 md:px-10 py-3 border-b border-slate-200 dark:border-white/5 shrink-0">
+          <div class="flex items-center gap-2.5">
+            <component :is="activeTabObj.icon" class="w-3.5 h-3.5 shrink-0" :class="activeTabObj.color" />
+            <div>
+              <p class="text-[11px] font-black text-app-main leading-none uppercase tracking-wider">{{ activeTabObj.label }}</p>
+              <p class="text-[9px] text-app-muted font-medium mt-0.5">{{ activeTabObj.desc }}</p>
+            </div>
           </div>
+          <button type="button" @click="emit('close')" class="icon-btn -mr-2 z-10">
+            <X class="w-5 h-5" />
+          </button>
         </div>
 
         <div class="flex-1 overflow-y-auto px-6 md:px-10 py-6 custom-scrollbar">
