@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { 
-  Download, Upload, Droplets, Globe, 
+  Download, Upload, Globe, 
   ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -14,7 +14,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
-const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'export-system', 'import-system', 'test-wellness', 'test-water']);
+const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'export-system', 'import-system', 'test-wellness']);
 
 const activeTab = ref('gitlab');
 
@@ -46,8 +46,6 @@ const localSettings = ref({
   gitlabProjectId: settings.gitlabProjectId,
   gitlabToken: settings.gitlabToken,
   gitlabBaseBranch: settings.gitlabBaseBranch,
-  waterReminderEnabled: settings.waterReminderEnabled,
-  waterReminderInterval: settings.waterReminderInterval,
   trackInactivity: settings.trackInactivity,
   workStart: stringToTimeObj(settings.workStart),
   workEnd: stringToTimeObj(settings.workEnd),
@@ -74,7 +72,6 @@ const dayNames = [
 watch(() => localSettings.value?.cardBorderRadius, (newVal) => {
   if (newVal === undefined || newVal === null) return;
   
-  // Usando requestAnimationFrame para garantir que o DOM está pronto e evitar erros de patch do Vue
   requestAnimationFrame(() => {
     const root = document.documentElement;
     if (root) {
@@ -94,28 +91,12 @@ const toggleDay = (dayId) => {
   }
 };
 
-const handleWaterToggle = async () => {
-  if (localSettings.value.waterReminderEnabled) {
-    const granted = await notificationService.requestPermission();
-    if (!granted) {
-      notificationService.alert('Notificações Bloqueadas', 'Permita as notificações para receber os lembretes.', 'warning');
-      localSettings.value.waterReminderEnabled = false;
-    }
-  }
-};
-
-const handleTestNotification = async () => {
-  emit('test-water');
-};
-
 const handleSave = async () => {
   settings.gitlabUrl = localSettings.value.gitlabUrl;
   settings.gitlabIntegrationMode = localSettings.value.gitlabIntegrationMode;
   settings.gitlabProjectId = localSettings.value.gitlabProjectId;
   settings.gitlabToken = localSettings.value.gitlabToken;
   settings.gitlabBaseBranch = localSettings.value.gitlabBaseBranch;
-  settings.waterReminderEnabled = localSettings.value.waterReminderEnabled;
-  settings.waterReminderInterval = localSettings.value.waterReminderInterval;
   settings.trackInactivity = localSettings.value.trackInactivity;
   settings.workStart = timeObjToString(localSettings.value.workStart);
   settings.workEnd = timeObjToString(localSettings.value.workEnd);
@@ -259,7 +240,7 @@ const handleResetSystem = async () => {
                 <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Defina seu horário para evitar registros de tempo fora do expediente.</p>
               </div>
 
-              <div class="p-6 bg-amber-500/5 dark:bg-amber-500/10 rounded-3xl border border-amber-500/10 space-y-6">
+              <div class="glass-section p-6 space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   <div class="input-group">
                     <label class="!text-amber-600 dark:!text-amber-400">Início</label>
@@ -311,7 +292,7 @@ const handleResetSystem = async () => {
               </div>
 
               <!-- Novo: Lembretes de Bem-estar (Sussurro) -->
-              <div class="p-6 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-3xl border border-emerald-500/10 space-y-6">
+              <div class="glass-section p-6 space-y-6">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-4">
                     <div class="p-3 bg-emerald-500 rounded-2xl text-white shadow-lg shadow-emerald-500/20">
@@ -351,7 +332,7 @@ const handleResetSystem = async () => {
 
               <div class="space-y-4">
 
-                <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 group space-y-4">
+                <div class="glass-section p-4 space-y-4">
                   <div>
                     <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Painel de Notas Rápidas</p>
                     <p class="text-[10px] text-slate-500">Escolha de qual lado da tela o terminal de notas deve deslizar.</p>
@@ -362,7 +343,7 @@ const handleResetSystem = async () => {
                   </div>
                 </div>
 
-                <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 group space-y-4">
+                <div class="glass-section p-4 space-y-4">
                   <label class="flex items-center justify-between cursor-pointer">
                     <div>
                       <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Monitor de Inatividade</p>
@@ -404,7 +385,7 @@ const handleResetSystem = async () => {
                   </div>
                 </div>
 
-                <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 group space-y-4">
+                <div class="glass-section p-4 space-y-4">
 
                   <label class="flex items-center justify-between cursor-pointer">
                     <div>
@@ -418,7 +399,7 @@ const handleResetSystem = async () => {
                   </label>
                 </div>
 
-                <div class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 group space-y-4">
+                <div class="glass-section p-4 space-y-4">
 
                   <div class="flex justify-between items-center">
                     <div>
@@ -441,7 +422,7 @@ const handleResetSystem = async () => {
 
               <div class="space-y-6">
                 <!-- Backup de Tarefas -->
-                <div class="p-6 bg-white dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/10 space-y-4">
+                <div class="glass-section p-6 space-y-4">
                   <div class="flex items-center gap-3 mb-2">
                     <FileJson class="w-5 h-5 text-indigo-500" />
                     <h4 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Backup de Tarefas</h4>
@@ -459,7 +440,7 @@ const handleResetSystem = async () => {
                 </div>
 
                 <!-- Backup Completo do Sistema -->
-                <div class="p-6 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-3xl border border-emerald-500/20 space-y-4 relative overflow-hidden">
+                <div class="glass-section p-6 space-y-4 relative overflow-hidden">
                   <div class="absolute top-0 right-0 p-4 opacity-5">
                     <Server class="w-20 h-20" />
                   </div>
@@ -507,14 +488,6 @@ const handleResetSystem = async () => {
 </template>
 
 <style scoped>
-.input-group label {
-  @apply block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1;
-}
-
-.input-group input {
-  @apply w-full px-4 py-2.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all;
-}
-
 .app-timepicker {
   --dp-border-radius: 12px;
 }

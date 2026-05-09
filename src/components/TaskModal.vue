@@ -231,8 +231,8 @@ const submitTask = () => {
                   <div>
                     <label for="task-title" class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Número da Tarefa</label>
                     <input id="task-title" v-model="title" @input="clearError('title')" type="text" placeholder="Ex: TSK-1234" required 
-                      class="w-full px-4 py-3 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-mono font-bold"
-                      :class="errors.title ? 'border-red-500/50 ring-1 ring-red-500/20' : 'border-slate-200 dark:border-white/10'"
+                      class="px-4 py-3 shadow-sm font-mono font-bold"
+                      :class="errors.title ? 'border-red-500/50 ring-1 ring-red-500/20' : ''"
                       :style="{ color: color }"
                     />
                     <div v-if="errors.title" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1.5 animate-shake text-center">
@@ -256,7 +256,7 @@ const submitTask = () => {
                 <div>
                   <label for="task-desc" class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Título da Tarefa</label>
                   <textarea id="task-desc" v-model="description" placeholder="O que você precisa fazer?" rows="2"
-                    class="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none font-medium"
+                    class="px-4 py-3 shadow-sm font-medium resize-none"
                   ></textarea>
                 </div>
 
@@ -265,7 +265,7 @@ const submitTask = () => {
                     <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Sprint</label>
                     <div class="relative">
                       <Layers class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                      <select v-model="sprintId" class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm appearance-none cursor-pointer">
+                      <select v-model="sprintId" class="pl-10 appearance-none cursor-pointer">
                         <option value="">Nenhuma Sprint</option>
                         <option v-for="sprint in taskStore.sprints" :key="sprint.id" :value="sprint.id">
                           Ciclo de {{ new Date(sprint.endDate).toLocaleDateString('pt-BR') }}
@@ -279,13 +279,13 @@ const submitTask = () => {
                       <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Estimativa</label>
                       <div class="relative flex items-center group">
                         <Clock class="absolute left-3 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
-                        <input type="number" v-model="estimatedHours" min="0" placeholder="0" class="w-full pl-10 pr-12 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                        <input type="number" v-model="estimatedHours" min="0" placeholder="0" class="pl-10 pr-12 font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                         <span class="absolute right-3 text-[8px] font-black text-slate-400 uppercase tracking-widest pointer-events-none">H</span>
                       </div>
                     </div>
                     <div>
                       <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Prioridade</label>
-                      <select v-model="priority" class="w-full px-3 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm appearance-none cursor-pointer font-bold">
+                      <select v-model="priority" class="appearance-none cursor-pointer font-bold">
                         <option value="Baixa">Baixa</option>
                         <option value="Normal">Normal</option>
                         <option value="Alta">Alta</option>
@@ -311,7 +311,7 @@ const submitTask = () => {
                           <ExternalLink class="w-3.5 h-3.5" :class="errors.taskUrl ? 'text-red-500' : 'text-indigo-500'" />
                           <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Link da Tarefa</label>
                         </div>
-                        <input v-model="taskUrl" type="url" @input="clearError('taskUrl')" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" :class="errors.taskUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : 'border-slate-200 dark:border-white/10'" />
+                        <input v-model="taskUrl" type="url" @input="clearError('taskUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.taskUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
                         <div v-if="errors.taskUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1.5 animate-shake text-center">
                           {{ errors.taskUrl }}
                         </div>
@@ -321,7 +321,7 @@ const submitTask = () => {
                           <GitBranch class="w-3.5 h-3.5" :class="errors.branchUrl ? 'text-red-500' : 'text-purple-500'" />
                           <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">URL do Merge</label>
                         </div>
-                        <input v-model="branchUrl" type="url" @input="clearError('branchUrl')" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" :class="errors.branchUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : 'border-slate-200 dark:border-white/10'" />
+                        <input v-model="branchUrl" type="url" @input="clearError('branchUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.branchUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
                         <div v-if="errors.branchUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1.5 animate-shake text-center">
                           {{ errors.branchUrl }}
                         </div>
@@ -341,7 +341,7 @@ const submitTask = () => {
                           <span class="text-[9px] font-black uppercase tracking-widest" :class="errors.devUrl ? 'text-red-500' : 'text-orange-500'">Desenvolvimento</span>
                           <span class="w-1.5 h-1.5 rounded-full" :class="errors.devUrl ? 'bg-red-500' : 'bg-orange-500 animate-pulse'"></span>
                         </div>
-                        <input v-model="devUrl" type="url" @input="clearError('devUrl')" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" :class="errors.devUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : 'border-slate-200 dark:border-white/10'" />
+                        <input v-model="devUrl" type="url" @input="clearError('devUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.devUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
                         <div v-if="errors.devUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1 animate-shake text-center">
                           {{ errors.devUrl }}
                         </div>
@@ -352,7 +352,7 @@ const submitTask = () => {
                           <span class="text-[9px] font-black uppercase tracking-widest" :class="errors.homologUrl ? 'text-red-500' : 'text-emerald-500'">Homologação</span>
                           <span class="w-1.5 h-1.5 rounded-full" :class="errors.homologUrl ? 'bg-red-500' : 'bg-emerald-500'"></span>
                         </div>
-                        <input v-model="homologUrl" type="url" @input="clearError('homologUrl')" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" :class="errors.homologUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : 'border-slate-200 dark:border-white/10'" />
+                        <input v-model="homologUrl" type="url" @input="clearError('homologUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.homologUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
                         <div v-if="errors.homologUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1 animate-shake text-center">
                           {{ errors.homologUrl }}
                         </div>
@@ -363,7 +363,7 @@ const submitTask = () => {
                           <span class="text-[9px] font-black uppercase tracking-widest" :class="errors.prodUrl ? 'text-red-500' : 'text-blue-500'">Produção</span>
                           <span class="w-1.5 h-1.5 rounded-full" :class="errors.prodUrl ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]'"></span>
                         </div>
-                        <input v-model="prodUrl" type="url" @input="clearError('prodUrl')" placeholder="https://..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all shadow-sm" :class="errors.prodUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : 'border-slate-200 dark:border-white/10'" />
+                        <input v-model="prodUrl" type="url" @input="clearError('prodUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.prodUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
                         <div v-if="errors.prodUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1 animate-shake text-center">
                           {{ errors.prodUrl }}
                         </div>
@@ -386,7 +386,7 @@ const submitTask = () => {
                       <Database class="w-4 h-4 text-indigo-500" />
                       <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Scripts de Banco (SQL)</label>
                     </div>
-                    <textarea v-model="dbScripts" rows="4" placeholder="SELECT * FROM..." class="w-full px-4 py-3 font-mono bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all resize-none"></textarea>
+                    <textarea v-model="dbScripts" rows="4" placeholder="SELECT * FROM..." class="px-4 py-3 font-mono resize-none"></textarea>
                   </div>
 
                   <div>
@@ -394,7 +394,7 @@ const submitTask = () => {
                       <FileText class="w-4 h-4 text-amber-500" />
                       <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Observações Adicionais</label>
                     </div>
-                    <textarea v-model="moreInfo" rows="4" placeholder="Ponto de atenção, requisitos extras..." class="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 text-sm transition-all resize-none"></textarea>
+                    <textarea v-model="moreInfo" rows="4" placeholder="Ponto de atenção, requisitos extras..." class="px-4 py-3 resize-none"></textarea>
                   </div>
                 </div>
               </div>

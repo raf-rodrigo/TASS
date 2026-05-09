@@ -2,16 +2,15 @@
 import { ref } from 'vue';
 import { 
   X, Palette, Trash2, Plus,
-  Image as ImageIcon, Sliders, Eraser,
-  LayoutGrid, StickyNote, Layers, Type as TypeIcon, Droplets, Heart, Activity, Sparkles
+  Image as ImageIcon, Eraser,
+  LayoutGrid, Layers, Type as TypeIcon, Droplets
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
-import { useModalDrag } from '../composables/useModalDrag';
 import { useTaskStore } from '../stores/taskStore';
+import BaseModal from './BaseModal.vue';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
-const { position, onMouseDown } = useModalDrag();
 
 defineProps({
   isOpen: Boolean
@@ -29,7 +28,6 @@ const tabs = [
   { id: 'tasks', label: 'Estilo das Tarefas', icon: Layers, color: 'text-indigo-500' },
   { id: 'typography', label: 'Tipografia', icon: TypeIcon, color: 'text-indigo-500' },
   { id: 'effects', label: 'Efeitos e Vidro', icon: Droplets, color: 'text-indigo-500' },
-
 ];
 
 const fontOptions = [
@@ -38,8 +36,6 @@ const fontOptions = [
   'Poppins', 'Open Sans', 'Sora',
   'Mulish', 'Quicksand', 'JetBrains Mono'
 ];
-
-
 
 const setWallpaper = (url) => {
   settings.backgroundImage = url;
@@ -62,7 +58,6 @@ const addCustomWallpaper = () => {
 const removeWallpaper = (index) => {
   try {
     settings.customWallpapers.splice(index, 1);
-    // Salva a lista limpa para evitar DataCloneError e garantir reatividade
     settings.saveSetting('app-custom-wallpapers', [...settings.customWallpapers]);
   } catch (error) {
     console.error("Erro ao remover wallpaper:", error);
@@ -86,363 +81,348 @@ const handleColumnChange = (n) => {
 </script>
 
 <template>
-  <transition
-    enter-active-class="transition duration-300 ease-out"
-    enter-from-class="opacity-0 scale-95"
-    enter-to-class="opacity-100 scale-100"
-    leave-active-class="transition duration-200 ease-in"
-    leave-from-class="opacity-100 scale-100"
-    leave-to-class="opacity-0 scale-95"
+  <BaseModal 
+    v-if="isOpen"
+    title="Interface" 
+    maxWidth="max-w-4xl" 
+    customClass="h-[90vh] md:h-[600px] !p-0"
+    :hideHeader="true"
+    @close="emit('close')"
   >
-    <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-transparent" @click.self="emit('close')">
-      <section 
-        class="glass-panel w-[95%] max-w-4xl p-0 animate-scaleIn h-[90vh] md:h-[600px] flex flex-col overflow-hidden shadow-2xl border-indigo-500/10"
-        :style="{ 
-          '--modal-x': `${position.x}px`,
-          '--modal-y': `${position.y}px`,
-          transform: `translate(var(--modal-x), var(--modal-y))`,
-          backgroundColor: settings.theme === 'dark' 
-            ? `rgba(15, 23, 42, ${settings.opacityTargets.modals ? (100 - settings.cardOpacity) / 100 : 1.0})` 
-            : `rgba(255, 255, 255, ${settings.opacityTargets.modals ? (100 - settings.cardOpacity) / 100 : 1.0})`
-        }"
-      >
-        
-        <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
-          <!-- Sidebar de Abas (Handle de Arraste) -->
-          <aside 
-            class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-4 cursor-grab active:cursor-grabbing group"
-            :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
-            @mousedown="onMouseDown"
-          >
-            <div class="hidden md:flex items-center gap-3 px-2 mb-8">
-              <div class="p-2.5 bg-indigo-500 rounded-2xl text-white shadow-lg shadow-indigo-500/20">
-                <Palette class="w-5 h-5" />
-              </div>
-              <div>
-                <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter">Interface</h2>
-                <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Ajustes Visuais</p>
-              </div>
+    <template #default="{ onMouseDown }">
+      <div class="flex flex-col md:flex-row h-full overflow-hidden">
+        <!-- Sidebar de Abas (Handle de Arraste) -->
+        <aside 
+          class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-4 cursor-grab active:cursor-grabbing group"
+          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+          @mousedown="onMouseDown"
+        >
+          <div class="hidden md:flex items-center gap-3 px-2 mb-8">
+            <div class="p-2.5 bg-indigo-500 rounded-2xl text-white shadow-lg shadow-indigo-500/20">
+              <Palette class="w-5 h-5" />
             </div>
-
-            <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
-              <button 
-                v-for="tab in tabs" 
-                :key="tab.id"
-                @click="activeTab = tab.id"
-                class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
-                :class="activeTab === tab.id 
-                  ? 'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-slate-200 dark:ring-white/10' 
-                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'"
-              >
-                <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
-                <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
-              </button>
-            </nav>
-
-            <div class="hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10 mt-auto">
-              <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-                As alterações na interface são aplicadas instantaneamente em tempo real.
-              </p>
+            <div>
+              <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter">Interface</h2>
+              <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Ajustes Visuais</p>
             </div>
-          </aside>
+          </div>
 
-          <!-- Conteúdo da Aba -->
-          <main 
-            class="flex-1 flex flex-col overflow-hidden relative"
-            :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
-          >
-            <!-- Close Button Top Right -->
-            <button class="absolute top-6 right-6 icon-btn z-10" @click="emit('close')">
-              <X class="w-5 h-5" />
+          <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
+            <button 
+              v-for="tab in tabs" 
+              :key="tab.id"
+              @click="activeTab = tab.id"
+              class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
+              :class="activeTab === tab.id 
+                ? 'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-slate-200 dark:ring-white/10' 
+                : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'"
+            >
+              <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
+              <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
             </button>
+          </nav>
 
-            <div class="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
-              <transition name="fade-slide" mode="out-in">
-                <!-- ABA: Board -->
-                <div v-if="activeTab === 'board'" :key="'board'" class="space-y-8">
-                  <div>
-                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Board & Layout</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Configure a estrutura principal do seu quadro de tarefas.</p>
-                  </div>
+          <div class="hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10 mt-auto">
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
+              As alterações na interface são aplicadas instantaneamente em tempo real.
+            </p>
+          </div>
+        </aside>
 
-                  <div class="space-y-8">
-                    <!-- Seleção de Colunas -->
-                    <div class="space-y-3">
-                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Quantidade de Colunas</label>
-                      <div class="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200 dark:border-white/5 w-full">
-                        <button v-for="n in 4" :key="n" @click="handleColumnChange(n)"
-                          class="flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300"
-                          :class="settings.columns === n ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400'">{{ n }} Colunas</button>
-                      </div>
-                    </div>
+        <!-- Conteúdo da Aba -->
+        <main 
+          class="flex-1 flex flex-col overflow-hidden relative"
+          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+        >
+          <!-- Close Button Top Right -->
+          <button class="absolute top-6 right-6 icon-btn z-10" @click="emit('close')">
+            <X class="w-5 h-5" />
+          </button>
 
-                    <!-- Títulos das Colunas -->
-                    <div class="space-y-4 animate-fadeIn">
-                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Nomes das Colunas (Opcional)</label>
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div v-for="n in settings.columns" :key="n" class="space-y-1.5">
-                          <div class="flex items-center gap-2 mb-1">
-                            <div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
-                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Coluna {{ n }}</span>
-                          </div>
-                          <input 
-                            v-model="settings.columnTitles[n-1]" 
-                            type="text" 
-                            placeholder="Ex: Backlog, Fazendo..."
-                            class="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                            @input="settings.saveSetting('app-column-titles', [...settings.columnTitles])"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="pt-6 border-t border-slate-200 dark:border-white/5">
-                      <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
-                        <div class="flex flex-col">
-                          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Guias Sempre Visíveis</span>
-                          <span class="text-[9px] text-slate-400">Desative para ocultar (aparecem apenas ao arrastar)</span>
-                        </div>
-                        <div class="relative inline-flex items-center">
-                          <input type="checkbox" v-model="settings.showEmptyPlaceholders" @change="settings.saveSetting('app-show-placeholders', settings.showEmptyPlaceholders)" class="sr-only peer" />
-                          <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
+          <div class="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
+            <transition name="fade-slide" mode="out-in">
+              <!-- ABA: Board -->
+              <div v-if="activeTab === 'board'" :key="'board'" class="space-y-8">
+                <div>
+                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Board & Layout</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Configure a estrutura principal do seu quadro de tarefas.</p>
                 </div>
 
-                <!-- ABA: Estilo das Tarefas -->
-                <div v-else-if="activeTab === 'tasks'" :key="'tasks'" class="space-y-8">
-                  <div>
-                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Estilo das Tarefas</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Personalize a aparência visual dos seus cards de tarefa.</p>
+                <div class="space-y-8">
+                  <!-- Seleção de Colunas -->
+                  <div class="space-y-3">
+                    <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Quantidade de Colunas</label>
+                    <div class="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200 dark:border-white/5 w-full">
+                      <button v-for="n in 4" :key="n" @click="handleColumnChange(n)"
+                        class="flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300"
+                        :class="settings.columns === n ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400'">{{ n }} Colunas</button>
+                    </div>
                   </div>
 
-                  <div class="grid grid-cols-1 gap-6">
-                    <!-- Espessura -->
-                    <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-5">
-                      <div class="flex justify-between items-center">
-                        <div>
-                          <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Espessura (Padding)</span>
+                  <!-- Títulos das Colunas -->
+                  <div class="space-y-4 animate-fadeIn">
+                    <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Nomes das Colunas (Opcional)</label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div v-for="n in settings.columns" :key="n" class="space-y-1.5">
+                        <div class="flex items-center gap-2 mb-1">
+                          <div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                          <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Coluna {{ n }}</span>
                         </div>
-                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.cardPadding }}px</span>
+                        <input 
+                          v-model="settings.columnTitles[n-1]" 
+                          type="text" 
+                          placeholder="Ex: Backlog, Fazendo..."
+                          class="focus:ring-indigo-500"
+                          @input="settings.saveSetting('app-column-titles', [...settings.columnTitles])"
+                        />
                       </div>
-                      <input type="range" v-model="settings.cardPadding" min="8" max="40" step="2" class="w-full app-range" @change="settings.cardPadding = parseInt($event.target.value); settings.saveSetting('app-card-padding', settings.cardPadding)" />
                     </div>
+                  </div>
 
-                    <!-- Escala de Texto: Título -->
-                    <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-5">
-                      <div class="flex justify-between items-center">
-                        <div>
-                          <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho do Título</span>
-                        </div>
-                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskNumberSize }}px</span>
+                  <div class="pt-6 border-t border-slate-200 dark:border-white/5">
+                    <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                      <div class="flex flex-col">
+                        <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Guias Sempre Visíveis</span>
+                        <span class="text-[9px] text-slate-400">Desative para ocultar (aparecem apenas ao arrastar)</span>
                       </div>
-                      <input type="range" v-model="settings.taskNumberSize" min="8" max="24" step="1" class="w-full app-range" @change="settings.saveSetting('app-task-number-size', settings.taskNumberSize)" />
-                    </div>
-
-                    <!-- Escala de Texto: Descrição -->
-                    <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-5">
-                      <div class="flex justify-between items-center">
-                        <div>
-                          <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho da Descrição</span>
-                        </div>
-                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskDescriptionSize }}px</span>
+                      <div class="relative inline-flex items-center">
+                        <input type="checkbox" v-model="settings.showEmptyPlaceholders" @change="settings.saveSetting('app-show-placeholders', settings.showEmptyPlaceholders)" class="sr-only peer" />
+                        <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
                       </div>
-                      <input type="range" v-model="settings.taskDescriptionSize" min="10" max="28" step="1" class="w-full app-range" @change="settings.saveSetting('app-task-desc-size', settings.taskDescriptionSize)" />
-                    </div>
+                    </label>
                   </div>
                 </div>
-
-                <!-- ABA: Tipografia -->
-                <div v-else-if="activeTab === 'typography'" :key="'typography'" class="space-y-8">
-                  <div>
-                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Tipografia</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Escolha a fonte que melhor se adapta ao seu estilo de trabalho.</p>
-                  </div>
-
-                  <div class="space-y-6">
-                    <!-- Família de Fontes -->
-                    <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
-                      <div class="flex items-center gap-3 mb-2">
-                        <TypeIcon class="w-5 h-5 text-indigo-500" />
-                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Família de Fontes</span>
-                      </div>
-                      <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        <button v-for="font in fontOptions" :key="font" @click="settings.fontFamily = font; settings.saveSetting('app-font-family', font)"
-                          class="px-2 py-2.5 text-[10px] font-medium rounded-xl border transition-all truncate"
-                          :class="settings.fontFamily === font ? 'bg-indigo-500 text-white border-indigo-500 shadow-md' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10'"
-                          :style="{ fontFamily: font }">{{ font }}</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-
-
-                <!-- ABA: Papéis de Parede -->
-                <div v-else-if="activeTab === 'wallpapers'" :key="'wallpapers'" class="space-y-6">
-                  <div>
-                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Galeria de Papéis de Parede</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Troque o clima do seu workspace instantaneamente.</p>
-                  </div>
-
-                  <div class="p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5 space-y-6">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-3">
-                        <ImageIcon class="w-5 h-5 text-emerald-500" />
-                        <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Papéis de Parede Premium</h3>
-                      </div>
-                      <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">{{ settings.customWallpapers.length }} / 17 Slots</span>
-                    </div>
-
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      <button 
-                        v-if="settings.customWallpapers.length > 0"
-                        @click="clearWallpaper"
-                        class="aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all group"
-                        :class="!settings.backgroundImage ? 'border-indigo-500 bg-indigo-500/5 text-indigo-500' : 'border-slate-200 dark:border-white/10 text-slate-400 hover:border-red-500/50 hover:text-red-500'"
-                      >
-                        <Eraser class="w-6 h-6" />
-                        <span class="text-[10px] font-bold uppercase tracking-tighter">Limpar</span>
-                      </button>
-
-                      <div 
-                        v-for="(wp, index) in settings.customWallpapers" 
-                        :key="index"
-                        class="relative group aspect-video rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-slate-200 dark:bg-white/10"
-                        :class="settings.backgroundImage === wp.url ? 'border-emerald-500 scale-95 shadow-lg shadow-emerald-500/20' : 'border-transparent hover:border-slate-300 dark:hover:border-white/20'"
-                        @click="setWallpaper(wp.url)"
-                      >
-                        <img :src="wp.url" class="w-full h-full object-cover" alt="Wallpaper Preview" loading="lazy" />
-                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                          <button 
-                            @click.stop="removeWallpaper(index)"
-                            class="p-2 bg-red-500/80 hover:bg-red-500 text-white rounded-lg transition-colors"
-                          >
-                            <Trash2 class="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <button 
-                        v-if="settings.customWallpapers.length < 17"
-                        @click="showAddWallpaper = !showAddWallpaper"
-                        class="aspect-video rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-500"
-                      >
-                        <Plus class="w-6 h-6" />
-                        <span class="text-[10px] font-bold uppercase tracking-tighter">Novo Link</span>
-                      </button>
-                    </div>
-
-                    <div v-if="showAddWallpaper" class="animate-fadeIn p-4 bg-white dark:bg-white/5 rounded-2xl border border-emerald-500/30 space-y-4">
-                      <div class="space-y-2">
-                        <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">URL da Imagem</label>
-                        <div class="flex gap-2">
-                          <input 
-                            v-model="newWallpaperUrl" 
-                            type="text" 
-                            placeholder="https://exemplo.com/imagem.jpg"
-                            class="flex-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-                            @keyup.enter="addCustomWallpaper"
-                          />
-                          <button @click="addCustomWallpaper" class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/25">
-                            Salvar
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Desfoque do Fundo -->
-                    <div class="mt-6 p-6 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-3xl border border-indigo-500/10 space-y-4">
-                      <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest">Desfoque do Workspace</span>
-                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.backgroundBlur }}px</span>
-                      </div>
-                      <input 
-                        type="range" 
-                        v-model="settings.backgroundBlur" 
-                        min="0" max="20" step="1" 
-                        class="w-full app-range" 
-                        @change="settings.saveSetting('app-bg-blur', settings.backgroundBlur)" 
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <!-- ABA: Efeitos e Vidro -->
-                <div v-else-if="activeTab === 'effects'" :key="'effects'" class="space-y-6">
-                  <div>
-                    <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Efeitos e Vidro</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Ajuste o desfoque e as transparências do sistema.</p>
-                  </div>
-
-
-                  <div class="p-6 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-3xl border border-indigo-500/10 space-y-6">
-                    <div class="flex items-center gap-3">
-                      <Droplets class="w-5 h-5 text-indigo-500" />
-                      <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Transparência</h3>
-                    </div>
-
-                    <div class="space-y-4">
-                      <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nível de Transparência</span>
-                        <span class="text-xs font-black text-indigo-500">{{ settings.cardOpacity }}%</span>
-                      </div>
-                      <input type="range" v-model="settings.cardOpacity" min="0" max="100" step="5" class="w-full app-range" @change="settings.saveSetting('app-card-opacity', settings.cardOpacity)" />
-                      
-                      <div class="pt-6 border-t border-slate-200 dark:border-white/5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block">Aplicar efeito em:</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Cards</span>
-                            <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.cards" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
-                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
-                            </div>
-                          </label>
-
-                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Janelas e Menus</span>
-                            <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.modals" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
-                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
-                            </div>
-                          </label>
-
-                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Menu Inferior</span>
-                            <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.bottomBar" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
-                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
-                            </div>
-                          </label>
-
-                          <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Menu de Contexto</span>
-                            <div class="relative inline-flex items-center">
-                              <input type="checkbox" v-model="settings.opacityTargets.contextMenu" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
-                              <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
-                            </div>
-                                    </label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </transition>
               </div>
 
-            <footer class="p-5 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
-              <button @click="emit('close')" class="w-full py-4 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-xl shadow-indigo-500/20 uppercase tracking-widest active:scale-95">
-                Terminei os Ajustes
-              </button>
-            </footer>
-          </main>
-        </div>
-      </section>
-    </div>
-  </transition>
+              <!-- ABA: Estilo das Tarefas -->
+              <div v-else-if="activeTab === 'tasks'" :key="'tasks'" class="space-y-8">
+                <div>
+                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Estilo das Tarefas</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Personalize a aparência visual dos seus cards de tarefa.</p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6">
+                  <!-- Espessura -->
+                  <div class="glass-section p-6 space-y-5">
+                    <div class="flex justify-between items-center">
+                      <div>
+                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Espessura (Padding)</span>
+                      </div>
+                      <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.cardPadding }}px</span>
+                    </div>
+                    <input type="range" v-model="settings.cardPadding" min="8" max="40" step="2" class="w-full app-range" @change="settings.cardPadding = parseInt($event.target.value); settings.saveSetting('app-card-padding', settings.cardPadding)" />
+                  </div>
+
+                  <!-- Escala de Texto: Título -->
+                  <div class="glass-section p-6 space-y-5">
+                    <div class="flex justify-between items-center">
+                      <div>
+                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho do Título</span>
+                      </div>
+                      <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskNumberSize }}px</span>
+                    </div>
+                    <input type="range" v-model="settings.taskNumberSize" min="8" max="24" step="1" class="w-full app-range" @change="settings.saveSetting('app-task-number-size', settings.taskNumberSize)" />
+                  </div>
+
+                  <!-- Escala de Texto: Descrição -->
+                  <div class="glass-section p-6 space-y-5">
+                    <div class="flex justify-between items-center">
+                      <div>
+                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho da Descrição</span>
+                      </div>
+                      <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskDescriptionSize }}px</span>
+                    </div>
+                    <input type="range" v-model="settings.taskDescriptionSize" min="10" max="28" step="1" class="w-full app-range" @change="settings.saveSetting('app-task-desc-size', settings.taskDescriptionSize)" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- ABA: Tipografia -->
+              <div v-else-if="activeTab === 'typography'" :key="'typography'" class="space-y-8">
+                <div>
+                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Tipografia</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Escolha a fonte que melhor se adapta ao seu estilo de trabalho.</p>
+                </div>
+
+                <div class="space-y-6">
+                  <!-- Família de Fontes -->
+                  <div class="glass-section p-6 space-y-4">
+                    <div class="flex items-center gap-3 mb-2">
+                      <TypeIcon class="w-5 h-5 text-indigo-500" />
+                      <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Família de Fontes</span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      <button v-for="font in fontOptions" :key="font" @click="settings.fontFamily = font; settings.saveSetting('app-font-family', font)"
+                        class="px-2 py-2.5 text-[10px] font-medium rounded-xl border transition-all truncate"
+                        :class="settings.fontFamily === font ? 'bg-indigo-500 text-white border-indigo-500 shadow-md' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10'"
+                        :style="{ fontFamily: font }">{{ font }}</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ABA: Papéis de Parede -->
+              <div v-else-if="activeTab === 'wallpapers'" :key="'wallpapers'" class="space-y-6">
+                <div>
+                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Galeria de Papéis de Parede</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Troque o clima do seu workspace instantaneamente.</p>
+                </div>
+
+                <div class="glass-section p-6 space-y-6">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <ImageIcon class="w-5 h-5 text-emerald-500" />
+                      <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Papéis de Parede Premium</h3>
+                    </div>
+                    <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">{{ settings.customWallpapers.length }} / 17 Slots</span>
+                  </div>
+
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <button 
+                      v-if="settings.customWallpapers.length > 0"
+                      @click="clearWallpaper"
+                      class="aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all group"
+                      :class="!settings.backgroundImage ? 'border-indigo-500 bg-indigo-500/5 text-indigo-500' : 'border-slate-200 dark:border-white/10 text-slate-400 hover:border-red-500/50 hover:text-red-500'"
+                    >
+                      <Eraser class="w-6 h-6" />
+                      <span class="text-[10px] font-bold uppercase tracking-tighter">Limpar</span>
+                    </button>
+
+                    <div 
+                      v-for="(wp, index) in settings.customWallpapers" 
+                      :key="index"
+                      class="relative group aspect-video rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-slate-200 dark:bg-white/10"
+                      :class="settings.backgroundImage === wp.url ? 'border-emerald-500 scale-95 shadow-lg shadow-emerald-500/20' : 'border-transparent hover:border-slate-300 dark:hover:border-white/20'"
+                      @click="setWallpaper(wp.url)"
+                    >
+                      <img :src="wp.url" class="w-full h-full object-cover" alt="Wallpaper Preview" loading="lazy" />
+                      <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <button 
+                          @click.stop="removeWallpaper(index)"
+                          class="p-2 bg-red-500/80 hover:bg-red-500 text-white rounded-lg transition-colors"
+                        >
+                          <Trash2 class="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <button 
+                      v-if="settings.customWallpapers.length < 17"
+                      @click="showAddWallpaper = !showAddWallpaper"
+                      class="aspect-video rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-500"
+                    >
+                      <Plus class="w-6 h-6" />
+                      <span class="text-[10px] font-bold uppercase tracking-tighter">Novo Link</span>
+                    </button>
+                  </div>
+
+                  <div v-if="showAddWallpaper" class="animate-fadeIn p-4 bg-white dark:bg-white/5 rounded-2xl border border-emerald-500/30 space-y-4">
+                    <div class="space-y-2">
+                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">URL da Imagem</label>
+                      <div class="flex gap-2">
+                        <input 
+                          v-model="newWallpaperUrl" 
+                          type="text" 
+                          placeholder="https://exemplo.com/imagem.jpg"
+                          class="flex-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                          @keyup.enter="addCustomWallpaper"
+                        />
+                        <button @click="addCustomWallpaper" class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/25">
+                          Salvar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Desfoque do Fundo -->
+                  <div class="glass-section p-6 space-y-4">
+                    <div class="flex justify-between items-center">
+                      <span class="text-[10px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest">Desfoque do Workspace</span>
+                      <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.backgroundBlur }}px</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      v-model="settings.backgroundBlur" 
+                      min="0" max="20" step="1" 
+                      class="w-full app-range" 
+                      @change="settings.saveSetting('app-bg-blur', settings.backgroundBlur)" 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- ABA: Efeitos e Vidro -->
+              <div v-else-if="activeTab === 'effects'" :key="'effects'" class="space-y-6">
+                <div>
+                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Efeitos e Vidro</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Ajuste o desfoque e as transparências do sistema.</p>
+                </div>
+
+
+                <div class="glass-section p-6 space-y-6">
+                  <div class="flex items-center gap-3">
+                    <Droplets class="w-5 h-5 text-indigo-500" />
+                    <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Transparência</h3>
+                  </div>
+
+                  <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nível de Transparência</span>
+                      <span class="text-xs font-black text-indigo-500">{{ settings.cardOpacity }}%</span>
+                    </div>
+                    <input type="range" v-model="settings.cardOpacity" min="0" max="100" step="5" class="w-full app-range" @change="settings.saveSetting('app-card-opacity', settings.cardOpacity)" />
+                    
+                    <div class="pt-6 border-t border-slate-200 dark:border-white/5">
+                      <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block">Aplicar efeito em:</label>
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Cards</span>
+                          <div class="relative inline-flex items-center">
+                            <input type="checkbox" v-model="settings.opacityTargets.cards" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
+                            <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
+                          </div>
+                        </label>
+
+                        <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Janelas e Menus</span>
+                          <div class="relative inline-flex items-center">
+                            <input type="checkbox" v-model="settings.opacityTargets.modals" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
+                            <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
+                          </div>
+                        </label>
+
+                        <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Menu Inferior</span>
+                          <div class="relative inline-flex items-center">
+                            <input type="checkbox" v-model="settings.opacityTargets.bottomBar" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
+                            <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
+                          </div>
+                        </label>
+
+                        <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Menu de Contexto</span>
+                          <div class="relative inline-flex items-center">
+                            <input type="checkbox" v-model="settings.opacityTargets.contextMenu" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
+                            <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-sm"></div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </transition>
+          </div>
+
+          <footer class="p-5 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
+            <button @click="emit('close')" class="w-full py-4 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-xl shadow-indigo-500/20 uppercase tracking-widest active:scale-95">
+              Terminei os Ajustes
+            </button>
+          </footer>
+        </main>
+      </div>
+    </template>
+  </BaseModal>
 </template>
 
 <style scoped>
