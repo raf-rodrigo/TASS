@@ -2,7 +2,7 @@
 import { ref, watch, onMounted, computed } from 'vue';
 import { 
   Download, Upload, Globe, Palette,
-  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles
+  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles, Bug
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
@@ -14,7 +14,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
-const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'export-system', 'import-system', 'test-wellness', 'open-interface']);
+const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'export-system', 'import-system', 'test-wellness', 'open-interface', 'test-modal']);
 
 const activeTab = ref('gitlab');
 
@@ -458,6 +458,30 @@ const handleResetSystem = async () => {
                       <div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                     </div>
                   </label>
+                </div>
+
+                <div class="glass-section p-4 space-y-4 border-t-2 border-indigo-500/20">
+                  <div class="flex items-center gap-2 mb-2">
+                    <Bug class="w-4 h-4 text-indigo-500" />
+                    <div>
+                      <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Modo Desenvolvedor (Debug)</p>
+                      <p class="text-[10px] text-slate-500">Teste as chamadas de API internas do sistema TASS.</p>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button @click="$emit('test-modal', 'success')" class="py-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
+                      Success
+                    </button>
+                    <button @click="$emit('test-modal', 'error')" class="py-2 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
+                      Error
+                    </button>
+                    <button @click="$emit('test-modal', 'warning')" class="py-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
+                      Warning
+                    </button>
+                    <button @click="$emit('test-modal', 'prompt')" class="py-2 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500 hover:text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
+                      Prompt
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

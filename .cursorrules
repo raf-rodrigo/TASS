@@ -7,17 +7,17 @@ Este documento serve como referência para manter a consistência "Premium" da i
 - Utilize SEMPRE os tokens semânticos `app-*` definidos no `tailwind.config.js` e `style.css`.
 - Essa abordagem garante que o sistema de temas (Light/Dark) e a transparência reativa funcionem sem intervenção manual.
 
-## 1. Modais (BaseModal)
-Todos os modais devem utilizar o componente `BaseModal` e seguir a estrutura de slots:
+## 1. Modais e Layouts Base
+- **Uso do BaseModal:** Todos os modais DEVEM utilizar o componente `BaseModal.vue`. NUNCA aplique filtros de `backdrop-blur` ou `bg-black/50` manualmente nos modais filhos, o sistema de background é centralizado.
+- **Estrutura de Slots**:
+  - **Header (`#header`)**: Padrão com Ícone em box colorido + Título + Subtítulo.
+  - **Footer (`#footer`)**: Botões de rodapé simétricos e largura total.
+- **Alinhamento e Altura:** Os modais complexos (ex: TaskModal, SettingsModal) DEVEM usar o layout padrão "Sidebar + Main" em CSS Grid/Flexbox e manter a altura de `600px` (`md:h-[600px]`) em resoluções de desktop.
 
-- **Header (`#header`)**:
-  - Padrão: Ícone em box colorido + Título + Subtítulo.
-  - Box do Ícone: `p-2.5 rounded-2xl text-white shadow-lg`.
-  - Título: `text-2xl font-black tracking-tighter`.
-  - Subtítulo: `text-[10px] font-bold text-slate-400 uppercase tracking-widest`.
-- **Footer (`#footer`)**:
-  - Utilizar o slot nativo do `BaseModal` para garantir padding simétrico (`p-5`).
-  - Botões de rodapé devem ocupar a largura total (`w-full`).
+## 2. Componentes de Formulário (Inputs)
+**PROIBIÇÃO:** NUNCA crie tags `<input>` ou `<textarea>` do zero com classes do Tailwind extensas e repetitivas.
+- OBRIGATORIAMENTE importe e utilize os componentes `AppInput.vue` e `AppTextarea.vue` (de `src/components/base/`).
+- Eles já gerenciam rótulos (`label`), ícones (`icon`), classes reativas, estados de erro (`error` com `animate-shake`) e repasse de atributos.
 
 ## 2. Geometria e Arredondamento (Radius Harmony)
 A regra de ouro é o **Arredondamento Geométrico**: o raio interno deve ser o raio externo menos o padding.
@@ -48,9 +48,10 @@ A regra de ouro é o **Arredondamento Geométrico**: o raio interno deve ser o r
 - **Ações Destrutivas**:
   - Botão: `btn-danger` (Vermelho).
   - Ícone de Confirmação: `danger` ou `error` (Vermelho), nunca amarelo (warning).
-- **Transparência Reativa**:
-  - SEMPRE usar as variáveis centralizadas: `var(--app-card-opacity)`, `var(--app-bottom-opacity)`, `var(--app-modal-opacity)`.
-  - NUNCA usar valores fixos de opacidade em componentes estruturais.
+- **Transparência Reativa (Regra de Ouro)**:
+  - SEMPRE usar as variáveis CSS injetadas no `:root`: `var(--app-card-opacity)`, `var(--app-bottom-opacity)`, `var(--app-modal-opacity)`.
+  - NUNCA usar classes utilitárias fixas do Tailwind como `opacity-50` ou `bg-black/50` para definir transparência global/fundo.
+  - OBRIGATORIAMENTE utilize a classe reativa `.glass-panel` que responde diretamente ao slider do `settingsStore`.
 
 ## 6. Layout e Espaçamento
 - **Gaps de Seção**: Usar `space-y-6` ou `gap-6` para separar grandes blocos de formulário.
@@ -61,18 +62,14 @@ A regra de ouro é o **Arredondamento Geométrico**: o raio interno deve ser o r
 - **Formatação**: Utilizar sempre `ensureProtocol` ao salvar links para garantir que o prefixo `https://` esteja presente.
 - **Campos Vazios**: Tratar campos vazios como válidos (opcionais), a menos que explicitamente marcados como obrigatórios.
 
-## 8. Diálogos e Prompts (SweetAlert2)
-Para manter a consistência visual nos alertas e prompts:
-- **Estilização**: Sempre desativar o estilo nativo (`buttonsStyling: false`) e aplicar `customClass`:
-  ```javascript
-  customClass: {
-    popup: 'tass-modal',
-    confirmButton: 'btn btn-primary',
-    cancelButton: 'btn btn-secondary',
-    input: 'tass-input'
-  }
-  ```
-- **Ações**: Preferir `confirmText` e `cancelText` como nomes de propriedades de texto nos wrappers.
+## 8. Diálogos e Prompts (GlobalModal)
+O sistema TASS NÃO utiliza mais SweetAlert2 nem alertas nativos (`window.alert`).
+- **PROIBIDO:** NUNCA crie modais customizados para fluxos de decisão simples ou utilize `alert()`/`confirm()`.
+- **PADRÃO:** Utilize OBRIGATORIAMENTE a API unificada do `notificationService` que invoca o `GlobalModal`:
+  - Sucesso: `notificationService.alert('Título', 'Msg', 'success')`
+  - Erro: `notificationService.alert('Erro', 'Msg', 'error')`
+  - Confirmação: `await notificationService.confirm('Aviso', 'Msg', 'OK', 'warning')`
+  - Entrada de Dados: `await notificationService.prompt('Título', 'Msg', 'text')`
 
 ## 9. Tooltips Customizadas
 - **Nativo**: Nunca utilizar o atributo `title` do navegador.

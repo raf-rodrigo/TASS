@@ -143,6 +143,21 @@ const handleAddTask = async (taskData) => {
   }
 };
 
+const handleTestModal = async (type) => {
+  if (type === 'success') {
+    notificationService.alert('Teste Concluído!', 'O modal de sucesso está funcionando.', 'success');
+  } else if (type === 'error') {
+    notificationService.alert('Falha Simulada', 'O modal de erro foi disparado com sucesso.', 'error');
+  } else if (type === 'warning') {
+    await notificationService.confirm('Cuidado!', 'Isto é um teste do modal de aviso (warning).', 'Entendido', 'warning');
+  } else if (type === 'prompt') {
+    const result = await notificationService.prompt('Entrada de Dados', 'Digite algo para testar o prompt:', 'text');
+    if (result) {
+      notificationService.toast(`Você digitou: ${result}`, 'success');
+    }
+  }
+};
+
 const toggleTaskCompletion = async (task) => {
   try {
     const newStatus = !task.completed;
@@ -331,6 +346,7 @@ onMounted(async () => {
       @open-interface="() => { showSettings = false; showInterfaceMenu = true; }"
       @save="() => {}"
       @test-wellness="triggerWellness(true)"
+      @test-modal="handleTestModal"
       @export-tasks="handleExportTasks"
       @import-tasks="handleImportTasks"
       @export-system="handleExportSystem"
