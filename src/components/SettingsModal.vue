@@ -184,7 +184,7 @@ const handleResetSystem = async () => {
             @click="activeTab = tab.id"
             class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
             :class="activeTab === tab.id 
-              ? 'bg-app-solid shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-app-border' 
+              ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' 
               : 'text-app-sub hover:bg-app-surface'"
           >
             <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
