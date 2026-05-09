@@ -90,3 +90,8 @@ O sistema injeta variáveis CSS dinâmicas no `:root` baseadas no estado da conf
 
 ---
 *Nota: Esta solução foi adotada para evitar o "Shotgun Surgery" (ter que alterar 20 arquivos para mudar um detalhe visual) e manter o código acessível para desenvolvedores de todos os níveis.*
+
+## 🤖 Diretrizes de IA e Comunicação (MANDATÓRIO)
+1. **Idioma de Operação:** Toda a comunicação entre o sistema e o usuário deve ser em **Português (Brasil)**.
+2. **Raciocínio Interno:** O processo de pensamento da IA deve ser realizado em Português para manter o alinhamento cultural e técnico.
+3. **Padrão de Resposta:** Explicações claras, tom profissional e foco em soluções que mantenham a estética "Premium" do TASS.

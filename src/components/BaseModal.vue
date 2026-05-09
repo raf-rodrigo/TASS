@@ -18,15 +18,17 @@ const { position, onMouseDown } = useModalDrag();
 </script>
 
 <template>
-  <div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/20 dark:bg-black/40 backdrop-blur-sm" @click.self="emit('close')">
+  <div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-transparent" @click.self="emit('close')">
     <section 
-      class="glass-panel w-full flex flex-col shadow-2xl border-white/20 dark:border-white/5 overflow-hidden"
-      :class="[maxWidth, customClass, { 'animate-scaleIn': animate, 'backdrop-blur-xl': settings.cardOpacity > 0 }]"
+      class="glass-panel w-full flex flex-col shadow-2xl border-indigo-500/10 overflow-hidden"
+      :class="[maxWidth, customClass, { 'animate-scaleIn': animate }]"
       :style="{ 
-        transform: `translate(${position.x}px, ${position.y}px)`,
+        '--modal-x': `${position.x}px`,
+        '--modal-y': `${position.y}px`,
+        transform: `translate(var(--modal-x), var(--modal-y))`,
         backgroundColor: settings.theme === 'dark' 
-          ? `rgba(15, 23, 42, ${settings.opacityTargets.modals ? (100 - settings.cardOpacity) / 100 : 0.98})` 
-          : `rgba(255, 255, 255, ${settings.opacityTargets.modals ? (100 - settings.cardOpacity) / 100 : 0.95})`
+          ? `rgba(15, 23, 42, ${settings.opacityTargets.modals ? (100 - settings.cardOpacity) / 100 : 1.0})` 
+          : `rgba(255, 255, 255, ${settings.opacityTargets.modals ? (100 - settings.cardOpacity) / 100 : 1.0})`
       }"
     >
       <!-- Header / Drag Handle -->
