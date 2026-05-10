@@ -67,7 +67,7 @@ export const useTaskStore = defineStore('task', () => {
       const id = parseInt(settings.activeSprintId);
       filtered = filtered.filter(t => t.sprintId === id);
     }
-    const totalMs = filtered.reduce((acc, t) => acc + (t.totalTimeSpent || 0), 0);
+    const totalMs = filtered.reduce((acc, t) => acc + (t.totalWorked || t.totalTimeSpent || 0), 0);
     return formatMsToHMS(totalMs, true);
   });
 
@@ -112,9 +112,11 @@ export const useTaskStore = defineStore('task', () => {
           await db.tasks.update(runningTask.id, { isRunning: false, lastStartTime: null });
         } else {
           runningTask.totalTimeSpent += timePassed;
+          runningTask.totalWorked = (runningTask.totalWorked || 0) + timePassed;
           runningTask.lastStartTime = now;
           await db.tasks.update(runningTask.id, { 
             totalTimeSpent: runningTask.totalTimeSpent, 
+            totalWorked: runningTask.totalWorked,
             lastStartTime: runningTask.lastStartTime 
           });
         }
@@ -152,6 +154,7 @@ export const useTaskStore = defineStore('task', () => {
       columnId: targetColumn,
       completed: false,
       totalTimeSpent: 0,
+      totalWorked: 0,
       isRunning: false,
       lastStartTime: null,
       createdAt: Date.now()
@@ -242,16 +245,34 @@ export const useTaskStore = defineStore('task', () => {
     const now = Date.now();
     if (task.isRunning) {
       task.isRunning = false;
-      if (task.lastStartTime) task.totalTimeSpent += (now - task.lastStartTime);
+      if (task.lastStartTime) {
+        const diff = now - task.lastStartTime;
+        task.totalTimeSpent += diff;
+        task.totalWorked = (task.totalWorked || 0) + diff;
+      }
       task.lastStartTime = null;
-      await updateTask(task.id, { isRunning: false, totalTimeSpent: task.totalTimeSpent, lastStartTime: null });
+      await updateTask(task.id, { 
+        isRunning: false, 
+        totalTimeSpent: task.totalTimeSpent, 
+        totalWorked: task.totalWorked,
+        lastStartTime: null 
+      });
     } else {
       for (const t of tasks.value) {
         if (t.isRunning && t.id !== task.id) {
           t.isRunning = false;
-          if (t.lastStartTime) t.totalTimeSpent += (now - t.lastStartTime);
+          if (t.lastStartTime) {
+            const diff = now - t.lastStartTime;
+            t.totalTimeSpent += diff;
+            t.totalWorked = (t.totalWorked || 0) + diff;
+          }
           t.lastStartTime = null;
-          await db.tasks.update(t.id, { isRunning: false, totalTimeSpent: t.totalTimeSpent, lastStartTime: null });
+          await db.tasks.update(t.id, { 
+            isRunning: false, 
+            totalTimeSpent: t.totalTimeSpent, 
+            totalWorked: t.totalWorked,
+            lastStartTime: null 
+          });
         }
       }
       task.isRunning = true;
@@ -260,11 +281,26 @@ export const useTaskStore = defineStore('task', () => {
     }
   };
 
+  const resetTaskTime = async (id) => {
+    try {
+      await updateTask(id, { 
+        totalTimeSpent: 0, 
+        lastStartTime: null,
+        isRunning: false 
+      });
+      notificationService.toast('Cronômetro da tarefa zerado!');
+    } catch (error) {
+      console.error("Failed to reset task time:", error);
+    }
+  };
+
   const updateRunningTasks = () => {
     const now = Date.now();
     tasks.value.forEach(task => {
       if (task.isRunning && task.lastStartTime) {
-        task.totalTimeSpent += (now - task.lastStartTime);
+        const diff = now - task.lastStartTime;
+        task.totalTimeSpent += diff;
+        task.totalWorked = (task.totalWorked || 0) + diff;
         task.lastStartTime = now;
       }
     });
@@ -273,7 +309,11 @@ export const useTaskStore = defineStore('task', () => {
   const autoSaveRunningTasks = async () => {
     const promises = tasks.value
       .filter(t => t.isRunning)
-      .map(t => db.tasks.update(t.id, { totalTimeSpent: t.totalTimeSpent, lastStartTime: t.lastStartTime }));
+      .map(t => db.tasks.update(t.id, { 
+        totalTimeSpent: t.totalTimeSpent, 
+        totalWorked: t.totalWorked,
+        lastStartTime: t.lastStartTime 
+      }));
     await Promise.all(promises);
   };
 
@@ -332,7 +372,7 @@ export const useTaskStore = defineStore('task', () => {
   return {
     tasks, sprints, isLoading, selectedTask, activeTask,
     statusFilter, filteredTasks, boardColumns,
-    loadTasks, loadSprints, addTask, updateTask, deleteTask, restoreTask,
+    loadTasks, loadSprints, addTask, updateTask, deleteTask, restoreTask, resetTaskTime,
     lastDeletedTask, toggleTimer, updateRunningTasks, autoSaveRunningTasks,
     migrateOrphanTasks, updateAllPositions, resetSystem,
     activeTaskTimeFormatted, activeSprintName, activeSprintTotalTime

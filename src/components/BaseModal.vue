@@ -4,6 +4,24 @@ import { useModalDrag } from '../composables/useModalDrag';
 import { useSettingsStore } from '../stores/settingsStore';
 
 const settings = useSettingsStore();
+
+/**
+ * Props para o BaseModal
+ * @property {string} title - Título principal do modal
+ * @property {string} subtitle - Subtítulo (opcional)
+ * @property {Object|Function} icon - Ícone Lucide (opcional)
+ * @property {string} layout - 'standard' (com header/footer padrão) ou 'custom' (total liberdade)
+ * @property {boolean} showClose - Exibe o botão X no canto superior
+ * @property {boolean} closeOnClickOutside - Fecha ao clicar na área vazia do fundo
+ * @property {boolean} isWindow - MODO JANELA: Remove o bloqueio de cliques no fundo e o escurecimento, permitindo interagir com o resto do app.
+ * @property {string} maxWidth - Classe Tailwind de largura máxima (ex: max-w-lg)
+ * @property {string} customClass - Classes CSS adicionais para a section
+ * @property {boolean} animate - Ativa animação de entrada (scaleIn)
+ * @property {boolean} hideHeader - Esconde o header completamente
+ * @property {string} okText - Texto do botão de ação primária (ativa footer padrão)
+ * @property {string} cancelText - Texto do botão de ação secundária (ativa footer padrão)
+ * @property {boolean} okLoading - Estado de carregamento do botão primário
+ */
 const props = defineProps({
   title: String,
   subtitle: { type: String, default: '' },
@@ -11,6 +29,7 @@ const props = defineProps({
   layout: { type: String, default: 'standard', validator: v => ['standard', 'custom'].includes(v) },
   showClose: { type: Boolean, default: true },
   closeOnClickOutside: { type: Boolean, default: true },
+  isWindow: { type: Boolean, default: false },
   maxWidth: { type: String, default: 'max-w-2xl' },
   customClass: { type: String, default: '' },
   animate: { type: Boolean, default: true },
@@ -33,9 +52,13 @@ const { position, onMouseDown } = useModalDrag();
 </script>
 
 <template>
-  <div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-transparent" @click.self="handleOutsideClick">
+  <div 
+    class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-transparent" 
+    :class="{ 'pointer-events-none': isWindow }"
+    @click.self="handleOutsideClick"
+  >
     <section 
-      class="glass-panel !p-0 w-full flex flex-col shadow-2xl border-indigo-500/10 overflow-hidden"
+      class="glass-panel !p-0 w-full flex flex-col shadow-2xl border-indigo-500/10 overflow-hidden pointer-events-auto"
       :class="[maxWidth, customClass, { 'animate-scaleIn': animate }]"
       :style="{ 
         '--modal-x': `${position.x}px`,

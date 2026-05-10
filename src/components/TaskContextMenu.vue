@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { 
   Pencil, CheckCircle, RotateCcw, Trash2, X, 
   GitBranch, MessageSquare, ExternalLink, 
-  Play, Square, Globe, GitPullRequest
+  Play, Square, Globe, GitPullRequest, TimerReset
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
@@ -24,6 +24,19 @@ const settings = useSettingsStore();
 const taskStore = useTaskStore();
 const isCreatingBranch = ref(false);
 const isMerging = ref(false);
+
+const handleResetTime = async () => {
+  const confirmed = await notificationService.confirm(
+    'Zerar Tempo',
+    'Tem certeza que deseja zerar o tempo desta tarefa? Esta ação não pode ser desfeita.',
+    'Zerar Agora',
+    'warning'
+  );
+  
+  if (confirmed) {
+    await taskStore.resetTaskTime(props.task.id);
+  }
+};
 
 // Handlers migrados do TaskCard
 const handleAction = async (field, label, type = 'url') => {
@@ -76,9 +89,9 @@ const openLink = (url) => {
 </script>
 
 <template>
-  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-full max-w-4xl px-4 pointer-events-none">
+  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-full max-w-[95%] md:max-w-fit px-4 pointer-events-none">
     <div 
-      class="glass-panel !p-2 flex flex-col md:flex-row items-center gap-4 shadow-2xl border-indigo-500/30 backdrop-blur-md ring-1 ring-black/5 pointer-events-auto transition-all duration-300 animate-scaleIn"
+      class="glass-panel !p-2 flex flex-col md:flex-row items-center gap-2 md:gap-4 shadow-2xl border-indigo-500/30 backdrop-blur-md ring-1 ring-black/5 pointer-events-auto transition-all duration-300 animate-scaleIn"
       @click.stop
       :style="{ 
         backgroundColor: settings.theme === 'dark' 
@@ -88,10 +101,10 @@ const openLink = (url) => {
       }"
     >
       <!-- Seção 1: Identificação e Timer Rápido -->
-      <div class="flex items-center gap-4 px-4 py-1 border-r border-slate-200 dark:border-white/10 pr-6 min-w-0 max-w-[280px]">
-        <div class="flex flex-col min-w-0">
+      <div class="flex items-center gap-3 px-4 py-1 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/10 w-full md:w-auto md:min-w-[200px] md:max-w-[300px]">
+        <div class="flex flex-col min-w-0 flex-1">
           <span class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-1">Tarefa Ativa</span>
-          <h4 class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate leading-tight">
+          <h4 class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate leading-tight" :title="task.description || task.title">
             {{ task.description || task.title }}
           </h4>
         </div>
@@ -100,13 +113,13 @@ const openLink = (url) => {
           class="p-2 rounded-xl transition-all active:scale-90 shrink-0"
           :class="task.isRunning ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'"
         >
-          <Square v-if="task.isRunning" class="w-5 h-5" />
-          <Play v-else class="w-5 h-5" />
+          <Square v-if="task.isRunning" class="w-4 h-4" />
+          <Play v-else class="w-4 h-4" />
         </button>
       </div>
 
-      <!-- Seção 2: Ícones de Ação (Os "Moved" do Card) -->
-      <div class="flex items-center gap-2">
+      <!-- Seção 2: Ícones de Ação -->
+      <div class="flex items-center gap-1.5 px-2">
         <!-- GitLab -->
         <button 
           @click="handleGitlabAction"
@@ -115,8 +128,8 @@ const openLink = (url) => {
           :class="{ 'active-action': task.branchUrl }"
           data-tip="Ações no GitLab"
         >
-          <GitBranch v-if="!isCreatingBranch" class="w-5 h-5" />
-          <div v-else class="w-5 h-5 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
+          <GitBranch v-if="!isCreatingBranch" class="w-4 h-4" />
+          <div v-else class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
         </button>
 
         <!-- GitLab Merge -->
@@ -126,8 +139,8 @@ const openLink = (url) => {
           class="icon-btn-large group"
           data-tip="Analisar e Fazer Merge (dev-06)"
         >
-          <GitPullRequest v-if="!isMerging" class="w-5 h-5" />
-          <div v-else class="w-5 h-5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
+          <GitPullRequest v-if="!isMerging" class="w-4 h-4" />
+          <div v-else class="w-4 h-4 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
         </button>
 
         <!-- Observações -->
@@ -137,7 +150,7 @@ const openLink = (url) => {
           :class="{ 'active-action-amber': task.moreInfo }"
           data-tip="Observações"
         >
-          <MessageSquare class="w-5 h-5" />
+          <MessageSquare class="w-4 h-4" />
         </button>
 
         <!-- Link Externo -->
@@ -148,50 +161,56 @@ const openLink = (url) => {
           :class="{ 'active-action-indigo': task.taskUrl }"
           :data-tip="task.taskUrl ? 'Abrir Link (Botão direito para editar)' : 'Configurar Link'"
         >
-          <ExternalLink class="w-5 h-5" />
+          <ExternalLink class="w-4 h-4" />
         </button>
 
-        <!-- Divisor Sutil -->
-        <div class="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1"></div>
-
-        <!-- Ambientes (PRD, HML, DEV) -->
-        <div class="flex items-center gap-1.5">
-          <button 
-            @click="handleAction('prodUrl', 'Merge com Produção', 'url')"
-            @contextmenu.prevent="handleEditAction('prodUrl', 'Merge com Produção', 'url')"
-            class="env-btn" :class="{ 'env-active-prd': task.prodUrl }"
-            :data-tip="task.prodUrl ? 'Abrir Produção (Botão direito para editar)' : 'Configurar PRD'"
-          >PRD</button>
-          <button 
-            @click="handleAction('homologUrl', 'Merge com Homologação', 'url')"
-            @contextmenu.prevent="handleEditAction('homologUrl', 'Merge com Homologação', 'url')"
-            class="env-btn" :class="{ 'env-active-hml': task.homologUrl }"
-            :data-tip="task.homologUrl ? 'Abrir Homologação (Botão direito para editar)' : 'Configurar HML'"
-          >HML</button>
-          <button 
-            @click="handleAction('devUrl', 'Merge com Desenvolvimento', 'url')"
-            @contextmenu.prevent="handleEditAction('devUrl', 'Merge com Desenvolvimento', 'url')"
-            class="env-btn" :class="{ 'env-active-dev': task.devUrl }"
-            :data-tip="task.devUrl ? 'Abrir Desenvolvimento (Botão direito para editar)' : 'Configurar DEV'"
-          >DEV</button>
+        <!-- Ambientes (Compactos) -->
+        <div class="flex items-center gap-1 ml-1">
+          <button @click="handleAction('prodUrl', 'PRD', 'url')" class="env-btn" :class="{ 'env-active-prd': task.prodUrl }">PRD</button>
+          <button @click="handleAction('homologUrl', 'HML', 'url')" class="env-btn" :class="{ 'env-active-hml': task.homologUrl }">HML</button>
+          <button @click="handleAction('devUrl', 'DEV', 'url')" class="env-btn" :class="{ 'env-active-dev': task.devUrl }">DEV</button>
         </div>
       </div>
 
-      <!-- Seção 3: Gestão de Estado (Editar, Concluir, Excluir) -->
-      <div class="flex items-center gap-2 ml-auto pl-4 border-l border-slate-200 dark:border-white/10">
-        <button @click="emit('edit')" class="state-btn hover:bg-indigo-500/10 hover:text-indigo-600">
-          <Pencil class="w-4 h-4" /> <span>Editar</span>
+      <!-- Seção 3: Gestão de Estado (Ícones com Legenda) -->
+      <div class="flex items-center gap-1.5 pl-2 md:pl-4 border-t md:border-t-0 md:border-l border-slate-200 dark:border-white/10 w-full md:w-auto justify-center">
+        <button 
+          @click="handleResetTime" 
+          class="icon-btn-large text-amber-500 hover:bg-amber-500/10" 
+          data-tip="Zerar Cronômetro da Sessão"
+        >
+          <TimerReset class="w-5 h-5" />
         </button>
-        <button @click="emit('toggle-completion')" class="state-btn hover:bg-emerald-500/10 hover:text-emerald-600">
-          <RotateCcw v-if="task.completed" class="w-4 h-4" />
-          <CheckCircle v-else class="w-4 h-4" />
-          <span>{{ task.completed ? 'Reabrir' : 'Concluir' }}</span>
+
+        <button 
+          @click="emit('edit')" 
+          class="icon-btn-large text-indigo-500 hover:bg-indigo-500/10" 
+          data-tip="Editar Detalhes da Tarefa"
+        >
+          <Pencil class="w-5 h-5" />
         </button>
-        <button @click="emit('delete')" class="state-btn text-red-500 hover:bg-red-500/10">
-          <Trash2 class="w-4 h-4" /> <span>Excluir</span>
+
+        <button 
+          @click="emit('toggle-completion')" 
+          class="icon-btn-large" 
+          :class="task.completed ? 'text-blue-500 hover:bg-blue-500/10' : 'text-emerald-500 hover:bg-emerald-500/10'"
+          :data-tip="task.completed ? 'Reabrir Tarefa' : 'Concluir Tarefa'"
+        >
+          <RotateCcw v-if="task.completed" class="w-5 h-5" />
+          <CheckCircle v-else class="w-5 h-5" />
+        </button>
+
+        <button 
+          @click="emit('delete')" 
+          class="icon-btn-large text-red-500 hover:bg-red-500/10" 
+          data-tip="Excluir Tarefa Permanentemente"
+        >
+          <Trash2 class="w-5 h-5" />
         </button>
         
-        <button @click="emit('close')" class="p-2 ml-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg transition-colors">
+        <div class="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1 hidden md:block"></div>
+        
+        <button @click="emit('close')" class="icon-btn-large text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" data-tip="Fechar Menu">
           <X class="w-5 h-5" />
         </button>
       </div>

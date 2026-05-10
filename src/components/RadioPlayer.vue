@@ -36,6 +36,7 @@ const togglePlay = () => radioStore.toggle();
     maxWidth="max-w-lg"
     layout="custom"
     :closeOnClickOutside="false"
+    :isWindow="true"
     @close="emit('close')"
   >
     <template #default="{ onMouseDown }">

@@ -9,6 +9,7 @@ import {
 import { useTaskStore } from '../stores/taskStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { isValidUrl, ensureProtocol } from '../utils/validation';
+import { formatMsToHMS } from '../utils/time';
 import { notificationService } from '../services/notificationService';
 import BaseModal from './BaseModal.vue';
 import AppInput from './base/AppInput.vue';
@@ -233,8 +234,6 @@ const submitTask = () => {
             <transition name="fade-slide" mode="out-in">
               <!-- ABA 1: Cadastro Básico -->
               <div v-if="activeTab === 'basic'" :key="'basic'" class="space-y-6">
-
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                   <AppInput
                     v-model="title"
@@ -284,30 +283,45 @@ const submitTask = () => {
 
                   <div class="grid grid-cols-2 gap-3">
                     <div>
-                      <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Estimativa</label>
-                      <div class="relative flex items-center group">
-                        <Clock class="absolute left-3 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
-                        <input type="number" v-model="estimatedHours" min="0" placeholder="0" class="pl-10 pr-12 font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                        <span class="absolute right-3 text-[8px] font-black text-slate-400 uppercase tracking-widest pointer-events-none">H</span>
+                      <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Sessão Atual</label>
+                      <div class="p-2.5 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl flex items-center gap-2">
+                        <Clock class="w-3.5 h-3.5 text-indigo-500" />
+                        <span class="text-xs font-black font-mono text-app-main">{{ taskToEdit ? formatMsToHMS(taskToEdit.totalTimeSpent) : '00:00:00' }}</span>
                       </div>
                     </div>
                     <div>
-                      <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Prioridade</label>
-                      <select v-model="priority" class="appearance-none cursor-pointer font-bold">
-                        <option value="Baixa">Baixa</option>
-                        <option value="Normal">Normal</option>
-                        <option value="Alta">Alta</option>
-                        <option value="Urgente">Urgente</option>
-                      </select>
+                      <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Total Trabalhado</label>
+                      <div class="p-2.5 bg-indigo-500/5 border border-indigo-500/20 rounded-xl flex items-center gap-2">
+                        <Layout class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                        <span class="text-xs font-black font-mono text-indigo-600 dark:text-indigo-400">{{ taskToEdit ? formatMsToHMS(taskToEdit.totalWorked || taskToEdit.totalTimeSpent || 0) : '00:00:00' }}</span>
+                      </div>
                     </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Estimativa</label>
+                    <div class="relative flex items-center group">
+                      <Clock class="absolute left-3 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
+                      <input type="number" v-model="estimatedHours" min="0" placeholder="0" class="pl-10 pr-12 font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                      <span class="absolute right-3 text-[8px] font-black text-slate-400 uppercase tracking-widest pointer-events-none">H</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Prioridade</label>
+                    <select v-model="priority" class="appearance-none cursor-pointer font-bold">
+                      <option value="Baixa">Baixa</option>
+                      <option value="Normal">Normal</option>
+                      <option value="Alta">Alta</option>
+                      <option value="Urgente">Urgente</option>
+                    </select>
                   </div>
                 </div>
               </div>
 
               <!-- ABA 2: Conectividade e Ambientes -->
               <div v-else-if="activeTab === 'links'" :key="'links'" class="space-y-8">
-
-
                 <div class="grid grid-cols-1 gap-8">
                   <!-- Seção: Gestão de Código -->
                   <div class="grid grid-cols-1 gap-6">
@@ -389,8 +403,6 @@ const submitTask = () => {
 
               <!-- ABA 3: Documentação Técnica -->
               <div v-else-if="activeTab === 'data'" :key="'data'" class="space-y-6">
-
-
                 <div class="space-y-6">
                   <AppTextarea
                     v-model="dbScripts"
@@ -415,7 +427,14 @@ const submitTask = () => {
             </transition>
           </div>
 
-          <!-- Footer (Centralized via Props) -->
+          <!-- Footer Area (Standard TASS Style) -->
+          <footer class="p-6 md:px-10 border-t border-slate-200 dark:border-white/5 bg-app-surface flex justify-end items-center gap-3 shrink-0">
+            <button type="button" @click="emit('close')" class="btn btn-secondary px-6">Cancelar</button>
+            <button type="submit" class="btn btn-primary px-10 gap-2">
+              <Save class="w-4 h-4" />
+              <span>{{ taskToEdit ? 'Salvar Alterações' : 'Criar Tarefa' }}</span>
+            </button>
+          </footer>
         </form>
       </main>
     </div>

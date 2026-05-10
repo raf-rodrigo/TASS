@@ -14,6 +14,7 @@ Essa abordagem garante que o sistema de temas (Light/Dark), o motor de transpar�
 
 ## 1. Modais e Layouts Base
 - **Uso do BaseModal:** Todos os modais DEVEM utilizar o componente `BaseModal.vue`. NUNCA aplique filtros de `backdrop-blur` ou `bg-black/50` manualmente nos modais filhos, o sistema de background é centralizado.
+- **Janelas Flutuantes (Modo OS):** Para janelas persistentes que não devem bloquear a interação com o sistema (ex: RadioPlayer), utilize a prop `:isWindow="true"`. Isso desativa o backdrop bloqueante e permite cliques através do fundo vazio.
 - **Estrutura de Slots**:
   - **Header (`#header`)**: Padrão com Ícone em box colorido + Título + Subtítulo.
 - **Footer (`#footer`)**: Botões alinhados à direita (`justify-end`) com pesos diferentes:
