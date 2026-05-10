@@ -15,6 +15,16 @@ Essa abordagem garante que o sistema de temas (Light/Dark), o motor de transpar�
 ## 1. Modais e Layouts Base
 - **Uso do BaseModal:** Todos os modais DEVEM utilizar o componente `BaseModal.vue`. NUNCA aplique filtros de `backdrop-blur` ou `bg-black/50` manualmente nos modais filhos, o sistema de background é centralizado.
 - **Janelas Flutuantes (Modo OS):** Para janelas persistentes que não devem bloquear a interação com o sistema (ex: RadioPlayer), utilize a prop `:isWindow="true"`. Isso desativa o backdrop bloqueante e permite cliques através do fundo vazio.
+- **Modo Mobile First:** Modais complexos em mobile devem ocupar `90vh`, possuir abas de navegação horizontais no topo e botões de ação (Salvar/Fechar) fixos no rodapé com efeito de glassmorphism.
+
+## 2. Gestão de Tempo e Dados
+- **Separação de Cronômetros:** Todo rastreamento de tempo em tarefas deve separar `totalTimeSpent` (sessão atual, zerável) de `totalWorked` (acumulador persistente da vida útil).
+- **Cálculos de Sprint:** O totalizador de horas da Sprint deve sempre basear-se no `totalWorked` para garantir a integridade dos dados históricos, independentemente de resets de sessão do usuário.
+
+## 3. Componentes e Micro-interações
+- **Ilhas Dinâmicas:** Componentes fixos de controle (Dock) em mobile devem seguir o padrão de "Pílula Compacta" que se expande via toque, priorizando métricas essenciais no estado fechado.
+- **Equilíbrio Óptico:** Ícones assimétricos (como o triângulo de Play) devem receber ajustes manuais de padding ou translação (ex: `padding-right: 6px`) para garantir que pareçam centralizados aos olhos humanos, ignorando a centralização puramente geométrica.
+- **Semântica Direta:** Utilize labels curtos e imperativos para botões de ação: "Salvar" (em vez de "Salvar Alterações") e "Fechar" (para encerrar fluxos).
 - **Estrutura de Slots**:
   - **Header (`#header`)**: Padrão com Ícone em box colorido + Título + Subtítulo.
 - **Footer (`#footer`)**: Botões alinhados à direita (`justify-end`) com pesos diferentes:
