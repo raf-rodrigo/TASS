@@ -72,6 +72,25 @@ const dockRadius = computed(() => {
               {{ taskStore.activeSprintTotalTime }}
             </span>
           </div>
+
+          <!-- Botão Desfazer (Integrado na Dock) -->
+          <transition 
+            enter-active-class="transition-all duration-500 ease-out" 
+            enter-from-class="w-0 opacity-0 -translate-x-4" 
+            enter-to-class="w-[100px] opacity-100 translate-x-0"
+            leave-active-class="transition-all duration-300 ease-in"
+            leave-from-class="w-[100px] opacity-100 translate-x-0"
+            leave-to-class="w-0 opacity-0 -translate-x-4"
+          >
+            <button 
+              v-if="taskStore.lastDeletedTask" 
+              @click.stop="taskStore.restoreTask" 
+              class="dock-item !bg-amber-500 !border-amber-600 px-3 py-2 flex items-center gap-2 text-white shadow-lg shadow-amber-500/20 group overflow-hidden whitespace-nowrap"
+            >
+              <RotateCcw class="w-3.5 h-3.5 group-hover:-rotate-45 transition-transform" />
+              <span class="text-[10px] font-black uppercase tracking-tighter">Desfazer</span>
+            </button>
+          </transition>
         </div>
 
         <!-- Toggle Mobile Expansion -->

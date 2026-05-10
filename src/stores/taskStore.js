@@ -11,6 +11,7 @@ export const useTaskStore = defineStore('task', () => {
   const statusFilter = ref('all');
   const isLoading = ref(false);
   const selectedTask = ref(null);
+  const contextMenuPosition = ref({ x: 0, y: 0 });
 
   const filteredTasks = computed(() => {
     const settings = useSettingsStore();

@@ -53,6 +53,7 @@ export const useSettingsStore = defineStore('settings', () => {
     alerts: true
   });
   const columnTitles = ref(['', '', '', '']);
+  const contextMenuStyle = ref('floating'); // 'floating' (estilo OS) ou 'dock' (estilo clássico)
   const contrastEnhanced = ref(true);
 
 
@@ -133,6 +134,7 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-card-padding'] !== undefined) cardPadding.value = settingsMap['app-card-padding'];
 
       if (settingsMap['app-column-titles'] !== undefined) columnTitles.value = settingsMap['app-column-titles'];
+      if (settingsMap['app-context-menu-style'] !== undefined) contextMenuStyle.value = settingsMap['app-context-menu-style'];
       if (settingsMap['app-contrast-enhanced'] !== undefined) contrastEnhanced.value = settingsMap['app-contrast-enhanced'] === true;
       
       // Carrega configuração do localStorage
@@ -191,6 +193,7 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-card-padding', value: cardPadding.value },
 
       { key: 'app-column-titles', value: columnTitles.value },
+      { key: 'app-context-menu-style', value: contextMenuStyle.value },
       { key: 'app-contrast-enhanced', value: contrastEnhanced.value }
 
     ].map(item => ({
@@ -219,6 +222,7 @@ export const useSettingsStore = defineStore('settings', () => {
     workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,
     cardBorderRadius, opacityTargets, customWallpapers, columnTitles,
     wellnessEnabled, wellnessInterval, contrastEnhanced, keepWindowState,
+    contextMenuStyle,
     isInitialized, loadSettings, saveSetting, saveAllSettings
 
   };

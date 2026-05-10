@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Play, Square } from 'lucide-vue-next';
+import { Play, Square, MoreVertical } from 'lucide-vue-next';
 import { formatMsToHMS } from '../utils/time.js';
 
 // Stores
@@ -23,11 +23,25 @@ const emit = defineEmits([
 
 const formattedTime = computed(() => formatMsToHMS(props.task.totalTimeSpent));
 
-const handleSelect = () => {
-  if (taskStore.selectedTask?.id === props.task.id) {
+const handleSelect = (event) => {
+  const isCurrentlySelected = taskStore.selectedTask?.id === props.task.id;
+  
+  if (isCurrentlySelected) {
     taskStore.selectedTask = null;
   } else {
-    taskStore.selectedTask = props.task;
+    // Primeiro limpamos a seleção atual para forçar o fechamento do menu anterior
+    taskStore.selectedTask = null;
+    
+    // Captura a nova posição do mouse imediatamente
+    taskStore.contextMenuPosition = { 
+      x: event.clientX, 
+      y: event.clientY 
+    };
+    
+    // Pequeno delay para garantir que o componente de menu seja remontado na nova posição
+    setTimeout(() => {
+      taskStore.selectedTask = props.task;
+    }, 10);
   }
 };
 </script>
@@ -47,7 +61,8 @@ const handleSelect = () => {
         ? (settings.cardOpacity > 0 ? 'rgba(99, 102, 241, 0.1)' : '') 
         : '' 
     }"
-    @click.stop="handleSelect"
+    @click.stop="handleSelect($event)"
+    @contextmenu.prevent="handleSelect($event)"
   >
 
     <div :class="task.completed ? 'opacity-50' : ''" class="flex justify-between items-center gap-2 transition-opacity">
@@ -99,6 +114,15 @@ const handleSelect = () => {
         >
           <Square v-if="task.isRunning" class="w-3.5 h-3.5 animate-pulse" />
           <Play v-else class="w-3.5 h-3.5" />
+        </button>
+
+        <!-- 2. Menu Trigger Icon -->
+        <button 
+          class="transition-all flex items-center justify-center text-app-muted hover:text-indigo-500 w-[26px] h-[26px]"
+          @click.stop="handleSelect($event)"
+          data-tip="Opções da Tarefa"
+        >
+          <MoreVertical class="w-4 h-4" />
         </button>
 
         <!-- Contador (Tempo) - Escondido quando rodando ou no mobile -->

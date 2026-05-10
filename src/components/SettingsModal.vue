@@ -2,7 +2,7 @@
 import { ref, watch, onMounted, computed } from 'vue';
 import { 
   Download, Upload, Globe, Palette,
-  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles, Bug
+  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles, Bug, MousePointer2, Layout
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
@@ -74,7 +74,8 @@ const localSettings = ref({
   },
   cardBorderRadius: settings.cardBorderRadius,
   contrastEnhanced: settings.contrastEnhanced,
-  notesSide: settings.notesSide
+  notesSide: settings.notesSide,
+  contextMenuStyle: settings.contextMenuStyle
 });
 
 
@@ -123,6 +124,7 @@ const handleSave = async () => {
   settings.cardBorderRadius = localSettings.value.cardBorderRadius;
   settings.contrastEnhanced = localSettings.value.contrastEnhanced;
   settings.notesSide = localSettings.value.notesSide;
+  settings.contextMenuStyle = localSettings.value.contextMenuStyle;
 
   await settings.saveAllSettings();
   notificationService.toast('Configurações Salvas!');
@@ -354,6 +356,42 @@ const handleResetSystem = async () => {
             <!-- ABA: Sistema -->
             <div v-else-if="activeTab === 'system'" :key="'system'" class="space-y-8">
               <div class="space-y-4">
+                <div class="glass-section p-4 space-y-4">
+                  <div class="flex items-center gap-3 mb-2">
+                    <Layout class="w-4 h-4 text-indigo-500" />
+                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Estilo do Menu de Contexto</p>
+                  </div>
+                  <p class="text-[10px] text-slate-500 mb-4">Escolha como as opções da tarefa devem ser exibidas.</p>
+                  <div class="grid grid-cols-2 gap-3">
+                    <button 
+                      @click="localSettings.contextMenuStyle = 'floating'"
+                      class="flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all group"
+                      :class="localSettings.contextMenuStyle === 'floating' 
+                        ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400' 
+                        : 'bg-app-surface border-transparent text-slate-400 hover:border-slate-300 dark:hover:border-white/10'"
+                    >
+                      <MousePointer2 class="w-6 h-6" :class="localSettings.contextMenuStyle === 'floating' ? 'animate-bounce' : ''" />
+                      <div class="text-center">
+                        <p class="text-xs font-black uppercase tracking-tighter">Flutuante (OS)</p>
+                        <p class="text-[9px] font-bold opacity-60">Abre no cursor</p>
+                      </div>
+                    </button>
+                    <button 
+                      @click="localSettings.contextMenuStyle = 'dock'"
+                      class="flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all group"
+                      :class="localSettings.contextMenuStyle === 'dock' 
+                        ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400' 
+                        : 'bg-app-surface border-transparent text-slate-400 hover:border-slate-300 dark:hover:border-white/10'"
+                    >
+                      <Layout class="w-6 h-6" />
+                      <div class="text-center">
+                        <p class="text-xs font-black uppercase tracking-tighter">Dock Fixo</p>
+                        <p class="text-[9px] font-bold opacity-60">Barra no rodapé</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
                 <div class="glass-section p-4 space-y-4">
                   <div>
                     <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Painel de Notas Rápidas</p>

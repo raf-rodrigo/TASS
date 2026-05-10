@@ -305,38 +305,48 @@ onMounted(async () => {
     </main>
   </div>
 
-    <!-- Camada de Interface Binária: Global Dock vs Task Context Menu -->
-    <transition 
-      mode="out-in"
-      enter-active-class="transition duration-500 ease-out"
-      enter-from-class="translate-y-20 opacity-0 scale-95"
-      enter-to-class="translate-y-0 opacity-100 scale-100"
-      leave-active-class="transition duration-300 ease-in"
-      leave-from-class="translate-y-0 opacity-100 scale-100"
-      leave-to-class="translate-y-20 opacity-0 scale-95"
-    >
-      <!-- MODO FOCADO: Menu de Contexto da Tarefa -->
-      <TaskContextMenu 
-        v-if="taskStore.selectedTask"
-        :task="taskStore.selectedTask"
-        @close="taskStore.selectedTask = null"
-        @edit="openEditModal(taskStore.selectedTask)"
-        @toggle-completion="() => { toggleTaskCompletion(taskStore.selectedTask); taskStore.selectedTask = null; }"
-        @delete="() => { taskStore.deleteTask(taskStore.selectedTask.id); taskStore.selectedTask = null; }"
-      />
+    <!-- Camada de Interface: Global Dock e Task Context Menu -->
+    <div class="pointer-events-none">
+      <!-- Menu de Contexto da Tarefa -->
+      <transition 
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="opacity-0 scale-95"
+        enter-to-class="opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 scale-100"
+        leave-to-class="opacity-0 scale-95"
+      >
+        <TaskContextMenu 
+          v-if="taskStore.selectedTask"
+          :task="taskStore.selectedTask"
+          @close="taskStore.selectedTask = null"
+          @edit="openEditModal(taskStore.selectedTask)"
+          @toggle-completion="() => { toggleTaskCompletion(taskStore.selectedTask); taskStore.selectedTask = null; }"
+          @delete="() => { taskStore.deleteTask(taskStore.selectedTask.id); taskStore.selectedTask = null; }"
+        />
+      </transition>
 
-      <!-- MODO GLOBAL: Dock de Controle Geral -->
-      <GlobalDock 
-        v-else
-        @add-task="openAddModal"
-        @open-sprints="showSprints = true"
-        @open-notes="showNotes = !showNotes"
-        @open-interface="showInterfaceMenu = true"
-        @open-settings="showSettings = true"
-        @toggle-theme="toggleTheme"
-        @open-radio="handleToggleRadio"
-      />
-    </transition>
+      <!-- Global Dock: Fica visível se não houver tarefa selecionada OU se o estilo de menu for flutuante -->
+      <transition 
+        enter-active-class="transition duration-500 ease-out"
+        enter-from-class="translate-y-20 opacity-0 scale-95"
+        enter-to-class="translate-y-0 opacity-100 scale-100"
+        leave-active-class="transition duration-300 ease-in"
+        leave-from-class="translate-y-0 opacity-100 scale-100"
+        leave-to-class="translate-y-20 opacity-0 scale-95"
+      >
+        <GlobalDock 
+          v-if="!taskStore.selectedTask || settings.contextMenuStyle === 'floating'"
+          @add-task="openAddModal"
+          @open-sprints="showSprints = true"
+          @open-notes="showNotes = !showNotes"
+          @open-interface="showInterfaceMenu = true"
+          @open-settings="showSettings = true"
+          @toggle-theme="toggleTheme"
+          @open-radio="handleToggleRadio"
+        />
+      </transition>
+    </div>
 
     <!-- 4. Modal Layer (Teleport-like behavior) -->
     <TaskModal 
