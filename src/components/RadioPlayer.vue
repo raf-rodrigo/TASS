@@ -48,7 +48,7 @@ const togglePlay = () => radioStore.toggle();
             <Headphones class="w-4 h-4" />
             <span class="text-[10px] font-black uppercase tracking-widest">Web Radio</span>
           </div>
-          <button @click="emit('close')" class="p-1 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg text-slate-400 hover:text-red-500 transition-colors" @mousedown.stop>
+          <button @click="emit('close')" class="icon-btn" @mousedown.stop>
             <X class="w-4 h-4" />
           </button>
         </div>
