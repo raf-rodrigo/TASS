@@ -43,6 +43,10 @@ const handleSave = async () => {
     title="Adicionar Rádio"
     subtitle="Streaming Ao Vivo"
     layout="standard"
+    cancelText="Cancelar"
+    okText="Salvar Rádio"
+    @cancel="emit('close')"
+    @ok="handleSave"
   >
     <!-- Corpo do Formulário -->
     <AppInput 
@@ -63,21 +67,5 @@ const handleSave = async () => {
     <div v-if="error" class="text-center text-red-500 text-[10px] font-black uppercase tracking-widest animate-shake">
       {{ error }}
     </div>
-
-    <!-- Footer Padrão Injetado -->
-    <template #footer>
-      <button 
-        @click="emit('close')" 
-        class="btn btn-secondary px-6"
-      >
-        Cancelar
-      </button>
-      <button 
-        @click="handleSave" 
-        class="btn btn-primary px-10"
-      >
-        Salvar Rádio
-      </button>
-    </template>
   </BaseModal>
 </template>

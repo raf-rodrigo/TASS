@@ -13,10 +13,14 @@ const props = defineProps({
   maxWidth: { type: String, default: 'max-w-2xl' },
   customClass: { type: String, default: '' },
   animate: { type: Boolean, default: true },
-  hideHeader: { type: Boolean, default: false } // Deprecated: Use layout="custom" instead
+  hideHeader: { type: Boolean, default: false },
+  // Centralização de Botões
+  okText: { type: String, default: '' },
+  cancelText: { type: String, default: '' },
+  okLoading: { type: Boolean, default: false }
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'ok', 'cancel']);
 const { position, onMouseDown } = useModalDrag();
 </script>
 
@@ -75,8 +79,14 @@ const { position, onMouseDown } = useModalDrag();
         </main>
 
         <!-- Footer Area -->
-        <footer v-if="$slots.footer" class="p-6 border-t border-app-border-light bg-app-surface flex justify-end items-center gap-3 mt-auto">
-          <slot name="footer"></slot>
+        <footer v-if="$slots.footer || okText || cancelText" class="p-6 border-t border-app-border-light bg-app-surface flex justify-end items-center gap-3 mt-auto">
+          <slot name="footer">
+            <button v-if="cancelText" type="button" @click="emit('cancel')" class="btn btn-secondary px-6">{{ cancelText }}</button>
+            <button v-if="okText" type="submit" @click="emit('ok')" class="btn btn-primary px-10" :disabled="okLoading">
+              <span v-if="okLoading" class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              {{ okText }}
+            </button>
+          </slot>
         </footer>
       </template>
     </section>
