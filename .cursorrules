@@ -16,7 +16,9 @@ Essa abordagem garante que o sistema de temas (Light/Dark), o motor de transpar�
 - **Uso do BaseModal:** Todos os modais DEVEM utilizar o componente `BaseModal.vue`. NUNCA aplique filtros de `backdrop-blur` ou `bg-black/50` manualmente nos modais filhos, o sistema de background é centralizado.
 - **Estrutura de Slots**:
   - **Header (`#header`)**: Padrão com Ícone em box colorido + Título + Subtítulo.
-  - **Footer (`#footer`)**: Botões de rodapé simétricos e largura total.
+- **Footer (`#footer`)**: Botões alinhados à direita (`justify-end`) com pesos diferentes:
+  - Ação Secundária (Cancelar): `btn-secondary px-6`.
+  - Ação Primária (Salvar/Confirmar): `btn-primary px-10`.
 - **Alinhamento e Altura:** Os modais complexos (ex: TaskModal, SettingsModal) DEVEM usar o layout padrão "Sidebar + Main" em CSS Grid/Flexbox e manter a altura de `600px` (`md:h-[600px]`) em resoluções de desktop.
 - **ALERTA CRÍTICO DE PADDING (glass-panel):** A classe global `.glass-panel` no `style.css` injeta automaticamente um `padding` de 20px (`var(--app-card-padding)`). O `BaseModal.vue` JÁ POSSUI a classe `!p-0` em sua raiz (`<section>`) para anular esse efeito e permitir que componentes como Headers e Footers encostem nas bordas. **NUNCA remova o `!p-0` do BaseModal**, ou todos os modais do sistema apresentarão uma borda/margem "flutuante" indesejada ao redor do conteúdo!
 

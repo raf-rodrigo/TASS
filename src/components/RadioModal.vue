@@ -68,13 +68,13 @@ const handleSave = async () => {
     <template #footer>
       <button 
         @click="emit('close')" 
-        class="flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-tight text-app-sub hover:bg-app-surface-muted transition-all active:scale-95 border border-transparent"
+        class="btn btn-secondary px-6"
       >
         Cancelar
       </button>
       <button 
         @click="handleSave" 
-        class="flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-tight bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-500 transition-all active:scale-95"
+        class="btn btn-primary px-10"
       >
         Salvar Rádio
       </button>

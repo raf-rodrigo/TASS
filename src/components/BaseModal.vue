@@ -75,10 +75,8 @@ const { position, onMouseDown } = useModalDrag();
         </main>
 
         <!-- Footer Area -->
-        <footer v-if="$slots.footer" class="p-6 border-t border-app-border-light bg-app-surface flex gap-3 mt-auto">
-          <div class="flex items-center gap-3 w-full">
-            <slot name="footer"></slot>
-          </div>
+        <footer v-if="$slots.footer" class="p-6 border-t border-app-border-light bg-app-surface flex justify-end items-center gap-3 mt-auto">
+          <slot name="footer"></slot>
         </footer>
       </template>
     </section>

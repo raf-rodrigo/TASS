@@ -59,7 +59,15 @@
 }
 
 @layer components {
-  /* Dragging State - Disable text selection */
+  .cursor-grab {
+  cursor: grab;
+}
+
+.cursor-grab:active {
+  cursor: grabbing;
+}
+
+/* Dragging State - Disable text selection */
 body.dragging-modal,
 body.dragging-task,
 .select-none {
@@ -99,7 +107,8 @@ input:focus::placeholder, textarea:focus::placeholder {
   }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95;
+    border-radius: var(--app-input-radius);
   }
 
   .btn-primary {
@@ -107,7 +116,7 @@ input:focus::placeholder, textarea:focus::placeholder {
   }
 
   .btn-secondary {
-    @apply bg-white/50 hover:bg-white/80 dark:bg-white/10 dark:hover:bg-white/20 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-white/10;
+    @apply bg-slate-100/50 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10;
   }
 
   .btn-danger {

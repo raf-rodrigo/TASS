@@ -417,8 +417,8 @@ const submitTask = () => {
 
           <!-- Footer (Persistent) -->
           <footer class="p-6 border-t border-app-border-light bg-app-surface flex justify-end gap-3">
-            <button type="button" @click="emit('close')" class="px-6 py-3 text-xs font-black text-app-sub hover:bg-app-surface-muted rounded-xl transition-all uppercase tracking-widest">Cancelar</button>
-            <button type="submit" class="px-10 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition-all shadow-xl shadow-indigo-500/25 uppercase tracking-widest flex items-center gap-2 active:scale-95">
+            <button type="button" @click="emit('close')" class="btn btn-secondary px-6">Cancelar</button>
+            <button type="submit" class="btn btn-primary px-10">
               <Save v-if="taskToEdit" class="w-4 h-4" />
               <PlusCircle v-else class="w-4 h-4" />
               {{ 'Salvar' }}

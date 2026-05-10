@@ -548,8 +548,8 @@ const handleResetSystem = async () => {
 
         <!-- Footer Manual -->
         <footer class="p-4 md:p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-end gap-3">
-          <button @click="emit('close')" class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 transition-all" :style="{ borderRadius: 'var(--app-input-radius)' }">Fechar</button>
-          <button @click="handleSave" class="px-10 py-2.5 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20" :style="{ borderRadius: 'var(--app-input-radius)' }">Salvar Alterações</button>
+          <button @click="emit('close')" class="btn btn-secondary px-6">Fechar</button>
+          <button @click="handleSave" class="btn btn-primary px-10">Salvar Alterações</button>
         </footer>
       </main>
     </div>
