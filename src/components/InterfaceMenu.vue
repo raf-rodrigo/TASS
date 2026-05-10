@@ -102,7 +102,7 @@ const handleColumnChange = (n) => {
     maxWidth="max-w-4xl" 
     customClass="h-[90vh] md:h-[600px] !p-0"
     layout="custom"
-    okText="Terminei os Ajustes"
+    okText="Fechar"
     @close="emit('close')"
     @ok="emit('close')"
   >

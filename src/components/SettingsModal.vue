@@ -161,7 +161,7 @@ const handleResetSystem = async () => {
     layout="custom"
     @close="emit('close')"
     cancelText="Fechar"
-    okText="Salvar Alterações"
+    okText="Salvar"
     @cancel="emit('close')"
     @ok="handleSave"
   >

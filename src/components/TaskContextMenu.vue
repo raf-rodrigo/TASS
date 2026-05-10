@@ -146,9 +146,10 @@ const openLink = (url) => {
         <!-- Observações -->
         <button 
           @click="handleAction('moreInfo', 'Observações', 'text')"
+          @contextmenu.prevent="handleEditAction('moreInfo', 'Observações', 'text')"
           class="icon-btn-large"
           :class="{ 'active-action-amber': task.moreInfo }"
-          data-tip="Observações"
+          data-tip="Observações (Botão direito para editar)"
         >
           <MessageSquare class="w-4 h-4" />
         </button>
@@ -166,9 +167,26 @@ const openLink = (url) => {
 
         <!-- Ambientes (Compactos) -->
         <div class="flex items-center gap-1 ml-1">
-          <button @click="handleAction('prodUrl', 'PRD', 'url')" class="env-btn" :class="{ 'env-active-prd': task.prodUrl }">PRD</button>
-          <button @click="handleAction('homologUrl', 'HML', 'url')" class="env-btn" :class="{ 'env-active-hml': task.homologUrl }">HML</button>
-          <button @click="handleAction('devUrl', 'DEV', 'url')" class="env-btn" :class="{ 'env-active-dev': task.devUrl }">DEV</button>
+          <button 
+            @click="handleAction('prodUrl', 'PRD', 'url')" 
+            @contextmenu.prevent="handleEditAction('prodUrl', 'PRD', 'url')"
+            class="env-btn" :class="{ 'env-active-prd': task.prodUrl }"
+            data-tip="Produção (Botão direito para editar)"
+          >PRD</button>
+          
+          <button 
+            @click="handleAction('homologUrl', 'HML', 'url')" 
+            @contextmenu.prevent="handleEditAction('homologUrl', 'HML', 'url')"
+            class="env-btn" :class="{ 'env-active-hml': task.homologUrl }"
+            data-tip="Homologação (Botão direito para editar)"
+          >HML</button>
+          
+          <button 
+            @click="handleAction('devUrl', 'DEV', 'url')" 
+            @contextmenu.prevent="handleEditAction('devUrl', 'DEV', 'url')"
+            class="env-btn" :class="{ 'env-active-dev': task.devUrl }"
+            data-tip="Desenvolvimento (Botão direito para editar)"
+          >DEV</button>
         </div>
       </div>
 

@@ -1,7 +1,8 @@
 <script setup>
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { 
   Plus, Calendar, Clock, RotateCcw, X, 
-  Settings, Sun, Moon, Headphones
+  Settings, Sun, Moon, Headphones, MoreHorizontal
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
@@ -14,108 +15,136 @@ const emit = defineEmits([
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
 const radioStore = useRadioStore();
+
+const isExpanded = ref(false);
+const isMobile = ref(false);
+
+const checkMobile = () => {
+  isMobile.value = window.innerWidth < 768;
+  if (!isMobile.value) isExpanded.value = true;
+};
+
+onMounted(() => {
+  checkMobile();
+  window.addEventListener('resize', checkMobile);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile);
+});
+
+// Radius dinâmico para a dock (sempre respeitando a config global)
+const dockRadius = computed(() => {
+  return 'var(--app-card-radius)';
+});
 </script>
 
 <template>
-  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] w-full max-w-fit px-2 md:px-4 pointer-events-none">
+  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] w-full max-w-fit px-4 pointer-events-none">
     <div 
-      class="!p-1.5 flex items-center gap-1 md:gap-2 shadow-2xl border border-app-border-light backdrop-blur-xl ring-1 ring-black/5 pointer-events-auto transition-all"
+      class="dynamic-island flex flex-col md:flex-row items-center shadow-2xl border border-app-border-light backdrop-blur-xl ring-1 ring-black/5 pointer-events-auto transition-all duration-300 ease-out overflow-hidden"
+      :class="[
+        isMobile && isExpanded ? 'w-[90vw] gap-3 p-4' : 'p-1.5 gap-2'
+      ]"
       :style="{ 
         backgroundColor: `rgba(var(--app-bg-raw), var(--app-bottom-opacity))`,
-        borderRadius: 'var(--app-card-radius)' 
+        borderRadius: dockRadius
       }"
     >
-      <!-- Botão Principal: Adicionar Tarefa -->
-      <button 
-        @click="emit('add-task')"
-        class="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 transition-all active:scale-90 group shrink-0"
-        :style="{ borderRadius: 'var(--app-input-radius)' }"
-        title="Nova Tarefa (N)"
-      >
-        <Plus class="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-90 transition-transform duration-300" />
-      </button>
+      <!-- LINHA 1: Cabeçalho da Ilha / Ações Principais -->
+      <div class="flex items-center w-full md:w-auto" :class="{ 'justify-between': isMobile && !isExpanded }">
+        <div class="flex items-center gap-2">
+          <!-- Adicionar Tarefa -->
+          <button 
+            @click.stop="emit('add-task')"
+            class="w-10 h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 transition-all active:scale-95 group shrink-0"
+            :style="{ borderRadius: 'var(--app-input-radius)' }"
+          >
+            <Plus class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
+          </button>
 
-      <div class="w-px h-6 bg-slate-200 dark:bg-white/10 mx-0.5 md:mx-1"></div>
+          <!-- Cronômetro (Sempre Visível) -->
+          <div 
+            class="dock-item !bg-indigo-500/5 !border-indigo-500/20 px-3 py-2 flex items-center gap-2"
+          >
+            <Clock class="w-4 h-4 text-indigo-600 dark:text-indigo-400" :class="{ 'animate-pulse': taskStore.activeTask }" />
+            <span class="text-xs font-black font-mono text-indigo-600 dark:text-indigo-400">
+              {{ taskStore.activeSprintTotalTime }}
+            </span>
+          </div>
+        </div>
 
-      <!-- Seção: Filtros de Status -->
-      <div 
-        class="flex items-center gap-0.5 md:gap-1 bg-app-surface p-1 border border-app-border-light"
-        :style="{ borderRadius: 'var(--app-input-radius)' }"
-      >
+        <!-- Toggle Mobile Expansion -->
         <button 
-          v-for="filter in ['all', 'active', 'completed']" 
-          :key="filter"
-          @click="taskStore.statusFilter = filter"
-          class="px-2 md:px-3 py-1.5 text-[9px] font-black uppercase tracking-tighter transition-all"
-          :style="{ borderRadius: 'calc(var(--app-input-radius) * 0.8)' }"
-          :class="taskStore.statusFilter === filter 
-            ? 'bg-app-solid shadow-sm text-indigo-600 dark:text-white' 
-            : 'text-app-muted hover:text-app-sub'"
+          v-if="isMobile" 
+          @click.stop="isExpanded = !isExpanded"
+          class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-colors ml-2"
         >
-          <span class="hidden md:inline">{{ filter === 'all' ? 'Todas' : filter === 'active' ? 'Ativas' : 'Concluídas' }}</span>
-          <span class="md:hidden">{{ filter === 'all' ? 'T' : filter === 'active' ? 'A' : 'C' }}</span>
+          <X v-if="isExpanded" class="w-5 h-5 text-red-500" />
+          <MoreHorizontal v-else class="w-5 h-5" />
         </button>
       </div>
 
-      <div class="w-px h-6 bg-slate-200 dark:bg-white/10 mx-0.5 md:mx-1"></div>
-
-      <!-- Seção: Sprints e Tempo -->
-      <div class="flex items-center gap-1 md:gap-2 px-0.5 md:px-1">
-        <!-- Seletor de Sprint -->
+      <!-- SEÇÃO EXPANSÍVEL (Filtros e Utilidades) -->
+      <!-- No desktop v-show é sempre true. No mobile controlado pelo isExpanded -->
+      <div 
+        v-show="!isMobile || isExpanded"
+        class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto overflow-hidden transition-all duration-300"
+        :class="{ 'mt-3 pt-3 border-t border-slate-200 dark:border-white/10': isMobile && isExpanded }"
+      >
+        <!-- Filtros -->
         <div 
-          @click="emit('open-sprints')"
-          class="dock-item group pr-6 md:pr-8 relative"
-          :class="{ '!pr-2 md:!pr-3': settings.activeSprintId === 'all' }"
-          title="Gerenciar Sprints"
+          class="flex items-center gap-1 bg-app-surface p-1 border border-app-border-light w-full md:w-auto justify-center"
+          :style="{ borderRadius: 'var(--app-input-radius)' }"
         >
-          <Calendar class="w-3.5 h-3.5 md:w-4 md:h-4 text-indigo-500" />
-          <span class="dock-label hidden sm:inline truncate max-w-[60px] md:max-w-none">{{ taskStore.activeSprintName }}</span>
-          
           <button 
-            v-if="settings.activeSprintId !== 'all'" 
-            @click.stop="settings.activeSprintId = 'all'" 
-            class="absolute right-1 md:right-1.5 p-0.5 rounded-md hover:bg-red-500 hover:text-white text-slate-400 opacity-0 group-hover:opacity-100 transition-all"
+            v-for="filter in ['all', 'active', 'completed']" 
+            :key="filter"
+            @click="taskStore.statusFilter = filter"
+            class="flex-1 md:flex-none px-3 py-1.5 text-[10px] font-black uppercase tracking-tighter transition-all"
+            :style="{ borderRadius: 'calc(var(--app-input-radius) * 0.8)' }"
+            :class="taskStore.statusFilter === filter 
+              ? 'bg-app-solid shadow-sm text-indigo-600 dark:text-white' 
+              : 'text-app-muted hover:text-app-sub'"
           >
-            <X class="w-2.5 h-2.5 md:w-3 md:h-3" />
+            <span>{{ filter === 'all' ? 'Todas' : filter === 'active' ? 'Ativas' : 'Feitas' }}</span>
           </button>
         </div>
 
-        <!-- Tempo Total da Sprint -->
-        <div class="dock-item !bg-indigo-500/5 !border-indigo-500/20 cursor-default">
-          <Clock class="w-3.5 h-3.5 md:w-4 md:h-4 text-indigo-600 dark:text-indigo-400" />
-          <span class="dock-label font-black !text-indigo-600 dark:!text-indigo-400">
-            {{ taskStore.activeSprintTotalTime }}
-          </span>
+        <div class="hidden md:block w-px h-6 bg-slate-200 dark:bg-white/10 mx-1"></div>
+
+        <!-- Sprint e Utilidades -->
+        <div class="flex items-center justify-center md:justify-start w-full md:w-auto gap-2">
+           <!-- Sprint Selector (Mobile icon only) -->
+          <button @click="emit('open-sprints')" class="util-btn md:hidden">
+            <Calendar class="w-4 h-4 text-indigo-500" />
+          </button>
+
+          <div class="flex items-center gap-1">
+            <button @click="emit('open-radio')" class="util-btn group relative">
+              <Headphones class="w-4 h-4 text-amber-500" />
+              <span v-if="radioStore.isPlaying" class="absolute top-0.5 right-0.5 w-2 h-2 bg-amber-500 rounded-full animate-ping opacity-75"></span>
+              <span v-if="radioStore.isPlaying" class="absolute top-0.5 right-0.5 w-2 h-2 bg-amber-500 rounded-full opacity-50"></span>
+            </button>
+            <button @click="emit('toggle-theme')" class="util-btn">
+              <Sun v-if="settings.theme === 'dark'" class="w-4 h-4 text-amber-500" />
+              <Moon v-else class="w-4 h-4 text-indigo-500" />
+            </button>
+            <button @click="emit('open-settings')" class="util-btn">
+              <Settings class="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
-      <div class="hidden sm:block w-px h-6 bg-slate-200 dark:bg-white/10 mx-0.5 md:mx-1"></div>
-
-      <!-- Seção: Menu de Utilidades -->
-      <div class="hidden sm:flex items-center gap-0.5 md:gap-1">
-        <button @click="emit('open-radio')" class="util-btn group relative" title="Web Radio">
-          <Headphones class="w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" />
-          <span v-if="radioStore.isPlaying" class="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full animate-ping opacity-50"></span>
-        </button>
-        <button @click="emit('toggle-theme')" class="util-btn" title="Alternar Tema">
-          <Sun v-if="settings.theme === 'dark'" class="w-4 h-4 text-amber-500" />
-          <Moon v-else class="w-4 h-4 text-indigo-500" />
-        </button>
-        <button @click="emit('open-settings')" class="util-btn" title="Configurações (S)">
-          <Settings class="w-4 h-4" />
-        </button>
-      </div>
-
-      <!-- Botão Desfazer (Dinâmico) -->
+      <!-- Botão Desfazer (Flutuante) -->
       <transition enter-active-class="transition duration-300 ease-out" enter-from-class="scale-0 opacity-0" enter-to-class="scale-100 opacity-100">
         <button 
           v-if="taskStore.lastDeletedTask" 
           @click="taskStore.restoreTask" 
-          class="ml-1 md:ml-2 flex items-center gap-1 md:gap-2 px-2 md:px-3 py-2 bg-amber-500 text-white text-[8px] md:text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/30 hover:bg-amber-600 transition-all animate-pulse"
-          :style="{ borderRadius: 'var(--app-input-radius)' }"
+          class="absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/30 rounded-full animate-bounce pointer-events-auto"
         >
-          <RotateCcw class="w-3 h-3 md:w-3.5 md:h-3.5" /> 
-          <span class="hidden xs:inline">Desfazer</span>
+          <RotateCcw class="w-3.5 h-3.5" /> Desfazer
         </button>
       </transition>
     </div>
@@ -123,17 +152,17 @@ const radioStore = useRadioStore();
 </template>
 
 <style scoped>
+.dynamic-island {
+  transition: all 0.3s ease-out;
+}
+
 .dock-item {
-  @apply flex items-center gap-2 px-3 py-2 bg-app-surface border border-app-border-light transition-all cursor-pointer hover:bg-app-surface;
+  @apply flex items-center gap-2 bg-app-surface border border-app-border-light transition-all;
   border-radius: var(--app-input-radius);
 }
 
-.dock-label {
-  @apply text-[10px] font-bold text-app-sub uppercase whitespace-nowrap;
-}
-
 .util-btn {
-  @apply p-2 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-indigo-500 transition-all active:scale-90;
+  @apply w-10 h-10 p-2 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-indigo-500 transition-all active:scale-90 flex items-center justify-center;
   border-radius: var(--app-input-radius);
 }
 </style>
