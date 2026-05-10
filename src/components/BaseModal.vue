@@ -10,6 +10,7 @@ const props = defineProps({
   icon: { type: [Object, Function], default: null },
   layout: { type: String, default: 'standard', validator: v => ['standard', 'custom'].includes(v) },
   showClose: { type: Boolean, default: true },
+  closeOnClickOutside: { type: Boolean, default: true },
   maxWidth: { type: String, default: 'max-w-2xl' },
   customClass: { type: String, default: '' },
   animate: { type: Boolean, default: true },
@@ -21,11 +22,18 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close', 'ok', 'cancel']);
+
+const handleOutsideClick = () => {
+  if (props.closeOnClickOutside) {
+    emit('close');
+  }
+};
+
 const { position, onMouseDown } = useModalDrag();
 </script>
 
 <template>
-  <div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-transparent" @click.self="emit('close')">
+  <div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-transparent" @click.self="handleOutsideClick">
     <section 
       class="glass-panel !p-0 w-full flex flex-col shadow-2xl border-indigo-500/10 overflow-hidden"
       :class="[maxWidth, customClass, { 'animate-scaleIn': animate }]"

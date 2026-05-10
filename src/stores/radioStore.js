@@ -78,6 +78,28 @@ export const useRadioStore = defineStore('radio', () => {
     }
   };
 
+  const updateMediaMetadata = () => {
+    if ('mediaSession' in navigator && currentRadio.value) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentRadio.value.name,
+        artist: 'TASS Web Radio',
+        album: 'Ao Vivo',
+        artwork: [
+          { src: '/favicon.svg', sizes: '512x512', type: 'image/svg+xml' }
+        ]
+      });
+    }
+  };
+
+  const setupMediaSessionActions = () => {
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('play', () => play());
+      navigator.mediaSession.setActionHandler('pause', () => pause());
+      navigator.mediaSession.setActionHandler('previoustrack', () => prev());
+      navigator.mediaSession.setActionHandler('nexttrack', () => next());
+    }
+  };
+
   const play = async () => {
     if (!currentRadio.value) return;
     
@@ -89,6 +111,8 @@ export const useRadioStore = defineStore('radio', () => {
     try {
       isLoading.value = true;
       await audio.play();
+      updateMediaMetadata();
+      setupMediaSessionActions();
     } catch (error) {
       if (error.name === 'AbortError') {
         console.warn('Reprodução interrompida: usuário trocou de rádio rápido demais (comportamento esperado).');
