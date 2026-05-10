@@ -54,7 +54,10 @@ const togglePlay = () => radioStore.toggle();
         </div>
 
         <!-- Área Superior: Player em Destaque -->
-        <div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex flex-col gap-6">
+        <div 
+          class="bg-amber-500/10 border border-amber-500/20 p-4 flex flex-col gap-6"
+          :style="{ borderRadius: 'var(--app-card-radius)' }"
+        >
           <div class="flex flex-col md:flex-row items-center gap-4">
             <!-- Informações da Rádio Atual -->
             <div class="flex-1 text-center md:text-left space-y-2">
@@ -78,19 +81,28 @@ const togglePlay = () => radioStore.toggle();
 
             <!-- Controles de Reprodução Massivos -->
             <div class="flex items-center gap-3 shrink-0">
-              <button @click="radioStore.prev" class="w-10 h-10 flex items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-slate-400 hover:text-amber-500 hover:scale-105 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all active:scale-95 border border-slate-100 dark:border-white/5">
+              <button 
+                @click="radioStore.prev" 
+                class="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 text-slate-400 hover:text-amber-500 hover:scale-105 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all active:scale-95 border border-slate-100 dark:border-white/5"
+                :style="{ borderRadius: 'var(--app-input-radius)' }"
+              >
                 <SkipBack class="w-4 h-4 fill-current" />
               </button>
               
               <button 
                 @click="togglePlay" 
-                class="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-amber-400 to-amber-600 text-white rounded-2xl shadow-xl shadow-amber-500/40 hover:scale-105 transition-all active:scale-95"
+                class="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-xl shadow-amber-500/40 hover:scale-105 transition-all active:scale-95"
+                :style="{ borderRadius: 'var(--app-input-radius)' }"
               >
                 <Pause v-if="radioStore.isPlaying" class="w-5 h-5 fill-current" />
                 <Play v-else class="w-5 h-5 fill-current ml-1" />
               </button>
 
-              <button @click="radioStore.next" class="w-10 h-10 flex items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-slate-400 hover:text-amber-500 hover:scale-105 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all active:scale-95 border border-slate-100 dark:border-white/5">
+              <button 
+                @click="radioStore.next" 
+                class="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 text-slate-400 hover:text-amber-500 hover:scale-105 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all active:scale-95 border border-slate-100 dark:border-white/5"
+                :style="{ borderRadius: 'var(--app-input-radius)' }"
+              >
                 <SkipForward class="w-4 h-4 fill-current" />
               </button>
             </div>
@@ -118,14 +130,18 @@ const togglePlay = () => radioStore.toggle();
     <div class="space-y-3 mt-4">
       <button 
         @click="showList = !showList"
-        class="w-full flex items-center justify-between px-2 py-1 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group"
+        class="w-full flex items-center justify-between px-2 py-1 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group"
+        :style="{ borderRadius: 'var(--app-input-radius)' }"
       >
         <div class="flex items-center gap-2">
           <ChevronDown v-if="showList" class="w-4 h-4 text-slate-400 group-hover:text-amber-500 transition-colors" />
           <ChevronUp v-else class="w-4 h-4 text-slate-400 group-hover:text-amber-500 transition-colors" />
           <h3 class="text-xs font-black text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 uppercase tracking-widest transition-colors">Estações Disponíveis</h3>
         </div>
-        <span class="text-[10px] font-bold bg-slate-100 dark:bg-white/5 text-slate-500 px-2 py-0.5 rounded-md group-hover:bg-amber-500/10 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+        <span 
+          class="text-[10px] font-bold bg-slate-100 dark:bg-white/5 text-slate-500 px-2 py-0.5 group-hover:bg-amber-500/10 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors"
+          :style="{ borderRadius: 'calc(var(--app-input-radius) * 0.7)' }"
+        >
           {{ radioStore.radios.length }} Rádios
         </span>
       </button>
@@ -134,10 +150,11 @@ const togglePlay = () => radioStore.toggle();
         <div class="grid grid-cols-1 gap-1.5">
           <div 
             v-for="radio in radioStore.radios" :key="radio.id"
-            class="flex items-center justify-between p-3 rounded-xl border transition-all group"
+            class="flex items-center justify-between p-3 border transition-all group"
             :class="radioStore.currentRadioId === radio.id 
             ? 'border-amber-500 bg-amber-500/5 shadow-sm' 
             : 'border-slate-100 dark:border-white/5 bg-white dark:bg-slate-900 hover:border-slate-200 dark:hover:border-white/10'"
+            :style="{ borderRadius: 'var(--app-input-radius)' }"
           >
             <!-- Clicar na área esquerda toca a rádio -->
             <div 
@@ -145,8 +162,9 @@ const togglePlay = () => radioStore.toggle();
               @click="radioStore.changeStation(radio.id)"
             >
               <div 
-                class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors shrink-0"
+                class="w-8 h-8 flex items-center justify-center transition-colors shrink-0"
                 :class="radioStore.currentRadioId === radio.id ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-slate-100 dark:bg-white/5 text-slate-400 group-hover:text-amber-500'"
+                :style="{ borderRadius: 'calc(var(--app-input-radius) * 0.8)' }"
               >
                 <Headphones v-if="radioStore.currentRadioId !== radio.id" class="w-3.5 h-3.5" />
                 <!-- Mini equalizador se estiver tocando -->
@@ -190,7 +208,8 @@ const togglePlay = () => radioStore.toggle();
       <button 
         v-if="showList"
         @click="showAddModal = true" 
-        class="w-full py-4 mt-4 rounded-xl border-2 border-dashed border-amber-500/30 text-amber-600 dark:text-amber-400 font-black text-xs uppercase tracking-widest hover:bg-amber-500/5 hover:border-amber-500 transition-all flex items-center justify-center gap-2 active:scale-95"
+        class="w-full py-4 mt-4 border-2 border-dashed border-amber-500/30 text-amber-600 dark:text-amber-400 font-black text-xs uppercase tracking-widest hover:bg-amber-500/5 hover:border-amber-500 transition-all flex items-center justify-center gap-2 active:scale-95"
+        :style="{ borderRadius: 'var(--app-card-radius)' }"
       >
         <Plus class="w-4 h-4" /> Adicionar Nova Rádio
       </button>

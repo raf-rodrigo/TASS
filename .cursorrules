@@ -2,10 +2,15 @@
 
 Este documento serve como referência para manter a consistência "Premium" da interface. Todos os novos componentes e refatorações devem seguir estas diretrizes.
 
-## 0. Uso Obrigatório do Design System (Design Tokens)
-**CRÍTICO:** É estritamente proibido o uso de cores hardcoded (ex: `text-slate-500`, `bg-white`, `dark:text-white`) em novos componentes ou refatorações. 
-- Utilize SEMPRE os tokens semânticos `app-*` definidos no `tailwind.config.js` e `style.css`.
-- Essa abordagem garante que o sistema de temas (Light/Dark) e a transparência reativa funcionem sem intervenção manual.
+## 0. Política de "Zero Hardcoded" (Design Tokens)
+**CRÍTICO:** É estritamente proibido o uso de qualquer valor visual fixo (hardcoded) em novos componentes ou refatorações. A interface do TASS deve ser 100% reativa e orientada a tokens.
+
+- **Cores**: NUNCA use classes como `text-slate-500`, `bg-white` ou `dark:text-white`. Use SEMPRE os tokens semânticos `text-app-*`, `bg-app-*` e `border-app-*`.
+- **Geometria (Bordas)**: NUNCA use classes de arredondamento fixas do Tailwind (ex: `rounded-xl`, `rounded-2xl`). Use SEMPRE as variáveis `--app-card-radius` (containers) e `--app-input-radius` (elementos internos).
+- **Transparência e Blur**: NUNCA use `opacity-50` ou `backdrop-blur-md` fixos. Use a classe `.glass-panel` ou as variáveis `--app-card-opacity` e `--app-glass-blur`.
+- **Espaçamento (Padding/Gap)**: Prefira usar a variável `--app-card-padding` para manter a consistência de respiro entre modais e cards.
+
+Essa abordagem garante que o sistema de temas (Light/Dark), o motor de transparência e a personalização geométrica funcionem sem intervenção manual.
 
 ## 1. Modais e Layouts Base
 - **Uso do BaseModal:** Todos os modais DEVEM utilizar o componente `BaseModal.vue`. NUNCA aplique filtros de `backdrop-blur` ou `bg-black/50` manualmente nos modais filhos, o sistema de background é centralizado.
@@ -21,25 +26,25 @@ Este documento serve como referência para manter a consistência "Premium" da i
 - Eles já gerenciam rótulos (`label`), ícones (`icon`), classes reativas, estados de erro (`error` com `animate-shake`) e repasse de atributos.
 
 ## 2. Geometria e Arredondamento (Radius Harmony)
-A regra de ouro é o **Arredondamento Geométrico**: o raio interno deve ser o raio externo menos o padding.
-
-- **Containers Principais (Modais, Cards Grandes)**: `rounded-2xl` (16px).
-- **Elementos Internos (Inputs, Botões, Cards de Lista)**: `rounded-xl` (12px).
-- **Cápsulas de Barra de Status**: `rounded-2xl` com itens `rounded-xl`.
+- A regra de ouro é o **Arredondamento Geométrico**: o raio interno deve ser proporcional ao externo. O sistema já calcula o `input-radius` como ~60% do `card-radius`.
+- **Implementação**: Sempre utilize as variáveis CSS via `:style` ou classes que referenciem:
+  - **Containers Principais (Modais, Cards Grandes, Seções)**: `var(--app-card-radius)`.
+  - **Elementos Internos (Inputs, Botões, Itens de Lista)**: `var(--app-input-radius)`.
 
 ## 3. Tipografia e Rótulos
 - **Rótulos de Campo (Labels)**: `text-[10px] font-black text-app-muted uppercase tracking-widest`.
 - **Botões de Ação**: `text-xs font-black uppercase tracking-tight`.
 - **Textos de Apoio/Placeholders**: Usar `text-app-muted`. A regra global de placeholder no `style.css` já garante a visibilidade.
-
-## 4. Paleta de Cores e Semântica
-- **Principal (Indigo)**: Preferencialmente `indigo-600` para botões e `indigo-500` para ícones/detalhes.
-- **Sucesso (Emerald)**: `emerald-500/600`.
-- **Perigo (Red)**: `red-500/600`.
-- **Sistema de Tokens (Obrigatório)**:
+- **Hierarquia**:
   - Texto Principal: `text-app-main`.
   - Texto Secundário: `text-app-sub`.
   - Texto Desativado/Rótulo: `text-app-muted`.
+
+## 4. Paleta de Cores e Semântica (Obrigatório)
+- **Principal (Indigo)**: Preferencialmente `indigo-600` para botões e `indigo-500` para ícones/detalhes.
+- **Sucesso (Emerald)**: `emerald-500/600`.
+- **Perigo (Red)**: `red-500/600`.
+- **Uso de Tokens**:
   - Fundos de Itens: `bg-app-surface` com borda `border-app-border-light`.
   - Superfícies Sólidas: `bg-app-solid`.
   - Vidro Dinâmico: `bg-app-glass`.
@@ -61,7 +66,6 @@ A regra de ouro é o **Arredondamento Geométrico**: o raio interno deve ser o r
 ## 7. Validação e Integridade de Dados
 - **URLs**: Nunca salvar URLs sem validação. Utilizar sempre a função `isValidUrl` de `src/utils/validation.js`.
 - **Formatação**: Utilizar sempre `ensureProtocol` ao salvar links para garantir que o prefixo `https://` esteja presente.
-- **Campos Vazios**: Tratar campos vazios como válidos (opcionais), a menos que explicitamente marcados como obrigatórios.
 
 ## 8. Diálogos e Prompts (GlobalModal)
 O sistema TASS NÃO utiliza mais SweetAlert2 nem alertas nativos (`window.alert`).
@@ -77,7 +81,7 @@ O sistema TASS NÃO utiliza mais SweetAlert2 nem alertas nativos (`window.alert`
 - **Custom**: Utilizar o atributo `data-tip` nos elementos. O sistema CSS em `style.css` cuidará da exibição opaca e centralizada.
 - **Z-Index**: Elementos com tooltips devem garantir um `z-index` maior em estado de hover (`hover:z-[100]`) para evitar sobreposição por elementos vizinhos.
 
-## 10. Inteligência Artificial e Fluxo de Trabalho
+## 10. Inteligência Artificial e Fluxo de Trabalho (IA)
 
 ### 10.1 Mensagens de Commit
 Após qualquer alteração, a IA deve sugerir a mensagem de commit no padrão **Conventional Commits**, fornecendo sempre o **comando completo em uma única linha** começando obrigatoriamente com `git commit -m "tipo(escopo): mensagem"`.
