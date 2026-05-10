@@ -415,15 +415,7 @@ const submitTask = () => {
             </transition>
           </div>
 
-          <!-- Footer (Persistent) -->
-          <footer class="p-6 border-t border-app-border-light bg-app-surface flex justify-end gap-3">
-            <button type="button" @click="emit('close')" class="btn btn-secondary px-6">Cancelar</button>
-            <button type="submit" class="btn btn-primary px-10">
-              <Save v-if="taskToEdit" class="w-4 h-4" />
-              <PlusCircle v-else class="w-4 h-4" />
-              {{ 'Salvar' }}
-            </button>
-          </footer>
+          <!-- Footer (Centralized via Props) -->
         </form>
       </main>
     </div>

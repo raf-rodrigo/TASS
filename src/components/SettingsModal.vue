@@ -160,6 +160,10 @@ const handleResetSystem = async () => {
     customClass="h-[90vh] md:h-[600px] !p-0"
     layout="custom"
     @close="emit('close')"
+    cancelText="Fechar"
+    okText="Salvar Alterações"
+    @cancel="emit('close')"
+    @ok="handleSave"
   >
     <template #default="{ onMouseDown }">
       <div class="flex flex-col md:flex-row h-full overflow-hidden">
@@ -235,8 +239,6 @@ const handleResetSystem = async () => {
           <transition name="fade-slide" mode="out-in">
             <!-- ABA: GitLab -->
             <div v-if="activeTab === 'gitlab'" :key="'gitlab'" class="space-y-8">
-
-
               <div class="space-y-6">
                 <div class="flex bg-app-surface p-1 rounded-xl w-fit">
                   <button @click="localSettings.gitlabIntegrationMode = 'link'" class="px-6 py-1.5 text-xs font-bold rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'link' ? 'bg-app-solid shadow text-indigo-600 dark:text-indigo-400' : 'text-app-sub'">Link Mágico</button>
@@ -271,8 +273,6 @@ const handleResetSystem = async () => {
 
             <!-- ABA: Jornada -->
             <div v-else-if="activeTab === 'work'" :key="'work'" class="space-y-8">
-
-
               <div class="glass-section p-6 space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   <div class="input-group">
@@ -319,8 +319,6 @@ const handleResetSystem = async () => {
 
             <!-- ABA: Saúde -->
             <div v-else-if="activeTab === 'health'" :key="'health'" class="space-y-8">
-
-
               <!-- Novo: Lembretes de Bem-estar (Sussurro) -->
               <div class="glass-section p-6 space-y-6">
                 <div class="flex items-center justify-between">
@@ -355,10 +353,7 @@ const handleResetSystem = async () => {
 
             <!-- ABA: Sistema -->
             <div v-else-if="activeTab === 'system'" :key="'system'" class="space-y-8">
-
-
               <div class="space-y-4">
-
                 <div class="glass-section p-4 space-y-4">
                   <div>
                     <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Painel de Notas Rápidas</p>
@@ -413,7 +408,6 @@ const handleResetSystem = async () => {
                 </div>
 
                 <div class="glass-section p-4 space-y-4">
-
                   <label class="flex items-center justify-between cursor-pointer">
                     <div>
                       <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Realce de Contraste</p>
@@ -427,7 +421,6 @@ const handleResetSystem = async () => {
                 </div>
 
                 <div class="glass-section p-4 space-y-4">
-
                   <div class="flex justify-between items-center">
                     <div>
                       <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Arredondamento de Cantos</p>
@@ -488,8 +481,6 @@ const handleResetSystem = async () => {
 
             <!-- ABA: Segurança -->
             <div v-else-if="activeTab === 'security'" :key="'security'" class="space-y-8">
-
-
               <div class="space-y-6">
                 <!-- Backup de Tarefas -->
                 <div class="glass-section p-6 space-y-4">
@@ -545,12 +536,6 @@ const handleResetSystem = async () => {
             </div>
           </transition>
         </div>
-
-        <!-- Footer Manual -->
-        <footer class="p-4 md:p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-end gap-3">
-          <button @click="emit('close')" class="btn btn-secondary px-6">Fechar</button>
-          <button @click="handleSave" class="btn btn-primary px-10">Salvar Alterações</button>
-        </footer>
       </main>
     </div>
     </template>

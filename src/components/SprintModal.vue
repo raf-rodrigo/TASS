@@ -204,12 +204,14 @@ const isPast = (dateStr) => {
         </div>
       </section>
 
-    <template #footer>
-      <button @click="emit('close')" class="w-full py-4 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20 uppercase tracking-widest active:scale-95" :style="{ borderRadius: 'var(--app-input-radius)' }">
+  <template #footer>
+    <div class="w-full flex justify-center">
+      <button @click="emit('close')" class="btn btn-primary px-10">
         Voltar ao Board
       </button>
-    </template>
-  </BaseModal>
+    </div>
+  </template>
+</BaseModal>
 </template>
 
 <style>

@@ -101,8 +101,10 @@ const handleColumnChange = (n) => {
     title="Interface" 
     maxWidth="max-w-4xl" 
     customClass="h-[90vh] md:h-[600px] !p-0"
-    :hideHeader="true"
+    layout="custom"
+    okText="Terminei os Ajustes"
     @close="emit('close')"
+    @ok="emit('close')"
   >
     <template #default="{ onMouseDown }">
       <div class="flex flex-col md:flex-row h-full overflow-hidden">
@@ -431,17 +433,6 @@ const handleColumnChange = (n) => {
               </div>
             </transition>
           </div>
-
-          <!-- Footer Padronizado (Ação Única para Interface Live) -->
-          <footer class="p-4 md:p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-end">
-            <button 
-              @click="emit('close')" 
-              class="px-10 py-2.5 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
-              :style="{ borderRadius: 'var(--app-input-radius)' }"
-            >
-              Terminei os Ajustes
-            </button>
-          </footer>
         </main>
       </div>
     </template>
