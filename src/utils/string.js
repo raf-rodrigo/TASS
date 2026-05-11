@@ -17,5 +17,6 @@ export const slugify = (text) => {
     .trim()
     .replace(/\s+/g, '-')               // Troca espaços por -
     .replace(/[^\w-]+/g, '')            // Remove caracteres não alfanuméricos (exceto hífen)
-    .replace(/--+/g, '-');              // Evita múltiplos hífens seguidos
+    .replace(/--+/g, '-')              // Evita múltiplos hífens seguidos
+    .replace(/^-+|-+$/g, '');           // Remove hífens no início e no fim
 };

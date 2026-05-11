@@ -111,6 +111,25 @@ npm run build
 
 ---
 
+## 🧪 Qualidade e Testes
+
+O TASS utiliza **Vitest** para garantir a estabilidade da lógica de negócio. 
+
+### Executando Testes
+```bash
+# Executar todos os testes uma vez
+npm test
+
+# Interface visual de testes (Recomendado)
+npm run test:ui
+```
+
+### Diretrizes de Contribuição
+1. **Mantenha o Verde:** A suite de testes deve passar integralmente antes de qualquer commit ou build.
+2. **Test-First:** Refatorações e novas lógicas DEVEM acompanhar arquivos `*.test.js`.
+
+---
+
 ## 📄 Licença
 
 Este projeto é de uso livre. Desenvolvido para facilitar o dia a dia de desenvolvedores que buscam organização e agilidade.

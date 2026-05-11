@@ -22,6 +22,11 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
 ## 4. Inicialização e Contextualização
 - **Leitura de Contexto:** Ao iniciar uma nova sessão ou tarefa complexa, a IA deve realizar uma leitura exploratória dos arquivos do projeto (além dos arquivos de regras) para compreender a estrutura atual, as dependências instaladas e a lógica de negócio implementada. Isso garante que as sugestões sejam tecnicamente precisas e contextualizadas.
 
-## 5. Comunicação e Workflow
+## 5. Engenharia e Qualidade
+- **Cultura de Testes (Mandatório):** Nenhuma funcionalidade nova ou refatoração de lógica (Stores, Services, Utils) é considerada completa sem a atualização ou criação dos testes unitários correspondentes em `*.test.js`.
+- **Validação de Build:** Antes de concluir qualquer tarefa, é obrigatório garantir que a suite de testes (`npm test`) passe integralmente.
+- **Bug Fixes:** Para correções de bugs, deve-se primeiro criar um teste que reproduza a falha e, após a correção, garantir que o teste passe (Red-Green-Refactor).
+
+## 6. Comunicação e Workflow
 - **Idioma:** Todo o raciocínio e comunicação devem ser realizados em **Português**.
 - **Commits:** Sugerir mensagens seguindo o padrão **Conventional Commits** em uma única linha de comando (ex: `git commit -m "feat(task): add timer validation"`).

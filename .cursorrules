@@ -47,7 +47,11 @@ Essa abordagem garante que o sistema de temas (Light/Dark), o motor de transpar�
 ## 3. Tipografia e Rótulos
 - **Rótulos de Campo (Labels)**: `text-[10px] font-black text-app-muted uppercase tracking-widest`.
 - **Botões de Ação**: `text-xs font-black uppercase tracking-tight`.
-- **Textos de Apoio/Placeholders**: Usar `text-app-muted`. A regra global de placeholder no `style.css` já garante a visibilidade.
+### 4. Qualidade e Testes (Obrigatório)
+- **Cultura de Manutenção**: Nenhuma alteração de lógica em Stores, Services ou Utils é aceita sem o respectivo teste unitário atualizado ou criado em `*.test.js`.
+- **Validação Antecipada**: Execute obrigatoriamente `npm test` antes de reportar uma tarefa como concluída ou realizar o commit.
+- **Isolamento**: Utilize `vi.mock` do Vitest para isolar dependências externas (como o banco IndexedDB) e garantir testes puros e rápidos.
+- **reprodução de Bugs**: Ao identificar um erro de lógica, crie um caso de teste que o reproduza antes de aplicar a solução (Red-Green-Refactor).
 - **Hierarquia**:
   - Texto Principal: `text-app-main`.
   - Texto Secundário: `text-app-sub`.

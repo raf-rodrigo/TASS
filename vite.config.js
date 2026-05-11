@@ -8,12 +8,16 @@ export default defineConfig({
     port: 5175,
     strictPort: true
   },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: [], // Podemos adicionar um arquivo de setup se necessário futuramente
+    include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}'],
+  },
   build: {
-    // Aumentamos o limite para 1000kB para acomodar bibliotecas de UI ricas
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        // Separa as bibliotecas (node_modules) em um arquivo 'vendor' dedicado
         manualChunks(id) {
           if (id.includes('node_modules')) {
             return 'vendor';
