@@ -187,6 +187,24 @@ export const useRadioStore = defineStore('radio', () => {
     notificationService.toast('Rádio adicionada com sucesso!', 'success');
   };
 
+  const updateRadio = async (id, data) => {
+    try {
+      await db.radios.update(id, data);
+      const index = radios.value.findIndex(r => r.id === id);
+      if (index !== -1) {
+        radios.value[index] = { ...radios.value[index], ...data };
+        // Se for a rádio atual e estiver tocando, atualiza o metadata
+        if (currentRadioId.value === id) {
+          updateMediaMetadata();
+        }
+      }
+      notificationService.toast('Rádio atualizada!', 'success');
+    } catch (err) {
+      console.error('Failed to update radio', err);
+      notificationService.toast('Erro ao atualizar rádio.', 'error');
+    }
+  };
+
   const deleteRadio = async (id) => {
     await db.radios.delete(id);
     radios.value = radios.value.filter(r => r.id !== id);
@@ -220,6 +238,7 @@ export const useRadioStore = defineStore('radio', () => {
     next,
     prev,
     addRadio,
+    updateRadio,
     deleteRadio,
     rateRadio
   };

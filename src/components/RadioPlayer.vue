@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { 
   Play, Pause, SkipForward, SkipBack, 
   Volume2, VolumeX, Plus, Trash2, Headphones, Star,
-  ChevronDown, ChevronUp, X
+  ChevronDown, ChevronUp, X, Pencil
 } from 'lucide-vue-next';
 import { useRadioStore } from '../stores/radioStore';
 import RadioModal from './RadioModal.vue';
@@ -26,8 +26,19 @@ onMounted(() => {
 
 const showList = ref(false);
 const showAddModal = ref(false);
+const radioToEdit = ref(null);
 
 const togglePlay = () => radioStore.toggle();
+
+const openEditModal = (radio) => {
+  radioToEdit.value = radio;
+  showAddModal.value = true;
+};
+
+const handleCloseModal = () => {
+  showAddModal.value = false;
+  radioToEdit.value = null;
+};
 </script>
 
 <template>
@@ -202,13 +213,23 @@ const togglePlay = () => radioStore.toggle();
                       />
                     </div>
 
-                    <button 
-                      @click.stop="radioStore.deleteRadio(radio.id)" 
-                      class="w-6 h-6 flex items-center justify-center rounded-md text-slate-300 hover:text-red-500 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 ml-1"
-                      title="Excluir Rádio"
-                    >
-                      <Trash2 class="w-3.5 h-3.5" />
-                    </button>
+                    <div class="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        @click.stop="openEditModal(radio)" 
+                        class="w-6 h-6 flex items-center justify-center rounded-md text-slate-300 hover:text-indigo-500 hover:bg-indigo-500/10 transition-all focus:opacity-100"
+                        title="Editar Rádio"
+                      >
+                        <Pencil class="w-3 h-3" />
+                      </button>
+
+                      <button 
+                        @click.stop="radioStore.deleteRadio(radio.id)" 
+                        class="w-6 h-6 flex items-center justify-center rounded-md text-slate-300 hover:text-red-500 hover:bg-red-500/10 transition-all focus:opacity-100"
+                        title="Excluir Rádio"
+                      >
+                        <Trash2 class="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -233,7 +254,8 @@ const togglePlay = () => radioStore.toggle();
   <Teleport to="body">
     <RadioModal 
       v-if="showAddModal" 
-      @close="showAddModal = false" 
+      :radioToEdit="radioToEdit"
+      @close="handleCloseModal" 
     />
   </Teleport>
 </template>
