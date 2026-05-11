@@ -378,9 +378,9 @@ const submitTask = () => {
 
             <!-- Footer Fixo (Standard TASS Style) -->
             <footer class="absolute bottom-0 left-0 right-0 p-6 md:px-10 border-t border-slate-200 dark:border-white/5 bg-app-surface/95 backdrop-blur-md flex justify-end items-center gap-3 shrink-0 z-20">
-              <button type="button" @click="emit('close')" class="btn btn-secondary px-6">Cancelar</button>
-              <button type="submit" class="btn btn-primary px-10">
-                <span>{{ taskToEdit ? 'Salvar' : 'Criar' }}</span>
+              <button type="button" @click="emit('close')" class="btn btn-secondary px-6 border-none shadow-none">Cancelar</button>
+              <button type="submit" class="btn btn-primary px-6 border-none shadow-none">
+                {{ taskToEdit ? 'Salvar' : 'Criar' }}
               </button>
             </footer>
           </form>

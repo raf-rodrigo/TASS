@@ -116,7 +116,7 @@ input:focus::placeholder, textarea:focus::placeholder {
   }
 
   .btn-secondary {
-    @apply bg-slate-100/50 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10;
+    @apply bg-slate-100/50 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400;
   }
 
   .btn-danger {

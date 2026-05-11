@@ -113,8 +113,8 @@ const { position, onMouseDown } = useModalDrag();
       <!-- Footer Area (Global: Disponível em todos os layouts se props existirem) -->
       <footer v-if="$slots.footer || okText || cancelText" class="p-6 border-t border-app-border-light bg-app-surface flex justify-end items-center gap-3 mt-auto">
         <slot name="footer">
-          <button v-if="cancelText" type="button" @click="emit('cancel')" class="btn btn-secondary px-6">{{ cancelText }}</button>
-          <button v-if="okText" type="submit" @click="emit('ok')" class="btn btn-primary px-10" :disabled="okLoading">
+          <button v-if="cancelText" type="button" @click="emit('cancel')" class="btn btn-secondary px-6 border-none shadow-none">{{ cancelText }}</button>
+          <button v-if="okText" type="submit" @click="emit('ok')" class="btn btn-primary px-6 border-none shadow-none" :disabled="okLoading">
             <span v-if="okLoading" class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
             {{ okText }}
           </button>
