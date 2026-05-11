@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { gitlabService } from './gitlab';
+import { gitlabService } from '../../src/services/gitlab';
 
 // Mock do notificationService e db
-vi.mock('./notificationService.js', () => ({
+vi.mock('../../src/services/notificationService.js', () => ({
   notificationService: {
     toast: vi.fn(),
     confirm: vi.fn(),
@@ -10,7 +10,7 @@ vi.mock('./notificationService.js', () => ({
   }
 }));
 
-vi.mock('../db.js', () => ({
+vi.mock('../../src/db.js', () => ({
   db: {
     tasks: {
       update: vi.fn()

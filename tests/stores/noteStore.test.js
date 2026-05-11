@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
-import { useNoteStore } from './noteStore';
-import { db } from '../db.js';
+import { useNoteStore } from '../../src/stores/noteStore';
+import { db } from '../../src/db.js';
 
 // Helper para criar o mock do encadeamento do Dexie
 const createDexieMock = (lastValue) => ({
@@ -9,7 +9,7 @@ const createDexieMock = (lastValue) => ({
   last: vi.fn().mockResolvedValue(lastValue)
 });
 
-vi.mock('../db.js', () => ({
+vi.mock('../../src/db.js', () => ({
   db: {
     notes: {
       toCollection: vi.fn(),

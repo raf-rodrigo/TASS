@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
-import { useSettingsStore } from './settingsStore';
-import { db } from '../db.js';
+import { useSettingsStore } from '../../src/stores/settingsStore';
+import { db } from '../../src/db.js';
 
 // Mocks do DB
-vi.mock('../db.js', () => ({
+vi.mock('../../src/db.js', () => ({
   db: {
     settings: {
       toArray: vi.fn(),

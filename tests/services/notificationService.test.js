@@ -1,22 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { notificationService } from './notificationService';
+import { notificationService } from '../../src/services/notificationService';
 import { setActivePinia, createPinia } from 'pinia';
 
 // Mocks dos utilitários nativos
-vi.mock('../utils/notifications.js', () => ({
+vi.mock('../../src/utils/notifications.js', () => ({
   sendNotification: vi.fn(),
   playNotificationSound: vi.fn(),
   requestNotificationPermission: vi.fn()
 }));
 
 // Mocks das Stores
-vi.mock('../stores/notificationStore', () => ({
+vi.mock('../../src/stores/notificationStore', () => ({
   useNotificationStore: vi.fn(() => ({
     add: vi.fn().mockReturnValue(1)
   }))
 }));
 
-vi.mock('../stores/modalStore', () => ({
+vi.mock('../../src/stores/modalStore', () => ({
   useModalStore: vi.fn(() => ({
     confirm: vi.fn().mockResolvedValue('confirmed'),
     alert: vi.fn().mockResolvedValue(true),
@@ -36,7 +36,7 @@ describe('notificationService', () => {
   });
 
   it('deve disparar som e notificação nativa em notify()', async () => {
-    const { playNotificationSound, sendNotification } = await import('../utils/notifications.js');
+    const { playNotificationSound, sendNotification } = await import('../../src/utils/notifications.js');
     
     notificationService.notify('Título', 'Corpo');
     

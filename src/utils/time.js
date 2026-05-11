@@ -8,7 +8,7 @@
  * @param {boolean} short - Se true, retorna no formato "Xh Ym"
  */
 export const formatMsToHMS = (ms, short = false) => {
-  if (!ms || isNaN(ms)) return short ? '0h 0m' : '00:00:00';
+  if (!ms || ms < 0 || isNaN(ms)) return short ? '0h 0m' : '00:00:00';
   
   const totalSeconds = Math.floor(ms / 1000);
   const hours = Math.floor(totalSeconds / 3600);

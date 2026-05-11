@@ -12,7 +12,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: [], // Podemos adicionar um arquivo de setup se necessário futuramente
-    include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}'],
+    include: ['tests/**/*.{test,spec}.{js,ts,jsx,tsx}'],
   },
   build: {
     chunkSizeWarningLimit: 1000,

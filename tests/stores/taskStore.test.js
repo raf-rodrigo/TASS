@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
-import { useTaskStore } from './taskStore';
-import { db } from '../db.js';
+import { useTaskStore } from '../../src/stores/taskStore';
+import { db } from '../../src/db.js';
 
 // Mocks do Banco de Dados
-vi.mock('../db.js', () => ({
+vi.mock('../../src/db.js', () => ({
   db: {
     tasks: {
       toArray: vi.fn(),
@@ -24,7 +24,7 @@ vi.mock('../db.js', () => ({
 }));
 
 // Mock do SettingsStore (Pinia)
-vi.mock('./settingsStore', () => ({
+vi.mock('../../src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
     columns: 3,
     activeSprintId: 'all',
@@ -34,7 +34,7 @@ vi.mock('./settingsStore', () => ({
 }));
 
 // Mock das notificações
-vi.mock('../services/notificationService', () => ({
+vi.mock('../../src/services/notificationService', () => ({
   notificationService: {
     toast: vi.fn(),
     confirm: vi.fn(),

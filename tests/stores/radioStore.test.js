@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
-import { useRadioStore } from './radioStore';
-import { db } from '../db.js';
+import { useRadioStore } from '../../src/stores/radioStore';
+import { db } from '../../src/db.js';
 
 // Corrigindo o mock do construtor Audio
 class MockAudio {
@@ -16,7 +16,7 @@ class MockAudio {
 vi.stubGlobal('Audio', MockAudio);
 
 // Mock do DB
-vi.mock('../db.js', () => ({
+vi.mock('../../src/db.js', () => ({
   db: {
     radios: {
       toArray: vi.fn(),
@@ -31,7 +31,7 @@ vi.mock('../db.js', () => ({
 }));
 
 // Mock do notificationService
-vi.mock('../services/notificationService', () => ({
+vi.mock('../../src/services/notificationService', () => ({
   notificationService: {
     toast: vi.fn()
   }

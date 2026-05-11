@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { backupService } from './backupService';
+import { backupService } from '../../src/services/backupService';
 
 // Mock do DB Dexie
-vi.mock('../db.js', () => ({
+vi.mock('../../src/db.js', () => ({
   db: {
     tasks: { toArray: vi.fn(), bulkPut: vi.fn() },
     sprints: { toArray: vi.fn(), bulkPut: vi.fn() },
@@ -12,7 +12,7 @@ vi.mock('../db.js', () => ({
 }));
 
 // Mock do notificationService
-vi.mock('./notificationService', () => ({
+vi.mock('../../src/services/notificationService', () => ({
   notificationService: {
     toast: vi.fn(),
     alert: vi.fn()
@@ -28,7 +28,7 @@ describe('backupService', () => {
 
   describe('exportSystem', () => {
     it('deve coletar dados de todas as tabelas e chamar downloadJson', async () => {
-      const { db } = await import('../db.js');
+      const { db } = await import('../../src/db.js');
       db.tasks.toArray.mockResolvedValue([{ id: 1, title: 'Task 1' }]);
       db.sprints.toArray.mockResolvedValue([{ id: 10 }]);
       db.settings.toArray.mockResolvedValue([{ key: 'theme', value: 'dark' }]);
@@ -48,7 +48,7 @@ describe('backupService', () => {
 
   describe('importTasks', () => {
     it('deve processar um arquivo JSON e salvar no banco de dados', async () => {
-      const { db } = await import('../db.js');
+      const { db } = await import('../../src/db.js');
       const mockTaskStore = { loadTasks: vi.fn() };
       const mockFileContent = JSON.stringify([{ id: 1, title: 'Importada' }]);
       const mockFile = new Blob([mockFileContent], { type: 'application/json' });
@@ -64,7 +64,7 @@ describe('backupService', () => {
     });
 
     it('deve disparar um alerta se o formato do arquivo for inválido', async () => {
-      const { notificationService } = await import('./notificationService');
+      const { notificationService } = await import('../../src/services/notificationService');
       const mockTaskStore = { loadTasks: vi.fn() };
       const mockFile = new Blob(['invalid-json'], { type: 'application/json' });
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
-import { useNotificationStore } from './notificationStore';
+import { useNotificationStore } from '../../src/stores/notificationStore';
 
 describe('NotificationStore', () => {
   beforeEach(() => {
