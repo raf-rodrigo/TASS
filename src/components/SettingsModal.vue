@@ -171,7 +171,7 @@ const handleResetSystem = async () => {
       <div class="flex flex-col md:flex-row h-full overflow-hidden">
         <!-- Sidebar de Abas (Handle de Arraste) -->
         <aside 
-          class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-4 cursor-grab active:cursor-grabbing group"
+          class="w-full md:w-64 border-b md:border-b-0 md:border-r border-app-border-light flex flex-col p-4 cursor-grab active:cursor-grabbing group"
           :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
           @mousedown="onMouseDown"
         >
@@ -200,7 +200,7 @@ const handleResetSystem = async () => {
           </button>
 
           <!-- Divisor e Link para Interface -->
-          <div class="hidden md:block w-full h-px bg-slate-200 dark:bg-white/5 my-2"></div>
+          <div class="hidden md:block w-full h-px border-t border-app-border-light my-2"></div>
 
           <button 
             @click="emit('open-interface')"
@@ -211,7 +211,7 @@ const handleResetSystem = async () => {
           </button>
         </nav>
         
-        <div class="hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10 mt-auto">
+        <div class="hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-app-border-light mt-auto">
           <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
             Confirme as alterações no botão abaixo para persistir no banco de dados.
           </p>
@@ -224,7 +224,7 @@ const handleResetSystem = async () => {
         :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
       >
         <!-- Header da seção ativa (com botão de fechar) -->
-        <div class="flex items-center justify-between px-6 md:px-10 py-3 border-b border-slate-200 dark:border-white/5 shrink-0">
+        <div class="flex items-center justify-between px-6 md:px-6 py-3 border-b border-app-border-light shrink-0">
           <div class="flex items-center gap-2.5">
             <component :is="activeTabObj.icon" class="w-3.5 h-3.5 shrink-0" :class="activeTabObj.color" />
             <div>
@@ -237,7 +237,7 @@ const handleResetSystem = async () => {
           </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto px-6 md:px-10 py-6 custom-scrollbar">
+        <div class="flex-1 overflow-y-auto px-6 md:px-6 py-6 custom-scrollbar">
           <transition name="fade-slide" mode="out-in">
             <!-- ABA: GitLab -->
             <div v-if="activeTab === 'gitlab'" :key="'gitlab'" class="space-y-8">
@@ -415,7 +415,7 @@ const handleResetSystem = async () => {
                     </div>
                   </label>
                   
-                  <div v-if="localSettings.trackInactivity" class="pt-4 border-t border-slate-200 dark:border-white/5 animate-fadeIn">
+                  <div v-if="localSettings.trackInactivity" class="pt-4 border-t border-app-border-light animate-fadeIn">
                     <div class="flex items-center justify-between gap-4">
                       <div class="flex-1">
                         <p class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1.5 ml-1">Tempo de Espera (HH:mm)</p>
@@ -491,7 +491,7 @@ const handleResetSystem = async () => {
                   </label>
                 </div>
 
-                <div class="glass-section p-4 space-y-4 border-t-2 border-indigo-500/20">
+                <div class="glass-section p-4 space-y-4 border-t-2 border-app-border-light">
                   <div class="flex items-center gap-2 mb-2">
                     <Bug class="w-4 h-4 text-indigo-500" />
                     <div>
@@ -528,10 +528,10 @@ const handleResetSystem = async () => {
                   </div>
                   <p class="text-[11px] text-slate-500 leading-relaxed mb-4">Exporta apenas a sua lista de tarefas atual. Ideal para transferências rápidas ou backups frequentes.</p>
                   <div class="flex flex-col sm:flex-row gap-3">
-                    <button @click="emit('export-tasks')" class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-slate-100 dark:bg-white/5 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-white/10">
+                    <button @click="emit('export-tasks')" class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-slate-100 dark:bg-white/5 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light">
                       <Download class="w-4 h-4" /> Exportar Tarefas
                     </button>
-                    <label class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-slate-100 dark:bg-white/5 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-slate-200 dark:border-white/10 cursor-pointer text-center">
+                    <label class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-slate-100 dark:bg-white/5 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light cursor-pointer text-center">
                       <Upload class="w-4 h-4" /> Importar Tarefas
                       <input type="file" accept=".json" class="hidden" @change="handleImportTasks" />
                     </label>

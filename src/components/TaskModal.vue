@@ -172,7 +172,7 @@ const submitTask = () => {
       <div class="flex flex-col md:flex-row h-full w-full bg-transparent overflow-hidden">
         <!-- Sidebar (Navegação que vira Abas no Mobile) -->
         <aside 
-          class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-4 cursor-grab active:cursor-grabbing group shrink-0"
+          class="w-full md:w-64 border-b md:border-b-0 md:border-r border-app-border-light flex flex-col p-4 cursor-grab active:cursor-grabbing group shrink-0"
           :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
           @mousedown="onMouseDown"
         >
@@ -223,7 +223,7 @@ const submitTask = () => {
         >
           <form @submit.prevent="submitTask" novalidate class="flex-1 flex flex-col overflow-hidden">
             <!-- Header da seção ativa (com botão de fechar) -->
-            <div class="flex items-center justify-between px-6 md:px-10 py-3 border-b border-slate-200 dark:border-white/5 shrink-0">
+            <div class="flex items-center justify-between px-6 md:px-10 py-3 border-b border-app-border-light shrink-0">
               <div class="flex items-center gap-2.5">
                 <component :is="activeTabObj.icon" class="w-3.5 h-3.5 shrink-0" :class="activeTabObj.color" />
                 <div>
@@ -255,7 +255,7 @@ const submitTask = () => {
 
                     <div>
                       <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Cor da Categoria</label>
-                      <div class="flex gap-2 flex-wrap p-2 bg-slate-100/50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 rounded-xl justify-between h-[50px] items-center">
+                      <div class="flex gap-2 flex-wrap p-2 bg-slate-100/50 dark:bg-slate-900/40 border border-app-border-light rounded-xl justify-between h-[50px] items-center">
                         <button v-for="c in colors" :key="c.value" type="button" @click="color = c.value"
                           class="w-7 h-7 rounded-full border-2 transition-all hover:scale-110"
                           :style="{ backgroundColor: c.value }"
@@ -291,7 +291,7 @@ const submitTask = () => {
                     <div class="grid grid-cols-2 gap-3">
                       <div>
                         <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Sessão Atual</label>
-                        <div class="p-2.5 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl flex items-center gap-2">
+                        <div class="p-2.5 bg-slate-100 dark:bg-white/5 border border-app-border-light rounded-xl flex items-center gap-2">
                           <Clock class="w-3.5 h-3.5 text-indigo-500" />
                           <span class="text-[10px] md:text-xs font-black font-mono text-app-main">{{ taskToEdit ? formatMsToHMS(taskToEdit.totalTimeSpent) : '00:00:00' }}</span>
                         </div>
@@ -353,7 +353,7 @@ const submitTask = () => {
                         />
                     </div>
 
-                    <div class="p-6 bg-slate-500/5 rounded-3xl border border-slate-500/10 space-y-6">
+                    <div class="p-6 bg-slate-500/5 rounded-3xl border border-app-border-light space-y-6">
                       <div class="flex items-center gap-3 mb-2">
                         <Globe class="w-4 h-4 text-indigo-500" />
                         <h4 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.2em]">Pipeline</h4>
@@ -377,7 +377,7 @@ const submitTask = () => {
             </div>
 
             <!-- Footer Fixo (Standard TASS Style) -->
-            <footer class="absolute bottom-0 left-0 right-0 p-6 md:px-10 border-t border-slate-200 dark:border-white/5 bg-app-surface/95 backdrop-blur-md flex justify-end items-center gap-3 shrink-0 z-20">
+            <footer class="absolute bottom-0 left-0 right-0 p-6 md:px-10 border-t border-app-border-light bg-app-surface/95 backdrop-blur-md flex justify-end items-center gap-3 shrink-0 z-20">
               <button type="button" @click="emit('close')" class="btn btn-secondary px-6 border-none shadow-none">Cancelar</button>
               <button type="submit" class="btn btn-primary px-6 border-none shadow-none">
                 {{ taskToEdit ? 'Salvar' : 'Criar' }}

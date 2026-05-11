@@ -167,7 +167,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Linha 2: Ambientes -->
-      <div class="flex items-center gap-1.5 px-1 py-1.5 border-y border-slate-200 dark:border-white/5">
+      <div class="flex items-center gap-1.5 px-1 py-1.5 border-y border-app-border-light">
         <button 
           @click="handleAction('prodUrl', 'PRD', 'url')" 
           @contextmenu.prevent="handleEditAction('prodUrl', 'PRD', 'url')"
@@ -209,7 +209,7 @@ onUnmounted(() => {
         borderRadius: 'var(--app-card-radius)'
       }"
     >
-      <div class="flex items-center gap-3 px-4 py-1 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/10 w-full md:w-auto md:min-w-[200px] md:max-w-[300px]">
+      <div class="flex items-center gap-3 px-4 py-1 border-b md:border-b-0 md:border-r border-app-border-light w-full md:w-auto md:min-w-[200px] md:max-w-[300px]">
         <div class="flex flex-col min-w-0 flex-1">
           <span class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-1">Tarefa Ativa</span>
           <h4 class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate leading-tight" :title="task.description || task.title">
@@ -245,7 +245,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="flex items-center gap-1.5 pl-2 md:pl-4 border-t md:border-t-0 md:border-l border-slate-200 dark:border-white/10 w-full md:w-auto justify-center">
+      <div class="flex items-center gap-1.5 pl-2 md:pl-4 border-t md:border-t-0 md:border-l border-app-border-light w-full md:w-auto justify-center">
         <button @click="handleResetTime" class="icon-btn-large text-amber-500 hover:bg-amber-500/10"><TimerReset class="w-5 h-5" /></button>
         <button @click="emit('edit')" class="icon-btn-large text-indigo-500 hover:bg-indigo-500/10"><Pencil class="w-5 h-5" /></button>
         <button @click="emit('toggle-completion')" class="icon-btn-large" :class="task.completed ? 'text-blue-500 hover:bg-blue-500/10' : 'text-emerald-500 hover:bg-emerald-500/10'">
@@ -253,7 +253,7 @@ onUnmounted(() => {
           <CheckCircle v-else class="w-5 h-5" />
         </button>
         <button @click="emit('delete')" class="icon-btn-large text-red-500 hover:bg-red-500/10"><Trash2 class="w-5 h-5" /></button>
-        <div class="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1 hidden md:block"></div>
+        <div class="w-px h-6 bg-app-border-light mx-1 hidden md:block"></div>
         <button @click="emit('close')" class="icon-btn-large text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X class="w-5 h-5" /></button>
       </div>
     </div>

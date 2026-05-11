@@ -159,7 +159,7 @@ watch(() => modalStore.isOpen, (newVal) => {
               <button 
                 v-if="modalStore.cancelText"
                 type="button" 
-                class="mt-3 sm:mt-0 inline-flex w-full justify-center rounded-xl bg-white dark:bg-white/5 px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 transition-all active:scale-95 sm:w-auto border border-slate-200 dark:border-white/10"
+                class="mt-3 sm:mt-0 inline-flex w-full justify-center rounded-xl bg-white dark:bg-white/5 px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 transition-all active:scale-95 sm:w-auto border border-app-border-light"
                 @click="modalStore.handleCancel"
               >
                 {{ modalStore.cancelText }}

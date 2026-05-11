@@ -107,7 +107,7 @@ input:focus::placeholder, textarea:focus::placeholder {
   }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 border-none shadow-none;
     border-radius: var(--app-input-radius);
   }
 
@@ -140,7 +140,7 @@ input:focus::placeholder, textarea:focus::placeholder {
   input[type="email"], 
   select, 
   textarea {
-    @apply w-full px-4 py-2.5 text-sm bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all;
+    @apply w-full px-4 py-2.5 text-sm bg-slate-100/50 dark:bg-white/5 border border-app-border-light text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all;
     border-radius: var(--app-input-radius) !important;
   }
 
@@ -153,7 +153,7 @@ input:focus::placeholder, textarea:focus::placeholder {
   }
 
   .glass-section {
-    @apply bg-white/10 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/5 backdrop-blur-sm;
+    @apply bg-white/10 dark:bg-white/[0.03] border border-app-border-light backdrop-blur-sm;
     border-radius: var(--app-card-radius);
   }
 }

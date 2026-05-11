@@ -109,7 +109,7 @@ const dockRadius = computed(() => {
       <div 
         v-show="!isMobile || isExpanded"
         class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto overflow-hidden transition-all duration-300"
-        :class="{ 'mt-3 pt-3 border-t border-slate-200 dark:border-white/10': isMobile && isExpanded }"
+        :class="{ 'mt-3 pt-3 border-t border-app-border-light': isMobile && isExpanded }"
       >
         <!-- Filtros -->
         <div 
@@ -130,7 +130,7 @@ const dockRadius = computed(() => {
           </button>
         </div>
 
-        <div class="hidden md:block w-px h-6 bg-slate-200 dark:bg-white/10 mx-1"></div>
+        <div class="hidden md:block w-px h-6 bg-app-border-light mx-1"></div>
 
         <!-- Sprint e Utilidades -->
         <div class="flex items-center justify-center md:justify-start w-full md:w-auto gap-2">
