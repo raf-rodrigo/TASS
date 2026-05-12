@@ -120,11 +120,16 @@ const dockRadius = computed(() => {
             v-for="filter in ['all', 'active', 'completed']" 
             :key="filter"
             @click="taskStore.statusFilter = filter"
-            class="flex-1 md:flex-none px-3 py-1.5 text-[10px] font-black uppercase tracking-tighter transition-all"
-            :style="{ borderRadius: 'calc(var(--app-input-radius) * 0.8)' }"
+            class="flex-1 md:flex-none px-3 py-1.5 text-[10px] font-black uppercase tracking-tighter transition-all border"
+            :style="{ 
+              borderRadius: 'calc(var(--app-input-radius) * 0.8)',
+              backgroundColor: taskStore.statusFilter === filter 
+                ? `rgba(var(--app-bg-raw), var(--app-card-opacity))` 
+                : 'transparent'
+            }"
             :class="taskStore.statusFilter === filter 
-              ? 'bg-app-solid shadow-sm text-indigo-600 dark:text-white' 
-              : 'text-app-muted hover:text-app-sub'"
+              ? 'border-app-border-light shadow-sm text-indigo-600 dark:text-indigo-400' 
+              : 'border-transparent text-app-sub hover:text-indigo-500'"
           >
             <span>{{ filter === 'all' ? 'Todas' : filter === 'active' ? 'Ativas' : 'Feitas' }}</span>
           </button>
