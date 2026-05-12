@@ -19,6 +19,7 @@ const radioStore = useRadioStore();
 
 const radioName = ref('');
 const radioUrl = ref('');
+const apiUrl = ref('');
 const error = ref('');
 
 // Estado do Teste de URL
@@ -30,6 +31,7 @@ onMounted(() => {
   if (props.radioToEdit) {
     radioName.value = props.radioToEdit.name;
     radioUrl.value = props.radioToEdit.url;
+    apiUrl.value = props.radioToEdit.apiUrl || '';
   }
 });
 
@@ -119,12 +121,14 @@ const handleSave = async () => {
   if (props.radioToEdit) {
     await radioStore.updateRadio(props.radioToEdit.id, {
       name: radioName.value,
-      url: radioUrl.value
+      url: radioUrl.value,
+      apiUrl: apiUrl.value
     });
   } else {
     await radioStore.addRadio({
       name: radioName.value,
-      url: radioUrl.value
+      url: radioUrl.value,
+      apiUrl: apiUrl.value
     });
   }
   
@@ -208,6 +212,18 @@ const handleSave = async () => {
               type="url" 
               placeholder="https://..." 
               :error="error && !radioUrl ? 'Obrigatório' : ''"
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+              URL de Metadados (Opcional)
+            </label>
+            <AppInput 
+              v-model="apiUrl" 
+              type="url" 
+              placeholder="https://api.exemplo.com/now-playing" 
+              data-tip="API para obter Artista e Música em tempo real"
             />
           </div>
 

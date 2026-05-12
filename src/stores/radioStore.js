@@ -9,19 +9,68 @@ export const useRadioStore = defineStore('radio', () => {
   const isPlaying = ref(false);
   const volume = ref(0.5);
   const isLoading = ref(false);
+  const nowPlaying = ref({
+    artist: '',
+    song: '',
+    cover: ''
+  });
 
   // Singleton do elemento de Áudio nativo
   let audio = new Audio();
   audio.volume = volume.value;
 
+  // Polling de Metadados
+  let metadataInterval = null;
+
+  const fetchMetadata = async () => {
+    if (!currentRadio.value?.apiUrl || !isPlaying.value) return;
+
+    try {
+      // Usando o proxy local do nosso Node (configurado no vite.config.js ou server.js)
+      const proxyUrl = `/radio-proxy?url=${encodeURIComponent(currentRadio.value.apiUrl)}`;
+      const response = await fetch(proxyUrl);
+      const result = await response.json();
+      
+      if (result.status === 'success' && result.data) {
+        const { artist, song, cover } = result.data;
+        
+        if (nowPlaying.value.song !== song || nowPlaying.value.artist !== artist) {
+          nowPlaying.value = { 
+            artist: artist || '', 
+            song: song || '', 
+            cover: cover || '' 
+          };
+          updateMediaMetadata();
+        }
+      }
+    } catch (err) {
+      console.warn('Erro ao buscar metadados da rádio via proxy local:', err);
+    }
+  };
+
+  const startMetadataPolling = () => {
+    stopMetadataPolling();
+    fetchMetadata(); // Busca imediata
+    metadataInterval = setInterval(fetchMetadata, 20000); // A cada 20 segundos
+  };
+
+  const stopMetadataPolling = () => {
+    if (metadataInterval) {
+      clearInterval(metadataInterval);
+      metadataInterval = null;
+    }
+  };
+
   // Listeners do Áudio
   audio.addEventListener('playing', () => {
     isPlaying.value = true;
     isLoading.value = false;
+    startMetadataPolling();
   });
 
   audio.addEventListener('pause', () => {
     isPlaying.value = false;
+    stopMetadataPolling();
   });
 
   audio.addEventListener('waiting', () => {
@@ -31,11 +80,11 @@ export const useRadioStore = defineStore('radio', () => {
   audio.addEventListener('error', (e) => {
     isLoading.value = false;
     isPlaying.value = false;
+    stopMetadataPolling();
     notificationService.toast('Erro ao carregar stream de áudio.', 'error');
   });
 
   const currentRadio = computed(() => radios.value.find(r => r.id === currentRadioId.value) || radios.value[0] || null);
-
 
   const init = async () => {
     try {
@@ -57,7 +106,7 @@ export const useRadioStore = defineStore('radio', () => {
       
       let savedRadios = await db.radios.toArray();
       // Garante que todas as rádios tenham a propriedade stars (migração)
-      savedRadios = savedRadios.map(r => ({ ...r, stars: r.stars || 0 }));
+      savedRadios = savedRadios.map(r => ({ ...r, stars: r.stars || 0, apiUrl: r.apiUrl || '' }));
       
       // Ordena decrescente por estrelas
       savedRadios.sort((a, b) => b.stars - a.stars);
@@ -81,11 +130,11 @@ export const useRadioStore = defineStore('radio', () => {
   const updateMediaMetadata = () => {
     if ('mediaSession' in navigator && currentRadio.value) {
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: currentRadio.value.name,
-        artist: 'TASS Web Radio',
-        album: 'Ao Vivo',
+        title: nowPlaying.value.song || currentRadio.value.name,
+        artist: nowPlaying.value.artist || 'TASS Web Radio',
+        album: nowPlaying.value.song ? currentRadio.value.name : 'Ao Vivo',
         artwork: [
-          { src: '/favicon.svg', sizes: '512x512', type: 'image/svg+xml' }
+          { src: nowPlaying.value.cover || '/favicon.svg', sizes: '512x512', type: nowPlaying.value.cover ? 'image/jpeg' : 'image/svg+xml' }
         ]
       });
     }
@@ -143,6 +192,9 @@ export const useRadioStore = defineStore('radio', () => {
     const radio = radios.value.find(r => r.id === id);
     if (radio) {
       currentRadioId.value = id;
+      // Reseta metadados ao trocar
+      nowPlaying.value = { artist: '', song: '', cover: '' };
+      
       if (isPlaying.value) {
         play(); // Toca a nova URL imediatamente
       } else {
@@ -196,6 +248,7 @@ export const useRadioStore = defineStore('radio', () => {
         // Se for a rádio atual e estiver tocando, atualiza o metadata
         if (currentRadioId.value === id) {
           updateMediaMetadata();
+          if (isPlaying.value) startMetadataPolling(); // Reinicia polling se a URL da API mudou
         }
       }
       notificationService.toast('Rádio atualizada!', 'success');
@@ -228,6 +281,7 @@ export const useRadioStore = defineStore('radio', () => {
     currentRadioId,
     isPlaying,
     isLoading,
+    nowPlaying,
     volume,
     init,
     play,
