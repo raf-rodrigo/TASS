@@ -25,6 +25,7 @@ const error = ref('');
 // Estado do Teste de URL
 const isTesting = ref(false);
 const isTestPlaying = ref(false);
+const isFetchingName = ref(false);
 const testAudio = ref(null);
 
 onMounted(() => {
@@ -34,6 +35,34 @@ onMounted(() => {
     apiUrl.value = props.radioToEdit.apiUrl || '';
   }
 });
+
+const fetchRadioName = async () => {
+  if (!radioUrl.value.trim() || !radioUrl.value.startsWith('http')) {
+    error.value = 'Insira uma URL de rádio válida.';
+    return;
+  }
+
+  isFetchingName.value = true;
+  error.value = '';
+
+  try {
+    const proxyUrl = `/radio-proxy?headers=true&url=${encodeURIComponent(radioUrl.value)}`;
+    const response = await fetch(proxyUrl);
+    const result = await response.json();
+
+    if (result.headers && result.headers['icy-name']) {
+      radioName.value = result.headers['icy-name'];
+      notificationService.toast('Nome detectado!', 'success');
+    } else {
+      notificationService.toast('Nome não encontrado nos headers.', 'warning');
+    }
+  } catch (err) {
+    console.error('Falha ao buscar nome da rádio:', err);
+    notificationService.toast('Erro ao buscar metadados.', 'error');
+  } finally {
+    isFetchingName.value = false;
+  }
+};
 
 onBeforeUnmount(() => {
   stopTest();
@@ -167,12 +196,29 @@ const handleSave = async () => {
 
         <div class="p-6 space-y-6">
           <!-- Corpo do Formulário -->
-          <AppInput 
-            v-model="radioName" 
-            label="Nome da Rádio" 
-            placeholder="Ex: Jazz Lounge" 
-            :error="error && !radioName ? 'Obrigatório' : ''"
-          />
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between px-1">
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                Nome da Rádio
+              </label>
+              <button 
+                v-if="radioUrl"
+                @click="fetchRadioName"
+                type="button"
+                class="text-[9px] font-black uppercase tracking-tighter text-indigo-500 hover:text-indigo-600 transition-colors flex items-center gap-1"
+                :disabled="isFetchingName"
+              >
+                <Loader2 v-if="isFetchingName" class="w-3 h-3 animate-spin" />
+                <Music v-else class="w-3 h-3" />
+                <span>{{ isFetchingName ? 'Buscando...' : 'Detectar Nome' }}</span>
+              </button>
+            </div>
+            <AppInput 
+              v-model="radioName" 
+              placeholder="Ex: Jazz Lounge" 
+              :error="error && !radioName ? 'Obrigatório' : ''"
+            />
+          </div>
           
           <div class="space-y-1.5">
             <div class="flex items-center justify-between px-1">
