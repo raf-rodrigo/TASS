@@ -115,7 +115,8 @@ const attrs = useAttrs();
     <!-- Aparece apenas se a prop 'error' tiver algum texto -->
     <div 
       v-if="error" 
-      class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1.5 animate-shake text-center"
+      class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 border border-red-500/20 mt-1.5 animate-shake text-center"
+      :style="{ borderRadius: 'var(--app-input-radius)' }"
     >
       {{ error }}
     </div>
