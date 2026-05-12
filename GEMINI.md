@@ -18,6 +18,10 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
 - **Geometria (Radius Harmony):** Use `var(--app-card-radius)` para containers e `var(--app-input-radius)` para elementos internos.
 - **Glassmorphism:** Utilize a classe `.glass-panel` e as variáveis de opacidade/blur (`--app-card-opacity`, `--app-glass-blur`).
 - **UX Premium:** Priorizar micro-interações, feedbacks visuais via `notificationService` (evitar `alert`/`confirm` nativos) e alinhamento óptico.
+- **Uso Seguro do @apply:** 
+  - Usar `@apply` apenas para tokens e classes padrão (`@apply text-app-main p-4`).
+  - **PROIBIDO** usar `@apply` com valores arbitrários complexos entre colchetes `[...]` que contenham espaços ou funções (ex: `shadow-[0_4px_rgba(0,0,0,0.1)]`).
+  - **Motivo:** Formatadores de código (Prettier) inserem espaços que quebram a compilação do PostCSS/Tailwind. Nesses casos, use CSS puro ou configure um utilitário no `tailwind.config.js`.
 
 ## 4. Inicialização e Contextualização
 - **Leitura de Contexto:** Ao iniciar uma nova sessão ou tarefa complexa, a IA deve realizar uma leitura exploratória dos arquivos do projeto (além dos arquivos de regras) para compreender a estrutura atual, as dependências instaladas e a lógica de negócio implementada. Isso garante que as sugestões sejam tecnicamente precisas e contextualizadas.

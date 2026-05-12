@@ -9,6 +9,7 @@ Este documento serve como referência para manter a consistência "Premium" da i
 - **Geometria (Bordas)**: NUNCA use classes de arredondamento fixas do Tailwind (ex: `rounded-xl`, `rounded-2xl`). Use SEMPRE as variáveis `--app-card-radius` (containers) e `--app-input-radius` (elementos internos).
 - **Transparência e Blur**: NUNCA use `opacity-50` ou `backdrop-blur-md` fixos. Use a classe `.glass-panel` ou as variáveis `--app-card-opacity` e `--app-glass-blur`.
 - **Espaçamento (Padding/Gap)**: Prefira usar a variável `--app-card-padding` para manter a consistência de respiro entre modais e cards.
+- **Uso Seguro do @apply**: Use `@apply` apenas para tokens e classes padrão. **EVITE** usar `@apply` com colchetes `[...]` que contenham espaços ou funções complexas (ex: sombras rgba), pois formatadores de código (Prettier) quebram a compilação do PostCSS ao inserir espaços. Nestes casos, use CSS puro dentro do bloco `.dark .classe` ou utilitários nomeados.
 
 Essa abordagem garante que o sistema de temas (Light/Dark), o motor de transparência e a personalização geométrica funcionem sem intervenção manual.
 
@@ -110,4 +111,4 @@ Após qualquer alteração, a IA deve sugerir a mensagem de commit no padrão **
 - **Respostas**: Todas as explicações e comunicações devem ser em Português.
 
 ### 10.3 Criatividade e UX Premium
-- A IA deve sempre buscar soluções criativas que elevem a experiência do usuário, sugerindo micro-interações, animações ou melhorias de fluxo que sigam a estética "Premium" definida nas seções anteriores.
+- A IA deve sempre buscar soluções criativas que elevem a experiênica do usuário, sugerindo micro-interações, animações ou melhorias de fluxo que sigam a estética "Premium" definida nas seções anteriores.
