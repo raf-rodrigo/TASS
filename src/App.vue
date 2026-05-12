@@ -266,7 +266,7 @@ onMounted(async () => {
     :style="{ fontFamily: settings.fontFamily }"
   >
     <div 
-      class="w-full flex flex-col items-center px-4 md:px-6 pt-4 pb-32"
+      class="w-full flex flex-col items-center px-4 md:px-6 pt-2 pb-32"
       :class="[
         isNotesDragging ? '' : 'transition-all duration-500',
         isDraggingTask ? 'is-dragging-mode' : ''
@@ -286,7 +286,7 @@ onMounted(async () => {
       </div>
     </div>
 
-      <main class="w-full mt-24 flex-1">
+      <main class="w-full mt-2 flex-1">
 
 
       <NotesPanel :isOpen="showNotes" @toggle="showNotes = !showNotes" @close="showNotes = false" />
