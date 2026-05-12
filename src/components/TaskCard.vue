@@ -6,6 +6,7 @@ import { formatMsToHMS } from '../utils/time.js';
 // Stores
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
+import { notificationService } from '../services/notificationService';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -22,6 +23,18 @@ const emit = defineEmits([
 ]);
 
 const formattedTime = computed(() => formatMsToHMS(props.task.totalTimeSpent));
+
+const copyTaskContent = async () => {
+  try {
+    const content = props.task.title;
+    
+    await navigator.clipboard.writeText(content);
+    notificationService.toast('Número copiado!', 'success');
+  } catch (err) {
+    console.error('Falha ao copiar:', err);
+    notificationService.toast('Erro ao copiar', 'error');
+  }
+};
 
 const handleSelect = (event) => {
   const isCurrentlySelected = taskStore.selectedTask?.id === props.task.id;
@@ -68,7 +81,7 @@ const handleSelect = (event) => {
     <div :class="task.completed ? 'opacity-50' : ''" class="flex justify-between items-center gap-2 transition-opacity">
       <div class="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
         <span 
-          class="font-bold px-2 py-1 rounded-lg leading-tight flex-shrink-0 transition-all border flex items-center justify-center gap-2 mr-2 min-w-[85px]" 
+          class="font-bold px-2 py-1 rounded-lg leading-tight flex-shrink-0 transition-all border flex items-center justify-center gap-2 mr-2 min-w-[85px] active:scale-95" 
           :style="{ 
             backgroundColor: (!task.isRunning && task.color) ? `${task.color}26` : '', 
             color: (!task.isRunning && task.color) ? task.color : '',
@@ -79,7 +92,8 @@ const handleSelect = (event) => {
             (!task.color && !task.isRunning) ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 dark:bg-indigo-500/20 border-indigo-500/20' : '',
             task.isRunning ? 'bg-slate-100 dark:bg-slate-900/50 text-indigo-600 dark:text-indigo-400 border-indigo-500/40 font-mono text-[11px] shadow-sm shadow-indigo-500/10' : ''
           ]"
-          :title="task.isRunning ? 'Tempo Decorrido' : task.title"
+          :title="task.isRunning ? 'Tempo Decorrido (Clique p/ copiar número)' : `Copiar número: ${task.title}`"
+          @click.stop="copyTaskContent"
         >
           {{ task.isRunning ? formattedTime : task.title }}
         </span>

@@ -3,7 +3,8 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { 
   Pencil, CheckCircle, RotateCcw, Trash2, X, 
   GitBranch, MessageSquare, ExternalLink, 
-  Play, Square, Globe, GitPullRequest, TimerReset
+  Play, Square, Globe, GitPullRequest, TimerReset,
+  Database
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
@@ -139,7 +140,7 @@ onUnmounted(() => {
       }"
     >
       <!-- Linha 1: Git, Merge, Observações e Link -->
-      <div class="grid grid-cols-4 gap-1.5 p-1">
+      <div class="grid grid-cols-5 gap-1.5 p-1">
         <button @click="handleGitlabAction" :disabled="isCreatingBranch || isMerging" class="floating-btn" :class="{ 'btn-active-purple': task.branchUrl }" data-tip="GitLab Branch">
           <GitBranch v-if="!isCreatingBranch" class="w-4 h-4" />
           <div v-else class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
@@ -155,6 +156,14 @@ onUnmounted(() => {
           data-tip="Observações (Dir. para editar)"
         >
           <MessageSquare class="w-4 h-4" />
+        </button>
+        <button 
+          @click="handleAction('dbScripts', 'Scripts SQL', 'text')" 
+          @contextmenu.prevent="handleEditAction('dbScripts', 'Scripts SQL', 'text')"
+          class="floating-btn" :class="{ 'btn-active-purple': task.dbScripts }" 
+          data-tip="Scripts SQL (Dir. para editar)"
+        >
+          <Database class="w-4 h-4" />
         </button>
         <button 
           @click="handleAction('taskUrl', 'Link', 'url')" 
@@ -234,6 +243,11 @@ onUnmounted(() => {
           class="icon-btn-large" :class="{ 'active-action-amber': task.moreInfo }"
         ><MessageSquare class="w-4 h-4" /></button>
         <button 
+          @click="handleAction('dbScripts', 'Scripts SQL', 'text')" 
+          @contextmenu.prevent="handleEditAction('dbScripts', 'Scripts SQL', 'text')"
+          class="icon-btn-large" :class="{ 'active-action-purple': task.dbScripts }"
+        ><Database class="w-4 h-4" /></button>
+        <button 
           @click="handleAction('taskUrl', 'Link da Tarefa', 'url')" 
           @contextmenu.prevent="handleEditAction('taskUrl', 'Link da Tarefa', 'url')"
           class="icon-btn-large" :class="{ 'active-action-indigo': task.taskUrl }"
@@ -283,6 +297,7 @@ onUnmounted(() => {
 }
 
 .active-action { @apply text-purple-600 bg-purple-500/15 border border-purple-500/30 !important; }
+.active-action-purple { @apply text-purple-600 bg-purple-500/15 border border-purple-500/30 !important; }
 .active-action-amber { @apply text-amber-600 bg-amber-500/15 border border-amber-500/30 !important; }
 .active-action-indigo { @apply text-indigo-600 bg-indigo-500/15 border border-indigo-500/30 !important; }
 
