@@ -260,7 +260,7 @@ const submitTask = () => {
                           class="w-7 h-7 rounded-full border-2 transition-all hover:scale-110"
                           :style="{ backgroundColor: c.value }"
                           :class="color === c.value ? 'border-slate-800 dark:border-white scale-110 ring-4 ring-indigo-500/10' : 'border-transparent opacity-80'"
-                          :title="c.name"
+                          :data-tip="c.name"
                         ></button>
                       </div>
                     </div>

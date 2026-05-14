@@ -97,7 +97,7 @@ const handleSelect = (event) => {
             (!task.color && !task.isRunning) ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 dark:bg-indigo-500/20 border-indigo-500/20' : '',
             task.isRunning ? 'bg-slate-100 dark:bg-slate-900/50 text-indigo-600 dark:text-indigo-400 border-indigo-500/40 font-mono text-[11px] shadow-sm shadow-indigo-500/10' : ''
           ]"
-          :title="task.isRunning ? 'Tempo Decorrido (Clique p/ ajustar tempo)' : `Copiar número: ${task.title}`"
+          :data-tip="task.isRunning ? 'Tempo Decorrido (Clique p/ ajustar tempo)' : `Copiar número: ${task.title}`"
           @click.stop="task.isRunning ? handleAdjustTime() : copyTaskContent()"
         >
           {{ task.isRunning ? formattedTime : task.title }}
@@ -107,7 +107,7 @@ const handleSelect = (event) => {
             class="text-sm flex-1 min-w-0 line-clamp-1 py-0.5 leading-tight" 
             :class="task.completed ? 'line-through text-app-muted' : 'text-app-sub'"
             :style="{ fontSize: settings.taskDescriptionSize + 'px' }"
-          :title="task.isRunning ? `${task.title} - ${task.description}` : task.description"
+          :data-tip="task.isRunning ? `${task.title} - ${task.description}` : task.description"
         >
           <template v-if="task.isRunning">
             <span class="font-bold mr-1" :style="{ color: task.color || 'var(--app-indigo-500)' }">{{ task.title }}</span>
@@ -148,7 +148,7 @@ const handleSelect = (event) => {
         <span 
           v-if="!task.isRunning" 
           class="hidden sm:inline text-[10px] font-bold text-app-sub leading-none mr-1 hover:text-indigo-500 cursor-pointer transition-colors"
-          title="Clique para ajustar o tempo"
+          data-tip="Clique para ajustar o tempo"
           @click.stop="handleAdjustTime"
         >
           {{ formattedTime }}

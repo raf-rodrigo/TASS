@@ -194,7 +194,7 @@
   }
 
   /* Custom Tooltips */
-  [data-tip] {
+  [data-tip]:not(.absolute):not(.fixed):not(.sticky) {
     @apply relative;
   }
 

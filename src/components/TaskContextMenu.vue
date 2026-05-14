@@ -222,7 +222,7 @@ onUnmounted(() => {
       <div class="flex items-center gap-3 px-4 py-1 border-b md:border-b-0 md:border-r border-app-border-light w-full md:w-auto md:min-w-[200px] md:max-w-[300px]">
         <div class="flex flex-col min-w-0 flex-1">
           <span class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-1">Tarefa Ativa</span>
-          <h4 class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate leading-tight" :title="task.description || task.title">
+          <h4 class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate leading-tight" :data-tip="task.description || task.title">
             {{ task.description || task.title }}
           </h4>
         </div>

@@ -231,7 +231,7 @@ const handleCloseModal = () => {
                       <button 
                         @click.stop="openEditModal(radio)" 
                         class="w-6 h-6 flex items-center justify-center rounded-md text-slate-300 hover:text-indigo-500 hover:bg-indigo-500/10 transition-all focus:opacity-100"
-                        title="Editar Rádio"
+                        data-tip="Editar Rádio"
                       >
                         <Pencil class="w-3 h-3" />
                       </button>
@@ -239,7 +239,7 @@ const handleCloseModal = () => {
                       <button 
                         @click.stop="radioStore.deleteRadio(radio.id)" 
                         class="w-6 h-6 flex items-center justify-center rounded-md text-slate-300 hover:text-red-500 hover:bg-red-500/10 transition-all focus:opacity-100"
-                        title="Excluir Rádio"
+                        data-tip="Excluir Rádio"
                       >
                         <Trash2 class="w-3.5 h-3.5" />
                       </button>

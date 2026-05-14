@@ -146,7 +146,7 @@ const handleHandleClick = () => {
       }"
       @mousedown.stop="handleResize"
       @click.stop="handleHandleClick"
-      :title="isOpen ? 'Arraste para redimensionar / Clique para fechar' : 'Arraste para mover / Clique para abrir'"
+      :data-tip="isOpen ? 'Arraste para redimensionar / Clique para fechar' : 'Arraste para mover / Clique para abrir'"
     >
       <div class="flex flex-col gap-1.5 opacity-40 group-hover:opacity-80 transition-all duration-500">
         <div 
@@ -177,17 +177,17 @@ const handleHandleClick = () => {
             <div 
               @click="setTerminalColor('rose')" 
               class="w-3 h-3 rounded-full bg-red-500/80 shadow-[0_0_8px_rgba(239,68,68,0.3)] cursor-pointer hover:scale-110 active:scale-90 transition-transform"
-              title="Tema Red Alert"
+              data-tip="Tema Red Alert"
             ></div>
             <div 
               @click="setTerminalColor('amber')" 
               class="w-3 h-3 rounded-full bg-amber-500/80 shadow-[0_0_8px_rgba(245,158,11,0.3)] cursor-pointer hover:scale-110 active:scale-90 transition-transform"
-              title="Tema Vintage Gold"
+              data-tip="Tema Vintage Gold"
             ></div>
             <div 
               @click="setTerminalColor('emerald')" 
               class="w-3 h-3 rounded-full bg-emerald-500/80 shadow-[0_0_8px_rgba(16,185,129,0.3)] cursor-pointer hover:scale-110 active:scale-90 transition-transform"
-              title="Tema Classic Terminal"
+              data-tip="Tema Classic Terminal"
             ></div>
          </div>
          <div class="flex-1 text-center">
