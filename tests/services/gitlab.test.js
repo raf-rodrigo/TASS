@@ -26,16 +26,16 @@ describe('gitlabService', () => {
   });
 
   describe('getBranchName', () => {
-    it('deve gerar um nome de branch válido a partir de uma task simples', () => {
+    it('deve gerar um nome de branch preservando o case e unindo titulo-descricao', () => {
       const task = { title: 'TSK-123', description: 'Correção de bug' };
       const branchName = gitlabService.getBranchName(task);
-      expect(branchName).toBe('TSK-123-correcao-de-bug');
+      expect(branchName).toBe('TSK-123-Correcao-de-bug');
     });
 
-    it('deve remover caracteres especiais e espaços extras', () => {
+    it('deve remover caracteres especiais e espaços extras sem forçar lowercase', () => {
       const task = { title: '  TSK 999  ', description: 'Melhoria @ Sistema!!!' };
       const branchName = gitlabService.getBranchName(task);
-      expect(branchName).toBe('TSK-999-melhoria-sistema');
+      expect(branchName).toBe('TSK-999-Melhoria-Sistema');
     });
 
     it('deve funcionar apenas com o título se a descrição estiver vazia', () => {
@@ -46,7 +46,7 @@ describe('gitlabService', () => {
   });
 
   describe('handleGitlabFlow (Modo Link)', () => {
-    it('deve abrir a URL de criação de branch quando o modo for "link"', async () => {
+    it('deve abrir a URL de criação de branch quando o modo for "link" preservando o case', async () => {
       const task = { title: 'TASK-1', description: 'Teste' };
       const settings = { 
         gitlabUrl: 'https://gitlab.com/', 
@@ -56,7 +56,7 @@ describe('gitlabService', () => {
       await gitlabService.handleGitlabFlow(task, settings);
       
       expect(window.open).toHaveBeenCalledWith(
-        expect.stringContaining('gitlab.com/-/branches/new?branch_name=TASK-1-teste'),
+        expect.stringContaining('gitlab.com/-/branches/new?branch_name=TASK-1-Teste'),
         '_blank'
       );
     });

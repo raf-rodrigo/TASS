@@ -1,13 +1,12 @@
 import { db } from '../db.js';
-import { slugify } from '../utils/string.js';
+import { gitBranchSlug } from '../utils/string.js';
 import { notificationService } from './notificationService.js';
 
 export const gitlabService = {
   getBranchName(task) {
-    const titlePart = task.title.trim().replace(/\s+/g, '-');
-    const descPart = task.description ? slugify(task.description) : '';
-    const combined = descPart ? `${titlePart}-${descPart}` : titlePart;
-    return combined.replace(/[^\w\d\-\/\.\u00C0-\u00FF]/g, '');
+    const titlePart = gitBranchSlug(task.title);
+    const descPart = task.description ? gitBranchSlug(task.description) : '';
+    return descPart ? `${titlePart}-${descPart}` : titlePart;
   },
 
   async deleteLocalBranchLink(task) {
@@ -146,7 +145,7 @@ export const gitlabService = {
         'Alerta de Exclusão',
         `Deseja realmente DELETAR a branch '${branchName}'?`,
         'Sim, Deletar',
-        'warning'
+        'error'
       );
 
       if (confirmed) {

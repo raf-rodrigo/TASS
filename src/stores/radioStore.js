@@ -31,14 +31,30 @@ export const useRadioStore = defineStore('radio', () => {
       const response = await fetch(proxyUrl);
       const result = await response.json();
       
+      let artist = '';
+      let song = '';
+      let cover = '';
+
+      // Tenta o padrão original (result.data)
       if (result.status === 'success' && result.data) {
-        const { artist, song, cover } = result.data;
-        
+        artist = result.data.artist || '';
+        song = result.data.song || '';
+        cover = result.data.cover || '';
+      } 
+      // Fallback para o novo padrão (result.musicas[0].tocando[0])
+      else if (result.musicas && result.musicas[0] && result.musicas[0].tocando && result.musicas[0].tocando[0]) {
+        const info = result.musicas[0].tocando[0];
+        artist = info.singer || '';
+        song = info.song || '';
+        cover = info.covermega || info.cover || '';
+      }
+      
+      if (song || artist) {
         if (nowPlaying.value.song !== song || nowPlaying.value.artist !== artist) {
           nowPlaying.value = { 
-            artist: artist || '', 
-            song: song || '', 
-            cover: cover || '' 
+            artist, 
+            song, 
+            cover 
           };
           updateMediaMetadata();
         }

@@ -100,27 +100,14 @@ export const useTaskStore = defineStore('task', () => {
         await Promise.all(updates);
       }
       
-      const now = Date.now();
-      const settings = useSettingsStore();
       const runningTask = dbTasks.find(t => t.isRunning);
-      if (runningTask && runningTask.lastStartTime) {
-        const timePassed = now - runningTask.lastStartTime;
-        const thresholdMs = (settings.inactivityThreshold || 1) * 60000;
-
-        if (settings.trackInactivity && timePassed > thresholdMs) { 
-          runningTask.isRunning = false;
-          runningTask.lastStartTime = null;
-          await db.tasks.update(runningTask.id, { isRunning: false, lastStartTime: null });
-        } else {
-          runningTask.totalTimeSpent += timePassed;
-          runningTask.totalWorked = (runningTask.totalWorked || 0) + timePassed;
-          runningTask.lastStartTime = now;
-          await db.tasks.update(runningTask.id, { 
-            totalTimeSpent: runningTask.totalTimeSpent, 
-            totalWorked: runningTask.totalWorked,
-            lastStartTime: runningTask.lastStartTime 
-          });
-        }
+      if (runningTask) {
+        // Se a tarefa estava rodando, ela continua rodando ao iniciar o sistema.
+        // No entanto, resetamos o lastStartTime para 'agora'.
+        // Isso garante que o tempo em que o PC esteve desligado NÃO seja somado,
+        // mas a tarefa retome sua contagem automaticamente a partir do momento atual.
+        runningTask.lastStartTime = Date.now();
+        await db.tasks.update(runningTask.id, { lastStartTime: runningTask.lastStartTime });
       }
       
       dbTasks.sort((a, b) => a.position - b.position);
