@@ -357,12 +357,34 @@ export const useTaskStore = defineStore('task', () => {
     }
   };
 
+  const adjustTaskTime = async (taskId, newMs, field = 'totalTimeSpent') => {
+    try {
+      const task = tasks.value.find(t => t.id === taskId);
+      if (!task) return;
+
+      const updates = { [field]: newMs };
+      
+      // Se estivermos ajustando a sessão atual (totalTimeSpent), 
+      // também atualizamos proporcionalmente o total trabalhado (totalWorked)
+      if (field === 'totalTimeSpent') {
+        const diff = newMs - task.totalTimeSpent;
+        updates.totalWorked = (task.totalWorked || 0) + diff;
+      }
+
+      await updateTask(taskId, updates);
+      notificationService.toast('Tempo da tarefa ajustado!', 'success');
+    } catch (error) {
+      console.error("Failed to adjust task time:", error);
+      notificationService.toast('Erro ao ajustar tempo', 'error');
+    }
+  };
+
   return {
     tasks, sprints, isLoading, selectedTask, activeTask,
     statusFilter, filteredTasks, boardColumns,
     loadTasks, loadSprints, addTask, updateTask, deleteTask, restoreTask, resetTaskTime,
     lastDeletedTask, toggleTimer, updateRunningTasks, autoSaveRunningTasks,
-    migrateOrphanTasks, updateAllPositions, resetSystem,
+    migrateOrphanTasks, updateAllPositions, resetSystem, adjustTaskTime,
     activeTaskTimeFormatted, activeSprintName, activeSprintTotalTime
   };
 });

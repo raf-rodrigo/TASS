@@ -4,7 +4,7 @@ import {
   Pencil, CheckCircle, RotateCcw, Trash2, X, 
   GitBranch, MessageSquare, ExternalLink, 
   Play, Square, Globe, GitPullRequest, TimerReset,
-  Database
+  Database, Clock
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
@@ -19,7 +19,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['close', 'edit', 'toggle-completion', 'delete']);
+const emit = defineEmits(['close', 'edit', 'toggle-completion', 'delete', 'adjust-time']);
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -195,7 +195,8 @@ onUnmounted(() => {
       </div>
 
       <!-- Linha 3: Gestão -->
-      <div class="grid grid-cols-4 gap-1.5 p-1">
+      <div class="grid grid-cols-5 gap-1.5 p-1">
+        <button @click="emit('adjust-time')" class="floating-btn text-blue-500 hover:bg-blue-500/10" data-tip="Ajustar Tempo"><Clock class="w-4 h-4" /></button>
         <button @click="handleResetTime" class="floating-btn text-amber-500 hover:bg-amber-500/10" data-tip="Zerar"><TimerReset class="w-4 h-4" /></button>
         <button @click="emit('edit')" class="floating-btn text-indigo-500 hover:bg-indigo-500/10" data-tip="Editar"><Pencil class="w-4 h-4" /></button>
         <button @click="emit('toggle-completion')" class="floating-btn" :class="task.completed ? 'text-blue-500 hover:bg-blue-500/10' : 'text-emerald-500 hover:bg-emerald-500/10'" data-tip="Concluir">
@@ -260,6 +261,7 @@ onUnmounted(() => {
       </div>
 
       <div class="flex items-center gap-1.5 pl-2 md:pl-4 border-t md:border-t-0 md:border-l border-app-border-light w-full md:w-auto justify-center">
+        <button @click="emit('adjust-time')" class="icon-btn-large text-blue-500 hover:bg-blue-500/10"><Clock class="w-5 h-5" /></button>
         <button @click="handleResetTime" class="icon-btn-large text-amber-500 hover:bg-amber-500/10"><TimerReset class="w-5 h-5" /></button>
         <button @click="emit('edit')" class="icon-btn-large text-indigo-500 hover:bg-indigo-500/10"><Pencil class="w-5 h-5" /></button>
         <button @click="emit('toggle-completion')" class="icon-btn-large" :class="task.completed ? 'text-blue-500 hover:bg-blue-500/10' : 'text-emerald-500 hover:bg-emerald-500/10'">

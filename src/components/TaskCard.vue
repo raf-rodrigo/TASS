@@ -19,10 +19,15 @@ const props = defineProps({
 });
 
 const emit = defineEmits([
-  'toggle-timer'
+  'toggle-timer',
+  'open-time-adjustment'
 ]);
 
 const formattedTime = computed(() => formatMsToHMS(props.task.totalTimeSpent));
+
+const handleAdjustTime = () => {
+  emit('open-time-adjustment', props.task);
+};
 
 const copyTaskContent = async () => {
   try {
@@ -92,8 +97,8 @@ const handleSelect = (event) => {
             (!task.color && !task.isRunning) ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 dark:bg-indigo-500/20 border-indigo-500/20' : '',
             task.isRunning ? 'bg-slate-100 dark:bg-slate-900/50 text-indigo-600 dark:text-indigo-400 border-indigo-500/40 font-mono text-[11px] shadow-sm shadow-indigo-500/10' : ''
           ]"
-          :title="task.isRunning ? 'Tempo Decorrido (Clique p/ copiar número)' : `Copiar número: ${task.title}`"
-          @click.stop="copyTaskContent"
+          :title="task.isRunning ? 'Tempo Decorrido (Clique p/ ajustar tempo)' : `Copiar número: ${task.title}`"
+          @click.stop="task.isRunning ? handleAdjustTime() : copyTaskContent()"
         >
           {{ task.isRunning ? formattedTime : task.title }}
         </span>
@@ -140,7 +145,14 @@ const handleSelect = (event) => {
         </button>
 
         <!-- Contador (Tempo) - Escondido quando rodando ou no mobile -->
-        <span v-if="!task.isRunning" class="hidden sm:inline text-[10px] font-bold text-app-sub leading-none mr-1">{{ formattedTime }}</span>
+        <span 
+          v-if="!task.isRunning" 
+          class="hidden sm:inline text-[10px] font-bold text-app-sub leading-none mr-1 hover:text-indigo-500 cursor-pointer transition-colors"
+          title="Clique para ajustar o tempo"
+          @click.stop="handleAdjustTime"
+        >
+          {{ formattedTime }}
+        </span>
       </div>
     </div>
 

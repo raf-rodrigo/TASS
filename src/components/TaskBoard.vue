@@ -26,7 +26,8 @@ const emit = defineEmits([
   'toggle-completion',
   'delete-task',
   'drag-start',
-  'drag-end'
+  'drag-end',
+  'open-time-adjustment'
 ]);
 
 const handleBoardChange = (evt, colIdx) => {
@@ -108,6 +109,7 @@ const handleBoardChange = (evt, colIdx) => {
               @delete-task="(id) => emit('delete-task', id)" 
               @edit-task="(t) => emit('edit-task', t)" 
               @toggle-timer="taskStore.toggleTimer" 
+              @open-time-adjustment="(t) => emit('open-time-adjustment', t)"
             />
           </template>
         </draggable>

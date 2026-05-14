@@ -104,6 +104,20 @@ describe('TaskStore', () => {
       // 1000 original + 5000 passados = 6000ms
       expect(task.totalTimeSpent).toBeGreaterThanOrEqual(6000);
     });
+
+    it('deve ajustar o tempo da tarefa manualmente (adjustTaskTime)', async () => {
+      const store = useTaskStore();
+      const initialTask = { id: 1, totalTimeSpent: 1000, totalWorked: 1000 };
+      store.tasks = [initialTask];
+      
+      const newTime = 5000;
+      await store.adjustTaskTime(1, newTime);
+
+      const updatedTask = store.tasks[0];
+      expect(updatedTask.totalTimeSpent).toBe(5000);
+      expect(updatedTask.totalWorked).toBe(5000);
+      expect(db.tasks.update).toHaveBeenCalledWith(1, expect.objectContaining({ totalTimeSpent: 5000 }));
+    });
   });
 
   describe('Filtros e Colunas', () => {

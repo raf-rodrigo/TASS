@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import TaskCard from './components/TaskCard.vue';
 import TaskBoard from './components/TaskBoard.vue';
 import TaskModal from './components/TaskModal.vue';
+import TimeAdjustmentModal from './components/TimeAdjustmentModal.vue';
 import SettingsModal from './components/SettingsModal.vue';
 import SprintModal from './components/SprintModal.vue';
 import InterfaceMenu from './components/InterfaceMenu.vue';
@@ -53,7 +54,9 @@ const showSprints = ref(false);
 const showInterfaceMenu = ref(false);
 const showNotes = ref(false);
 const showRadio = ref(false);
+const showTimeAdjustment = ref(false);
 const taskToEdit = ref(null);
+const taskForTimeAdjustment = ref(null);
 
 // Sincroniza o board local quando as tarefas ou filtros mudam
 watch(
@@ -95,6 +98,11 @@ const openEditModal = (task) => {
   taskToEdit.value = { ...task };
   showModal.value = true;
   taskStore.selectedTask = null;
+};
+
+const openTimeAdjustment = (task) => {
+  taskForTimeAdjustment.value = task;
+  showTimeAdjustment.value = true;
 };
 
 const { currentMessage, showMessage, triggerWellness } = useWellness(settings);
@@ -301,6 +309,7 @@ onMounted(async () => {
         @delete-task="deleteTask"
         @drag-start="handleDragStart"
         @drag-end="handleDragEnd"
+        @open-time-adjustment="openTimeAdjustment"
       />
     </main>
   </div>
@@ -323,6 +332,7 @@ onMounted(async () => {
           @edit="openEditModal(taskStore.selectedTask)"
           @toggle-completion="() => { toggleTaskCompletion(taskStore.selectedTask); taskStore.selectedTask = null; }"
           @delete="() => { taskStore.deleteTask(taskStore.selectedTask.id); taskStore.selectedTask = null; }"
+          @adjust-time="() => { openTimeAdjustment(taskStore.selectedTask); taskStore.selectedTask = null; }"
         />
       </transition>
 
@@ -355,6 +365,12 @@ onMounted(async () => {
       @close="showModal = false" 
       @add-task="handleAddTask" 
       @save-task="handleSaveTask"
+    />
+
+    <TimeAdjustmentModal
+      v-if="showTimeAdjustment"
+      :task="taskForTimeAdjustment"
+      @close="showTimeAdjustment = false"
     />
 
     <SettingsModal

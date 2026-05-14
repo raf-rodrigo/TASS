@@ -15,6 +15,7 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
 - **Componentes Base Obrigatórios:** 
   - Usar `BaseModal.vue` para todos os modais (nunca remover a classe `!p-0`).
   - Usar `AppInput.vue` e `AppTextarea.vue` para formulários.
+  - Usar `AppTimePicker.vue` para qualquer seleção ou ajuste de horas/minutos.
 - **Geometria (Radius Harmony):** Use `var(--app-card-radius)` para containers e `var(--app-input-radius)` para elementos internos.
 - **Glassmorphism:** Utilize a classe `.glass-panel` e as variáveis de opacidade/blur (`--app-card-opacity`, `--app-glass-blur`).
 - **UX Premium:** Priorizar micro-interações, feedbacks visuais via `notificationService` (evitar `alert`/`confirm` nativos) e alinhamento óptico.
@@ -28,9 +29,11 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
 
 ## 5. Engenharia e Qualidade
 - **Cultura de Testes (Mandatório):** Nenhuma funcionalidade nova ou refatoração de lógica (Stores, Services, Utils) é considerada completa sem a atualização ou criação dos testes unitários correspondentes em `*.test.js`.
-- **Validação de Build:** Antes de concluir qualquer tarefa, é obrigatório garantir que a suite de testes (`npm test`) passe integralmente.
+- **Integridade de Cronômetros:** Ao implementar ajustes manuais de tempo, garantir que a alteração no tempo da sessão (`totalTimeSpent`) seja refletida proporcionalmente no acumulador histórico (`totalWorked`).
+- **Validação de Build:** Antes de concluir qualquer tarefa, é obrigatório garantir que a suite de testes (`npm run test`) passe integralmente e que o projeto compile sem erros via `npm run build`.
 - **Bug Fixes:** Para correções de bugs, deve-se primeiro criar um teste que reproduza a falha e, após a correção, garantir que o teste passe (Red-Green-Refactor).
 
 ## 6. Comunicação e Workflow
 - **Idioma:** Todo o raciocínio e comunicação devem ser realizados em **Português**.
+- **Fluxo de Eventos:** Seguir o padrão de "Props down, Events up". Modais de ação devem ser disparados pelo `App.vue` através de eventos emitidos pelos componentes filhos (`TaskCard` -> `TaskBoard` -> `App`).
 - **Commits:** Sugerir mensagens seguindo o padrão **Conventional Commits** em uma única linha de comando (ex: `git commit -m "feat(task): add timer validation"`).
