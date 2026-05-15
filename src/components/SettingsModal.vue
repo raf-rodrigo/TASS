@@ -1,11 +1,14 @@
 <script setup>
 import { ref, watch, onMounted, computed } from 'vue';
 import { 
-  Download, Upload, Globe, Palette,
+  Download, Upload, Globe, Palette, Cloud, Loader2, LogOut, LogIn, Trash2,
   ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles, Bug, MousePointer2, Layout
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
+import { googleDriveService } from '../services/googleDriveService';
+import { backupService } from '../services/backupService';
+import { db } from '../db.js';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import BaseModal from './BaseModal.vue';
 import { useTaskStore } from '../stores/taskStore';
@@ -17,8 +20,17 @@ const taskStore = useTaskStore();
 const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'export-system', 'import-system', 'test-wellness', 'open-interface', 'test-modal']);
 
 const activeTab = ref('gitlab');
+const isGoogleLoading = ref(false);
+const isGoogleAuthenticated = ref(googleDriveService.isAuthenticated());
+const googleBackups = ref([]);
+const showGoogleRestoreList = ref(false);
 
 onMounted(() => {
+  // Inicializa o serviço do Google com um callback para atualizar o estado de autenticação
+  googleDriveService.init((status) => {
+    isGoogleAuthenticated.value = status;
+  });
+
   if (settings.keepWindowState) {
     const saved = localStorage.getItem('app-last-settings-tab');
     if (saved) activeTab.value = saved;
@@ -133,6 +145,93 @@ const handleSave = async () => {
 
 const handleImportTasks = (event) => emit('import-tasks', event);
 const handleImportSystem = (event) => emit('import-system', event);
+
+// --- GOOGLE DRIVE HANDLERS ---
+const handleGoogleLogin = () => googleDriveService.login();
+const handleGoogleLogout = () => {
+  googleDriveService.logout();
+  googleBackups.value = [];
+  showGoogleRestoreList.value = false;
+};
+
+const handleGoogleBackup = async () => {
+  isGoogleLoading.value = true;
+  try {
+    const data = await backupService.getFullBackupData();
+    const success = await googleDriveService.uploadBackup(data);
+    if (success) {
+      notificationService.toast('Backup enviado com sucesso!', 'success');
+    }
+  } catch (error) {
+    console.error('Google Backup Failed:', error);
+  } finally {
+    isGoogleLoading.value = false;
+  }
+};
+
+const handleLoadGoogleBackups = async () => {
+  isGoogleLoading.value = true;
+  try {
+    const files = await googleDriveService.listBackups();
+    googleBackups.value = files;
+    showGoogleRestoreList.value = true;
+  } catch (error) {
+    console.error('Failed to load Google backups:', error);
+  } finally {
+    isGoogleLoading.value = false;
+  }
+};
+
+const handleRestoreFromGoogle = async (file) => {
+  const confirmed = await notificationService.confirm(
+    'Restaurar Backup?',
+    `Deseja restaurar o backup "${file.name}"? Isso substituirá seus dados atuais.`,
+    'Sim, Restaurar',
+    'warning'
+  );
+
+  if (!confirmed) return;
+
+  isGoogleLoading.value = true;
+  try {
+    const data = await googleDriveService.downloadBackup(file.id);
+    if (data) {
+      const success = await backupService.applyBackupData(data, settings, taskStore);
+      if (success) {
+        showGoogleRestoreList.value = false;
+        emit('close');
+      }
+    }
+  } catch (error) {
+    console.error('Google Restore Failed:', error);
+  } finally {
+    isGoogleLoading.value = false;
+  }
+};
+
+const handleGoogleDelete = async (file) => {
+  const confirmed = await notificationService.confirm(
+    'Excluir Backup?',
+    `Tem certeza que deseja remover "${file.name}" permanentemente da nuvem?`,
+    'Sim, Excluir',
+    'error'
+  );
+
+  if (!confirmed) return;
+
+  isGoogleLoading.value = true;
+  try {
+    const success = await googleDriveService.deleteBackup(file.id);
+    if (success) {
+      // Atualiza a lista local removendo o arquivo sem precisar recarregar tudo
+      googleBackups.value = googleBackups.value.filter(b => b.id !== file.id);
+    }
+  } catch (error) {
+    console.error('Google Delete Failed:', error);
+  } finally {
+    isGoogleLoading.value = false;
+  }
+};
 
 const handleResetSystem = async () => {
   const confirmed = await notificationService.confirm(
@@ -556,6 +655,112 @@ const handleResetSystem = async () => {
                       <Upload class="w-4 h-4" /> Restaurar Sistema
                       <input type="file" accept=".json" class="hidden" @change="handleImportSystem" />
                     </label>
+                  </div>
+                </div>
+
+                <!-- Backup via Google Drive -->
+                <div class="glass-section p-6 space-y-4 border border-indigo-500/20" :class="isGoogleAuthenticated ? 'bg-indigo-500/5' : 'bg-slate-500/5'">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <Cloud class="w-5 h-5" :class="isGoogleAuthenticated ? 'text-indigo-500' : 'text-slate-400'" />
+                      <div>
+                        <h4 class="text-sm font-black uppercase tracking-tight" :class="isGoogleAuthenticated ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500'">Google Drive Cloud</h4>
+                        <p class="text-[9px] font-bold" :class="isGoogleAuthenticated ? 'text-emerald-500' : 'text-slate-400'">
+                          {{ isGoogleAuthenticated ? 'Conectado' : 'Desconectado' }}
+                        </p>
+                      </div>
+                    </div>
+                    <div v-if="isGoogleLoading" class="animate-spin text-indigo-500">
+                      <Loader2 class="w-4 h-4" />
+                    </div>
+                  </div>
+                  
+                  <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                    Sincronize seu sistema com a nuvem. Os backups são salvos em <b>"TASS Backups"</b> e ordenados por data.
+                  </p>
+                  
+                  <!-- Caso: Não Autenticado -->
+                  <div v-if="!isGoogleAuthenticated">
+                    <button 
+                      @click="handleGoogleLogin" 
+                      class="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20"
+                    >
+                      <LogIn class="w-4 h-4" /> Conectar Google Drive
+                    </button>
+                  </div>
+
+                  <!-- Caso: Autenticado -->
+                  <div v-else class="space-y-4">
+                    <div v-if="!showGoogleRestoreList" class="flex flex-col sm:flex-row gap-3">
+                      <button 
+                        @click="handleGoogleBackup" 
+                        :disabled="isGoogleLoading"
+                        class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50"
+                      >
+                        <Upload class="w-4 h-4" /> Criar Novo Backup
+                      </button>
+                      <button 
+                        @click="handleLoadGoogleBackups" 
+                        :disabled="isGoogleLoading"
+                        class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500 hover:text-white border border-indigo-500/30 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                      >
+                        <Download class="w-4 h-4" /> Ver Backups
+                      </button>
+                    </div>
+
+                    <!-- Lista de Backups no Google Drive -->
+                    <div v-else class="space-y-3 animate-fadeIn">
+                      <div class="flex items-center justify-between mb-2">
+                        <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Escolha um ponto para restaurar</p>
+                        <button @click="showGoogleRestoreList = false" class="text-[10px] font-bold text-slate-400 hover:text-indigo-500">Voltar</button>
+                      </div>
+                      
+                      <div v-if="googleBackups.length === 0" class="py-8 text-center border-2 border-dashed border-app-border-light rounded-2xl">
+                        <p class="text-[10px] text-slate-500 italic">Nenhum backup encontrado nesta conta.</p>
+                      </div>
+                      
+                      <div v-else class="max-h-48 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                        <div 
+                          v-for="(file, index) in googleBackups" 
+                          :key="file.id"
+                          class="flex items-center p-3 bg-white dark:bg-white/5 border border-app-border-light rounded-xl transition-all group hover:bg-indigo-500/5"
+                        >
+                          <div class="flex-1 text-left cursor-pointer" @click="handleRestoreFromGoogle(file)">
+                            <div class="flex items-center gap-2">
+                              <p class="text-[11px] font-bold text-app-main group-hover:text-indigo-500">
+                                {{ index === 0 ? 'Último Backup' : 'Backup Anterior' }}
+                              </p>
+                              <span v-if="index === 0" class="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase rounded">Mais Recente</span>
+                            </div>
+                            <p class="text-[9px] text-app-muted">{{ new Date(file.createdTime).toLocaleString('pt-BR', { dateStyle: 'long', timeStyle: 'short' }) }}</p>
+                          </div>
+                          
+                          <div class="flex items-center gap-2">
+                            <button 
+                              @click="handleRestoreFromGoogle(file)"
+                              title="Restaurar este backup"
+                              class="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-500/10 rounded-lg transition-all"
+                            >
+                              <Download class="w-3.5 h-3.5" />
+                            </button>
+                            <button 
+                              @click="handleGoogleDelete(file)"
+                              title="Excluir da nuvem"
+                              class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                            >
+                              <Trash2 class="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button 
+                      @click="handleGoogleLogout" 
+                      class="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-bold text-red-500 hover:text-red-600 transition-colors"
+                    >
+                      <LogOut class="w-3 h-3" /> Desconectar conta
+                    </button>
                   </div>
                 </div>
 

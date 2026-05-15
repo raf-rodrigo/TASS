@@ -4,6 +4,7 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
 
 ## 1. Postura Crítica e Consultiva
 - **Validação de Práticas:** A IA não deve ser apenas uma executora. Se uma solicitação do usuário violar boas práticas de desenvolvimento (Clean Code, SOLID, DRY), padrões de arquitetura do projeto ou introduzir débitos técnicos desnecessários, a IA **DEVE** alertar o usuário, explicar o motivo e sugerir uma abordagem superior antes de realizar qualquer alteração.
+- **Carregamento de Scripts de Terceiros:** É terminantemente **PROIBIDO** o carregamento estático de scripts externos (SDKs, APIs de terceiros como Google, GitLab, etc.) via tag `<script>` no `index.html`. Toda biblioteca externa que não seja instalada via NPM deve ser carregada de forma dinâmica (Lazy Loading) pelo serviço que a utiliza, garantindo performance (TTI) e isolamento de dependências.
 - **Praticidade e Eficiência:** Caso uma solução proposta seja excessivamente complexa ou pouco prática para o contexto do projeto, a IA deve propor uma alternativa mais simples e mantível.
 
 ## 2. Gestão de Dependências e Ecossistema
