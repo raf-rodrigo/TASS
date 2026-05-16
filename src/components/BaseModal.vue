@@ -4,62 +4,121 @@ import { useModalDrag } from '../composables/useModalDrag';
 import { useSettingsStore } from '../stores/settingsStore';
 
 const settings = useSettingsStore();
+
+/**
+ * Props para o BaseModal
+ * @property {string} title - Título principal do modal
+ * @property {string} subtitle - Subtítulo (opcional)
+ * @property {Object|Function} icon - Ícone Lucide (opcional)
+ * @property {string} layout - 'standard' (com header/footer padrão) ou 'custom' (total liberdade)
+ * @property {boolean} showClose - Exibe o botão X no canto superior
+ * @property {boolean} closeOnClickOutside - Fecha ao clicar na área vazia do fundo
+ * @property {boolean} isWindow - MODO JANELA: Remove o bloqueio de cliques no fundo e o escurecimento, permitindo interagir com o resto do app.
+ * @property {string} maxWidth - Classe Tailwind de largura máxima (ex: max-w-lg)
+ * @property {string} customClass - Classes CSS adicionais para a section
+ * @property {boolean} animate - Ativa animação de entrada (scaleIn)
+ * @property {boolean} hideHeader - Esconde o header completamente
+ * @property {string} okText - Texto do botão de ação primária (ativa footer padrão)
+ * @property {string} cancelText - Texto do botão de ação secundária (ativa footer padrão)
+ * @property {boolean} okLoading - Estado de carregamento do botão primário
+ */
 const props = defineProps({
   title: String,
+  subtitle: { type: String, default: '' },
+  icon: { type: [Object, Function], default: null },
+  layout: { type: String, default: 'standard', validator: v => ['standard', 'custom'].includes(v) },
   showClose: { type: Boolean, default: true },
+  closeOnClickOutside: { type: Boolean, default: true },
+  isWindow: { type: Boolean, default: false },
   maxWidth: { type: String, default: 'max-w-2xl' },
   customClass: { type: String, default: '' },
   animate: { type: Boolean, default: true },
-  hideHeader: { type: Boolean, default: false }
+  hideHeader: { type: Boolean, default: false },
+  // Centralização de Botões
+  okText: { type: String, default: '' },
+  cancelText: { type: String, default: '' },
+  okLoading: { type: Boolean, default: false }
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'ok', 'cancel']);
+
+const handleOutsideClick = () => {
+  if (props.closeOnClickOutside) {
+    emit('close');
+  }
+};
+
 const { position, onMouseDown } = useModalDrag();
 </script>
 
 <template>
-  <div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-transparent" @click.self="emit('close')">
+  <div 
+    class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-transparent" 
+    :class="{ 'pointer-events-none': isWindow }"
+    @click.self="handleOutsideClick"
+  >
     <section 
-      class="glass-panel w-full flex flex-col shadow-2xl border-indigo-500/10 overflow-hidden"
+      class="glass-panel !p-0 w-full flex flex-col shadow-2xl border-indigo-500/10 overflow-hidden pointer-events-auto"
       :class="[maxWidth, customClass, { 'animate-scaleIn': animate }]"
       :style="{ 
         '--modal-x': `${position.x}px`,
         '--modal-y': `${position.y}px`,
         transform: `translate(var(--modal-x), var(--modal-y))`,
-        backgroundColor: settings.theme === 'dark' 
-          ? `rgba(15, 23, 42, ${settings.opacityTargets.modals ? (100 - settings.cardOpacity) / 100 : 1.0})` 
-          : `rgba(255, 255, 255, ${settings.opacityTargets.modals ? (100 - settings.cardOpacity) / 100 : 1.0})`
+        backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-opacity))`
       }"
     >
-      <!-- Header / Drag Handle -->
-      <header 
-        v-if="!hideHeader"
-        class="flex items-center justify-between p-6 pb-2 cursor-grab active:cursor-grabbing group select-none"
-        @mousedown="onMouseDown"
-      >
-        <slot name="header" :onMouseDown="onMouseDown">
-          <div class="flex items-center gap-3">
-            <div class="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
-            <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter">{{ title }}</h2>
-          </div>
-        </slot>
-        
-        <button v-if="showClose" @click="emit('close')" class="icon-btn">
-          <X class="w-5 h-5" />
-        </button>
-      </header>
-
-      <!-- Content Area -->
-      <main 
-        class="flex-1 overflow-y-auto custom-scrollbar"
-        :class="hideHeader ? 'p-0' : 'p-6 pt-2'"
-      >
+      <!-- ============================================== -->
+      <!-- MODO: CUSTOM (Sem estrutura injetada, total liberdade) -->
+      <!-- ============================================== -->
+      <template v-if="layout === 'custom' || hideHeader">
         <slot :onMouseDown="onMouseDown"></slot>
-      </main>
+      </template>
 
-      <!-- Footer Area -->
-      <footer v-if="$slots.footer" class="p-5 border-t border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
-        <slot name="footer"></slot>
+      <!-- ============================================== -->
+      <!-- MODO: STANDARD (Padrão Cursorrules) -->
+      <!-- ============================================== -->
+      <template v-else>
+        <!-- Header -->
+        <header 
+          class="flex items-center justify-between p-6 pb-4 border-b border-app-border-light cursor-grab active:cursor-grabbing select-none"
+          @mousedown="onMouseDown"
+        >
+          <slot name="header" :onMouseDown="onMouseDown">
+            <div class="flex items-center gap-3">
+              <div v-if="icon" class="p-2.5 rounded-2xl bg-indigo-500 text-white shadow-lg shadow-indigo-500/30">
+                <component :is="icon" class="w-5 h-5" />
+              </div>
+              <div v-else class="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
+              
+              <div>
+                <h2 :class="icon ? 'text-2xl font-black text-app-main tracking-tighter leading-none' : 'text-sm font-black text-app-main uppercase tracking-tighter'">
+                  {{ title }}
+                </h2>
+                <span v-if="subtitle" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ subtitle }}</span>
+              </div>
+            </div>
+          </slot>
+          
+          <button v-if="showClose" @click="emit('close')" class="icon-btn">
+            <X class="w-5 h-5" />
+          </button>
+        </header>
+
+        <!-- Content Area -->
+        <main class="flex-1 p-6 space-y-5 overflow-y-auto custom-scrollbar">
+          <slot :onMouseDown="onMouseDown"></slot>
+        </main>
+      </template>
+
+      <!-- Footer Area (Global: Disponível em todos os layouts se props existirem) -->
+      <footer v-if="$slots.footer || okText || cancelText" class="p-6 border-t border-app-border-light bg-app-surface flex justify-end items-center gap-3 mt-auto">
+        <slot name="footer">
+          <button v-if="cancelText" type="button" @click="emit('cancel')" class="btn btn-secondary px-6 border-none shadow-none">{{ cancelText }}</button>
+          <button v-if="okText" type="submit" @click="emit('ok')" class="btn btn-primary px-6 border-none shadow-none" :disabled="okLoading">
+            <span v-if="okLoading" class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+            {{ okText }}
+          </button>
+        </slot>
       </footer>
     </section>
   </div>

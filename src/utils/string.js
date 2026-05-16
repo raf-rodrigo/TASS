@@ -17,5 +17,25 @@ export const slugify = (text) => {
     .trim()
     .replace(/\s+/g, '-')               // Troca espaços por -
     .replace(/[^\w-]+/g, '')            // Remove caracteres não alfanuméricos (exceto hífen)
-    .replace(/--+/g, '-');              // Evita múltiplos hífens seguidos
+    .replace(/--+/g, '-')              // Evita múltiplos hífens seguidos
+    .replace(/^-+|-+$/g, '');           // Remove hífens no início e no fim
+};
+
+/**
+ * Formata o nome da branch preservando maiúsculas e minúsculas.
+ * Apenas converte espaços em hífens e limpa caracteres inválidos para o Git.
+ * Ex: "Sprint 01: Refactor UI" -> "Sprint-01-Refactor-UI"
+ */
+export const gitBranchSlug = (text) => {
+  if (!text) return '';
+
+  return text
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')    // Remove acentos
+    .trim()
+    .replace(/\s+/g, '-')               // Espaços para hífens
+    .replace(/[^\w\d\-\/\.]/g, '')       // Remove caracteres inválidos para branch (mantém /, . e -)
+    .replace(/--+/g, '-')               // Evita múltiplos hífens
+    .replace(/^-+|-+$/g, '');           // Remove hífens nas extremidades
 };

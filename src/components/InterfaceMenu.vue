@@ -1,8 +1,8 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import { 
-  X, Palette, Trash2, Plus,
-  Image as ImageIcon, Eraser,
+  X, Palette, Trash2, Plus, Settings,
+  Image as ImageIcon, Eraser, MousePointer2,
   LayoutGrid, Layers, Type as TypeIcon, Droplets
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -16,19 +16,49 @@ defineProps({
   isOpen: Boolean
 });
 
-const emit = defineEmits(['close', 'test-wellness']);
+const emit = defineEmits(['close', 'test-wellness', 'open-settings']);
 
 const activeTab = ref('wallpapers');
+
+onMounted(() => {
+  if (settings.keepWindowState) {
+    const saved = localStorage.getItem('app-last-interface-tab');
+    if (saved) activeTab.value = saved;
+  }
+});
+
+watch(activeTab, (newVal) => {
+  if (settings.keepWindowState) {
+    localStorage.setItem('app-last-interface-tab', newVal);
+  }
+});
+
+// Live Preview para arredondamento
+watch(() => settings.cardBorderRadius, (newVal) => {
+  if (newVal === undefined || newVal === null) return;
+  
+  requestAnimationFrame(() => {
+    const root = document.documentElement;
+    if (root) {
+      root.style.setProperty('--app-card-radius', newVal + 'px');
+      root.style.setProperty('--app-input-radius', Math.round(newVal * 0.6) + 'px');
+    }
+  });
+  settings.saveSetting('app-card-radius', newVal);
+}, { immediate: true });
+
 const showAddWallpaper = ref(false);
 const newWallpaperUrl = ref('');
 
 const tabs = [
-  { id: 'wallpapers', label: 'Papéis de Parede', icon: ImageIcon, color: 'text-emerald-500' },
-  { id: 'board', label: 'Board & Layout', icon: LayoutGrid, color: 'text-indigo-500' },
-  { id: 'tasks', label: 'Estilo das Tarefas', icon: Layers, color: 'text-indigo-500' },
-  { id: 'typography', label: 'Tipografia', icon: TypeIcon, color: 'text-indigo-500' },
-  { id: 'effects', label: 'Efeitos e Vidro', icon: Droplets, color: 'text-indigo-500' },
+  { id: 'wallpapers', label: 'Papéis de Parede', icon: ImageIcon, color: 'text-indigo-500', desc: 'Troque o clima do seu workspace instantaneamente.' },
+  { id: 'board', label: 'Board & Layout', icon: LayoutGrid, color: 'text-indigo-500', desc: 'Configure a estrutura principal do seu quadro de tarefas.' },
+  { id: 'tasks', label: 'Estilo das Tarefas', icon: Layers, color: 'text-indigo-500', desc: 'Personalize a aparência visual dos seus cards.' },
+  { id: 'typography', label: 'Tipografia', icon: TypeIcon, color: 'text-indigo-500', desc: 'Escolha a fonte que melhor se adapta ao seu estilo.' },
+  { id: 'effects', label: 'Efeitos e Vidro', icon: Droplets, color: 'text-indigo-500', desc: 'Ajuste o desfoque e as transparências do sistema.' },
 ];
+
+const activeTabObj = computed(() => tabs.find(t => t.id === activeTab.value) || tabs[0]);
 
 const fontOptions = [
   'Inter', 'Outfit', 'Lexend', 
@@ -86,14 +116,16 @@ const handleColumnChange = (n) => {
     title="Interface" 
     maxWidth="max-w-4xl" 
     customClass="h-[90vh] md:h-[600px] !p-0"
-    :hideHeader="true"
+    layout="custom"
+    okText="Fechar"
     @close="emit('close')"
+    @ok="emit('close')"
   >
     <template #default="{ onMouseDown }">
       <div class="flex flex-col md:flex-row h-full overflow-hidden">
         <!-- Sidebar de Abas (Handle de Arraste) -->
         <aside 
-          class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-4 cursor-grab active:cursor-grabbing group"
+          class="w-full md:w-64 border-b md:border-b-0 md:border-r border-app-border-light flex flex-col p-4 cursor-grab active:cursor-grabbing group"
           :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
           @mousedown="onMouseDown"
         >
@@ -102,8 +134,8 @@ const handleColumnChange = (n) => {
               <Palette class="w-5 h-5" />
             </div>
             <div>
-              <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter">Interface</h2>
-              <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Ajustes Visuais</p>
+              <h2 class="text-sm font-black text-app-main uppercase tracking-tighter">Interface</h2>
+              <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest">Ajustes Visuais</p>
             </div>
           </div>
 
@@ -114,15 +146,26 @@ const handleColumnChange = (n) => {
               @click="activeTab = tab.id"
               class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
               :class="activeTab === tab.id 
-                ? 'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-slate-200 dark:ring-white/10' 
-                : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'"
+                ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' 
+                : 'text-app-sub hover:bg-app-surface'"
             >
               <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
               <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
             </button>
+
+            <!-- Divisor e Link para Configurações -->
+            <div class="hidden md:block w-full h-px border-t border-app-border-light my-2"></div>
+
+            <button 
+              @click="emit('open-settings')"
+              class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
+            >
+              <Settings class="w-4 h-4" />
+              <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">Configurações</span>
+            </button>
           </nav>
 
-          <div class="hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10 mt-auto">
+          <div class="hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-app-border-light mt-auto">
             <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
               As alterações na interface são aplicadas instantaneamente em tempo real.
             </p>
@@ -134,28 +177,32 @@ const handleColumnChange = (n) => {
           class="flex-1 flex flex-col overflow-hidden relative"
           :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
         >
-          <!-- Close Button Top Right -->
-          <button class="absolute top-6 right-6 icon-btn z-10" @click="emit('close')">
-            <X class="w-5 h-5" />
-          </button>
+          <!-- Header da seção ativa (com botão de fechar) -->
+          <div class="flex items-center justify-between px-6 md:px-10 py-3 border-b border-app-border-light shrink-0">
+            <div class="flex items-center gap-2.5">
+              <component :is="activeTabObj.icon" class="w-3.5 h-3.5 shrink-0" :class="activeTabObj.color" />
+              <div>
+                <p class="text-[11px] font-black text-app-main leading-none uppercase tracking-wider">{{ activeTabObj.label }}</p>
+                <p class="text-[9px] text-app-muted font-medium mt-0.5">{{ activeTabObj.desc }}</p>
+              </div>
+            </div>
+            <button type="button" @click="emit('close')" class="icon-btn -mr-2 z-10">
+              <X class="w-5 h-5" />
+            </button>
+          </div>
 
-          <div class="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
+          <div class="flex-1 overflow-y-auto px-6 md:px-10 py-6 custom-scrollbar">
             <transition name="fade-slide" mode="out-in">
               <!-- ABA: Board -->
               <div v-if="activeTab === 'board'" :key="'board'" class="space-y-8">
-                <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Board & Layout</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Configure a estrutura principal do seu quadro de tarefas.</p>
-                </div>
-
                 <div class="space-y-8">
                   <!-- Seleção de Colunas -->
                   <div class="space-y-3">
-                    <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Quantidade de Colunas</label>
-                    <div class="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-slate-200 dark:border-white/5 w-full">
+                    <label class="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">Quantidade de Colunas</label>
+                    <div class="flex bg-app-surface p-1 rounded-2xl border border-app-border-light w-full">
                       <button v-for="n in 4" :key="n" @click="handleColumnChange(n)"
                         class="flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300"
-                        :class="settings.columns === n ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400'">{{ n }} Colunas</button>
+                        :class="settings.columns === n ? 'bg-indigo-500 text-white shadow-lg' : 'text-app-muted'">{{ n }} Colunas</button>
                     </div>
                   </div>
 
@@ -179,8 +226,21 @@ const handleColumnChange = (n) => {
                     </div>
                   </div>
 
-                  <div class="pt-6 border-t border-slate-200 dark:border-white/5">
-                    <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                  <div class="space-y-6 pt-6 border-t border-app-border-light">
+                    <!-- Arredondamento de Cantos -->
+                    <div class="glass-section p-4 space-y-4">
+                      <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                          <MousePointer2 class="w-4 h-4 text-indigo-500" />
+                          <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Arredondamento de Cantos</p>
+                        </div>
+                        <span class="text-xs font-black text-indigo-500">{{ settings.cardBorderRadius }}px</span>
+                      </div>
+                      <p class="text-[10px] text-slate-500">Define o nível de arredondamento dos elementos da interface.</p>
+                      <input type="range" v-model="settings.cardBorderRadius" min="0" max="40" step="1" class="w-full app-range" />
+                    </div>
+
+                    <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all">
                       <div class="flex flex-col">
                         <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Guias Sempre Visíveis</span>
                         <span class="text-[9px] text-slate-400">Desative para ocultar (aparecem apenas ao arrastar)</span>
@@ -196,10 +256,7 @@ const handleColumnChange = (n) => {
 
               <!-- ABA: Estilo das Tarefas -->
               <div v-else-if="activeTab === 'tasks'" :key="'tasks'" class="space-y-8">
-                <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Estilo das Tarefas</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Personalize a aparência visual dos seus cards de tarefa.</p>
-                </div>
+
 
                 <div class="grid grid-cols-1 gap-6">
                   <!-- Espessura -->
@@ -239,10 +296,7 @@ const handleColumnChange = (n) => {
 
               <!-- ABA: Tipografia -->
               <div v-else-if="activeTab === 'typography'" :key="'typography'" class="space-y-8">
-                <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Tipografia</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Escolha a fonte que melhor se adapta ao seu estilo de trabalho.</p>
-                </div>
+
 
                 <div class="space-y-6">
                   <!-- Família de Fontes -->
@@ -254,7 +308,7 @@ const handleColumnChange = (n) => {
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
                       <button v-for="font in fontOptions" :key="font" @click="settings.fontFamily = font; settings.saveSetting('app-font-family', font)"
                         class="px-2 py-2.5 text-[10px] font-medium rounded-xl border transition-all truncate"
-                        :class="settings.fontFamily === font ? 'bg-indigo-500 text-white border-indigo-500 shadow-md' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10'"
+                        :class="settings.fontFamily === font ? 'bg-indigo-500 text-white border-indigo-500 shadow-md' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-app-border-light'"
                         :style="{ fontFamily: font }">{{ font }}</button>
                     </div>
                   </div>
@@ -263,10 +317,7 @@ const handleColumnChange = (n) => {
 
               <!-- ABA: Papéis de Parede -->
               <div v-else-if="activeTab === 'wallpapers'" :key="'wallpapers'" class="space-y-6">
-                <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Galeria de Papéis de Parede</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Troque o clima do seu workspace instantaneamente.</p>
-                </div>
+
 
                 <div class="glass-section p-6 space-y-6">
                   <div class="flex items-center justify-between">
@@ -282,7 +333,7 @@ const handleColumnChange = (n) => {
                       v-if="settings.customWallpapers.length > 0"
                       @click="clearWallpaper"
                       class="aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all group"
-                      :class="!settings.backgroundImage ? 'border-indigo-500 bg-indigo-500/5 text-indigo-500' : 'border-slate-200 dark:border-white/10 text-slate-400 hover:border-red-500/50 hover:text-red-500'"
+                      :class="!settings.backgroundImage ? 'border-indigo-500 bg-indigo-500/5 text-indigo-500' : 'border-app-border-light text-slate-400 hover:border-red-500/50 hover:text-red-500'"
                     >
                       <Eraser class="w-6 h-6" />
                       <span class="text-[10px] font-bold uppercase tracking-tighter">Limpar</span>
@@ -309,22 +360,22 @@ const handleColumnChange = (n) => {
                     <button 
                       v-if="settings.customWallpapers.length < 17"
                       @click="showAddWallpaper = !showAddWallpaper"
-                      class="aspect-video rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-500"
+                      class="aspect-video rounded-xl border-2 border-dashed border-app-border-light hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-500"
                     >
                       <Plus class="w-6 h-6" />
                       <span class="text-[10px] font-bold uppercase tracking-tighter">Novo Link</span>
                     </button>
                   </div>
 
-                  <div v-if="showAddWallpaper" class="animate-fadeIn p-4 bg-white dark:bg-white/5 rounded-2xl border border-emerald-500/30 space-y-4">
+                  <div v-if="showAddWallpaper" class="animate-fadeIn p-4 bg-app-solid rounded-2xl border border-emerald-500/30 space-y-4">
                     <div class="space-y-2">
-                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">URL da Imagem</label>
+                      <label class="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">URL da Imagem</label>
                       <div class="flex gap-2">
                         <input 
                           v-model="newWallpaperUrl" 
                           type="text" 
                           placeholder="https://exemplo.com/imagem.jpg"
-                          class="flex-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                          class="flex-1 bg-slate-100 dark:bg-white/5 border border-app-border-light rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
                           @keyup.enter="addCustomWallpaper"
                         />
                         <button @click="addCustomWallpaper" class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/25">
@@ -353,10 +404,7 @@ const handleColumnChange = (n) => {
 
               <!-- ABA: Efeitos e Vidro -->
               <div v-else-if="activeTab === 'effects'" :key="'effects'" class="space-y-6">
-                <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Efeitos e Vidro</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Ajuste o desfoque e as transparências do sistema.</p>
-                </div>
+
 
 
                 <div class="glass-section p-6 space-y-6">
@@ -372,10 +420,10 @@ const handleColumnChange = (n) => {
                     </div>
                     <input type="range" v-model="settings.cardOpacity" min="0" max="100" step="5" class="w-full app-range" @change="settings.saveSetting('app-card-opacity', settings.cardOpacity)" />
                     
-                    <div class="pt-6 border-t border-slate-200 dark:border-white/5">
+                    <div class="pt-6 border-t border-app-border-light">
                       <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block">Aplicar efeito em:</label>
                       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                        <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all">
                           <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Cards</span>
                           <div class="relative inline-flex items-center">
                             <input type="checkbox" v-model="settings.opacityTargets.cards" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
@@ -383,7 +431,7 @@ const handleColumnChange = (n) => {
                           </div>
                         </label>
 
-                        <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                        <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all">
                           <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Janelas e Menus</span>
                           <div class="relative inline-flex items-center">
                             <input type="checkbox" v-model="settings.opacityTargets.modals" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
@@ -391,7 +439,7 @@ const handleColumnChange = (n) => {
                           </div>
                         </label>
 
-                        <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                        <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all">
                           <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Menu Inferior</span>
                           <div class="relative inline-flex items-center">
                             <input type="checkbox" v-model="settings.opacityTargets.bottomBar" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
@@ -399,7 +447,7 @@ const handleColumnChange = (n) => {
                           </div>
                         </label>
 
-                        <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-slate-200 dark:border-white/5 group hover:border-indigo-500/30 transition-all">
+                        <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all">
                           <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Menu de Contexto</span>
                           <div class="relative inline-flex items-center">
                             <input type="checkbox" v-model="settings.opacityTargets.contextMenu" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
@@ -413,12 +461,6 @@ const handleColumnChange = (n) => {
               </div>
             </transition>
           </div>
-
-          <footer class="p-5 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
-            <button @click="emit('close')" class="w-full py-4 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-all shadow-xl shadow-indigo-500/20 uppercase tracking-widest active:scale-95">
-              Terminei os Ajustes
-            </button>
-          </footer>
         </main>
       </div>
     </template>

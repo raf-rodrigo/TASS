@@ -3,17 +3,23 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue()
+  ],
   server: {
     port: 5175,
     strictPort: true
   },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: [], // Podemos adicionar um arquivo de setup se necessário futuramente
+    include: ['tests/**/*.{test,spec}.{js,ts,jsx,tsx}'],
+  },
   build: {
-    // Aumentamos o limite para 1000kB para acomodar bibliotecas de UI ricas
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        // Separa as bibliotecas (node_modules) em um arquivo 'vendor' dedicado
         manualChunks(id) {
           if (id.includes('node_modules')) {
             return 'vendor';

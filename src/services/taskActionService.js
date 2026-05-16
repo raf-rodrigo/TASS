@@ -12,7 +12,7 @@ export const taskActionService = {
    */
   async promptQuickUpdate(task, taskStore, field, label, type = 'url') {
     const currentValue = task[field] || '';
-    const isTextArea = field === 'moreInfo';
+    const isTextArea = field === 'moreInfo' || field === 'dbScripts';
 
     const newValue = await notificationService.prompt({
       title: label,

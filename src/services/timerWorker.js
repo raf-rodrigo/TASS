@@ -30,8 +30,6 @@ function startTimers() {
   autoSaveInterval = setInterval(() => {
     self.postMessage({ type: 'TICK_10S', timestamp: Date.now() });
   }, 10000);
-  
-  console.log('[Worker] TIMER1 (Hardware Virtual) operando em thread isolada.');
 }
 
 function stopTimers() {

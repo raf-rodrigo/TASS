@@ -26,7 +26,8 @@ const emit = defineEmits([
   'toggle-completion',
   'delete-task',
   'drag-start',
-  'drag-end'
+  'drag-end',
+  'open-time-adjustment'
 ]);
 
 const handleBoardChange = (evt, colIdx) => {
@@ -36,7 +37,7 @@ const handleBoardChange = (evt, colIdx) => {
 
 <template>
   <section 
-    class="flex flex-nowrap lg:grid gap-6 w-full items-stretch overflow-x-auto lg:overflow-x-visible pb-8 lg:pb-0 snap-x snap-mandatory custom-scrollbar min-h-[80vh]" 
+    class="flex flex-nowrap lg:grid gap-6 w-full items-stretch overflow-x-auto lg:overflow-x-visible pb-8 lg:pb-0 snap-x snap-mandatory custom-scrollbar min-h-[50vh]" 
     :class="{
       'lg:grid-cols-1': settings.columns === 1 || !settings.columns,
       'lg:grid-cols-2': settings.columns === 2,
@@ -47,7 +48,7 @@ const handleBoardChange = (evt, colIdx) => {
     <div 
       v-for="colIdx in settings.columns" 
       :key="colIdx" 
-      class="flex flex-col gap-4 min-h-[500px] relative flex-shrink-0 lg:flex-shrink snap-center lg:snap-align-none w-[90vw] md:w-[45vw] lg:w-full first:ml-[5vw] last:mr-[5vw] lg:first:ml-0 lg:last:mr-0 pb-20"
+      class="flex flex-col gap-4 min-h-[500px] relative flex-shrink-0 lg:flex-shrink snap-center lg:snap-align-none w-[90vw] md:w-[45vw] lg:w-full first:ml-[5vw] last:mr-[5vw] lg:first:ml-0 lg:last:mr-0 pb-10"
     >
       <!-- Cabeçalho da Coluna -->
       <div 
@@ -57,7 +58,7 @@ const handleBoardChange = (evt, colIdx) => {
         <div 
           class="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)] mr-2"
         ></div>
-        <h3 class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] truncate">
+        <h3 class="text-[10px] font-black text-app-sub uppercase tracking-[0.2em] truncate">
           {{ settings.columnTitles[colIdx-1] }}
         </h3>
         <span class="ml-2 text-[9px] font-black text-indigo-500/50">
@@ -72,7 +73,7 @@ const handleBoardChange = (evt, colIdx) => {
           class="absolute inset-0 flex items-center justify-center pointer-events-none"
         >
           <div 
-            class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-2xl text-slate-400/30 transition-all"
+            class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-2xl text-app-muted/30 transition-all"
             :style="{ 
               borderColor: `rgba(var(--app-bg-raw), 0.1)`,
               backgroundColor: settings.cardOpacity > 0 ? `rgba(var(--app-bg-raw), 0.05)` : 'transparent',
@@ -108,6 +109,7 @@ const handleBoardChange = (evt, colIdx) => {
               @delete-task="(id) => emit('delete-task', id)" 
               @edit-task="(t) => emit('edit-task', t)" 
               @toggle-timer="taskStore.toggleTimer" 
+              @open-time-adjustment="(t) => emit('open-time-adjustment', t)"
             />
           </template>
         </draggable>

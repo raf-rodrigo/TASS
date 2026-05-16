@@ -13,7 +13,7 @@ export const isValidUrl = (url) => {
   // que contêm pontos e caracteres especiais no fragmento (#) e na query (?)
   const pattern = new RegExp(
     '^(https?:\\/\\/)?' + // protocolo opcional
-    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domínio
+    '(localhost|(([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domínio ou localhost
     '((\\d{1,3}\\.){3}\\d{1,3}))' + // ou IP
     '(\\:\\d+)?' + // porta
     '(\\/[-a-z\\d%_.~+]*)*' + // caminho
@@ -21,7 +21,7 @@ export const isValidUrl = (url) => {
     '(\\#[-a-z\\d%_.~+=&]*)?$', 'i' // fragmento (hífen movido para o final para evitar erro de range)
   );
     
-  return !!pattern.test(url);
+  return !!pattern.test(url.trim());
 };
 
 /**
@@ -29,8 +29,9 @@ export const isValidUrl = (url) => {
  */
 export const ensureProtocol = (url) => {
   if (!url) return '';
-  if (!/^https?:\/\//i.test(url)) {
-    return `https://${url}`;
+  const trimmed = url.trim();
+  if (!/^https?:\/\//i.test(trimmed)) {
+    return `https://${trimmed}`;
   }
-  return url;
+  return trimmed;
 };

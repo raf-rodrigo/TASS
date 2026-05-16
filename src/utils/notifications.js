@@ -39,8 +39,7 @@ export const sendNotification = (title, body) => {
   
   try {
     return new Notification(title, {
-      body: body,
-      icon: "/favicon.svg"
+      body: body
     });
   } catch (e) {
     return false;

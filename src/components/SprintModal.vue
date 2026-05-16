@@ -81,23 +81,13 @@ const isPast = (dateStr) => {
 <template>
   <BaseModal 
     maxWidth="max-w-2xl" 
-    customClass="!p-0"
     @close="emit('close')"
+    :icon="Calendar"
+    title="Ciclos de Trabalho"
+    subtitle="Gestão de Sprints e Prazos"
+    layout="standard"
   >
-    <template #header>
-      <div class="flex items-center gap-3">
-        <div class="p-2.5 bg-indigo-500 text-white shadow-lg shadow-indigo-500/20" :style="{ borderRadius: 'var(--app-input-radius)' }">
-          <Calendar class="w-5 h-5" />
-        </div>
-        <div>
-          <h2 class="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tighter leading-none uppercase">Ciclos de Trabalho</h2>
-          <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestão de Sprints e Prazos</p>
-        </div>
-      </div>
-    </template>
-
-    <div class="p-6 space-y-6">
-      <!-- Linha Superior: Ações e Filtro Global -->
+    <!-- Linha Superior: Ações e Filtro Global -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Botão: Nova Sprint -->
         <button 
@@ -121,7 +111,7 @@ const isPast = (dateStr) => {
           :style="{ borderRadius: 'var(--app-input-radius)' }"
           :class="activeSprintId === 'all' 
             ? 'bg-indigo-600 border-indigo-500 text-white shadow-xl shadow-indigo-500/30' 
-            : 'bg-white dark:bg-slate-800/40 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300 hover:border-indigo-500/50'"
+            : 'bg-white dark:bg-slate-800/40 border-app-border-light text-slate-700 dark:text-slate-300 hover:border-indigo-500/50'"
         >
           <div class="w-10 h-10 flex items-center justify-center transition-all"
             :style="{ borderRadius: 'calc(var(--app-input-radius) * 0.8)' }"
@@ -137,7 +127,7 @@ const isPast = (dateStr) => {
       </div>
 
       <!-- Formulário de Cadastro (Ocultável) -->
-      <div v-if="showAddForm" class="p-6 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 animate-scaleIn space-y-5" :style="{ borderRadius: 'var(--app-card-radius)' }">
+      <div v-if="showAddForm" class="p-6 bg-slate-50 dark:bg-white/5 border border-app-border-light animate-scaleIn space-y-5" :style="{ borderRadius: 'var(--app-card-radius)' }">
         <div class="flex items-center gap-2">
            <div class="w-1 h-4 bg-emerald-500 rounded-full"></div>
            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Configurar Novo Ciclo</span>
@@ -185,7 +175,7 @@ const isPast = (dateStr) => {
                 :style="{ borderRadius: 'var(--app-input-radius)' }"
                 :class="activeSprintId == sprint.id 
                   ? 'bg-indigo-600 border-indigo-500 text-white shadow-xl shadow-indigo-500/30' 
-                  : 'bg-white dark:bg-slate-800/40 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300 hover:border-indigo-500/50 hover:bg-slate-50 dark:hover:bg-white/[0.02]'"
+                  : 'bg-white dark:bg-slate-800/40 border-app-border-light text-slate-700 dark:text-slate-300 hover:border-indigo-500/50 hover:bg-slate-50 dark:hover:bg-white/[0.02]'"
               >
                 <div class="w-10 h-10 flex items-center justify-center transition-all flex-shrink-0"
                   :style="{ borderRadius: 'calc(var(--app-input-radius) * 0.8)' }"
@@ -213,14 +203,15 @@ const isPast = (dateStr) => {
           </div>
         </div>
       </section>
-    </div>
 
-    <template #footer>
-      <button @click="emit('close')" class="w-full py-4 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20 uppercase tracking-widest active:scale-95" :style="{ borderRadius: 'var(--app-input-radius)' }">
+  <template #footer>
+    <div class="w-full flex justify-center">
+      <button @click="emit('close')" class="btn btn-primary px-10">
         Voltar ao Board
       </button>
-    </template>
-  </BaseModal>
+    </div>
+  </template>
+</BaseModal>
 </template>
 
 <style>

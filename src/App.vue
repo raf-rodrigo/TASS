@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import TaskCard from './components/TaskCard.vue';
 import TaskBoard from './components/TaskBoard.vue';
 import TaskModal from './components/TaskModal.vue';
+import TimeAdjustmentModal from './components/TimeAdjustmentModal.vue';
 import SettingsModal from './components/SettingsModal.vue';
 import SprintModal from './components/SprintModal.vue';
 import InterfaceMenu from './components/InterfaceMenu.vue';
@@ -12,7 +13,7 @@ import NotificationContainer from './components/NotificationContainer.vue';
 import GlobalModal from './components/GlobalModal.vue';
 import TaskContextMenu from './components/TaskContextMenu.vue';
 import GlobalDock from './components/GlobalDock.vue';
-import draggable from 'vuedraggable';
+import RadioPlayer from './components/RadioPlayer.vue';
 
 // Composables
 import { useWellness } from './composables/useWellness.js';
@@ -51,7 +52,10 @@ const showSettings = ref(false);
 const showSprints = ref(false);
 const showInterfaceMenu = ref(false);
 const showNotes = ref(false);
+const showRadio = ref(false);
+const showTimeAdjustment = ref(false);
 const taskToEdit = ref(null);
+const taskForTimeAdjustment = ref(null);
 
 // Sincroniza o board local quando as tarefas ou filtros mudam
 watch(
@@ -93,6 +97,11 @@ const openEditModal = (task) => {
   taskToEdit.value = { ...task };
   showModal.value = true;
   taskStore.selectedTask = null;
+};
+
+const openTimeAdjustment = (task) => {
+  taskForTimeAdjustment.value = task;
+  showTimeAdjustment.value = true;
 };
 
 const { currentMessage, showMessage, triggerWellness } = useWellness(settings);
@@ -140,6 +149,25 @@ const handleAddTask = async (taskData) => {
     showModal.value = false;
   } catch (error) {
     console.error("Failed to add task:", error);
+  }
+};
+
+const handleToggleRadio = () => {
+  showRadio.value = !showRadio.value;
+};
+
+const handleTestModal = async (type) => {
+  if (type === 'success') {
+    notificationService.alert('Teste Concluído!', 'O modal de sucesso está funcionando.', 'success');
+  } else if (type === 'error') {
+    notificationService.alert('Falha Simulada', 'O modal de erro foi disparado com sucesso.', 'error');
+  } else if (type === 'warning') {
+    await notificationService.confirm('Cuidado!', 'Isto é um teste do modal de aviso (warning).', 'Entendido', 'warning');
+  } else if (type === 'prompt') {
+    const result = await notificationService.prompt('Entrada de Dados', 'Digite algo para testar o prompt:', 'text');
+    if (result) {
+      notificationService.toast(`Você digitou: ${result}`, 'success');
+    }
   }
 };
 
@@ -245,7 +273,7 @@ onMounted(async () => {
     :style="{ fontFamily: settings.fontFamily }"
   >
     <div 
-      class="w-full flex flex-col items-center px-4 md:px-6 pt-4 pb-32"
+      class="w-full flex flex-col items-center px-4 md:px-6 pt-2 pb-32"
       :class="[
         isNotesDragging ? '' : 'transition-all duration-500',
         isDraggingTask ? 'is-dragging-mode' : ''
@@ -265,7 +293,7 @@ onMounted(async () => {
       </div>
     </div>
 
-      <main class="w-full mt-24 flex-1">
+      <main class="w-full mt-2 flex-1">
 
 
       <NotesPanel :isOpen="showNotes" @toggle="showNotes = !showNotes" @close="showNotes = false" />
@@ -280,41 +308,54 @@ onMounted(async () => {
         @delete-task="deleteTask"
         @drag-start="handleDragStart"
         @drag-end="handleDragEnd"
+        @open-time-adjustment="openTimeAdjustment"
       />
     </main>
   </div>
 
-    <!-- Camada de Interface Binária: Global Dock vs Task Context Menu -->
-    <transition 
-      mode="out-in"
-      enter-active-class="transition duration-500 ease-out"
-      enter-from-class="translate-y-20 opacity-0 scale-95"
-      enter-to-class="translate-y-0 opacity-100 scale-100"
-      leave-active-class="transition duration-300 ease-in"
-      leave-from-class="translate-y-0 opacity-100 scale-100"
-      leave-to-class="translate-y-20 opacity-0 scale-95"
-    >
-      <!-- MODO FOCADO: Menu de Contexto da Tarefa -->
-      <TaskContextMenu 
-        v-if="taskStore.selectedTask"
-        :task="taskStore.selectedTask"
-        @close="taskStore.selectedTask = null"
-        @edit="openEditModal(taskStore.selectedTask)"
-        @toggle-completion="() => { toggleTaskCompletion(taskStore.selectedTask); taskStore.selectedTask = null; }"
-        @delete="() => { taskStore.deleteTask(taskStore.selectedTask.id); taskStore.selectedTask = null; }"
-      />
+    <!-- Camada de Interface: Global Dock e Task Context Menu -->
+    <div class="pointer-events-none">
+      <!-- Menu de Contexto da Tarefa -->
+      <transition 
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="opacity-0 scale-95"
+        enter-to-class="opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 scale-100"
+        leave-to-class="opacity-0 scale-95"
+      >
+        <TaskContextMenu 
+          v-if="taskStore.selectedTask"
+          :task="taskStore.selectedTask"
+          @close="taskStore.selectedTask = null"
+          @edit="openEditModal(taskStore.selectedTask)"
+          @toggle-completion="() => { toggleTaskCompletion(taskStore.selectedTask); taskStore.selectedTask = null; }"
+          @delete="() => { taskStore.deleteTask(taskStore.selectedTask.id); taskStore.selectedTask = null; }"
+          @adjust-time="() => { openTimeAdjustment(taskStore.selectedTask); taskStore.selectedTask = null; }"
+        />
+      </transition>
 
-      <!-- MODO GLOBAL: Dock de Controle Geral -->
-      <GlobalDock 
-        v-else
-        @add-task="openAddModal"
-        @open-sprints="showSprints = true"
-        @open-notes="showNotes = !showNotes"
-        @open-interface="showInterfaceMenu = true"
-        @open-settings="showSettings = true"
-        @toggle-theme="toggleTheme"
-      />
-    </transition>
+      <!-- Global Dock: Fica visível se não houver tarefa selecionada OU se o estilo de menu for flutuante -->
+      <transition 
+        enter-active-class="transition duration-500 ease-out"
+        enter-from-class="translate-y-20 opacity-0 scale-95"
+        enter-to-class="translate-y-0 opacity-100 scale-100"
+        leave-active-class="transition duration-300 ease-in"
+        leave-from-class="translate-y-0 opacity-100 scale-100"
+        leave-to-class="translate-y-20 opacity-0 scale-95"
+      >
+        <GlobalDock 
+          v-if="!taskStore.selectedTask || settings.contextMenuStyle === 'floating'"
+          @add-task="openAddModal"
+          @open-sprints="showSprints = true"
+          @open-notes="showNotes = !showNotes"
+          @open-interface="showInterfaceMenu = true"
+          @open-settings="showSettings = true"
+          @toggle-theme="toggleTheme"
+          @open-radio="handleToggleRadio"
+        />
+      </transition>
+    </div>
 
     <!-- 4. Modal Layer (Teleport-like behavior) -->
     <TaskModal 
@@ -325,11 +366,19 @@ onMounted(async () => {
       @save-task="handleSaveTask"
     />
 
+    <TimeAdjustmentModal
+      v-if="showTimeAdjustment"
+      :task="taskForTimeAdjustment"
+      @close="showTimeAdjustment = false"
+    />
+
     <SettingsModal
       v-if="showSettings"
       @close="showSettings = false"
+      @open-interface="() => { showSettings = false; showInterfaceMenu = true; }"
       @save="() => {}"
       @test-wellness="triggerWellness(true)"
+      @test-modal="handleTestModal"
       @export-tasks="handleExportTasks"
       @import-tasks="handleImportTasks"
       @export-system="handleExportSystem"
@@ -348,6 +397,12 @@ onMounted(async () => {
       v-if="showInterfaceMenu"
       :isOpen="showInterfaceMenu"
       @close="showInterfaceMenu = false"
+      @open-settings="() => { showInterfaceMenu = false; showSettings = true; }"
+    />
+
+    <RadioPlayer
+      :isOpen="showRadio"
+      @close="showRadio = false"
     />
 
     <NotificationContainer />

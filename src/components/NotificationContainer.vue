@@ -40,12 +40,8 @@ const iconClasses = {
         <div 
           v-for="notification in notificationStore.notifications" 
           :key="notification.id"
-          class="glass-panel !p-4 w-full shadow-2xl pointer-events-auto border-white/10 ring-1 ring-black/5"
-          :style="{ 
-            backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-opacity))`,
-            backdropFilter: 'blur(12px)',
-            '-webkit-backdrop-filter': 'blur(12px)'
-          }"
+          class="!p-4 w-full shadow-2xl pointer-events-auto border border-app-border-light ring-1 ring-black/5 bg-app-glass backdrop-blur-md"
+          :style="{ borderRadius: 'var(--app-card-radius)' }"
         >
           <div class="flex items-start">
             <!-- Ícone de Status -->
@@ -60,10 +56,10 @@ const iconClasses = {
 
             <!-- Conteúdo do Texto -->
             <div class="ml-3 w-0 flex-1 pt-0.5">
-              <p class="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+              <p class="text-sm font-black text-app-main leading-tight">
                 {{ notification.title }}
               </p>
-              <p v-if="notification.message" class="mt-1 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              <p v-if="notification.message" class="mt-1 text-xs text-app-sub font-medium leading-relaxed">
                 {{ notification.message }}
               </p>
             </div>
@@ -72,7 +68,7 @@ const iconClasses = {
             <div class="ml-4 flex-shrink-0 flex">
               <button 
                 @click="notificationStore.remove(notification.id)"
-                class="rounded-md inline-flex text-slate-400 hover:text-slate-500 focus:outline-none"
+                class="rounded-md inline-flex text-app-muted hover:text-app-main focus:outline-none transition-colors"
               >
                 <span class="sr-only">Fechar</span>
                 <X class="h-5 w-5" aria-hidden="true" />
@@ -86,8 +82,4 @@ const iconClasses = {
 </template>
 
 <style scoped>
-.glass-panel {
-  border-radius: var(--app-card-radius);
-  /* Sobrescrevemos a opacidade do glass-panel global para garantir legibilidade nas notificações */
-}
 </style>

@@ -1,11 +1,12 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Play, Square } from 'lucide-vue-next';
+import { Play, Square, MoreVertical } from 'lucide-vue-next';
 import { formatMsToHMS } from '../utils/time.js';
 
 // Stores
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
+import { notificationService } from '../services/notificationService';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -18,16 +19,47 @@ const props = defineProps({
 });
 
 const emit = defineEmits([
-  'toggle-timer'
+  'toggle-timer',
+  'open-time-adjustment'
 ]);
 
 const formattedTime = computed(() => formatMsToHMS(props.task.totalTimeSpent));
 
-const handleSelect = () => {
-  if (taskStore.selectedTask?.id === props.task.id) {
+const handleAdjustTime = () => {
+  emit('open-time-adjustment', props.task);
+};
+
+const copyTaskContent = async () => {
+  try {
+    const content = props.task.title;
+    
+    await navigator.clipboard.writeText(content);
+    notificationService.toast('Número copiado!', 'success');
+  } catch (err) {
+    console.error('Falha ao copiar:', err);
+    notificationService.toast('Erro ao copiar', 'error');
+  }
+};
+
+const handleSelect = (event) => {
+  const isCurrentlySelected = taskStore.selectedTask?.id === props.task.id;
+  
+  if (isCurrentlySelected) {
     taskStore.selectedTask = null;
   } else {
-    taskStore.selectedTask = props.task;
+    // Primeiro limpamos a seleção atual para forçar o fechamento do menu anterior
+    taskStore.selectedTask = null;
+    
+    // Captura a nova posição do mouse imediatamente
+    taskStore.contextMenuPosition = { 
+      x: event.clientX, 
+      y: event.clientY 
+    };
+    
+    // Pequeno delay para garantir que o componente de menu seja remontado na nova posição
+    setTimeout(() => {
+      taskStore.selectedTask = props.task;
+    }, 10);
   }
 };
 </script>
@@ -47,13 +79,14 @@ const handleSelect = () => {
         ? (settings.cardOpacity > 0 ? 'rgba(99, 102, 241, 0.1)' : '') 
         : '' 
     }"
-    @click.stop="handleSelect"
+    @click.stop="handleSelect($event)"
+    @contextmenu.prevent="handleSelect($event)"
   >
 
     <div :class="task.completed ? 'opacity-50' : ''" class="flex justify-between items-center gap-2 transition-opacity">
       <div class="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
         <span 
-          class="font-bold px-2 py-1 rounded-lg leading-none flex-shrink-0 transition-all border flex items-center justify-center gap-2 mr-2 min-w-[85px]" 
+          class="font-bold px-2 py-1 rounded-lg leading-tight flex-shrink-0 transition-all border flex items-center justify-center gap-2 mr-2 min-w-[85px] active:scale-95" 
           :style="{ 
             backgroundColor: (!task.isRunning && task.color) ? `${task.color}26` : '', 
             color: (!task.isRunning && task.color) ? task.color : '',
@@ -64,16 +97,17 @@ const handleSelect = () => {
             (!task.color && !task.isRunning) ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 dark:bg-indigo-500/20 border-indigo-500/20' : '',
             task.isRunning ? 'bg-slate-100 dark:bg-slate-900/50 text-indigo-600 dark:text-indigo-400 border-indigo-500/40 font-mono text-[11px] shadow-sm shadow-indigo-500/10' : ''
           ]"
-          :title="task.isRunning ? 'Tempo Decorrido' : task.title"
+          :data-tip="task.isRunning ? 'Tempo Decorrido (Clique p/ ajustar tempo)' : `Copiar número: ${task.title}`"
+          @click.stop="task.isRunning ? handleAdjustTime() : copyTaskContent()"
         >
           {{ task.isRunning ? formattedTime : task.title }}
         </span>
-        <span 
-          v-if="task.description || task.isRunning" 
-          class="text-sm truncate flex-1 min-w-0" 
-          :class="task.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'"
-          :style="{ fontSize: settings.taskDescriptionSize + 'px' }"
-          :title="task.isRunning ? `${task.title} - ${task.description}` : task.description"
+          <span 
+            v-if="task.description || task.isRunning" 
+            class="text-sm flex-1 min-w-0 line-clamp-1 py-0.5 leading-tight" 
+            :class="task.completed ? 'line-through text-app-muted' : 'text-app-sub'"
+            :style="{ fontSize: settings.taskDescriptionSize + 'px' }"
+          :data-tip="task.isRunning ? `${task.title} - ${task.description}` : task.description"
         >
           <template v-if="task.isRunning">
             <span class="font-bold mr-1" :style="{ color: task.color || 'var(--app-indigo-500)' }">{{ task.title }}</span>
@@ -101,8 +135,24 @@ const handleSelect = () => {
           <Play v-else class="w-3.5 h-3.5" />
         </button>
 
+        <!-- 2. Menu Trigger Icon -->
+        <button 
+          class="transition-all flex items-center justify-center text-app-muted hover:text-indigo-500 w-[26px] h-[26px]"
+          @click.stop="handleSelect($event)"
+          data-tip="Opções da Tarefa"
+        >
+          <MoreVertical class="w-4 h-4" />
+        </button>
+
         <!-- Contador (Tempo) - Escondido quando rodando ou no mobile -->
-        <span v-if="!task.isRunning" class="hidden sm:inline text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-none mr-1">{{ formattedTime }}</span>
+        <span 
+          v-if="!task.isRunning" 
+          class="hidden sm:inline text-[10px] font-bold text-app-sub leading-none mr-1 hover:text-indigo-500 cursor-pointer transition-colors"
+          data-tip="Clique para ajustar o tempo"
+          @click.stop="handleAdjustTime"
+        >
+          {{ formattedTime }}
+        </span>
       </div>
     </div>
 

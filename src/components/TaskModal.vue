@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { 
   Save, PlusCircle, Clock, Layout, 
   Settings2, ChevronDown, Globe, 
@@ -9,8 +9,11 @@ import {
 import { useTaskStore } from '../stores/taskStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { isValidUrl, ensureProtocol } from '../utils/validation';
+import { formatMsToHMS } from '../utils/time';
 import { notificationService } from '../services/notificationService';
 import BaseModal from './BaseModal.vue';
+import AppInput from './base/AppInput.vue';
+import AppTextarea from './base/AppTextarea.vue';
 
 const taskStore = useTaskStore();
 const settings = useSettingsStore();
@@ -41,10 +44,12 @@ const sprintId = ref(props.taskToEdit?.sprintId || '');
 const color = ref(props.taskToEdit?.color || '#6366f1');
 
 const tabs = [
-  { id: 'basic', label: 'Geral', icon: Layout, color: 'text-indigo-500' },
-  { id: 'links', label: 'Conectividade', icon: Globe, color: 'text-emerald-500' },
-  { id: 'data', label: 'Documentação', icon: FileText, color: 'text-amber-500' },
+  { id: 'basic', label: 'Geral', icon: Layout, color: 'text-indigo-500', desc: 'Dados essenciais para identificação da tarefa.' },
+  { id: 'links', label: 'Conectividade', icon: Globe, color: 'text-emerald-500', desc: 'Gerenciamento de repositórios e links.' },
+  { id: 'data', label: 'Documentação', icon: FileText, color: 'text-amber-500', desc: 'Queries, observações e detalhes técnicos.' },
 ];
+
+const activeTabObj = computed(() => tabs.find(t => t.id === activeTab.value) || tabs[0]);
 
 // Time State (Simple Hours)
 const parseEstimatedHours = (timeStr) => {
@@ -159,122 +164,149 @@ const submitTask = () => {
 <template>
   <BaseModal 
     maxWidth="max-w-4xl" 
-    customClass="!p-0"
-    :hideHeader="true"
-    @close="emit('close')"
-    v-slot="{ onMouseDown }"
+    @close="emit('close')" 
+    layout="custom" 
+    customClass="h-[90vh] md:h-[600px] !p-0"
   >
-    <div class="flex flex-col md:flex-row h-[90vh] md:h-[650px] overflow-hidden">
-      <!-- Sidebar (Navigation) -->
-      <aside 
-        class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5 flex flex-col p-5 bg-slate-500/5 dark:bg-black/20"
-        @mousedown="onMouseDown"
-      >
-        <div class="flex items-center gap-3 mb-8 px-1">
-          <div class="p-2.5 rounded-2xl text-white shadow-lg" :style="{ backgroundColor: color, boxShadow: `0 8px 20px -4px ${color}44` }">
-            <Layout class="w-5 h-5" />
-          </div>
-          <div>
-            <h2 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tighter">{{ taskToEdit ? 'Editar' : 'Nova' }} Task</h2>
-            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Gerenciamento</p>
-          </div>
-        </div>
-
-        <nav class="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-y-auto no-scrollbar pb-2 md:pb-0">
-          <button 
-            v-for="tab in tabs" 
-            :key="tab.id"
-            @click="activeTab = tab.id"
-            type="button"
-            class="flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative"
-            :class="activeTab === tab.id 
-              ? 'bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400 ring-1 ring-slate-200 dark:ring-white/10' 
-              : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'"
-          >
-            <div class="relative">
-              <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
-              <div v-if="hasErrorInTab(tab.id)" class="absolute -top-1.5 -right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-50 dark:border-slate-800 animate-pulse"></div>
+    <template #default="{ onMouseDown }">
+      <div class="flex flex-col md:flex-row h-full w-full bg-transparent overflow-hidden">
+        <!-- Sidebar (Navegação que vira Abas no Mobile) -->
+        <aside 
+          class="w-full md:w-64 border-b md:border-b-0 md:border-r border-app-border-light flex flex-col p-4 cursor-grab active:cursor-grabbing group shrink-0"
+          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+          @mousedown="onMouseDown"
+        >
+          <div class="hidden md:flex items-center gap-3 mb-8 px-1">
+            <div class="p-2.5 rounded-2xl text-white shadow-lg" :style="{ backgroundColor: color, boxShadow: `0 8px 20px -4px ${color}44` }">
+              <Layout class="w-5 h-5" />
             </div>
-            <span class="text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
-          </button>
-        </nav>
-
-        <div class="mt-auto hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
-          <div class="flex items-center gap-2 mb-2">
-            <AlertCircle class="w-3 h-3 text-indigo-500" />
-            <span class="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Dica TASS</span>
+            <div>
+              <h2 class="text-sm font-black text-app-main uppercase tracking-tighter">{{ taskToEdit ? 'Editar' : 'Nova' }} Task</h2>
+              <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest">Gerenciamento</p>
+            </div>
           </div>
-          <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-            Mantenha suas branches organizadas para facilitar o deploy.
-          </p>
-        </div>
-      </aside>
 
-      <!-- Main Content -->
-      <main class="flex-1 flex flex-col overflow-hidden bg-white/20 dark:bg-slate-900/40 relative">
-        <!-- Close Button -->
-        <button type="button" @click="emit('close')" class="absolute top-6 right-6 icon-btn z-20">
-          <X class="w-5 h-5" />
-        </button>
+          <nav class="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-y-auto no-scrollbar pb-2 md:pb-0">
+            <button 
+              v-for="tab in tabs" 
+              :key="tab.id"
+              @click="activeTab = tab.id"
+              type="button"
+              class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group relative"
+              :class="activeTab === tab.id 
+                ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' 
+                : 'text-app-sub hover:bg-app-surface'"
+            >
+              <div class="relative">
+                <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
+                <div v-if="hasErrorInTab(tab.id)" class="absolute -top-1.5 -right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-slate-50 dark:border-slate-800 animate-pulse"></div>
+              </div>
+              <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
+            </button>
+          </nav>
 
-        <form @submit.prevent="submitTask" novalidate class="flex-1 flex flex-col overflow-hidden">
-          <div class="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
-            <transition name="fade-slide" mode="out-in">
-              <!-- ABA 1: Cadastro Básico -->
-              <div v-if="activeTab === 'basic'" :key="'basic'" class="space-y-6">
+          <div class="mt-auto hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
+            <div class="flex items-center gap-2 mb-2">
+              <AlertCircle class="w-3 h-3 text-indigo-500" />
+              <span class="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Dica TASS</span>
+            </div>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
+              Mantenha suas branches organizadas para facilitar o deploy.
+            </p>
+          </div>
+        </aside>
+
+        <!-- Conteúdo Principal -->
+        <main 
+          class="flex-1 flex flex-col overflow-hidden relative"
+          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+        >
+          <form @submit.prevent="submitTask" novalidate class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header da seção ativa (com botão de fechar) -->
+            <div class="flex items-center justify-between px-6 md:px-10 py-3 border-b border-app-border-light shrink-0">
+              <div class="flex items-center gap-2.5">
+                <component :is="activeTabObj.icon" class="w-3.5 h-3.5 shrink-0" :class="activeTabObj.color" />
                 <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Informações Básicas</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium italic">Dados essenciais para identificação da tarefa.</p>
+                  <p class="text-[11px] font-black text-app-main leading-none uppercase tracking-wider">{{ activeTabObj.label }}</p>
+                  <p class="text-[9px] text-app-muted font-medium mt-0.5">{{ activeTabObj.desc }}</p>
                 </div>
+              </div>
+              <button type="button" @click="emit('close')" class="icon-btn -mr-2 z-10">
+                <X class="w-5 h-5" />
+              </button>
+            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                  <div>
-                    <label for="task-title" class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Número da Tarefa</label>
-                    <input id="task-title" v-model="title" @input="clearError('title')" type="text" placeholder="Ex: TSK-1234" required 
-                      class="px-4 py-3 shadow-sm font-mono font-bold"
-                      :class="errors.title ? 'border-red-500/50 ring-1 ring-red-500/20' : ''"
+            <!-- Área de Scroll dos Inputs -->
+            <div class="flex-1 overflow-y-auto px-6 md:px-10 py-6 custom-scrollbar pb-32 md:pb-6">
+              <transition name="fade-slide" mode="out-in">
+                <!-- ABA 1: Cadastro Básico -->
+                <div v-if="activeTab === 'basic'" :key="'basic'" class="space-y-6">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <AppInput
+                      v-model="title"
+                      label="Número da Tarefa"
+                      placeholder="Ex: TSK-1234"
+                      :error="errors.title"
+                      @update:modelValue="clearError('title')"
+                      required
+                      class="font-mono font-bold"
                       :style="{ color: color }"
                     />
-                    <div v-if="errors.title" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1.5 animate-shake text-center">
-                      {{ errors.title }}
+
+                    <div>
+                      <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Cor da Categoria</label>
+                      <div class="flex gap-2 flex-wrap p-2 bg-slate-100/50 dark:bg-slate-900/40 border border-app-border-light rounded-xl justify-between h-[50px] items-center">
+                        <button v-for="c in colors" :key="c.value" type="button" @click="color = c.value"
+                          class="w-7 h-7 rounded-full border-2 transition-all hover:scale-110"
+                          :style="{ backgroundColor: c.value }"
+                          :class="color === c.value ? 'border-slate-800 dark:border-white scale-110 ring-4 ring-indigo-500/10' : 'border-transparent opacity-80'"
+                          :data-tip="c.name"
+                        ></button>
+                      </div>
                     </div>
                   </div>
 
-                  <div>
-                    <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Cor da Categoria</label>
-                    <div class="flex gap-2 flex-wrap p-2 bg-slate-100/50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 rounded-xl justify-between h-[50px] items-center">
-                      <button v-for="c in colors" :key="c.value" type="button" @click="color = c.value"
-                        class="w-7 h-7 rounded-full border-2 transition-all hover:scale-110"
-                        :style="{ backgroundColor: c.value }"
-                        :class="color === c.value ? 'border-slate-800 dark:border-white scale-110 ring-4 ring-indigo-500/10' : 'border-transparent opacity-80'"
-                        :title="c.name"
-                      ></button>
+                  <AppTextarea
+                    v-model="description"
+                    label="Título da Tarefa"
+                    placeholder="O que você precisa fazer?"
+                    rows="2"
+                    class="font-medium"
+                  />
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Sprint</label>
+                      <div class="relative">
+                        <Layers class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <select v-model="sprintId" class="pl-10 appearance-none cursor-pointer">
+                          <option value="">Nenhuma Sprint</option>
+                          <option v-for="sprint in taskStore.sprints" :key="sprint.id" :value="sprint.id">
+                            Ciclo de {{ new Date(sprint.endDate).toLocaleDateString('pt-BR') }}
+                          </option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                      <div>
+                        <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Sessão Atual</label>
+                        <div class="p-2.5 bg-slate-100 dark:bg-white/5 border border-app-border-light rounded-xl flex items-center gap-2">
+                          <Clock class="w-3.5 h-3.5 text-indigo-500" />
+                          <span class="text-[10px] md:text-xs font-black font-mono text-app-main">{{ taskToEdit ? formatMsToHMS(taskToEdit.totalTimeSpent) : '00:00:00' }}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Total Trabalhado</label>
+                        <div class="p-2.5 bg-indigo-500/5 border border-indigo-500/20 rounded-xl flex items-center gap-2">
+                          <Layout class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                          <span class="text-[10px] md:text-xs font-black font-mono text-indigo-600 dark:text-indigo-400">{{ taskToEdit ? formatMsToHMS(taskToEdit.totalWorked || taskToEdit.totalTimeSpent || 0) : '00:00:00' }}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div>
-                  <label for="task-desc" class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Título da Tarefa</label>
-                  <textarea id="task-desc" v-model="description" placeholder="O que você precisa fazer?" rows="2"
-                    class="px-4 py-3 shadow-sm font-medium resize-none"
-                  ></textarea>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Sprint</label>
-                    <div class="relative">
-                      <Layers class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                      <select v-model="sprintId" class="pl-10 appearance-none cursor-pointer">
-                        <option value="">Nenhuma Sprint</option>
-                        <option v-for="sprint in taskStore.sprints" :key="sprint.id" :value="sprint.id">
-                          Ciclo de {{ new Date(sprint.endDate).toLocaleDateString('pt-BR') }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div class="grid grid-cols-2 gap-3">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Estimativa</label>
                       <div class="relative flex items-center group">
@@ -294,125 +326,67 @@ const submitTask = () => {
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <!-- ABA 2: Conectividade e Ambientes -->
-              <div v-else-if="activeTab === 'links'" :key="'links'" class="space-y-8">
-                <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Conectividade</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium italic">Gerenciamento de repositórios e acesso rápido aos ambientes.</p>
-                </div>
-
-                <div class="grid grid-cols-1 gap-8">
-                  <!-- Seção: Gestão de Código -->
-                  <div class="grid grid-cols-1 gap-6">
-                      <div class="space-y-1.5">
-                        <div class="flex items-center gap-2 mb-1">
-                          <ExternalLink class="w-3.5 h-3.5" :class="errors.taskUrl ? 'text-red-500' : 'text-indigo-500'" />
-                          <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Link da Tarefa</label>
-                        </div>
-                        <input v-model="taskUrl" type="url" @input="clearError('taskUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.taskUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
-                        <div v-if="errors.taskUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1.5 animate-shake text-center">
-                          {{ errors.taskUrl }}
-                        </div>
-                      </div>
-                      <div class="space-y-1.5">
-                        <div class="flex items-center gap-2 mb-1">
-                          <GitBranch class="w-3.5 h-3.5" :class="errors.branchUrl ? 'text-red-500' : 'text-purple-500'" />
-                          <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">URL do Merge</label>
-                        </div>
-                        <input v-model="branchUrl" type="url" @input="clearError('branchUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.branchUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
-                        <div v-if="errors.branchUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1.5 animate-shake text-center">
-                          {{ errors.branchUrl }}
-                        </div>
-                      </div>
-                  </div>
-
-                  <!-- Seção: Ambientes de Deploy -->
-                  <div class="p-6 bg-slate-500/5 rounded-3xl border border-slate-500/10 space-y-6">
-                    <div class="flex items-center gap-3 mb-2">
-                      <Globe class="w-4 h-4 text-indigo-500" />
-                      <h4 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.2em]">Fluxo de Ambientes (Pipeline)</h4>
-                    </div>
-                    
+                <!-- ABA 2: Conectividade -->
+                <div v-else-if="activeTab === 'links'" :key="'links'" class="space-y-8">
+                  <div class="grid grid-cols-1 gap-8">
                     <div class="grid grid-cols-1 gap-6">
-                      <div class="space-y-2">
-                        <div class="flex items-center justify-between px-1">
-                          <span class="text-[9px] font-black uppercase tracking-widest" :class="errors.devUrl ? 'text-red-500' : 'text-orange-500'">Desenvolvimento</span>
-                          <span class="w-1.5 h-1.5 rounded-full" :class="errors.devUrl ? 'bg-red-500' : 'bg-orange-500 animate-pulse'"></span>
-                        </div>
-                        <input v-model="devUrl" type="url" @input="clearError('devUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.devUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
-                        <div v-if="errors.devUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1 animate-shake text-center">
-                          {{ errors.devUrl }}
-                        </div>
+                        <AppInput
+                          v-model="taskUrl"
+                          type="url"
+                          label="Link da Tarefa"
+                          :icon="ExternalLink"
+                          icon-color="text-indigo-500"
+                          placeholder="https://..."
+                          :error="errors.taskUrl"
+                          @update:modelValue="clearError('taskUrl')"
+                        />
+                        <AppInput
+                          v-model="branchUrl"
+                          type="url"
+                          label="URL do Merge"
+                          :icon="GitBranch"
+                          icon-color="text-purple-500"
+                          placeholder="https://..."
+                          :error="errors.branchUrl"
+                          @update:modelValue="clearError('branchUrl')"
+                        />
+                    </div>
+
+                    <div class="p-6 bg-slate-500/5 rounded-3xl border border-app-border-light space-y-6">
+                      <div class="flex items-center gap-3 mb-2">
+                        <Globe class="w-4 h-4 text-indigo-500" />
+                        <h4 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.2em]">Pipeline</h4>
                       </div>
                       
-                      <div class="space-y-2">
-                         <div class="flex items-center justify-between px-1">
-                          <span class="text-[9px] font-black uppercase tracking-widest" :class="errors.homologUrl ? 'text-red-500' : 'text-emerald-500'">Homologação</span>
-                          <span class="w-1.5 h-1.5 rounded-full" :class="errors.homologUrl ? 'bg-red-500' : 'bg-emerald-500'"></span>
-                        </div>
-                        <input v-model="homologUrl" type="url" @input="clearError('homologUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.homologUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
-                        <div v-if="errors.homologUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1 animate-shake text-center">
-                          {{ errors.homologUrl }}
-                        </div>
-                      </div>
-
-                      <div class="space-y-2">
-                         <div class="flex items-center justify-between px-1">
-                          <span class="text-[9px] font-black uppercase tracking-widest" :class="errors.prodUrl ? 'text-red-500' : 'text-blue-500'">Produção</span>
-                          <span class="w-1.5 h-1.5 rounded-full" :class="errors.prodUrl ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]'"></span>
-                        </div>
-                        <input v-model="prodUrl" type="url" @input="clearError('prodUrl')" placeholder="https://..." class="px-4 py-3 shadow-sm" :class="errors.prodUrl ? 'border-red-500/50 ring-1 ring-red-500/20' : ''" />
-                        <div v-if="errors.prodUrl" class="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest p-2 rounded-xl border border-red-500/20 mt-1 animate-shake text-center">
-                          {{ errors.prodUrl }}
-                        </div>
+                      <div class="grid grid-cols-1 gap-6">
+                        <AppInput v-model="devUrl" type="url" label="Desenvolvimento" label-color="text-orange-500" placeholder="https://..." :error="errors.devUrl" @update:modelValue="clearError('devUrl')" />
+                        <AppInput v-model="homologUrl" type="url" label="Homologação" label-color="text-emerald-500" placeholder="https://..." :error="errors.homologUrl" @update:modelValue="clearError('homologUrl')" />
+                        <AppInput v-model="prodUrl" type="url" label="Produção" label-color="text-blue-500" placeholder="https://..." :error="errors.prodUrl" @update:modelValue="clearError('prodUrl')" />
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <!-- ABA 3: Documentação Técnica -->
-              <div v-else-if="activeTab === 'data'" :key="'data'" class="space-y-6">
-                <div>
-                  <h3 class="text-xl font-black text-slate-800 dark:text-white mb-1">Documentação Técnica</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 font-medium italic">Queries, observações e detalhes técnicos da implementação.</p>
+                <!-- ABA 3: Documentação -->
+                <div v-else-if="activeTab === 'data'" :key="'data'" class="space-y-6">
+                  <AppTextarea v-model="dbScripts" label="Scripts de Banco (SQL)" :icon="Database" icon-color="text-indigo-500" placeholder="SELECT * FROM..." rows="4" class="font-mono" />
+                  <AppTextarea v-model="moreInfo" label="Observações Adicionais" :icon="FileText" icon-color="text-amber-500" placeholder="Ponto de atenção..." rows="4" />
                 </div>
+              </transition>
+            </div>
 
-                <div class="space-y-6">
-                  <div>
-                    <div class="flex items-center gap-2 mb-2">
-                      <Database class="w-4 h-4 text-indigo-500" />
-                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Scripts de Banco (SQL)</label>
-                    </div>
-                    <textarea v-model="dbScripts" rows="4" placeholder="SELECT * FROM..." class="px-4 py-3 font-mono resize-none"></textarea>
-                  </div>
-
-                  <div>
-                    <div class="flex items-center gap-2 mb-2">
-                      <FileText class="w-4 h-4 text-amber-500" />
-                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Observações Adicionais</label>
-                    </div>
-                    <textarea v-model="moreInfo" rows="4" placeholder="Ponto de atenção, requisitos extras..." class="px-4 py-3 resize-none"></textarea>
-                  </div>
-                </div>
-              </div>
-            </transition>
-          </div>
-
-          <!-- Footer (Persistent) -->
-          <footer class="p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02] flex justify-end gap-3">
-            <button type="button" @click="emit('close')" class="px-6 py-3 text-xs font-black text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl transition-all uppercase tracking-widest">Cancelar</button>
-            <button type="submit" class="px-10 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition-all shadow-xl shadow-indigo-500/25 uppercase tracking-widest flex items-center gap-2 active:scale-95">
-              <Save v-if="taskToEdit" class="w-4 h-4" />
-              <PlusCircle v-else class="w-4 h-4" />
-              {{ 'Salvar' }}
-            </button>
-          </footer>
-        </form>
-      </main>
-    </div>
+            <!-- Footer Fixo (Standard TASS Style) -->
+            <footer class="absolute bottom-0 left-0 right-0 p-6 md:px-10 border-t border-app-border-light bg-app-surface/95 backdrop-blur-md flex justify-end items-center gap-3 shrink-0 z-20">
+              <button type="button" @click="emit('close')" class="btn btn-secondary px-6 border-none shadow-none">Cancelar</button>
+              <button type="submit" class="btn btn-primary px-6 border-none shadow-none">
+                {{ taskToEdit ? 'Salvar' : 'Criar' }}
+              </button>
+            </footer>
+          </form>
+        </main>
+      </div>
+    </template>
   </BaseModal>
 </template>
 

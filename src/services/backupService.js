@@ -17,18 +17,25 @@ export const backupService = {
   },
 
   /**
+   * Obtém todo o sistema (Tarefas, Sprints, Configs, Notas) em um objeto
+   */
+  async getFullBackupData() {
+    return {
+      tasks: await db.tasks.toArray(),
+      sprints: await db.sprints.toArray(),
+      settings: await db.settings.toArray(),
+      notes: await db.notes.toArray(),
+      version: '1.0',
+      timestamp: new Date().toISOString()
+    };
+  },
+
+  /**
    * Exporta todo o sistema (Tarefas, Sprints, Configs, Notas)
    */
   async exportSystem() {
     try {
-      const fullData = {
-        tasks: await db.tasks.toArray(),
-        sprints: await db.sprints.toArray(),
-        settings: await db.settings.toArray(),
-        notes: await db.notes.toArray(),
-        version: '1.0',
-        timestamp: new Date().toISOString()
-      };
+      const fullData = await this.getFullBackupData();
       this.downloadJson(fullData, 'tass_full_system_backup.json');
       notificationService.toast('Backup completo exportado!');
     } catch (error) {
@@ -38,7 +45,7 @@ export const backupService = {
   },
 
   /**
-   * Importa tarefas de um arquivo JSON
+   * Importa tarefas de um arquivo JSON (Merge Seguro)
    */
   async importTasks(file, taskStore) {
     return new Promise((resolve, reject) => {
@@ -46,11 +53,23 @@ export const backupService = {
       reader.onload = async (e) => {
         try {
           const data = JSON.parse(e.target.result);
-          const tasks = Array.isArray(data) ? data : (data.tasks || null);
+          const tasksData = Array.isArray(data) ? data : (data.tasks || null);
           
-          if (!tasks) throw new Error("Formato inválido");
+          if (!tasksData) throw new Error("Formato inválido");
+
+          // Processamento para Merge Seguro
+          const processedTasks = tasksData.map(task => {
+            // Remove o ID para que o Dexie gere um novo
+            const { id, ...taskWithoutId } = task;
+            return {
+              ...taskWithoutId,
+              sprintId: 'all',      // Desvincula de sprints órfãs
+              isRunning: false,     // Garante que não venha rodando
+              lastStartTime: null   // Limpa estado do timer
+            };
+          });
           
-          await db.tasks.bulkPut(tasks);
+          await db.tasks.bulkAdd(processedTasks);
           await taskStore.loadTasks();
           notificationService.toast('Tarefas importadas com sucesso!');
           resolve();
@@ -64,7 +83,45 @@ export const backupService = {
   },
 
   /**
-   * Restaura o sistema completo
+   * Aplica os dados de um backup ao banco de dados e atualiza as stores
+   */
+  async applyBackupData(data, settingsStore, taskStore) {
+    try {
+      if (!data.tasks || !data.settings) throw new Error("Backup incompleto");
+
+      // Importação sequencial e limpa
+      if (data.tasks) {
+        await db.tasks.clear();
+        await db.tasks.bulkPut(data.tasks);
+      }
+      if (data.sprints) {
+        await db.sprints.clear();
+        await db.sprints.bulkPut(data.sprints);
+      }
+      if (data.settings) {
+        await db.settings.clear();
+        await db.settings.bulkPut(data.settings);
+      }
+      if (data.notes) {
+        await db.notes.clear();
+        await db.notes.bulkPut(data.notes);
+      }
+      
+      await settingsStore.loadSettings();
+      await taskStore.loadTasks();
+      await taskStore.loadSprints();
+      
+      notificationService.toast('Sistema restaurado com sucesso!', 'success');
+      return true;
+    } catch (error) {
+      console.error("Failed to apply backup data:", error);
+      notificationService.alert('Falha na restauração', 'O conteúdo do backup é inválido ou está incompleto.', 'error');
+      return false;
+    }
+  },
+
+  /**
+   * Restaura o sistema completo a partir de um arquivo
    */
   async importSystem(file, settingsStore, taskStore) {
     return new Promise((resolve, reject) => {
@@ -72,22 +129,11 @@ export const backupService = {
       reader.onload = async (e) => {
         try {
           const data = JSON.parse(e.target.result);
-          if (!data.tasks || !data.settings) throw new Error("Backup incompleto");
-
-          // Importação sequencial
-          if (data.tasks) await db.tasks.bulkPut(data.tasks);
-          if (data.sprints) await db.sprints.bulkPut(data.sprints);
-          if (data.settings) await db.settings.bulkPut(data.settings);
-          if (data.notes) await db.notes.bulkPut(data.notes);
-          
-          await settingsStore.loadSettings();
-          await taskStore.loadTasks();
-          await taskStore.loadSprints();
-          
-          notificationService.toast('Sistema restaurado com sucesso!');
-          resolve();
+          const success = await this.applyBackupData(data, settingsStore, taskStore);
+          if (success) resolve();
+          else reject(new Error("Apply failed"));
         } catch (error) {
-          notificationService.alert('Falha na restauração', 'O arquivo não é um backup válido.', 'error');
+          notificationService.alert('Erro de Leitura', 'Não foi possível ler o arquivo de backup.', 'error');
           reject(error);
         }
       };

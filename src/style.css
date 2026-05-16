@@ -1,16 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&family=Lexend:wght@300;400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;700;900&family=Ubuntu:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&family=Mulish:wght@300;400;500;600;700;800&family=Quicksand:wght@300;400;500;600;700&family=Satisfy&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&family=Lexend:wght@300;400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;700;900&family=Ubuntu:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&family=Mulish:wght@300;400;500;600;700;800&family=Quicksand:wght@300;400;500;600;700&family=Satisfy&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
+  /* Design Tokens - Modo Claro */
   --app-bg-raw: 255, 255, 255;
+  --app-text-main: #0f172a;
+  /* Slate 900 */
+  --app-text-sub: #334155;
+  --app-text-muted: rgba(15, 23, 42, 0.55);
+
+  --app-surface-glass: rgba(255, 255, 255, 0.7);
+  --app-surface-solid: #ffffff;
+  --app-surface-muted: rgba(0, 0, 0, 0.03);
+  /* Levíssimo desfoque de fundo */
+
+  /* BORDAS E DIVISORES */
+  --app-border-main: rgba(0, 0, 0, 0.1);
+  /* Contorno principal de modais, cards e janelas */
+  --app-border-light: rgba(0, 0, 0, 0.05);
+  /* Linhas divisórias internas (Headers, Footers, Sidebars) */
+
+  /* Configurações Globais */
   --app-card-opacity: 0.95;
   --app-card-radius: 16px;
   --app-card-padding: 16px;
-
-  /* Motor de Contraste - Default Safes */
   --app-glass-blur: 12px;
   --app-glass-brightness: 1;
   --app-glass-saturate: 100%;
@@ -19,9 +35,33 @@
   --app-input-radius: 8px;
 }
 
+.dark {
+  /* Design Tokens - Modo Escuro */
+  --app-bg-raw: 15, 23, 42;
+  /* Slate 900 */
+  --app-text-main: #f8fafc;
+  /* Slate 50 */
+  --app-text-sub: #cbd5e1;
+  /* Slate 300 */
+  --app-text-muted: #64748b;
+  /* Slate 500 */
+
+  --app-surface-glass: rgba(15, 23, 42, 0.7);
+  --app-surface-solid: #0f172a;
+  --app-surface-muted: rgba(255, 255, 255, 0.03);
+
+  /* BORDAS E DIVISORES (Dark) */
+  --app-border-main: rgba(34, 32, 32, 0.1);
+  /* Contorno principal em modo escuro */
+  --app-border-light: rgba(255, 255, 255, 0.05);
+  /* Divisores internos em modo escuro */
+}
+
 
 @layer base {
-  html, body {
+
+  html,
+  body {
     @apply overflow-x-hidden max-w-full;
     width: 100%;
     position: relative;
@@ -33,46 +73,70 @@
 }
 
 @layer components {
-  /* Dragging State - Disable text selection */
-body.dragging-modal,
-body.dragging-task,
-.select-none {
-  user-select: none !important;
-  -webkit-user-select: none !important;
-}
+  .cursor-grab {
+    cursor: grab;
+  }
 
-.glass-panel {
+  .cursor-grab:active {
+    cursor: grabbing;
+  }
+
+  /* Dragging State - Disable text selection */
+  body.dragging-modal,
+  body.dragging-task,
+  .select-none {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--app-text-muted);
+    opacity: 1;
+  }
+
+  input:focus::placeholder,
+  textarea:focus::placeholder {
+    opacity: 0.7;
+  }
+
+  /* Classe principal de Glassmorphism do sistema */
+  .glass-panel {
     border-radius: var(--app-card-radius);
     padding: var(--app-card-padding);
     background-color: rgba(var(--app-bg-raw), var(--app-card-opacity));
     backdrop-filter: blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate));
     -webkit-backdrop-filter: blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate));
     text-shadow: var(--app-text-shadow);
-    border: 1px solid rgba(255, 255, 255, var(--app-border-opacity));
-    @apply shadow-lg dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
+    /* Borda externa reativa */
+    border: 1px solid var(--app-border-main);
+    @apply shadow-lg;
   }
 
-
-
+  /* Sombra personalizada para o modo escuro (evita o brilho acinzentado do shadow-lg padrão) */
+  .dark .glass-panel {
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  }
 
   .icon-btn {
     @apply p-1.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-500/10 transition-all flex items-center justify-center active:scale-90;
   }
-  
+
   .icon-btn.danger:hover {
     @apply text-red-600 dark:text-red-400 hover:bg-red-500/10;
   }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 border-none shadow-none;
+    border-radius: var(--app-input-radius);
   }
 
   .btn-primary {
-    @apply bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0;
+    @apply bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg active:translate-y-0;
   }
 
   .btn-secondary {
-    @apply bg-white/50 hover:bg-white/80 dark:bg-white/10 dark:hover:bg-white/20 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-white/10;
+    @apply bg-slate-100/50 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400;
   }
 
   .btn-danger {
@@ -88,15 +152,16 @@ body.dragging-task,
     @apply appearance-none w-[18px] h-[18px] rounded-full bg-indigo-500 border-[3px] border-white dark:border-slate-900 shadow-md cursor-pointer transition-all active:scale-95;
   }
 
-  .app-input, 
-  input[type="text"], 
-  input[type="number"], 
-  input[type="url"], 
-  input[type="password"], 
-  input[type="email"], 
-  select, 
+  /* Estilização padronizada para todos os campos de entrada */
+  .app-input,
+  input[type="text"],
+  input[type="number"],
+  input[type="url"],
+  input[type="password"],
+  input[type="email"],
+  select,
   textarea {
-    @apply w-full px-4 py-2.5 text-sm bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all;
+    @apply w-full px-4 py-2.5 text-sm bg-slate-100/50 dark:bg-white/5 border border-app-border-light text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all;
     border-radius: var(--app-input-radius) !important;
   }
 
@@ -108,8 +173,9 @@ body.dragging-task,
     @apply block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1;
   }
 
+  /* Seções internas com efeito de profundidade */
   .glass-section {
-    @apply bg-white/10 dark:bg-white/[0.03] border border-slate-200/50 dark:border-white/5 backdrop-blur-sm;
+    @apply bg-white/10 dark:bg-white/[0.03] border border-app-border-light backdrop-blur-sm;
     border-radius: var(--app-card-radius);
   }
 }
@@ -118,41 +184,39 @@ body.dragging-task,
   .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
   }
+
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-slate-400/20 dark:bg-white/10 rounded-full;
   }
 
   /* Custom Tooltips */
-  [data-tip] {
+  [data-tip]:not(.absolute):not(.fixed):not(.sticky) {
     @apply relative;
   }
 
   [data-tip]::after {
     content: attr(data-tip);
-    @apply absolute bottom-[130%] left-1/2 -translate-x-1/2 px-3 py-2
-           bg-slate-900 text-white text-sm font-medium
-           rounded-xl opacity-0 pointer-events-none border border-white/10
-           transition-all duration-200 z-[110] whitespace-nowrap shadow-sm;
+    @apply absolute bottom-[130%] left-1/2 -translate-x-1/2 px-3 py-2 bg-slate-900 text-white text-sm font-medium rounded-xl opacity-0 pointer-events-none border border-white/10 transition-all duration-200 z-[110] whitespace-nowrap shadow-sm;
   }
 
   [data-tip]::before {
     content: '';
-    @apply absolute bottom-[115%] left-1/2 -translate-x-1/2 border-8 
-           border-transparent border-t-slate-900 dark:border-t-slate-950 
-           opacity-0 pointer-events-none transition-all duration-200 z-[110];
+    @apply absolute bottom-[115%] left-1/2 -translate-x-1/2 border-8 border-transparent border-t-slate-900 dark:border-t-slate-950 opacity-0 pointer-events-none transition-all duration-200 z-[110];
   }
 
-  [data-tip]:hover::after, [data-tip]:hover::before {
+  [data-tip]:hover::after,
+  [data-tip]:hover::before {
     @apply opacity-100;
   }
-  
+
   [data-tip]:hover::after {
     @apply bottom-[140%];
   }
-  
+
   [data-tip]:hover::before {
     @apply bottom-[125%];
   }
@@ -175,29 +239,40 @@ body.dragging-task,
   }
 
   @keyframes scanline {
-    0% { bottom: 100%; }
-    100% { bottom: -100px; }
+    0% {
+      bottom: 100%;
+    }
+
+    100% {
+      bottom: -100px;
+    }
   }
 }
 
 
-/* Global Transitions */
-.fade-slide-enter-active, .fade-slide-leave-active {
+/* Transições Globais de Abas e Estados */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
   transition: all 0.3s ease;
 }
+
 .fade-slide-enter-from {
   opacity: 0;
   transform: translateX(10px);
 }
+
 .fade-slide-leave-to {
   opacity: 0;
   transform: translateX(-10px);
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   @apply transition-opacity duration-300;
 }
-.fade-enter-from, .fade-leave-to {
+
+.fade-enter-from,
+.fade-leave-to {
   @apply opacity-0;
 }
 
@@ -210,7 +285,7 @@ body.dragging-task,
   opacity: 1 !important;
 }
 
-/* Versão Equilibrada: Neon Suave */
+/* Versão Equilibrada do Fantasma: Neon Suave */
 .app-ghost-effect {
   @apply bg-indigo-500/10 border-2 border-dashed border-indigo-500/60 opacity-100 !important;
   animation: pulse-border 1.6s infinite ease-in-out;
@@ -218,24 +293,36 @@ body.dragging-task,
   visibility: visible !important;
 }
 
-.app-ghost-effect > * {
+.app-ghost-effect>* {
   @apply opacity-0 !important;
 }
 
 @keyframes pulse-border {
-  0% { border-color: rgba(99, 102, 241, 0.2); box-shadow: 0 0 0px rgba(99, 102, 241, 0); }
-  50% { border-color: rgba(99, 102, 241, 0.8); box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); transform: scale(1.01); }
-  100% { border-color: rgba(99, 102, 241, 0.2); box-shadow: 0 0 0px rgba(99, 102, 241, 0); }
+  0% {
+    border-color: rgba(99, 102, 241, 0.2);
+    box-shadow: 0 0 0px rgba(99, 102, 241, 0);
+  }
+
+  50% {
+    border-color: rgba(99, 102, 241, 0.8);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+    transform: scale(1.01);
+  }
+
+  100% {
+    border-color: rgba(99, 102, 241, 0.2);
+    box-shadow: 0 0 0px rgba(99, 102, 241, 0);
+  }
 }
 
+/* Estado visual durante o arraste */
 .is-dragging-mode .border-dashed {
   @apply border-indigo-500/20 bg-indigo-500/5 !important;
   animation: pulse-border 1.6s infinite ease-in-out;
 }
 
-/* Brilho quando a tarefa entra na coluna */
+/* Brilho quando a tarefa entra na coluna alvo */
 .sortable-drag-over {
   @apply border-indigo-500/50 bg-indigo-500/5 !important;
   box-shadow: 0 0 30px rgba(99, 102, 241, 0.3) !important;
 }
-
