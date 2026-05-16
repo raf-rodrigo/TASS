@@ -12,3 +12,7 @@ db.version(5).stores({
 db.version(6).stores({
   radios: '++id, name, url, isDefault, apiUrl'
 });
+
+db.version(7).stores({
+  radios: '++id, name, url, stars'
+});

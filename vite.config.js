@@ -4,47 +4,7 @@ import vue from '@vitejs/plugin-vue'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    vue(),
-    {
-      name: 'radio-proxy',
-      configureServer(server) {
-        server.middlewares.use('/radio-proxy', async (req, res) => {
-          try {
-            const urlObj = new URL(req.url, `http://${req.headers.host}`);
-            const url = urlObj.searchParams.get('url');
-            const onlyHeaders = urlObj.searchParams.get('headers') === 'true';
-
-            if (!url) {
-              res.statusCode = 400;
-              return res.end('Missing URL parameter');
-            }
-
-            const response = await fetch(url, {
-              method: onlyHeaders ? 'HEAD' : 'GET',
-              headers: { 'Icy-MetaData': '1' }
-            });
-
-            // Captura headers interessantes (ICY)
-            const headers = {};
-            response.headers.forEach((value, key) => {
-              if (key.startsWith('icy-')) headers[key] = value;
-            });
-
-            if (onlyHeaders) {
-              res.setHeader('Content-Type', 'application/json');
-              return res.end(JSON.stringify({ headers }));
-            }
-
-            const data = await response.text();
-            res.setHeader('Content-Type', 'application/json');
-            res.end(data);
-          } catch (error) {
-            res.statusCode = 500;
-            res.end(JSON.stringify({ error: error.message }));
-          }
-        });
-      }
-    }
+    vue()
   ],
   server: {
     port: 5175,

@@ -14,7 +14,6 @@ import GlobalModal from './components/GlobalModal.vue';
 import TaskContextMenu from './components/TaskContextMenu.vue';
 import GlobalDock from './components/GlobalDock.vue';
 import RadioPlayer from './components/RadioPlayer.vue';
-import draggable from 'vuedraggable';
 
 // Composables
 import { useWellness } from './composables/useWellness.js';

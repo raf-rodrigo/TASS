@@ -1,135 +1,116 @@
 # 🚀 TASS - Task & Advanced Support System
+*Elite Productivity for High-Performance Developers*
 
-O **TASS** é um gerenciador de tarefas avançado, focado em produtividade para desenvolvedores. Ele combina uma interface moderna com funcionalidades robustas de rastreamento de tempo, integração com GitLab e gestão detalhada de fluxos de trabalho.
-
----
-
-## ✨ Funcionalidades Principais
-
-### 📋 Gestão Avançada de Tarefas
-- **CRUD Completo:** Crie, edite, conclua e exclua tarefas de forma intuitiva.
-- **Campos Detalhados:** Vá além do título. Adicione estimativa de horas, prioridade, URLs de ambientes (Dev, Homolog, Prod), scripts de banco de dados e observações detalhadas.
-- **Organização por Drag & Drop:** Reordene suas tarefas arrastando e soltando para priorizar seu dia.
-- **Filtros Inteligentes:** Visualize todas as tarefas, apenas as ativas ou as concluídas através de atalhos rápidos no rodapé.
-
-### ⏱️ Rastreamento de Tempo (Smart Timer)
-- **Timer Individual:** Cada tarefa possui seu próprio cronômetro independente.
-- **Execução Exclusiva:** Ao iniciar uma tarefa, qualquer outra tarefa em execução é pausada automaticamente, garantindo foco total.
-- **Persistência de Sessão:** O timer utiliza o relógio do sistema (`Date.now()`). Se você fechar o navegador ou a aba, o tempo continua sendo contabilizado corretamente ao retornar.
-- **Auto-Save:** O estado do timer é salvo automaticamente a cada 10 segundos para evitar perda de dados.
-
-### 🦊 Integração com GitLab
-- **Modo Link Mágico:** Gera links rápidos para criação de branches seguindo padrões de nomenclatura.
-- **Modo API Automática:** Integra-se diretamente à API do GitLab para criar e gerenciar branches sem sair da ferramenta.
-- **Gestão de Branches:** Detecta se uma branch já existe, permitindo abrir diretamente no navegador ou excluí-la via API.
-- **Cópia Automática:** Copia o nome da branch formatada para o clipboard ao abrir o link.
-
-### 🎨 Interface e Experiência (UI/UX)
-- **Glassmorphism Design:** Interface moderna e translúcida com efeitos de desfoque (blur) em tempo real.
-- **Modo Escuro/Claro:** Suporte nativo a temas que adaptam automaticamente as tonalidades de vidro.
-- **Layout Dinâmico:** Escolha entre visualizações de 1 ou 2 colunas para melhor aproveitamento do espaço.
-- **Micro-animações:** Transições fluídas e feedbacks visuais imediatos via Toasts elegantes.
-
-### 🎭 Personalização Avançada (Engine de Design)
-- **Galeria de Fundos:** Engine nativa com 11 slots para papéis de parede customizados via URL.
-- **Transparência Global:** Controle granular da opacidade de cards, modais, menus, barra de ações e menus de contexto.
-- **Tonalidade de Cards:** Paleta curada para aplicar "tints" sutis nos cards de tarefa, harmonizando-os com o fundo escolhido.
-- **Tipografia Premium:** Seleção de 12 fontes modernas (Inter, Outfit, Lexend, JetBrains Mono, etc.) para todo o sistema.
-- **Escala de Texto:** Ajuste independente do tamanho do Título (ID) e da Descrição das tarefas para máxima ergonomia visual.
-- **Controle de Desfoque:** Ajuste dinâmico do nível de Blur do wallpaper para aumentar o contraste e foco.
-
-### 🔐 Segurança e Backup
-- **Offline-First:** Todos os dados são armazenados localmente no seu navegador via **IndexedDB** (usando Dexie.js). Zero dependência de servidores externos.
-- **Backup de Dados:** Exporte todas as suas tarefas para um arquivo JSON e importe-as quando precisar trocar de máquina ou navegador.
+O **TASS** é um ecossistema de suporte avançado projetado para desenvolvedores que buscam o máximo em produtividade e organização. Combinando uma estética refinada com engenharia de precisão, o TASS transforma a gestão de tarefas em uma experiência fluida, segura e visualmente impactante.
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## ✨ Diferenciais Premium
 
-- **[Vue 3](https://vuejs.org/)**: Framework principal com Composition API.
-- **[Vite](https://vitejs.dev/)**: Build tool ultra-rápida.
-- **[Tailwind CSS](https://tailwindcss.com/)**: Estilização moderna e responsiva.
-- **[Pinia](https://pinia.vuejs.org/)**: Gestão de estado global (Stores).
-- **[Dexie.js](https://dexie.org/)**: Wrapper para IndexedDB, garantindo persistência robusta.
-- **[SweetAlert2](https://sweetalert2.github.io/)**: Biblioteca unificada para modais de confirmação e notificações (toasts).
-- **[Lucide Vue Next](https://lucide.dev/)**: Biblioteca de ícones vetoriais modernos.
+### 🎨 Design Engine: O Workspace é Seu
+O TASS não é apenas uma ferramenta; é um **Ambiente de Trabalho Imersivo** que se molda à sua identidade. Através de uma engine de design dinâmica e poderosa, você tem controle total sobre a estética do seu espaço produtivo com **Live Preview** instantâneo.
+
+| Recurso | Detalhes da Experiência |
+| :--- | :--- |
+| **Radius Harmony** | Geometria inteligente com ajuste unificado de arredondamento de cantos. Mantém a harmonia matemática entre cards, inputs e modais em tempo real. |
+| **Opacidade Granular** | Controle absoluto da transparência. Ajuste níveis de opacidade de forma independente para Cards, Menus, Barra Superior e Dock Inferior. |
+| **Galeria Premium** | **17 slots** curados para wallpapers de alta definição, permitindo transformar o clima do seu ambiente com um único clique. |
+| **Tipografia de Elite** | Uma seleção de **12 fontes modernas** e sofisticadas, escolhidas a dedo para garantir legibilidade máxima e estilo incomparável. |
+| **Ajuste Dinâmico** | Altere o brilho, contraste e desfoque do workspace para se adaptar ao seu momento, seja para foco total ou inspiração criativa. |
+
+*O conceito de **Glassmorphism Aprimorado** do TASS entrega efeitos de desfoque e camadas que mantêm a profundidade e a clareza, proporcionando uma interface "viva" e sofisticada.*
+
+### ⚡ Agilidade Adaptável (Kanban & Sprints)
+O TASS redefine a agilidade com um sistema que se molda ao seu ritmo, e não o contrário. Uma abordagem fluida para quem precisa de ordem sem a rigidez dos sistemas tradicionais.
+
+| Recurso | A Experiência TASS |
+| :--- | :--- |
+| **Quadro Mutável** | O sistema se adapta ao "tamanho do seu dia". Alterne instantaneamente entre **1 e 4 colunas** para simplificar ou expandir seu fluxo de trabalho conforme a carga cognitiva do momento. |
+| **Sprints de Foco** | Sprints no TASS não são obrigações burocráticas, mas **ciclos de clareza**. Organize tarefas por prazos ou use-as como "pastas" dinâmicas para organizar o ciclo de vida dos seus projetos. |
+| **Foco no Agora** | Elimine o ruído visual com precisão cirúrgica. Escolha focar em uma Sprint específica para máxima concentração ou visualize o panorama completo com a visão global. |
+| **Nomenclatura Livre** | Liberdade total para definir seu método. Personalize o nome das colunas (**Backlog, Fazendo, Revisando**, etc.) para refletir exatamente sua metodologia ou preferência pessoal. |
+
+### ☁️ Sincronização Google Drive Cloud
+Seus dados estão sempre seguros e acessíveis através da integração nativa com o ecossistema Google.
+- **Sync Automático:** Backup transparente em segundo plano, garantindo que você nunca perca seu progresso.
+- **Restauração de Versões:** Sistema de snapshots que permite recuperar estados anteriores das suas tarefas.
+- **Perfil Integrado:** Visualização direta da sua conta Google (nome e foto) na interface, proporcionando um toque pessoal e profissional.
+
+### 🦊 Workflow GitLab de Alta Performance
+Integração profunda projetada para quem vive no ciclo de desenvolvimento moderno.
+- **Merge Rápido:** Gestão inteligente de Merge Requests com análise prévia de conflitos.
+- **Automação de Branches:** Criação e navegação de branches via API oficial do GitLab, automatizando padrões de nomenclatura e fluxos de trabalho.
+
+### 📻 Sistema de Rádio Evoluído
+Mantenha o estado de *flow* com a trilha sonora ideal sem sair do ambiente de trabalho.
+- **Player Online Estável:** Streaming de rádio integrado com baixo consumo de memória.
+- **Gestão de Favoritos:** Sistema de estrelas para favoritar suas estações preferidas e acessá-las rapidamente pelo Global Dock.
+
+### 🌿 Bem-estar (Wellness Whispers)
+Produtividade sustentável através de inteligência de suporte.
+- **Sussurros de Bem-estar:** Lembretes inteligentes e sutis de postura e hidratação, garantindo que sua saúde acompanhe seu desempenho técnico.
+
+### 📝 Notes Panel (Terminal de Notas Rápidas)
+Um terminal minimalista e focado, projetado para capturar insights e trechos de código sem distrações.
+- **Estética Terminal:** Interface inspirada em consoles clássicos (`tass_notes.sh`) com efeitos de *scanline*, numeração de linhas e temas customizáveis (Classic Emerald, Vintage Amber e Red Alert).
+- **Persistência Total:** Gravação automática em tempo real via **Dexie.js**, garantindo que suas notas estejam seguras mesmo após fechar o navegador.
+- **Versatilidade Adaptativa:** Painel lateral flutuante que pode ser fixado à esquerda ou direita, com suporte a redimensionamento dinâmico.
+- **Acesso Ultra-rápido:** Projetado para o teclado — utilize o atalho `N` para abrir/fechar instantaneamente e capturar ideias em segundos.
+
+### 🛡️ Integridade de Dados & Merge Seguro
+Segurança de dados de nível empresarial.
+- **Merge Seguro:** Algoritmo avançado de importação que preserva dados locais recentes, limpa referências órfãs e garante a integridade estrutural do banco de dados.
+- **Offline-First:** Funcionamento resiliente via **Dexie.js (IndexedDB)**, garantindo que o sistema funcione perfeitamente mesmo sem conexão.
 
 ---
 
-## 📁 Estrutura do Projeto
+## ⚙️ Arquitetura Técnica
 
-```text
-/src
-  ├── db.js                     # Configuração do banco de dados local (Dexie)
-  ├── main.js                   # Inicialização do Vue 3
-  ├── style.css                 # Design System (Tailwind + Custom Layers)
-  ├── App.vue                   # Componente raiz, Timer Global e Layout principal
-  ├── components/               # Componentes Vue (.vue)
-  │   ├── TaskCard.vue          # Card de tarefa com lógica de timer e ações GitLab
-  │   ├── InterfaceMenu.vue     # Menu lateral para customização estética em tempo real
-  │   ├── SettingsModal.vue     # Configurações de sistema, integração API e Backups
-  │   └── ...                   # Modais de Sprint, Notas e Tarefas
-  ├── stores/                   # Estado Global (Pinia)
-  │   ├── taskStore.js          # Lógica de tarefas, cronômetro e sprints
-  │   └── settingsStore.js      # Persistência de preferências de UI e chaves de API
-  ├── services/                 # Serviços de Integração
-  │   └── gitlab.js             # Mecânica avançada de fluxo de branches GitLab
-  ├── composables/              # Lógica compartilhada (Hooks)
-  │   ├── useShortcuts.js       # Atalhos de teclado globais
-  │   └── useNotesDrag.js       # Mecânica de arraste e posicionamento
-  └── utils/                    # Utilitários
-      ├── swal.js               # Wrapper para SweetAlert2 (Toasts/Modals)
-      └── notifications.js      # Notificações nativas do navegador e sons
-```
+O TASS foi construído com foco em precisão e performance:
+- **Web Workers (Virtual Hardware Precision):** O cronômetro de tarefas opera em uma thread isolada via Web Worker, garantindo que a contagem de tempo seja imune a travamentos da interface ou alta carga de CPU.
+- **Modularidade Avançada:** Arquitetura baseada em serviços desacoplados e stores do Pinia para máxima escalabilidade.
+- **Estilização Semântica:** Uso rigoroso de Tailwind CSS com tokens customizados, evitando *hardcoding* e facilitando a manutenção temática.
 
 ---
 
-## 🚀 Como Iniciar
+## 🛠️ Tecnologias de Ponta
+
+- **[Vue 3](https://vuejs.org/)**: Reatividade e componentes com Composition API.
+- **[Pinia](https://pinia.vuejs.org/)**: Gestão de estado global de alta performance.
+- **[Tailwind CSS](https://tailwindcss.com/)**: Design atômico e responsivo.
+- **[Lucide Vue Next](https://lucide.dev/)**: Iconografia premium e consistente.
+- **[Vitest](https://vitest.dev/)**: Suite de testes moderna e ultra-rápida.
+- **[Dexie.js](https://dexie.org/)**: Persistência robusta no cliente.
+
+---
+
+## 🚀 Desenvolvimento
 
 ### Pré-requisitos
-- [Node.js](https://nodejs.org/) instalado.
+- [Node.js](https://nodejs.org/) (Versão recomendada: >= 18)
 
-### Instalação
-1. Clone o repositório.
-2. Instale as dependências:
+### Setup e Execução
+1. Instale as dependências:
    ```bash
    npm install
    ```
+2. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
+   Acesse: `http://localhost:5175`
 
-### Desenvolvimento
-Inicie o servidor local:
+### Qualidade e CI
 ```bash
-npm run dev
-```
-Acesse `http://localhost:5173` no seu navegador.
+# Executar testes unitários
+npm test
 
-### Produção
-Gere a build otimizada:
-```bash
+# Gerar build de produção
 npm run build
 ```
 
 ---
 
-## 🧪 Qualidade e Testes
-
-O TASS utiliza **Vitest** para garantir a estabilidade da lógica de negócio. 
-
-### Executando Testes
-```bash
-# Executar todos os testes uma vez
-npm test
-
-# Interface visual de testes (Recomendado)
-npm run test:ui
-```
-
-### Diretrizes de Contribuição
-1. **Mantenha o Verde:** A suite de testes deve passar integralmente antes de qualquer commit ou build.
-2. **Test-First:** Refatorações e novas lógicas DEVEM acompanhar arquivos `*.test.js`.
-
----
-
 ## 📄 Licença
 
-Este projeto é de uso livre. Desenvolvido para facilitar o dia a dia de desenvolvedores que buscam organização e agilidade.
+Desenvolvido para transformar a produtividade em uma forma de arte. Uso livre para entusiastas de tecnologia e eficiência.

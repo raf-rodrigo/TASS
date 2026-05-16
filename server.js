@@ -13,35 +13,6 @@ app.use(cors());
 // Serve os arquivos estáticos da pasta 'dist' (após o npm run build)
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Endpoint de Proxy para Rádios (O "seu Node" resolvendo o CORS)
-app.get('/radio-proxy', async (req, res) => {
-  try {
-    const targetUrl = req.query.url;
-    const onlyHeaders = req.query.headers === 'true';
-    if (!targetUrl) return res.status(400).send('Missing URL');
-    
-    const response = await fetch(targetUrl, {
-      method: onlyHeaders ? 'HEAD' : 'GET',
-      headers: { 'Icy-MetaData': '1' }
-    });
-
-    // Captura headers interessantes (ICY)
-    const headers = {};
-    response.headers.forEach((value, key) => {
-      if (key.startsWith('icy-')) headers[key] = value;
-    });
-
-    if (onlyHeaders) {
-      return res.json({ headers });
-    }
-
-    const data = await response.json();
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // Fallback para o roteamento do Vue (SPA)
 app.get('*', (req, res) => {
   const indexPath = path.join(__dirname, 'dist', 'index.html');
@@ -50,5 +21,4 @@ app.get('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`[TASS] Servidor iniciado em http://localhost:${PORT}`);
-  console.log(`[TASS] Proxy de rádio ativo em /radio-proxy`);
 });

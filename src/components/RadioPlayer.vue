@@ -76,14 +76,6 @@ const handleCloseModal = () => {
             :style="{ borderRadius: 'var(--app-card-radius)' }"
           >
             <div class="flex flex-col md:flex-row items-center gap-4">
-              <!-- Capa do Álbum (Se houver apiUrl e música tocando) -->
-              <div 
-                v-if="radioStore.nowPlaying.cover" 
-                class="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden shadow-2xl border-2 border-amber-500/20 shrink-0 animate-scaleIn"
-              >
-                <img :src="radioStore.nowPlaying.cover" alt="Cover" class="w-full h-full object-cover" />
-              </div>
-
               <!-- Informações da Rádio Atual -->
               <div class="flex-1 text-center md:text-left space-y-2 min-w-0">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-widest mb-1">
@@ -102,12 +94,6 @@ const handleCloseModal = () => {
                 <h2 class="text-xl font-black text-app-main tracking-tighter truncate">
                   {{ radioStore.currentRadio ? radioStore.currentRadio.name : 'Nenhuma rádio selecionada' }}
                 </h2>
-
-                <!-- Detalhes da Música (Now Playing) -->
-                <div v-if="radioStore.nowPlaying.song" class="flex flex-col animate-fade-slide">
-                  <span class="text-xs font-bold text-amber-600 dark:text-amber-400 truncate">{{ radioStore.nowPlaying.song }}</span>
-                  <span v-if="radioStore.nowPlaying.artist" class="text-[10px] font-medium text-app-sub truncate opacity-70">{{ radioStore.nowPlaying.artist }}</span>
-                </div>
               </div>
 
               <!-- Controles de Reprodução Massivos -->

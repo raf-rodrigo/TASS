@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { Music, X, Play, Square, Loader2, Headphones } from 'lucide-vue-next';
+import { X, Play, Square, Loader2, Headphones } from 'lucide-vue-next';
 import BaseModal from './BaseModal.vue';
 import AppInput from './base/AppInput.vue';
 import { useRadioStore } from '../stores/radioStore';
@@ -19,50 +19,19 @@ const radioStore = useRadioStore();
 
 const radioName = ref('');
 const radioUrl = ref('');
-const apiUrl = ref('');
 const error = ref('');
 
 // Estado do Teste de URL
 const isTesting = ref(false);
 const isTestPlaying = ref(false);
-const isFetchingName = ref(false);
 const testAudio = ref(null);
 
 onMounted(() => {
   if (props.radioToEdit) {
     radioName.value = props.radioToEdit.name;
     radioUrl.value = props.radioToEdit.url;
-    apiUrl.value = props.radioToEdit.apiUrl || '';
   }
 });
-
-const fetchRadioName = async () => {
-  if (!radioUrl.value.trim() || !radioUrl.value.startsWith('http')) {
-    error.value = 'Insira uma URL de rádio válida.';
-    return;
-  }
-
-  isFetchingName.value = true;
-  error.value = '';
-
-  try {
-    const proxyUrl = `/radio-proxy?headers=true&url=${encodeURIComponent(radioUrl.value)}`;
-    const response = await fetch(proxyUrl);
-    const result = await response.json();
-
-    if (result.headers && result.headers['icy-name']) {
-      radioName.value = result.headers['icy-name'];
-      notificationService.toast('Nome detectado!', 'success');
-    } else {
-      notificationService.toast('Nome não encontrado nos headers.', 'warning');
-    }
-  } catch (err) {
-    console.error('Falha ao buscar nome da rádio:', err);
-    notificationService.toast('Erro ao buscar metadados.', 'error');
-  } finally {
-    isFetchingName.value = false;
-  }
-};
 
 onBeforeUnmount(() => {
   stopTest();
@@ -150,14 +119,12 @@ const handleSave = async () => {
   if (props.radioToEdit) {
     await radioStore.updateRadio(props.radioToEdit.id, {
       name: radioName.value,
-      url: radioUrl.value,
-      apiUrl: apiUrl.value
+      url: radioUrl.value
     });
   } else {
     await radioStore.addRadio({
       name: radioName.value,
-      url: radioUrl.value,
-      apiUrl: apiUrl.value
+      url: radioUrl.value
     });
   }
   
@@ -201,17 +168,6 @@ const handleSave = async () => {
               <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
                 Nome da Rádio
               </label>
-              <button 
-                v-if="radioUrl"
-                @click="fetchRadioName"
-                type="button"
-                class="text-[9px] font-black uppercase tracking-tighter text-indigo-500 hover:text-indigo-600 transition-colors flex items-center gap-1"
-                :disabled="isFetchingName"
-              >
-                <Loader2 v-if="isFetchingName" class="w-3 h-3 animate-spin" />
-                <Music v-else class="w-3 h-3" />
-                <span>{{ isFetchingName ? 'Buscando...' : 'Detectar Nome' }}</span>
-              </button>
             </div>
             <AppInput 
               v-model="radioName" 
@@ -258,18 +214,6 @@ const handleSave = async () => {
               type="url" 
               placeholder="https://..." 
               :error="error && !radioUrl ? 'Obrigatório' : ''"
-            />
-          </div>
-
-          <div class="space-y-1.5">
-            <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
-              URL de Metadados (Opcional)
-            </label>
-            <AppInput 
-              v-model="apiUrl" 
-              type="url" 
-              placeholder="https://api.exemplo.com/now-playing" 
-              data-tip="API para obter Artista e Música em tempo real"
             />
           </div>
 

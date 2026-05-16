@@ -9,84 +9,19 @@ export const useRadioStore = defineStore('radio', () => {
   const isPlaying = ref(false);
   const volume = ref(0.5);
   const isLoading = ref(false);
-  const nowPlaying = ref({
-    artist: '',
-    song: '',
-    cover: ''
-  });
 
   // Singleton do elemento de Áudio nativo
   let audio = new Audio();
   audio.volume = volume.value;
 
-  // Polling de Metadados
-  let metadataInterval = null;
-
-  const fetchMetadata = async () => {
-    if (!currentRadio.value?.apiUrl || !isPlaying.value) return;
-
-    try {
-      // Usando o proxy local do nosso Node (configurado no vite.config.js ou server.js)
-      const proxyUrl = `/radio-proxy?url=${encodeURIComponent(currentRadio.value.apiUrl)}`;
-      const response = await fetch(proxyUrl);
-      const result = await response.json();
-      
-      let artist = '';
-      let song = '';
-      let cover = '';
-
-      // Tenta o padrão original (result.data)
-      if (result.status === 'success' && result.data) {
-        artist = result.data.artist || '';
-        song = result.data.song || '';
-        cover = result.data.cover || '';
-      } 
-      // Fallback para o novo padrão (result.musicas[0].tocando[0])
-      else if (result.musicas && result.musicas[0] && result.musicas[0].tocando && result.musicas[0].tocando[0]) {
-        const info = result.musicas[0].tocando[0];
-        artist = info.singer || '';
-        song = info.song || '';
-        cover = info.covermega || info.cover || '';
-      }
-      
-      if (song || artist) {
-        if (nowPlaying.value.song !== song || nowPlaying.value.artist !== artist) {
-          nowPlaying.value = { 
-            artist, 
-            song, 
-            cover 
-          };
-          updateMediaMetadata();
-        }
-      }
-    } catch (err) {
-      console.warn('Erro ao buscar metadados da rádio via proxy local:', err);
-    }
-  };
-
-  const startMetadataPolling = () => {
-    stopMetadataPolling();
-    fetchMetadata(); // Busca imediata
-    metadataInterval = setInterval(fetchMetadata, 20000); // A cada 20 segundos
-  };
-
-  const stopMetadataPolling = () => {
-    if (metadataInterval) {
-      clearInterval(metadataInterval);
-      metadataInterval = null;
-    }
-  };
-
   // Listeners do Áudio
   audio.addEventListener('playing', () => {
     isPlaying.value = true;
     isLoading.value = false;
-    startMetadataPolling();
   });
 
   audio.addEventListener('pause', () => {
     isPlaying.value = false;
-    stopMetadataPolling();
   });
 
   audio.addEventListener('waiting', () => {
@@ -96,7 +31,6 @@ export const useRadioStore = defineStore('radio', () => {
   audio.addEventListener('error', (e) => {
     isLoading.value = false;
     isPlaying.value = false;
-    stopMetadataPolling();
     notificationService.toast('Erro ao carregar stream de áudio.', 'error');
   });
 
@@ -110,19 +44,9 @@ export const useRadioStore = defineStore('radio', () => {
         return;
       }
       
-      // Remove qualquer rádio do sistema que tenha ficado da versão anterior
-      try {
-        const defaults = await db.radios.filter(r => r.isDefault === 1 || r.isDefault === true).toArray();
-        if (defaults.length > 0) {
-          await db.radios.bulkDelete(defaults.map(r => r.id));
-        }
-      } catch (e) {
-        console.warn('Erro ao limpar rádios padrão:', e);
-      }
-      
       let savedRadios = await db.radios.toArray();
       // Garante que todas as rádios tenham a propriedade stars (migração)
-      savedRadios = savedRadios.map(r => ({ ...r, stars: r.stars || 0, apiUrl: r.apiUrl || '' }));
+      savedRadios = savedRadios.map(r => ({ ...r, stars: r.stars || 0 }));
       
       // Ordena decrescente por estrelas
       savedRadios.sort((a, b) => b.stars - a.stars);
@@ -146,12 +70,9 @@ export const useRadioStore = defineStore('radio', () => {
   const updateMediaMetadata = () => {
     if ('mediaSession' in navigator && currentRadio.value) {
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: nowPlaying.value.song || currentRadio.value.name,
-        artist: nowPlaying.value.artist || 'TASS Web Radio',
-        album: nowPlaying.value.song ? currentRadio.value.name : 'Ao Vivo',
-        artwork: [
-          { src: nowPlaying.value.cover || '/favicon.svg', sizes: '512x512', type: nowPlaying.value.cover ? 'image/jpeg' : 'image/svg+xml' }
-        ]
+        title: currentRadio.value.name,
+        artist: 'TASS Web Radio',
+        album: 'Ao Vivo'
       });
     }
   };
@@ -208,8 +129,6 @@ export const useRadioStore = defineStore('radio', () => {
     const radio = radios.value.find(r => r.id === id);
     if (radio) {
       currentRadioId.value = id;
-      // Reseta metadados ao trocar
-      nowPlaying.value = { artist: '', song: '', cover: '' };
       
       if (isPlaying.value) {
         play(); // Toca a nova URL imediatamente
@@ -248,8 +167,8 @@ export const useRadioStore = defineStore('radio', () => {
   };
 
   const addRadio = async (radio) => {
-    const id = await db.radios.add({ ...radio, isDefault: 0, stars: 0 });
-    const newRadio = { ...radio, id, isDefault: 0, stars: 0 };
+    const id = await db.radios.add({ ...radio, stars: 0 });
+    const newRadio = { ...radio, id, stars: 0 };
     radios.value.push(newRadio);
     radios.value.sort((a, b) => b.stars - a.stars);
     notificationService.toast('Rádio adicionada com sucesso!', 'success');
@@ -264,7 +183,6 @@ export const useRadioStore = defineStore('radio', () => {
         // Se for a rádio atual e estiver tocando, atualiza o metadata
         if (currentRadioId.value === id) {
           updateMediaMetadata();
-          if (isPlaying.value) startMetadataPolling(); // Reinicia polling se a URL da API mudou
         }
       }
       notificationService.toast('Rádio atualizada!', 'success');
@@ -297,7 +215,6 @@ export const useRadioStore = defineStore('radio', () => {
     currentRadioId,
     isPlaying,
     isLoading,
-    nowPlaying,
     volume,
     init,
     play,

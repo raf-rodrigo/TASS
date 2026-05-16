@@ -37,4 +37,4 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
 ## 6. Comunicação e Workflow
 - **Idioma:** Todo o raciocínio e comunicação devem ser realizados em **Português**.
 - **Fluxo de Eventos:** Seguir o padrão de "Props down, Events up". Modais de ação devem ser disparados pelo `App.vue` através de eventos emitidos pelos componentes filhos (`TaskCard` -> `TaskBoard` -> `App`).
-- **Commits:** Sugerir mensagens seguindo o padrão **Conventional Commits** em uma única linha de comando (ex: `git commit -m "feat(task): add timer validation"`).
+- **Commits:** Sugerir mensagens seguindo o padrão **Conventional Commits** em uma única linha de comando. Importante: a linha não precisa ser curta; ela deve ser tão detalhada quanto necessário para descrever todas as alterações em um único comando `-m`, independentemente do comprimento.

@@ -77,29 +77,6 @@ export const useTaskStore = defineStore('task', () => {
     try {
       let dbTasks = await db.tasks.toArray();
       
-      const needsColumnMigration = dbTasks.some(t => t.columnId === undefined);
-      if (needsColumnMigration) {
-        const updates = [];
-        dbTasks.forEach(t => {
-          if (t.columnId === undefined) {
-            t.columnId = 1;
-            updates.push(db.tasks.update(t.id, { columnId: 1 }));
-          }
-        });
-        await Promise.all(updates);
-      }
-
-      const needsPositionMigration = dbTasks.some(t => typeof t.position !== 'number');
-      if (needsPositionMigration) {
-        dbTasks.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        const updates = [];
-        dbTasks.forEach((t, index) => {
-          t.position = index + 1;
-          updates.push(db.tasks.update(t.id, { position: t.position }));
-        });
-        await Promise.all(updates);
-      }
-      
       const runningTask = dbTasks.find(t => t.isRunning);
       if (runningTask) {
         // Se a tarefa estava rodando, ela continua rodando ao iniciar o sistema.
