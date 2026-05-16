@@ -7,6 +7,7 @@ const FOLDER_NAME = 'TASS Backups';
 let tokenClient = null;
 let accessToken = null;
 let authChangeCallback = null;
+let userProfile = null;
 
 export const googleDriveService = {
   /**
@@ -61,7 +62,7 @@ export const googleDriveService = {
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
       scope: SCOPES,
-      callback: (response) => {
+      callback: async (response) => {
         if (response.error) {
           notificationService.toast('Falha na autenticação com o Google', 'error');
           return;
@@ -73,7 +74,8 @@ export const googleDriveService = {
         localStorage.setItem('tass_google_access_token', accessToken);
         localStorage.setItem('tass_google_token_expiry', expiryTime.toString());
 
-        if (authChangeCallback) authChangeCallback(true);
+        await this.getUserProfile();
+        if (authChangeCallback) authChangeCallback(true, userProfile);
         resolve(accessToken);
       },
     });
@@ -86,13 +88,40 @@ export const googleDriveService = {
       const isExpired = Date.now() > parseInt(expiry);
       if (!isExpired) {
         accessToken = savedToken;
-        if (authChangeCallback) authChangeCallback(true);
+        this.getUserProfile().then(() => {
+          if (authChangeCallback) authChangeCallback(true, userProfile);
+        });
       } else {
         this.clearSession();
       }
     }
 
     resolve();
+  },
+
+  /**
+   * Busca informações do perfil do usuário
+   */
+  async getUserProfile() {
+    if (!accessToken) return;
+    try {
+      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (!response.ok) throw new Error('Falha ao buscar perfil');
+      userProfile = await response.json();
+      return userProfile;
+    } catch (error) {
+      console.error('Google UserInfo Error:', error);
+      userProfile = null;
+    }
+  },
+
+  /**
+   * Retorna o perfil atual do usuário
+   */
+  getProfile() {
+    return userProfile;
   },
 
   /**
@@ -108,9 +137,10 @@ export const googleDriveService = {
    */
   clearSession() {
     accessToken = null;
+    userProfile = null;
     localStorage.removeItem('tass_google_access_token');
     localStorage.removeItem('tass_google_token_expiry');
-    if (authChangeCallback) authChangeCallback(false);
+    if (authChangeCallback) authChangeCallback(false, null);
   },
 
   /**

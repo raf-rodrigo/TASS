@@ -2,7 +2,7 @@
 import { ref, watch, onMounted, computed } from 'vue';
 import { 
   X, Palette, Trash2, Plus, Settings,
-  Image as ImageIcon, Eraser,
+  Image as ImageIcon, Eraser, MousePointer2,
   LayoutGrid, Layers, Type as TypeIcon, Droplets
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -32,6 +32,21 @@ watch(activeTab, (newVal) => {
     localStorage.setItem('app-last-interface-tab', newVal);
   }
 });
+
+// Live Preview para arredondamento
+watch(() => settings.cardBorderRadius, (newVal) => {
+  if (newVal === undefined || newVal === null) return;
+  
+  requestAnimationFrame(() => {
+    const root = document.documentElement;
+    if (root) {
+      root.style.setProperty('--app-card-radius', newVal + 'px');
+      root.style.setProperty('--app-input-radius', Math.round(newVal * 0.6) + 'px');
+    }
+  });
+  settings.saveSetting('app-card-radius', newVal);
+}, { immediate: true });
+
 const showAddWallpaper = ref(false);
 const newWallpaperUrl = ref('');
 
@@ -211,7 +226,20 @@ const handleColumnChange = (n) => {
                     </div>
                   </div>
 
-                  <div class="pt-6 border-t border-app-border-light">
+                  <div class="space-y-6 pt-6 border-t border-app-border-light">
+                    <!-- Arredondamento de Cantos -->
+                    <div class="glass-section p-4 space-y-4">
+                      <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                          <MousePointer2 class="w-4 h-4 text-indigo-500" />
+                          <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Arredondamento de Cantos</p>
+                        </div>
+                        <span class="text-xs font-black text-indigo-500">{{ settings.cardBorderRadius }}px</span>
+                      </div>
+                      <p class="text-[10px] text-slate-500">Define o nível de arredondamento dos elementos da interface.</p>
+                      <input type="range" v-model="settings.cardBorderRadius" min="0" max="40" step="1" class="w-full app-range" />
+                    </div>
+
                     <label class="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all">
                       <div class="flex flex-col">
                         <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Guias Sempre Visíveis</span>

@@ -4,7 +4,7 @@ import { backupService } from '../../src/services/backupService';
 // Mock do DB Dexie
 vi.mock('../../src/db.js', () => ({
   db: {
-    tasks: { toArray: vi.fn(), bulkPut: vi.fn() },
+    tasks: { toArray: vi.fn(), bulkPut: vi.fn(), bulkAdd: vi.fn() },
     sprints: { toArray: vi.fn(), bulkPut: vi.fn() },
     settings: { toArray: vi.fn(), bulkPut: vi.fn() },
     notes: { toArray: vi.fn(), bulkPut: vi.fn() }
@@ -47,19 +47,31 @@ describe('backupService', () => {
   });
 
   describe('importTasks', () => {
-    it('deve processar um arquivo JSON e salvar no banco de dados', async () => {
+    it('deve realizar um Merge Seguro (remover ID, resetar status e usar bulkAdd)', async () => {
       const { db } = await import('../../src/db.js');
       const mockTaskStore = { loadTasks: vi.fn() };
-      const mockFileContent = JSON.stringify([{ id: 1, title: 'Importada' }]);
+      const originalTask = { id: 1, title: 'Importada', sprintId: '123', isRunning: true, lastStartTime: 5000 };
+      const mockFileContent = JSON.stringify([originalTask]);
       const mockFile = new Blob([mockFileContent], { type: 'application/json' });
 
       // Simula o comportamento do FileReader
       const importPromise = backupService.importTasks(mockFile, mockTaskStore);
       
-      // Dexie bulkPut é chamado após o parse do JSON
       await importPromise;
 
-      expect(db.tasks.bulkPut).toHaveBeenCalledWith([{ id: 1, title: 'Importada' }]);
+      // Verifica se o bulkAdd foi chamado com a tarefa processada
+      expect(db.tasks.bulkAdd).toHaveBeenCalledWith([
+        { 
+          title: 'Importada', 
+          sprintId: 'all', 
+          isRunning: false, 
+          lastStartTime: null 
+        }
+      ]);
+      // Garante que o ID foi removido (não está presente no objeto enviado ao bulkAdd)
+      const calledWith = db.tasks.bulkAdd.mock.calls[0][0][0];
+      expect(calledWith.id).toBeUndefined();
+      
       expect(mockTaskStore.loadTasks).toHaveBeenCalled();
     });
 

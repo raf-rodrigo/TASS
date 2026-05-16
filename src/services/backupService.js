@@ -45,7 +45,7 @@ export const backupService = {
   },
 
   /**
-   * Importa tarefas de um arquivo JSON
+   * Importa tarefas de um arquivo JSON (Merge Seguro)
    */
   async importTasks(file, taskStore) {
     return new Promise((resolve, reject) => {
@@ -53,11 +53,23 @@ export const backupService = {
       reader.onload = async (e) => {
         try {
           const data = JSON.parse(e.target.result);
-          const tasks = Array.isArray(data) ? data : (data.tasks || null);
+          const tasksData = Array.isArray(data) ? data : (data.tasks || null);
           
-          if (!tasks) throw new Error("Formato inválido");
+          if (!tasksData) throw new Error("Formato inválido");
+
+          // Processamento para Merge Seguro
+          const processedTasks = tasksData.map(task => {
+            // Remove o ID para que o Dexie gere um novo
+            const { id, ...taskWithoutId } = task;
+            return {
+              ...taskWithoutId,
+              sprintId: 'all',      // Desvincula de sprints órfãs
+              isRunning: false,     // Garante que não venha rodando
+              lastStartTime: null   // Limpa estado do timer
+            };
+          });
           
-          await db.tasks.bulkPut(tasks);
+          await db.tasks.bulkAdd(processedTasks);
           await taskStore.loadTasks();
           notificationService.toast('Tarefas importadas com sucesso!');
           resolve();
