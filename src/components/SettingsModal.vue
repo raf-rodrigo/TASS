@@ -2,7 +2,7 @@
 import { ref, watch, onMounted, computed } from 'vue';
 import { 
   Download, Upload, Globe, Palette, Cloud, Loader2, LogOut, LogIn, Trash2,
-  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles, Bug, MousePointer2, Layout
+  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles, Bug, MousePointer2, Layout, Layers, Maximize
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
@@ -14,6 +14,8 @@ import BaseModal from './BaseModal.vue';
 import { useTaskStore } from '../stores/taskStore';
 import { ptBR } from 'date-fns/locale';
 import '@vuepic/vue-datepicker/dist/main.css';
+import AppInput from './base/AppInput.vue';
+import AppSelect from './base/AppSelect.vue';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -346,28 +348,34 @@ const handleResetSystem = async () => {
                   </div>
                 </div>
 
-                <div class="grid gap-5 pt-4 border-t border-app-border-light">
-                  <div class="input-group">
-                    <label>URL da Instância GitLab</label>
-                    <input type="url" v-model="localSettings.gitlabUrl" placeholder="https://gitlab.com" class="app-input" />
-                  </div>
+                <div class="grid gap-6 pt-4 border-t border-app-border-light">
+                  <AppInput 
+                    v-model="localSettings.gitlabUrl" 
+                    type="url" 
+                    label="URL da Instância GitLab" 
+                    placeholder="https://gitlab.com" 
+                  />
 
                   <template v-if="localSettings.gitlabIntegrationMode === 'api'">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div class="input-group">
-                        <label>ID do Projeto</label>
-                        <input type="text" v-model="localSettings.gitlabProjectId" placeholder="Ex: 1234" class="app-input" />
-                      </div>
-                      <div class="input-group">
-                        <label>Branch Base</label>
-                        <input type="text" v-model="localSettings.gitlabBaseBranch" placeholder="develop" class="app-input" />
-                      </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <AppInput 
+                        v-model="localSettings.gitlabProjectId" 
+                        label="ID do Projeto" 
+                        placeholder="Ex: 1234" 
+                      />
+                      <AppInput 
+                        v-model="localSettings.gitlabBaseBranch" 
+                        label="Branch Base" 
+                        placeholder="develop" 
+                      />
                     </div>
-                    <div class="input-group">
-                      <label>Personal Access Token (PAT)</label>
-                      <input type="password" v-model="localSettings.gitlabToken" placeholder="glpat-..." class="app-input" />
-                      <p class="text-[9px] text-slate-500 mt-2 italic px-1">O token é armazenado apenas localmente no seu navegador.</p>
-                    </div>
+                    <AppInput 
+                      v-model="localSettings.gitlabToken" 
+                      type="password" 
+                      label="Personal Access Token (PAT)" 
+                      placeholder="glpat-..." 
+                      help-text="O token é armazenado apenas localmente no seu navegador."
+                    />
                   </template>
 
                   <div v-else class="p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
