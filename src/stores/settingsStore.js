@@ -54,6 +54,7 @@ export const useSettingsStore = defineStore('settings', () => {
   });
   const columnTitles = ref(['', '', '', '']);
   const contextMenuStyle = ref('floating'); // 'floating' (estilo OS) ou 'dock' (estilo clássico)
+  const contextMenuMode = ref('stack'); // 'stack' (empilhado) ou 'replace' (substitui a dock)
   const contrastEnhanced = ref(true);
 
 
@@ -69,6 +70,33 @@ export const useSettingsStore = defineStore('settings', () => {
   ]);
 
   const isInitialized = ref(false);
+
+  const syncWallpapers = async () => {
+    try {
+      const SERVER_URL = 'http://127.0.0.1:5176';
+      let hasChanges = false;
+      
+      // Normalização Agressiva: Força todas as imagens locais para a porta 5176
+      customWallpapers.value = customWallpapers.value.map(wp => {
+        if (wp.url && wp.url.includes('/wallpapers/')) {
+          const fileName = wp.url.split('/').pop();
+          const correctedUrl = `${SERVER_URL}/wallpapers/${fileName}`;
+          
+          if (wp.url !== correctedUrl) {
+            hasChanges = true;
+            return { ...wp, url: correctedUrl, isLocal: true };
+          }
+        }
+        return wp;
+      });
+
+      if (hasChanges) {
+        await saveSetting('app-custom-wallpapers', JSON.parse(JSON.stringify(customWallpapers.value)));
+      }
+    } catch (error) {
+      console.warn('[TASS] Erro ao normalizar portas dos wallpapers.');
+    }
+  };
 
   const loadSettings = async () => {
     try {
@@ -106,14 +134,16 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-card-radius'] !== undefined) cardBorderRadius.value = settingsMap['app-card-radius'];
       if (settingsMap['app-font-family'] !== undefined) fontFamily.value = settingsMap['app-font-family'];
       if (settingsMap['app-opacity-targets'] !== undefined) opacityTargets.value = settingsMap['app-opacity-targets'];
+      
+      // Carrega wallpapers customizados salvos no banco
       if (settingsMap['app-custom-wallpapers'] !== undefined) {
-        // Limpeza de Órfãos: Remove links locais que não existem mais (/wallpapers/)
-        customWallpapers.value = settingsMap['app-custom-wallpapers'].filter(wp => 
-          wp.url && !wp.url.startsWith('/wallpapers/')
-        );
+        customWallpapers.value = settingsMap['app-custom-wallpapers'];
       }
 
-      // Injeção Inteligente: Sugere os wallpapers de elite apenas se a galeria estiver vazia
+      // Sincroniza com wallpapers locais (arquivos na pasta public/wallpapers)
+      await syncWallpapers();
+
+      // Injeção Inteligente: Sugere os wallpapers de elite apenas se a galeria ainda estiver vazia
       if (customWallpapers.value.length === 0) {
         const eliteWallpapers = [
           { name: 'Minimalist Zen', url: 'https://images.unsplash.com/photo-1510672981848-a1c4f1cb5ccf?q=80&w=1920&auto=format&fit=crop' },
@@ -135,6 +165,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
       if (settingsMap['app-column-titles'] !== undefined) columnTitles.value = settingsMap['app-column-titles'];
       if (settingsMap['app-context-menu-style'] !== undefined) contextMenuStyle.value = settingsMap['app-context-menu-style'];
+      if (settingsMap['app-context-menu-mode'] !== undefined) contextMenuMode.value = settingsMap['app-context-menu-mode'];
       if (settingsMap['app-contrast-enhanced'] !== undefined) contrastEnhanced.value = settingsMap['app-contrast-enhanced'] === true;
       
       // Carrega configuração do localStorage
@@ -194,6 +225,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
       { key: 'app-column-titles', value: columnTitles.value },
       { key: 'app-context-menu-style', value: contextMenuStyle.value },
+      { key: 'app-context-menu-mode', value: contextMenuMode.value },
       { key: 'app-contrast-enhanced', value: contrastEnhanced.value }
 
     ].map(item => ({
@@ -222,8 +254,8 @@ export const useSettingsStore = defineStore('settings', () => {
     workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,
     cardBorderRadius, opacityTargets, customWallpapers, columnTitles,
     wellnessEnabled, wellnessInterval, contrastEnhanced, keepWindowState,
-    contextMenuStyle,
-    isInitialized, loadSettings, saveSetting, saveAllSettings
+    contextMenuStyle, contextMenuMode,
+    isInitialized, loadSettings, syncWallpapers, saveSetting, saveAllSettings
 
   };
 });

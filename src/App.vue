@@ -345,7 +345,7 @@ onMounted(async () => {
         leave-to-class="translate-y-20 opacity-0 scale-95"
       >
         <GlobalDock 
-          v-if="!taskStore.selectedTask || settings.contextMenuStyle === 'floating'"
+          v-if="!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating'"
           @add-task="openAddModal"
           @open-sprints="showSprints = true"
           @open-notes="showNotes = !showNotes"

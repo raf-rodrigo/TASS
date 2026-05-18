@@ -88,7 +88,8 @@ const localSettings = ref({
   },
   contrastEnhanced: settings.contrastEnhanced,
   notesSide: settings.notesSide,
-  contextMenuStyle: settings.contextMenuStyle
+  contextMenuStyle: settings.contextMenuStyle,
+  contextMenuMode: settings.contextMenuMode
 });
 
 
@@ -124,6 +125,7 @@ const handleSave = async () => {
   settings.contrastEnhanced = localSettings.value.contrastEnhanced;
   settings.notesSide = localSettings.value.notesSide;
   settings.contextMenuStyle = localSettings.value.contextMenuStyle;
+  settings.contextMenuMode = localSettings.value.contextMenuMode;
 
   await settings.saveAllSettings();
   notificationService.toast('Configurações Salvas!');
@@ -327,34 +329,52 @@ const handleResetSystem = async () => {
           <transition name="fade-slide" mode="out-in">
             <!-- ABA: GitLab -->
             <div v-if="activeTab === 'gitlab'" :key="'gitlab'" class="space-y-8">
-              <div class="space-y-6">
-                <div class="flex bg-app-surface p-1 rounded-xl w-fit">
-                  <button @click="localSettings.gitlabIntegrationMode = 'link'" class="px-6 py-1.5 text-xs font-bold rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'link' ? 'bg-app-solid shadow text-indigo-600 dark:text-indigo-400' : 'text-app-sub'">Link Mágico</button>
-                  <button @click="localSettings.gitlabIntegrationMode = 'api'" class="px-6 py-1.5 text-xs font-bold rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'api' ? 'bg-app-solid shadow text-indigo-600 dark:text-indigo-400' : 'text-app-sub'">API Automática</button>
+              <div class="glass-section p-6 space-y-6">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-indigo-500/10 rounded-xl text-indigo-500">
+                      <Globe class="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-black text-app-main uppercase tracking-tight">Configuração de Instância</h3>
+                      <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest">Modo: {{ localSettings.gitlabIntegrationMode === 'link' ? 'Manual' : 'Automatizado' }}</p>
+                    </div>
+                  </div>
+                  <div class="flex bg-app-surface p-1 rounded-xl border border-app-border-light">
+                    <button @click="localSettings.gitlabIntegrationMode = 'link'" class="px-4 py-1.5 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'link' ? 'bg-indigo-500 text-white shadow-md' : 'text-app-muted hover:text-indigo-500'">Link Mágico</button>
+                    <button @click="localSettings.gitlabIntegrationMode = 'api'" class="px-4 py-1.5 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'api' ? 'bg-indigo-500 text-white shadow-md' : 'text-app-muted hover:text-indigo-500'">API Automática</button>
+                  </div>
                 </div>
 
-                <div class="grid gap-4">
+                <div class="grid gap-5 pt-4 border-t border-app-border-light">
                   <div class="input-group">
-                    <label>URL da Instância</label>
-                    <input type="url" v-model="localSettings.gitlabUrl" placeholder="https://gitlab.com" />
+                    <label>URL da Instância GitLab</label>
+                    <input type="url" v-model="localSettings.gitlabUrl" placeholder="https://gitlab.com" class="app-input" />
                   </div>
 
                   <template v-if="localSettings.gitlabIntegrationMode === 'api'">
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div class="input-group">
                         <label>ID do Projeto</label>
-                        <input type="text" v-model="localSettings.gitlabProjectId" placeholder="1234" />
+                        <input type="text" v-model="localSettings.gitlabProjectId" placeholder="Ex: 1234" class="app-input" />
                       </div>
                       <div class="input-group">
                         <label>Branch Base</label>
-                        <input type="text" v-model="localSettings.gitlabBaseBranch" placeholder="develop" />
+                        <input type="text" v-model="localSettings.gitlabBaseBranch" placeholder="develop" class="app-input" />
                       </div>
                     </div>
                     <div class="input-group">
                       <label>Personal Access Token (PAT)</label>
-                      <input type="password" v-model="localSettings.gitlabToken" placeholder="glpat-..." />
+                      <input type="password" v-model="localSettings.gitlabToken" placeholder="glpat-..." class="app-input" />
+                      <p class="text-[9px] text-slate-500 mt-2 italic px-1">O token é armazenado apenas localmente no seu navegador.</p>
                     </div>
                   </template>
+
+                  <div v-else class="p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
+                    <p class="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium leading-relaxed">
+                      No modo <b>Link Mágico</b>, o TASS apenas gerará URLs diretas para criação de branches. Nenhuma credencial de API é necessária.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -475,6 +495,47 @@ const handleResetSystem = async () => {
                         <p class="text-[9px] font-bold opacity-60">Barra no rodapé</p>
                       </div>
                     </button>
+                  </div>
+
+                  <!-- SELETOR DE COMPORTAMENTO DA DOCK (Sempre Visível) -->
+                  <div class="mt-6 pt-6 border-t border-indigo-500/10 animate-fadeIn">
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="flex items-center gap-2">
+                        <Layers class="w-3.5 h-3.5 text-indigo-500" />
+                        <p class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Comportamento da Dock</p>
+                      </div>
+                      <span class="text-[8px] font-bold text-slate-400 italic">Válido apenas para o modo 'Dock Fixo'</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                      <button 
+                        @click="localSettings.contextMenuMode = 'stack'"
+                        class="flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all group"
+                        :class="localSettings.contextMenuMode === 'stack' 
+                          ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm' 
+                          : 'bg-app-surface border-transparent text-slate-400 hover:border-slate-300 dark:hover:border-white/10'"
+                      >
+                        <Layers class="w-5 h-5" :class="localSettings.contextMenuMode === 'stack' ? 'animate-pulse' : ''" />
+                        <div class="text-center">
+                          <p class="text-[10px] font-black uppercase tracking-tighter">Empilhar Acima</p>
+                          <p class="text-[8px] font-bold opacity-60">Sobrepõe a Dock</p>
+                        </div>
+                      </button>
+
+                      <button 
+                        @click="localSettings.contextMenuMode = 'replace'"
+                        class="flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all group"
+                        :class="localSettings.contextMenuMode === 'replace' 
+                          ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm' 
+                          : 'bg-app-surface border-transparent text-slate-400 hover:border-slate-300 dark:hover:border-white/10'"
+                      >
+                        <Maximize class="w-5 h-5" />
+                        <div class="text-center">
+                          <p class="text-[10px] font-black uppercase tracking-tighter">Substituir Dock</p>
+                          <p class="text-[8px] font-bold opacity-60">Troca uma pela outra</p>
+                        </div>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -663,8 +724,10 @@ const handleResetSystem = async () => {
                       <button @click="showGoogleRestoreList = false" class="text-[10px] font-bold text-slate-400 hover:text-indigo-500">Voltar</button>
                     </div>
                     
-                    <div v-if="googleBackups.length === 0" class="py-8 text-center border-2 border-dashed border-app-border-light rounded-2xl">
-                      <p class="text-[10px] text-slate-500 italic">Nenhum backup encontrado nesta conta.</p>
+                    <div v-if="googleBackups.length === 0" class="py-10 text-center border-2 border-dashed border-app-border-light rounded-2xl px-6">
+                      <Cloud class="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                      <p class="text-[11px] font-bold text-app-muted uppercase tracking-widest">Nenhum backup encontrado.</p>
+                      <p class="text-[9px] text-slate-400 mt-1 italic">Verifique a pasta <span class="text-indigo-500 font-bold uppercase">TASS</span> no seu Google Drive.</p>
                     </div>
                     
                     <div v-else class="max-h-48 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
