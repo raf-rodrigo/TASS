@@ -56,6 +56,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const contextMenuStyle = ref('floating'); // 'floating' (estilo OS) ou 'dock' (estilo clássico)
   const contextMenuMode = ref('stack'); // 'stack' (empilhado) ou 'replace' (substitui a dock)
   const contrastEnhanced = ref(true);
+  const darkenWallpaper = ref(true);
 
 
   const customWallpapers = ref([
@@ -175,6 +176,7 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-context-menu-style'] !== undefined) contextMenuStyle.value = settingsMap['app-context-menu-style'];
       if (settingsMap['app-context-menu-mode'] !== undefined) contextMenuMode.value = settingsMap['app-context-menu-mode'];
       if (settingsMap['app-contrast-enhanced'] !== undefined) contrastEnhanced.value = settingsMap['app-contrast-enhanced'] === true;
+      if (settingsMap['app-darken-wallpaper'] !== undefined) darkenWallpaper.value = settingsMap['app-darken-wallpaper'] === true;
       
       // Carrega configuração do localStorage
       keepWindowState.value = localStorage.getItem('app-keep-window-state') === 'true';
@@ -234,7 +236,8 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-column-titles', value: columnTitles.value },
       { key: 'app-context-menu-style', value: contextMenuStyle.value },
       { key: 'app-context-menu-mode', value: contextMenuMode.value },
-      { key: 'app-contrast-enhanced', value: contrastEnhanced.value }
+      { key: 'app-contrast-enhanced', value: contrastEnhanced.value },
+      { key: 'app-darken-wallpaper', value: darkenWallpaper.value }
 
     ].map(item => ({
       key: item.key,
@@ -261,7 +264,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
     workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,
     cardBorderRadius, opacityTargets, customWallpapers, columnTitles,
-    wellnessEnabled, wellnessInterval, contrastEnhanced, keepWindowState,
+    wellnessEnabled, wellnessInterval, contrastEnhanced, darkenWallpaper, keepWindowState,
     contextMenuStyle, contextMenuMode,
     isInitialized, loadSettings, syncWallpapers, saveSetting, saveAllSettings
 
