@@ -73,14 +73,14 @@ export const useSettingsStore = defineStore('settings', () => {
 
   const syncWallpapers = async () => {
     try {
-      const SERVER_URL = 'http://127.0.0.1:5176';
       let hasChanges = false;
       
-      // Normalização Agressiva: Força todas as imagens locais para a porta 5176
+      // Normalização Resiliente: Usa caminhos relativos para imagens na pasta public/wallpapers
+      // Isso permite que o navegador carregue a imagem mesmo se o servidor backend (5176) estiver offline.
       customWallpapers.value = customWallpapers.value.map(wp => {
         if (wp.url && wp.url.includes('/wallpapers/')) {
           const fileName = wp.url.split('/').pop();
-          const correctedUrl = `${SERVER_URL}/wallpapers/${fileName}`;
+          const correctedUrl = `/wallpapers/${fileName}`;
           
           if (wp.url !== correctedUrl) {
             hasChanges = true;
@@ -94,7 +94,7 @@ export const useSettingsStore = defineStore('settings', () => {
         await saveSetting('app-custom-wallpapers', JSON.parse(JSON.stringify(customWallpapers.value)));
       }
     } catch (error) {
-      console.warn('[TASS] Erro ao normalizar portas dos wallpapers.');
+      console.warn('[TASS] Erro ao normalizar caminhos dos wallpapers.');
     }
   };
 
@@ -128,7 +128,15 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-work-end'] !== undefined) workEnd.value = settingsMap['app-work-end'];
       if (settingsMap['app-work-days'] !== undefined) workDays.value = settingsMap['app-work-days'];
       if (settingsMap['app-auto-pause-work'] !== undefined) autoPauseOutsideWork.value = settingsMap['app-auto-pause-work'];
-      if (settingsMap['app-bg-image'] !== undefined) backgroundImage.value = settingsMap['app-bg-image'];
+      if (settingsMap['app-bg-image'] !== undefined) {
+        let bgUrl = settingsMap['app-bg-image'];
+        // Normaliza para caminho relativo se for uma imagem local
+        if (bgUrl && bgUrl.includes('/wallpapers/')) {
+          const fileName = bgUrl.split('/').pop();
+          bgUrl = `/wallpapers/${fileName}`;
+        }
+        backgroundImage.value = bgUrl;
+      }
       if (settingsMap['app-bg-blur'] !== undefined) backgroundBlur.value = settingsMap['app-bg-blur'];
       if (settingsMap['app-card-opacity'] !== undefined) cardOpacity.value = settingsMap['app-card-opacity'];
       if (settingsMap['app-card-radius'] !== undefined) cardBorderRadius.value = settingsMap['app-card-radius'];
