@@ -24,6 +24,7 @@ import { useSystemMonitoring } from './composables/useSystemMonitoring.js';
 import { useGlobalPulse } from './composables/useGlobalPulse.js';
 
 // Stores
+import { bridgeService } from './services/bridgeService';
 import { notificationService } from './services/notificationService';
 import { ClipboardList, Plus, Sun, Moon, Settings, Calendar, Maximize, RotateCcw, Pencil, CheckCircle, Trash2, X, Clock } from 'lucide-vue-next';
 
@@ -238,6 +239,9 @@ onMounted(async () => {
   await taskStore.loadTasks();
   await taskStore.loadSprints();
   syncBoardWithStore();
+  
+  // Inicia monitoramento do backend
+  bridgeService.startPolling();
 });
 </script>
 
@@ -265,6 +269,20 @@ onMounted(async () => {
     ></div>
   </template>
 
+  <!-- Bridge Status Indicator (Discreet) -->
+  <div 
+    class="fixed bottom-4 left-4 z-50 flex items-center gap-2 px-3 py-1 rounded-full glass-panel border border-app-border-light pointer-events-auto opacity-40 hover:opacity-100 transition-opacity cursor-help select-none"
+    v-tooltip="bridgeService.isServerOnline.value ? `Bridge Online v${bridgeService.serverVersion.value}` : 'Bridge Offline (Backend porta 5176)'"
+  >
+    <div 
+      class="w-1.5 h-1.5 rounded-full"
+      :class="bridgeService.isServerOnline.value ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-rose-500 animate-pulse'"
+    ></div>
+    <span class="text-[8px] font-black uppercase tracking-tighter text-app-muted">
+      Bridge
+    </span>
+  </div>
+
   <div 
     v-if="settings.isInitialized" 
     id="app-root"
@@ -280,38 +298,36 @@ onMounted(async () => {
       ]"
       :style="{ maxWidth: '98%' }"
     >
-    <!-- TASS Branding (Bottom Right) -->
-    <div class="fixed bottom-6 right-6 md:bottom-10 md:right-12 z-20 flex flex-col items-end animate-[fadeInRight_0.8s_ease-out] select-none pointer-events-none opacity-30 md:opacity-60 hover:opacity-100 transition-opacity">
-      <div class="flex items-center gap-2">
-        <h1 
-          class="text-xl md:text-2xl leading-none bg-gradient-to-r from-[#00C4CC] to-[#7D2AE8] bg-clip-text text-transparent pr-2"
-          style="font-family: 'Satisfy', cursive;"
-        >
-          Tass
-        </h1>
-        <div class="w-1 h-6 md:h-8 bg-gradient-to-b from-[#00C4CC] to-[#7D2AE8] rounded-full shadow-[0_0_10px_rgba(0,196,204,0.2)]"></div>
+      <!-- TASS Branding (Bottom Right) -->
+      <div class="fixed bottom-6 right-6 md:bottom-10 md:right-12 z-20 flex flex-col items-end animate-[fadeInRight_0.8s_ease-out] select-none pointer-events-none opacity-30 md:opacity-60 hover:opacity-100 transition-opacity">
+        <div class="flex items-center gap-2">
+          <h1 
+            class="text-xl md:text-2xl leading-none bg-gradient-to-r from-[#00C4CC] to-[#7D2AE8] bg-clip-text text-transparent pr-2"
+            style="font-family: 'Satisfy', cursive;"
+          >
+            Tass
+          </h1>
+          <div class="w-1 h-6 md:h-8 bg-gradient-to-b from-[#00C4CC] to-[#7D2AE8] rounded-full shadow-[0_0_10px_rgba(0,196,204,0.2)]"></div>
+        </div>
       </div>
-    </div>
 
       <main class="w-full mt-2 flex-1">
+        <NotesPanel :isOpen="showNotes" @toggle="showNotes = !showNotes" @close="showNotes = false" />
 
-
-      <NotesPanel :isOpen="showNotes" @toggle="showNotes = !showNotes" @close="showNotes = false" />
-
-      <!-- Quadro Kanban Principal -->
-      <TaskBoard 
-        :boardColumns="boardColumns"
-        :isDraggingTask="isDraggingTask"
-        @update-board="handleBoardChange"
-        @edit-task="openEditModal"
-        @toggle-completion="toggleTaskCompletion"
-        @delete-task="deleteTask"
-        @drag-start="handleDragStart"
-        @drag-end="handleDragEnd"
-        @open-time-adjustment="openTimeAdjustment"
-      />
-    </main>
-  </div>
+        <!-- Quadro Kanban Principal -->
+        <TaskBoard 
+          :boardColumns="boardColumns"
+          :isDraggingTask="isDraggingTask"
+          @update-board="handleBoardChange"
+          @edit-task="openEditModal"
+          @toggle-completion="toggleTaskCompletion"
+          @delete-task="deleteTask"
+          @drag-start="handleDragStart"
+          @drag-end="handleDragEnd"
+          @open-time-adjustment="openTimeAdjustment"
+        />
+      </main>
+    </div>
 
     <!-- Camada de Interface: Global Dock e Task Context Menu -->
     <div class="pointer-events-none">
@@ -335,7 +351,7 @@ onMounted(async () => {
         />
       </transition>
 
-      <!-- Global Dock: Fica visível se não houver tarefa selecionada OU se o estilo de menu for flutuante -->
+      <!-- Global Dock -->
       <transition 
         enter-active-class="transition duration-500 ease-out"
         enter-from-class="translate-y-20 opacity-0 scale-95"
@@ -357,7 +373,7 @@ onMounted(async () => {
       </transition>
     </div>
 
-    <!-- 4. Modal Layer (Teleport-like behavior) -->
+    <!-- 4. Modal Layer -->
     <TaskModal 
       v-if="showModal" 
       :taskToEdit="taskToEdit"

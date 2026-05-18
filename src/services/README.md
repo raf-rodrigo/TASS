@@ -37,6 +37,12 @@ Sistema unificado de feedback visual do TASS.
 - **Toasts:** Notificações temporárias de sucesso, erro ou info.
 - **Nativo:** Gerencia permissões e disparos de notificações do sistema operacional.
 
+### 🌉 `bridgeService.js`
+Gerencia a conexão com o backend (`server.js`).
+- **Health Check:** Monitora periodicamente se o servidor na porta **5176** está online.
+- **Status Global:** Expõe refs reativas (`isServerOnline`, `serverVersion`) para o restante do app.
+- **Polling:** Realiza verificações a cada 10 segundos para feedback em tempo real na interface.
+
 ### 🧪 `gitlab.js`
 Integração com a API do GitLab.
 - Validação de tokens e conexões.
