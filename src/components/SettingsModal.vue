@@ -260,76 +260,74 @@ const handleResetSystem = async () => {
     @ok="handleSave"
   >
     <template #default="{ onMouseDown }">
-      <div class="flex flex-col md:flex-row h-full overflow-hidden">
-        <!-- Sidebar de Abas -->
-        <aside 
-          class="w-full md:w-64 border-b md:border-b-0 md:border-r border-app-border-light flex flex-col p-4 cursor-grab active:cursor-grabbing group"
+      <div class="flex flex-col h-full w-full bg-transparent overflow-hidden">
+        <!-- HEADER GLOBAL (Unificado Sidebar + Corpo) -->
+        <header 
+          class="flex items-center justify-between px-6 md:px-10 py-4 border-b border-app-border-light shrink-0 cursor-grab active:cursor-grabbing select-none"
           :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
           @mousedown="onMouseDown"
         >
-          <div class="hidden md:flex items-center gap-3 px-2 mb-8">
-            <div class="p-2.5 bg-indigo-500 rounded-2xl text-white shadow-lg shadow-indigo-500/20">
-              <Monitor class="w-5 h-5" />
+          <div class="flex items-center gap-4">
+            <div class="p-2 rounded-xl text-white shadow-lg bg-indigo-500 shadow-indigo-500/20">
+              <component :is="activeTabObj.icon" class="w-4 h-4" />
             </div>
             <div>
-              <h2 class="text-sm font-black text-app-main uppercase tracking-tighter">Ajustes TASS</h2>
-              <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest">Configurações</p>
+              <h2 class="text-sm font-black text-app-main uppercase tracking-tighter leading-none">{{ activeTabObj.label }}</h2>
+              <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest mt-1">{{ activeTabObj.desc }}</p>
             </div>
           </div>
-
-          <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
-            <button 
-              v-for="tab in tabs" 
-              :key="tab.id"
-              @click="activeTab = tab.id"
-              class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
-              :class="activeTab === tab.id 
-                ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' 
-                : 'text-app-sub hover:bg-app-surface'"
-            >
-              <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
-              <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
-            </button>
-
-            <div class="hidden md:block w-full h-px border-t border-app-border-light my-2"></div>
-
-            <button 
-              @click="emit('open-interface')"
-              class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
-            >
-              <Palette class="w-4 h-4" />
-              <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">Ajustes Visuais</span>
-            </button>
-          </nav>
           
-          <div class="hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-app-border-light mt-auto">
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-              Confirme as alterações no botão abaixo para persistir no banco de dados.
-            </p>
-          </div>
-        </aside>
+          <button type="button" @click="emit('close')" class="icon-btn -mr-2">
+            <X class="w-5 h-5" />
+          </button>
+        </header>
 
-        <!-- Conteúdo da Aba -->
-        <main 
-          class="flex-1 flex flex-col overflow-hidden relative"
-          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
-        >
-          <div class="flex items-center justify-between px-6 md:px-6 py-3 border-b border-app-border-light shrink-0">
-            <div class="flex items-center gap-2.5">
-              <component :is="activeTabObj.icon" class="w-3.5 h-3.5 shrink-0" :class="activeTabObj.color" />
-              <div>
-                <p class="text-[11px] font-black text-app-main leading-none uppercase tracking-wider">{{ activeTabObj.label }}</p>
-                <p class="text-[9px] text-app-muted font-medium mt-0.5">{{ activeTabObj.desc }}</p>
-              </div>
+        <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
+          <!-- Sidebar de Abas -->
+          <aside 
+            class="w-full md:w-64 border-b md:border-b-0 md:border-r border-app-border-light flex flex-col p-4 shrink-0"
+            :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+          >
+            <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
+              <button 
+                v-for="tab in tabs" 
+                :key="tab.id"
+                @click="activeTab = tab.id"
+                class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
+                :class="activeTab === tab.id 
+                  ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' 
+                  : 'text-app-sub hover:bg-app-surface'"
+              >
+                <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
+                <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
+              </button>
+
+              <div class="hidden md:block w-full h-px border-t border-app-border-light my-2"></div>
+
+              <button 
+                @click="emit('open-interface')"
+                class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
+              >
+                <Palette class="w-4 h-4" />
+                <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">Ajustes Visuais</span>
+              </button>
+            </nav>
+            
+            <div class="hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-app-border-light mt-auto">
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
+                Confirme as alterações no botão abaixo para persistir no banco de dados.
+              </p>
             </div>
-            <button type="button" @click="emit('close')" class="icon-btn -mr-2 z-10">
-              <X class="w-5 h-5" />
-            </button>
-          </div>
+          </aside>
 
-          <div class="flex-1 overflow-y-auto px-6 md:px-6 py-6 custom-scrollbar">
-            <transition name="fade-slide" mode="out-in">
-              <div v-if="activeTab === 'gitlab'" :key="'gitlab'" class="space-y-8">
+          <!-- Conteúdo da Aba -->
+          <main 
+            class="flex-1 flex flex-col overflow-hidden relative"
+            :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+          >
+            <div class="flex-1 overflow-y-auto px-6 md:px-10 py-6 custom-scrollbar pb-10">
+              <transition name="fade-slide" mode="out-in">
+                <div v-if="activeTab === 'gitlab'" :key="'gitlab'" class="space-y-8">
                 <div class="glass-section p-6 space-y-6">
                   <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center gap-3">
@@ -535,6 +533,7 @@ const handleResetSystem = async () => {
           </div>
         </main>
       </div>
+    </div>
     </template>
   </BaseModal>
 </template>

@@ -4,6 +4,7 @@ import { X, Play, Square, Loader2, Headphones } from 'lucide-vue-next';
 import BaseModal from './BaseModal.vue';
 import AppInput from './base/AppInput.vue';
 import { useRadioStore } from '../stores/radioStore';
+import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
 
 const props = defineProps({
@@ -16,6 +17,7 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 
 const radioStore = useRadioStore();
+const settings = useSettingsStore();
 
 const radioName = ref('');
 const radioUrl = ref('');
@@ -140,26 +142,28 @@ const handleSave = async () => {
   >
     <template #default="{ onMouseDown }">
       <div class="flex flex-col">
-        <!-- Header Simples e Arrastável -->
-        <div 
-          class="flex items-center justify-between cursor-grab text-slate-400 hover:text-amber-500 transition-colors px-6 py-3 border-b border-app-border-light"
+        <!-- Header Unificado e Arrastável -->
+        <header 
+          class="flex items-center justify-between px-6 py-4 border-b border-app-border-light shrink-0 cursor-grab active:cursor-grabbing select-none"
+          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
           @mousedown="onMouseDown"
         >
-          <div class="flex items-center gap-3">
-            <div 
-              class="p-1.5 bg-amber-500/10 text-amber-500"
-              :style="{ borderRadius: 'var(--app-input-radius)' }"
-            >
+          <div class="flex items-center gap-4">
+            <div class="p-2 rounded-xl text-white shadow-lg bg-amber-500 shadow-amber-500/20">
               <Headphones class="w-4 h-4" />
             </div>
-            <span class="text-[10px] font-black uppercase tracking-widest leading-none">
-              {{ radioToEdit ? 'Editar Rádio' : 'Adicionar Rádio' }}
-            </span>
+            <div>
+              <h2 class="text-sm font-black text-app-main uppercase tracking-tighter leading-none">
+                {{ radioToEdit ? 'Editar Rádio' : 'Adicionar Rádio' }}
+              </h2>
+              <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest mt-1">Streaming de Áudio</p>
+            </div>
           </div>
-          <button @click="emit('close')" class="icon-btn -mr-2" @mousedown.stop>
-            <X class="w-4 h-4" />
+          
+          <button type="button" @click="emit('close')" class="icon-btn -mr-2">
+            <X class="w-5 h-5" />
           </button>
-        </div>
+        </header>
 
         <div class="p-6 space-y-6">
           <!-- Corpo do Formulário -->
@@ -246,3 +250,6 @@ const handleSave = async () => {
     </template>
   </BaseModal>
 </template>
+
+<style scoped>
+</style>

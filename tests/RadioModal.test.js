@@ -18,7 +18,12 @@ vi.mock("../src/stores/radioStore", () => {
 // Mock settingsStore
 vi.mock("../src/stores/settingsStore", () => {
   return {
-    useSettingsStore: () => ({})
+    useSettingsStore: () => ({
+      opacityTargets: {
+        modals: true
+      },
+      theme: 'dark'
+    })
   };
 });
 
