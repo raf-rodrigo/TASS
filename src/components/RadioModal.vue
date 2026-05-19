@@ -145,7 +145,7 @@ const handleSave = async () => {
         <!-- Header Unificado e Arrastável -->
         <header 
           class="flex items-center justify-between px-6 py-4 border-b border-app-border-light shrink-0 cursor-grab active:cursor-grabbing select-none"
-          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-app-solid'"
           @mousedown="onMouseDown"
         >
           <div class="flex items-center gap-4">

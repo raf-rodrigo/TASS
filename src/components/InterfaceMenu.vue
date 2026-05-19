@@ -246,7 +246,7 @@ const handleColumnChange = (n) => {
         <!-- HEADER GLOBAL -->
         <header 
           class="tass-layout-header" 
-          :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
+          :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-app-solid']"
           @mousedown="onMouseDown"
         >
           <div class="flex items-center gap-4">
@@ -280,7 +280,7 @@ const handleColumnChange = (n) => {
           <!-- Sidebar -->
           <aside 
             class="tass-layout-sidebar"
-            :class="[settings.opacityTargets.modalSidebar ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
+            :class="[settings.opacityTargets.modalSidebar ? 'bg-transparent' : 'bg-app-solid']"
           >
             <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
               <button 
@@ -306,7 +306,7 @@ const handleColumnChange = (n) => {
           <!-- Conteúdo Principal -->
           <main 
             class="tass-layout-main"
-            :class="[settings.opacityTargets.modalBody ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
+            :class="[settings.opacityTargets.modalBody ? 'bg-transparent' : 'bg-app-solid']"
           >
             <div class="tass-layout-content">
               <transition name="fade-slide" mode="out-in">
@@ -446,6 +446,17 @@ const handleColumnChange = (n) => {
 
                         <label class="flex items-center justify-between p-3.5 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all col-span-2">
                           <div class="flex flex-col">
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Contêiner do Modal</span>
+                            <span class="text-[8px] text-slate-500 uppercase font-medium">Fundo Principal das Janelas</span>
+                          </div>
+                          <div class="relative inline-flex items-center">
+                            <input type="checkbox" v-model="settings.opacityTargets.modals" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
+                            <div class="w-10 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all shadow-sm"></div>
+                          </div>
+                        </label>
+
+                        <label class="flex items-center justify-between p-3.5 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all col-span-2">
+                          <div class="flex flex-col">
                             <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Cabeçalho e Rodapé</span>
                             <span class="text-[8px] text-slate-500 uppercase font-medium">Barras de Ação</span>
                           </div>
@@ -509,7 +520,7 @@ const handleColumnChange = (n) => {
 
         <footer 
           class="tass-layout-footer"
-          :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
+          :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-app-solid']"
         >
           <button type="button" @click="emit('close')" class="btn btn-primary px-10 py-2.5 text-xs font-black uppercase tracking-widest">Fechar Ajustes</button>
         </footer>

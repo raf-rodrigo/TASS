@@ -83,10 +83,7 @@ watch(() => modalStore.isOpen, (newVal) => {
       aria-modal="true"
     >
       <div 
-        class="relative transform overflow-hidden rounded-xl bg-white dark:bg-slate-900 text-center shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-white/5 pointer-events-auto"
-        :style="{ 
-          backgroundColor: settings.theme === 'dark' ? '#1e2533' : '#ffffff'
-        }"
+        class="relative transform overflow-hidden rounded-xl bg-app-solid text-center shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-white/5 pointer-events-auto"
         @click.stop
       >
         <!-- Content Area (Matches Example Proportions) -->
@@ -137,7 +134,7 @@ watch(() => modalStore.isOpen, (newVal) => {
             </div>
 
             <!-- Footer Area (Matches Example Exactly) -->
-            <div class="bg-slate-50 dark:bg-white/[0.03] px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-3">
+            <div class="bg-app-surface px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-3">
               <button 
                 type="button" 
                 class="inline-flex w-full justify-center rounded-xl px-3 py-2 text-sm font-semibold text-white shadow-sm transition-all active:scale-95 sm:w-auto"

@@ -260,7 +260,7 @@ const handleResetSystem = async () => {
         <!-- HEADER GLOBAL -->
         <header 
           class="tass-layout-header" 
-          :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
+          :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-app-solid']"
           @mousedown="onMouseDown"
         >
           <div class="flex items-center gap-4">
@@ -282,7 +282,7 @@ const handleResetSystem = async () => {
           <!-- Sidebar -->
           <aside 
             class="tass-layout-sidebar"
-            :class="[settings.opacityTargets.modalSidebar ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
+            :class="[settings.opacityTargets.modalSidebar ? 'bg-transparent' : 'bg-app-solid']"
           >
             <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
               <button 
@@ -319,7 +319,7 @@ const handleResetSystem = async () => {
           <!-- Conteúdo da Aba -->
           <main 
             class="tass-layout-main"
-            :class="[settings.opacityTargets.modalBody ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
+            :class="[settings.opacityTargets.modalBody ? 'bg-transparent' : 'bg-app-solid']"
           >
             <div class="tass-layout-content">
               <transition name="fade-slide" mode="out-in">
@@ -533,7 +533,7 @@ const handleResetSystem = async () => {
         <!-- Footer -->
         <footer 
           class="tass-layout-footer"
-          :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
+          :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-app-solid']"
         >
           <button type="button" @click="emit('close')" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Cancelar</button>
           <button type="button" @click="handleSave" class="btn btn-primary px-8 py-2 border-none shadow-none text-xs font-black uppercase tracking-widest">Salvar Alterações</button>
