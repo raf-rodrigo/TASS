@@ -6,7 +6,13 @@ import BaseModal from '../../src/components/BaseModal.vue';
 // Mock do SettingsStore
 vi.mock('../../src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
-    theme: 'dark'
+    theme: 'dark',
+    opacityTargets: {
+      modals: true,
+      modalHeaderFooter: false,
+      modalSidebar: false,
+      modalBody: false
+    }
   }))
 }));
 

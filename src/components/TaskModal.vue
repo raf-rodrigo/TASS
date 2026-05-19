@@ -177,7 +177,7 @@ const submitTask = () => {
         <!-- HEADER GLOBAL (Unificado Sidebar + Corpo) -->
         <header 
           class="tass-layout-header" 
-          :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-app-solid']"
+          :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
           @mousedown="onMouseDown"
         >
           <div class="flex items-center gap-4">
@@ -199,7 +199,7 @@ const submitTask = () => {
           <!-- Sidebar (Navegação) -->
           <aside 
             class="tass-layout-sidebar"
-            :class="[settings.opacityTargets.modalSidebar ? 'bg-transparent' : 'bg-app-solid']"
+            :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-sidebar-opacity))` }"
           >
             <nav class="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-y-auto no-scrollbar pb-2 md:pb-0">
               <button 
@@ -234,7 +234,7 @@ const submitTask = () => {
           <!-- Conteúdo Principal -->
           <main 
             class="tass-layout-main"
-            :class="[settings.opacityTargets.modalBody ? 'bg-transparent' : 'bg-app-solid']"
+            :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-body-opacity))` }"
           >
             <form id="taskForm" @submit.prevent="submitTask" novalidate class="flex-1 flex flex-col overflow-hidden">
               <div class="tass-layout-content">
@@ -388,7 +388,7 @@ const submitTask = () => {
         <!-- Footer Global (Sincronizado com SettingsModal) -->
         <footer 
           class="tass-layout-footer"
-          :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-app-solid']"
+          :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
         >
           <button type="button" @click="emit('close')" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Cancelar</button>
           <button type="submit" form="taskForm" class="btn btn-primary px-6 py-2 border-none shadow-none text-xs">

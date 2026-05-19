@@ -64,7 +64,9 @@ const { position, onMouseDown } = useModalDrag();
         '--modal-x': `${position.x}px`,
         '--modal-y': `${position.y}px`,
         transform: `translate(var(--modal-x), var(--modal-y))`,
-        backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-opacity))`
+        backgroundColor: settings.opacityTargets.modals ? 'transparent' : 'rgba(var(--app-bg-raw), 1)',
+        backdropFilter: settings.opacityTargets.modals ? 'blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))' : 'none',
+        WebkitBackdropFilter: settings.opacityTargets.modals ? 'blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))' : 'none'
       }"
     >
       <!-- ============================================== -->
@@ -81,6 +83,7 @@ const { position, onMouseDown } = useModalDrag();
         <!-- Header -->
         <header 
           class="flex items-center justify-between p-6 pb-4 border-b border-app-border-light cursor-grab active:cursor-grabbing select-none"
+          :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
           @mousedown="onMouseDown"
         >
           <slot name="header" :onMouseDown="onMouseDown">
@@ -105,13 +108,20 @@ const { position, onMouseDown } = useModalDrag();
         </header>
 
         <!-- Content Area -->
-        <main class="flex-1 p-6 space-y-5 overflow-y-auto custom-scrollbar">
+        <main 
+          class="flex-1 p-6 space-y-5 overflow-y-auto custom-scrollbar"
+          :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-body-opacity))` }"
+        >
           <slot :onMouseDown="onMouseDown"></slot>
         </main>
       </template>
 
       <!-- Footer Area (Global: Disponível em todos os layouts se props existirem) -->
-      <footer v-if="$slots.footer || okText || cancelText" class="py-4 px-6 border-t border-app-border-light bg-app-surface flex justify-end items-center gap-3 mt-auto">
+      <footer 
+        v-if="$slots.footer || okText || cancelText" 
+        class="py-4 px-6 border-t border-app-border-light flex justify-end items-center gap-3 mt-auto"
+        :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
+      >
         <slot name="footer">
           <button v-if="cancelText" type="button" @click="emit('cancel')" class="btn btn-secondary px-6 border-none shadow-none py-2 text-xs">{{ cancelText }}</button>
           <button v-if="okText" type="submit" @click="emit('ok')" class="btn btn-primary px-6 border-none shadow-none py-2 text-xs" :disabled="okLoading">

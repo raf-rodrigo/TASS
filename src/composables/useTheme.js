@@ -35,6 +35,9 @@ export function useTheme(settings) {
     root.style.setProperty('--app-bottom-opacity', getOpacity(settings.opacityTargets.bottomBar));
     root.style.setProperty('--app-action-opacity', getOpacity(settings.opacityTargets.actionBar));
     root.style.setProperty('--app-modal-opacity', getOpacity(settings.opacityTargets.modals));
+    root.style.setProperty('--app-modal-header-opacity', getOpacity(settings.opacityTargets.modalHeaderFooter));
+    root.style.setProperty('--app-modal-sidebar-opacity', getOpacity(settings.opacityTargets.modalSidebar));
+    root.style.setProperty('--app-modal-body-opacity', getOpacity(settings.opacityTargets.modalBody));
     root.style.setProperty('--app-alert-opacity', getOpacity(settings.opacityTargets.modals));
     root.style.setProperty('--app-menu-opacity', getOpacity(settings.opacityTargets.contextMenu));
     
