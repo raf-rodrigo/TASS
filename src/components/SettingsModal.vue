@@ -535,7 +535,8 @@ const handleResetSystem = async () => {
           class="tass-layout-footer"
           :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
         >
-          <button type="button" @click="emit('close')" class="btn btn-primary px-10 py-2.5 text-xs font-black uppercase tracking-widest">Fechar Ajustes</button>
+          <button type="button" @click="emit('close')" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Cancelar</button>
+          <button type="button" @click="handleSave" class="btn btn-primary px-8 py-2 border-none shadow-none text-xs font-black uppercase tracking-widest">Salvar Alterações</button>
         </footer>
       </div>
     </template>
