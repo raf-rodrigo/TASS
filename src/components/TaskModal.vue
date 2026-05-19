@@ -234,7 +234,7 @@ const submitTask = () => {
             class="tass-layout-main"
             :class="[settings.opacityTargets.modalBody ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
           >
-            <form @submit.prevent="submitTask" novalidate class="flex-1 flex flex-col overflow-hidden">
+            <form id="taskForm" @submit.prevent="submitTask" novalidate class="flex-1 flex flex-col overflow-hidden">
               <div class="tass-layout-content">
                 <transition name="fade-slide" mode="out-in">
                   <!-- ABA 1: Cadastro Básico -->
@@ -363,20 +363,20 @@ const submitTask = () => {
                   </div>
                 </transition>
               </div>
-
-              <!-- Footer Fixo (Standard TASS Style) -->
-              <footer 
-                class="tass-layout-footer"
-                :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
-              >
-                <button type="button" @click="emit('close')" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Cancelar</button>
-                <button type="submit" class="btn btn-primary px-6 py-2 border-none shadow-none text-xs">
-                  {{ taskToEdit ? 'Salvar Alterações' : 'Criar Tarefa' }}
-                </button>
-              </footer>
             </form>
           </main>
         </div>
+
+        <!-- Footer Global (Sincronizado com SettingsModal) -->
+        <footer 
+          class="tass-layout-footer"
+          :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
+        >
+          <button type="button" @click="emit('close')" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Cancelar</button>
+          <button type="submit" form="taskForm" class="btn btn-primary px-6 py-2 border-none shadow-none text-xs">
+            {{ taskToEdit ? 'Salvar Alterações' : 'Criar Tarefa' }}
+          </button>
+        </footer>
       </div>
     </template>
   </BaseModal>
