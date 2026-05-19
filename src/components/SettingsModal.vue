@@ -536,7 +536,7 @@ const handleResetSystem = async () => {
           :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
         >
           <button type="button" @click="emit('close')" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Cancelar</button>
-          <button type="button" @click="handleSave" class="btn btn-primary px-8 py-2 border-none shadow-none text-xs font-black uppercase tracking-widest">Salvar Alterações</button>
+          <button type="button" @click="handleSave" class="btn btn-primary px-8 py-2 border-none shadow-none text-xs font-black uppercase tracking-widest">Salvar</button>
         </footer>
       </div>
     </template>

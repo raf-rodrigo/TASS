@@ -297,7 +297,7 @@ const submitTask = () => {
                           </div>
                         </div>
                         <div>
-                          <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Total Trabalhado</label>
+                          <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Total</label>
                           <div class="p-2.5 bg-indigo-500/5 border border-indigo-500/20 rounded-xl flex items-center gap-2">
                             <Layout class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                             <span class="text-[10px] md:text-xs font-black font-mono text-indigo-600 dark:text-indigo-400">{{ taskToEdit ? formatMsToHMS(taskToEdit.totalWorked || taskToEdit.totalTimeSpent || 0) : '00:00:00' }}</span>
