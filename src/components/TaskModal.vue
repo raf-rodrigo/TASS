@@ -4,7 +4,8 @@ import {
   Save, PlusCircle, Clock, Layout, 
   Settings2, ChevronDown, Globe, 
   FileText, Database, Layers, 
-  AlertCircle, X, ExternalLink, GitBranch
+  AlertCircle, X, ExternalLink, GitBranch,
+  Sparkles, Bug, Zap, RefreshCcw, ArrowDown, ArrowRight, ArrowUp, AlertOctagon
 } from 'lucide-vue-next';
 import { useTaskStore } from '../stores/taskStore';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -14,6 +15,7 @@ import { notificationService } from '../services/notificationService';
 import BaseModal from './BaseModal.vue';
 import AppInput from './base/AppInput.vue';
 import AppTextarea from './base/AppTextarea.vue';
+import AppSelect from './base/AppSelect.vue';
 
 const taskStore = useTaskStore();
 const settings = useSettingsStore();
@@ -169,11 +171,11 @@ const submitTask = () => {
     customClass="h-[90vh] md:h-[600px] !p-0"
   >
     <template #default="{ onMouseDown }">
-      <div class="flex flex-col h-full w-full bg-transparent overflow-hidden">
+      <div class="flex flex-col h-full w-full bg-transparent overflow-hidden transform-gpu">
         <!-- HEADER GLOBAL (Unificado Sidebar + Corpo) -->
         <header 
-          class="flex items-center justify-between px-6 md:px-10 py-4 border-b border-app-border-light shrink-0 cursor-grab active:cursor-grabbing select-none"
-          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+          class="tass-layout-header" 
+          :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
           @mousedown="onMouseDown"
         >
           <div class="flex items-center gap-4">
@@ -191,11 +193,11 @@ const submitTask = () => {
           </button>
         </header>
 
-        <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
-          <!-- Sidebar (Navegação que vira Abas no Mobile) -->
+        <div class="flex flex-col md:flex-row flex-1 overflow-hidden relative">
+          <!-- Sidebar (Navegação) -->
           <aside 
-            class="w-full md:w-64 border-b md:border-b-0 md:border-r border-app-border-light flex flex-col p-4 shrink-0"
-            :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+            class="tass-layout-sidebar"
+            :class="[settings.opacityTargets.modalSidebar ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
           >
             <nav class="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-y-auto no-scrollbar pb-2 md:pb-0">
               <button 
@@ -229,12 +231,11 @@ const submitTask = () => {
 
           <!-- Conteúdo Principal -->
           <main 
-            class="flex-1 flex flex-col overflow-hidden relative"
-            :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+            class="tass-layout-main"
+            :class="[settings.opacityTargets.modalBody ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
           >
             <form @submit.prevent="submitTask" novalidate class="flex-1 flex flex-col overflow-hidden">
-              <!-- Área de Scroll dos Inputs -->
-              <div class="flex-1 overflow-y-auto px-6 md:px-10 py-6 custom-scrollbar pb-32 md:pb-6">
+              <div class="tass-layout-content">
                 <transition name="fade-slide" mode="out-in">
                   <!-- ABA 1: Cadastro Básico -->
                   <div v-if="activeTab === 'basic'" :key="'basic'" class="space-y-6">
@@ -324,43 +325,33 @@ const submitTask = () => {
                     </div>
                   </div>
 
-                  <!-- ABA 2: Conectividade -->
-                  <div v-else-if="activeTab === 'links'" :key="'links'" class="space-y-8">
-                    <div class="grid grid-cols-1 gap-8">
-                      <div class="grid grid-cols-1 gap-6">
-                          <AppInput
-                            v-model="taskUrl"
-                            type="url"
-                            label="Link da Tarefa"
-                            :icon="ExternalLink"
-                            icon-color="text-indigo-500"
-                            placeholder="https://..."
-                            :error="errors.taskUrl"
-                            @update:modelValue="clearError('taskUrl')"
-                          />
-                          <AppInput
-                            v-model="branchUrl"
-                            type="url"
-                            label="URL do Merge"
-                            :icon="GitBranch"
-                            icon-color="text-purple-500"
-                            placeholder="https://..."
-                            :error="errors.branchUrl"
-                            @update:modelValue="clearError('branchUrl')"
-                          />
+                  <!-- ABA 2: Desenvolvimento -->
+                  <div v-else-if="activeTab === 'dev'" :key="'dev'" class="space-y-8">
+                    <div class="glass-section p-6 space-y-4">
+                      <div class="flex items-center gap-3 mb-2">
+                        <GitBranch class="w-4 h-4 text-indigo-500" />
+                        <h4 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.2em]">Source Control</h4>
                       </div>
+                      <AppInput 
+                        v-model="branchUrl" 
+                        type="url" 
+                        label="URL da Branch / Merge Request" 
+                        placeholder="https://..."
+                        :error="errors.branchUrl"
+                        @update:modelValue="clearError('branchUrl')"
+                      />
+                    </div>
 
-                      <div class="p-6 bg-slate-500/5 rounded-3xl border border-app-border-light space-y-6">
-                        <div class="flex items-center gap-3 mb-2">
-                          <Globe class="w-4 h-4 text-indigo-500" />
-                          <h4 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.2em]">Pipeline</h4>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 gap-6">
-                          <AppInput v-model="devUrl" type="url" label="Desenvolvimento" label-color="text-orange-500" placeholder="https://..." :error="errors.devUrl" @update:modelValue="clearError('devUrl')" />
-                          <AppInput v-model="homologUrl" type="url" label="Homologação" label-color="text-emerald-500" placeholder="https://..." :error="errors.homologUrl" @update:modelValue="clearError('homologUrl')" />
-                          <AppInput v-model="prodUrl" type="url" label="Produção" label-color="text-blue-500" placeholder="https://..." :error="errors.prodUrl" @update:modelValue="clearError('prodUrl')" />
-                        </div>
+                    <div class="p-6 bg-slate-500/5 rounded-3xl border border-app-border-light space-y-6">
+                      <div class="flex items-center gap-3 mb-2">
+                        <Globe class="w-4 h-4 text-indigo-500" />
+                        <h4 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.2em]">Pipeline</h4>
+                      </div>
+                      
+                      <div class="grid grid-cols-1 gap-6">
+                        <AppInput v-model="devUrl" type="url" label="Desenvolvimento" label-color="text-orange-500" placeholder="https://..." :error="errors.devUrl" @update:modelValue="clearError('devUrl')" />
+                        <AppInput v-model="homologUrl" type="url" label="Homologação" label-color="text-emerald-500" placeholder="https://..." :error="errors.homologUrl" @update:modelValue="clearError('homologUrl')" />
+                        <AppInput v-model="prodUrl" type="url" label="Produção" label-color="text-blue-500" placeholder="https://..." :error="errors.prodUrl" @update:modelValue="clearError('prodUrl')" />
                       </div>
                     </div>
                   </div>
@@ -374,7 +365,10 @@ const submitTask = () => {
               </div>
 
               <!-- Footer Fixo (Standard TASS Style) -->
-              <footer class="absolute bottom-0 left-0 right-0 p-4 md:px-10 border-t border-app-border-light bg-app-surface/95 backdrop-blur-md flex justify-end items-center gap-3 shrink-0 z-20">
+              <footer 
+                class="tass-layout-footer"
+                :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
+              >
                 <button type="button" @click="emit('close')" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Cancelar</button>
                 <button type="submit" class="btn btn-primary px-6 py-2 border-none shadow-none text-xs">
                   {{ taskToEdit ? 'Salvar Alterações' : 'Criar Tarefa' }}
@@ -387,6 +381,3 @@ const submitTask = () => {
     </template>
   </BaseModal>
 </template>
-
-<style scoped>
-</style>

@@ -50,6 +50,9 @@ export const useSettingsStore = defineStore('settings', () => {
     contextMenu: true,
     actionBar: true,
     modals: true,
+    modalSidebar: true,
+    modalBody: true,
+    modalHeaderFooter: true,
     alerts: true
   });
   const columnTitles = ref(['', '', '', '']);

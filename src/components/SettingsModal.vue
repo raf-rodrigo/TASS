@@ -254,17 +254,13 @@ const handleResetSystem = async () => {
     customClass="h-[90vh] md:h-[600px] !p-0"
     layout="custom"
     @close="emit('close')"
-    cancelText="Fechar"
-    okText="Salvar"
-    @cancel="emit('close')"
-    @ok="handleSave"
   >
     <template #default="{ onMouseDown }">
-      <div class="flex flex-col h-full w-full bg-transparent overflow-hidden">
-        <!-- HEADER GLOBAL (Unificado Sidebar + Corpo) -->
+      <div class="flex flex-col h-full w-full bg-transparent overflow-hidden transform-gpu">
+        <!-- HEADER GLOBAL -->
         <header 
-          class="flex items-center justify-between px-6 md:px-10 py-4 border-b border-app-border-light shrink-0 cursor-grab active:cursor-grabbing select-none"
-          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+          class="tass-layout-header" 
+          :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
           @mousedown="onMouseDown"
         >
           <div class="flex items-center gap-4">
@@ -282,11 +278,11 @@ const handleResetSystem = async () => {
           </button>
         </header>
 
-        <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
-          <!-- Sidebar de Abas -->
+        <div class="flex flex-col md:flex-row flex-1 overflow-hidden relative">
+          <!-- Sidebar -->
           <aside 
-            class="w-full md:w-64 border-b md:border-b-0 md:border-r border-app-border-light flex flex-col p-4 shrink-0"
-            :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+            class="tass-layout-sidebar"
+            :class="[settings.opacityTargets.modalSidebar ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
           >
             <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
               <button 
@@ -322,10 +318,10 @@ const handleResetSystem = async () => {
 
           <!-- Conteúdo da Aba -->
           <main 
-            class="flex-1 flex flex-col overflow-hidden relative"
-            :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-white dark:bg-slate-950'"
+            class="tass-layout-main"
+            :class="[settings.opacityTargets.modalBody ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
           >
-            <div class="flex-1 overflow-y-auto px-6 md:px-10 py-6 custom-scrollbar pb-10">
+            <div class="tass-layout-content">
               <transition name="fade-slide" mode="out-in">
                 <div v-if="activeTab === 'gitlab'" :key="'gitlab'" class="space-y-8">
                 <div class="glass-section p-6 space-y-6">
@@ -440,8 +436,8 @@ const handleResetSystem = async () => {
                     <div class="mt-6 pt-6 border-t border-indigo-500/10 animate-fadeIn">
                       <div class="flex items-center justify-between mb-4"><div class="flex items-center gap-2"><Layers class="w-3.5 h-3.5 text-indigo-500" /><p class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Comportamento da Dock</p></div><span class="text-[8px] font-bold text-slate-400 italic">Válido apenas para o modo 'Dock Fixo'</span></div>
                       <div class="grid grid-cols-2 gap-3">
-                        <button @click="localSettings.contextMenuMode = 'stack'" class="flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all group" :class="localSettings.contextMenuMode === 'stack' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'bg-app-surface border-transparent text-slate-400 hover:border-slate-300 dark:hover:border-white/10'"><Layers class="w-5 h-5" :class="localSettings.contextMenuMode === 'stack' ? 'animate-pulse' : ''" /><div class="text-center"><p class="text-[10px] font-black uppercase tracking-tighter">Empilhar Acima</p><p class="text-[8px] font-bold opacity-60">Sobrepõe a Dock</p></div></button>
-                        <button @click="localSettings.contextMenuMode = 'replace'" class="flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all group" :class="localSettings.contextMenuMode === 'replace' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'bg-app-surface border-transparent text-slate-400 hover:border-slate-300 dark:hover:border-white/10'"><Maximize class="w-5 h-5" /><div class="text-center"><p class="text-[10px] font-black uppercase tracking-tighter">Substituir Dock</p><p class="text-[8px] font-bold opacity-60">Troca uma pela outra</p></div></button>
+                        <button @click="localSettings.contextMenuMode = 'stack'" class="flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all group" :class="localSettings.contextMenuMode === 'stack' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'bg-app-surface border-transparent text-slate-400 hover:border-slate-300 dark:hover:border-white/10'"><Layers class="w-5 h-5" :class="localSettings.contextMenuMode === 'stack' ? 'animate-pulse' : ''" /><div class="text-center"><p class="text-xs font-black uppercase tracking-tighter">Empilhar Acima</p><p class="text-[8px] font-bold opacity-60">Sobrepõe a Dock</p></div></button>
+                        <button @click="localSettings.contextMenuMode = 'replace'" class="flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all group" :class="localSettings.contextMenuMode === 'replace' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'bg-app-surface border-transparent text-slate-400 hover:border-slate-300 dark:hover:border-white/10'"><Maximize class="w-5 h-5" /><div class="text-center"><p class="text-xs font-black uppercase tracking-tighter">Substituir Dock</p><p class="text-[8px] font-bold opacity-60">Troca uma pela outra</p></div></button>
                       </div>
                     </div>
                   </div>
@@ -525,15 +521,23 @@ const handleResetSystem = async () => {
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="glass-section p-6 space-y-4 relative overflow-hidden"><div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><Server class="w-16 h-16" /></div><div class="flex items-center gap-3 mb-2 relative z-10"><ShieldCheck class="w-5 h-5 text-emerald-500" /><h4 class="text-sm font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">Sistema Completo</h4></div><p class="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4 relative z-10">Exporta <b>absolutamente tudo</b>: tarefas, sprints, notas rápidas e todas as suas configurações de interface e jornada.</p><div class="flex flex-col xl:flex-row gap-3 relative z-10"><button @click="emit('export-system')" class="flex-1 flex items-center justify-center gap-2 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20"><Download class="w-4 h-4" /> Exportar</button><label class="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer text-center"><Upload class="w-4 h-4" /> Restaurar<input type="file" accept=".json" class="hidden" @change="handleImportSystem" /></label></div></div>
-                  <div class="glass-section p-6 space-y-4 relative overflow-hidden"><div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><FileJson class="w-16 h-16" /></div><div class="flex items-center gap-3 mb-2 relative z-10"><FileJson class="w-5 h-5 text-indigo-500" /><h4 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Apenas Tarefas</h4></div><p class="text-[10px] text-slate-500 leading-relaxed mb-4 relative z-10">Exporta apenas a sua lista de tarefas atual. Ideal para transferências rápidas ou backups frequentes.</p><div class="flex flex-col xl:flex-row gap-3 relative z-10"><button @click="emit('export-tasks')" class="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-100 dark:bg-white/5 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light"><Download class="w-4 h-4" /> Exportar</button><label class="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-100 dark:bg-white/5 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light cursor-pointer text-center"><Upload class="w-4 h-4" /> Importar<input type="file" accept=".json" class="hidden" @change="handleImportTasks" /></label></div></div>
+                  <div class="glass-section p-6 space-y-4 relative overflow-hidden"><div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><FileJson class="w-16 h-16" /></div><div class="flex items-center gap-3 mb-2 relative z-10"><FileJson class="w-5 h-5 text-indigo-500" /><h4 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Apenas Tarefas</h4></div><p class="text-[10px] text-slate-500 leading-relaxed mb-4 relative z-10">Exporta apenas a sua lista de tarefas atual. Ideal para transferências rápidas ou backups frequentes.</p><div class="flex flex-col xl:flex-row gap-3 relative z-10"><button @click="emit('export-tasks')" class="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-100 dark:bg-white/5 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light"><Download class="w-4 h-4" /> Exportar</button><label class="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-slate-100 dark:bg-white/5 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light cursor-pointer text-center"><Upload class="w-4 h-4" /> Importar<input type="file" accept=".json" class="hidden" @change="handleImportTasks" /></label></div></div>
                 </div>
                 <div class="glass-section p-6 bg-red-500/5 dark:bg-red-500/10 border-red-500/20 space-y-4"><div class="flex items-center gap-3 mb-2"><Activity class="w-5 h-5 text-red-500" /><h4 class="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-tight">Zona de Perigo</h4></div><p class="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4">Deseja limpar tudo e começar do zero? Esta ação removerá todas as tarefas e sprints do seu banco de dados local.</p><button @click="handleResetSystem" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 active:scale-95">Zerar Banco de Dados</button></div>
               </div>
             </transition>
           </div>
-        </main>
+          </main>
+        </div>
+
+        <!-- Footer -->
+        <footer 
+          class="tass-layout-footer"
+          :class="[settings.opacityTargets.modalHeaderFooter ? 'bg-transparent' : 'bg-white dark:bg-slate-950']"
+        >
+          <button type="button" @click="emit('close')" class="btn btn-primary px-10 py-2.5 text-xs font-black uppercase tracking-widest">Fechar Ajustes</button>
+        </footer>
       </div>
-    </div>
     </template>
   </BaseModal>
 </template>
