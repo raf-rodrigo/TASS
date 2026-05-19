@@ -39,6 +39,7 @@ const devUrl = ref(props.taskToEdit?.devUrl || '');
 const homologUrl = ref(props.taskToEdit?.homologUrl || '');
 const prodUrl = ref(props.taskToEdit?.prodUrl || '');
 const taskUrl = ref(props.taskToEdit?.taskUrl || '');
+const branchName = ref(props.taskToEdit?.branchName || '');
 const branchUrl = ref(props.taskToEdit?.branchUrl || '');
 const dbScripts = ref(props.taskToEdit?.dbScripts || '');
 const moreInfo = ref(props.taskToEdit?.moreInfo || '');
@@ -72,7 +73,7 @@ const validateFields = () => {
     { key: 'homologUrl', value: homologUrl.value, label: 'Homologação', tab: 'links' },
     { key: 'prodUrl', value: prodUrl.value, label: 'Produção', tab: 'links' },
     { key: 'taskUrl', value: taskUrl.value, label: 'Link da Tarefa', tab: 'links' },
-    { key: 'branchUrl', value: branchUrl.value, label: 'URL do Merge', tab: 'links' }
+    { key: 'branchUrl', value: branchUrl.value, label: 'Link da Branch', tab: 'links' }
   ];
 
   for (const field of urlFields) {
@@ -146,6 +147,7 @@ const submitTask = () => {
     homologUrl: ensureProtocol(homologUrl.value.trim()),
     prodUrl: ensureProtocol(prodUrl.value.trim()),
     taskUrl: ensureProtocol(taskUrl.value.trim()),
+    branchName: branchName.value.trim(),
     branchUrl: ensureProtocol(branchUrl.value.trim()),
     dbScripts: dbScripts.value.trim(),
     moreInfo: moreInfo.value.trim(),
@@ -326,17 +328,33 @@ const submitTask = () => {
                   </div>
 
                   <!-- ABA 2: Desenvolvimento -->
-                  <div v-else-if="activeTab === 'dev'" :key="'dev'" class="space-y-8">
+                  <div v-else-if="activeTab === 'links'" :key="'links'" class="space-y-8">
                     <div class="glass-section p-6 space-y-4">
                       <div class="flex items-center gap-3 mb-2">
                         <GitBranch class="w-4 h-4 text-indigo-500" />
                         <h4 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.2em]">Source Control</h4>
                       </div>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <AppInput 
+                          v-model="branchName" 
+                          label="Nome da Branch" 
+                          placeholder="Ex: TSK-1234-feat-abc"
+                          class="font-mono"
+                        />
+                        <AppInput 
+                          v-model="taskUrl" 
+                          type="url" 
+                          label="Link da Tarefa (Issue)" 
+                          placeholder="https://..."
+                          :error="errors.taskUrl"
+                          @update:modelValue="clearError('taskUrl')"
+                        />
+                      </div>
                       <AppInput 
                         v-model="branchUrl" 
                         type="url" 
-                        label="URL da Branch / Merge Request" 
-                        placeholder="https://..."
+                        label="Link da Branch (Repositório)" 
+                        placeholder="https://gitlab.com/.../-/tree/main"
                         :error="errors.branchUrl"
                         @update:modelValue="clearError('branchUrl')"
                       />

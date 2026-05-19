@@ -4,15 +4,17 @@ import { notificationService } from './notificationService.js';
 
 export const gitlabService = {
   getBranchName(task) {
+    if (task.branchName) return task.branchName;
     const titlePart = gitBranchSlug(task.title);
     const descPart = task.description ? gitBranchSlug(task.description) : '';
     return descPart ? `${titlePart}-${descPart}` : titlePart;
   },
 
   async deleteLocalBranchLink(task) {
-    await db.tasks.update(task.id, { branchUrl: undefined });
+    await db.tasks.update(task.id, { branchUrl: undefined, branchName: undefined });
     task.branchUrl = undefined;
-    notificationService.toast('Link local removido.', 'success');
+    task.branchName = undefined;
+    notificationService.toast('Links locais removidos.', 'success');
   },
 
   async checkBranchExists(settings, branchName) {
@@ -112,8 +114,9 @@ export const gitlabService = {
       if (response.ok) {
         const baseUrl = gitlabUrl.replace(/\/$/, '');
         const treeUrl = `${baseUrl}/-/tree/${encodeURIComponent(branchName)}`;
-        await db.tasks.update(task.id, { branchUrl: treeUrl });
+        await db.tasks.update(task.id, { branchUrl: treeUrl, branchName: branchName });
         task.branchUrl = treeUrl;
+        task.branchName = branchName;
         notificationService.toast('Branch criada com sucesso!', 'success');
         return { treeUrl, branchName };
       } else {
