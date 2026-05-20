@@ -1,7 +1,17 @@
 import { onMounted, onUnmounted } from 'vue';
 
-export function useShortcuts({ onToggleNotes, onOpenAddModal, onOpenSettings, onWellnessTest }) {
+export function useShortcuts({ onToggleNotes, onOpenAddModal, onOpenSettings, onWellnessTest, isNotesOpen }) {
   const handleGlobalKeydown = (e) => {
+    const open = typeof isNotesOpen === 'function' ? isNotesOpen() : (isNotesOpen?.value ?? isNotesOpen);
+
+    if (open) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onToggleNotes(false);
+      }
+      return; // Ignora qualquer outro atalho global se o painel estiver aberto
+    }
+
     if (e.key === 'Escape') {
       e.preventDefault();
       onToggleNotes(false);

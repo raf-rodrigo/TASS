@@ -5,12 +5,19 @@ import { defineComponent } from 'vue';
 
 // Criamos um componente wrapper para testar o composable dentro do ciclo de vida do Vue
 const TestComponent = defineComponent({
+  props: {
+    isOpen: {
+      type: Boolean,
+      default: false
+    }
+  },
   setup(props, { emit }) {
     useShortcuts({
-      onToggleNotes: () => emit('toggle'),
+      onToggleNotes: (val) => emit('toggle', val),
       onOpenAddModal: () => emit('add'),
       onOpenSettings: () => emit('settings'),
-      onWellnessTest: () => emit('wellness')
+      onWellnessTest: () => emit('wellness'),
+      isNotesOpen: () => props.isOpen
     });
     return () => null;
   }
@@ -61,5 +68,20 @@ describe('useShortcuts', () => {
     expect(wrapper.emitted()).not.toHaveProperty('toggle');
     
     document.body.removeChild(input);
+  });
+
+  it('quando aberto, deve permitir apenas Escape para fechar e ignorar outras teclas', async () => {
+    const wrapper = mount(TestComponent, {
+      props: { isOpen: true }
+    });
+
+    // Pressiona 't' -> Não deve alternar ou disparar evento toggle (bloqueado)
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 't' }));
+    expect(wrapper.emitted('toggle')).toBeUndefined();
+
+    // Pressiona Escape -> Deve disparar toggle com o valor false para fechar
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(wrapper.emitted('toggle')).toBeTruthy();
+    expect(wrapper.emitted('toggle')[0]).toEqual([false]);
   });
 });

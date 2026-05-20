@@ -122,7 +122,8 @@ useShortcuts({
   },
   onOpenAddModal: openAddModal,
   onOpenSettings: () => showSettings.value = true,
-  onWellnessTest: () => triggerWellness(true)
+  onWellnessTest: () => triggerWellness(true),
+  isNotesOpen: () => showNotes.value
 });
 
 const { onMouseDown: handleNotesDrag, isDragging: isNotesDragging } = useNotesDrag(settings, showNotes, 'vertical');
