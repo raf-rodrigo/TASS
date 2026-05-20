@@ -379,6 +379,24 @@ const handleColumnChange = (n) => {
                       <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Espessura (Padding)</span><span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.cardPadding }}px</span></div>
                       <input type="range" v-model="settings.cardPadding" min="8" max="40" step="2" class="w-full app-range" @change="settings.cardPadding = parseInt($event.target.value); settings.saveSetting('app-card-padding', settings.cardPadding)" />
                   </div>
+
+                  <!-- Tamanho do Título -->
+                  <div class="glass-section p-6 space-y-5">
+                    <div class="flex justify-between items-center">
+                      <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho do Título</span>
+                      <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskNumberSize }}px</span>
+                    </div>
+                    <input type="range" v-model="settings.taskNumberSize" min="8" max="24" step="1" class="w-full app-range" @change="settings.saveSetting('app-task-number-size', settings.taskNumberSize)" />
+                  </div>
+
+                  <!-- Tamanho da Descrição -->
+                  <div class="glass-section p-6 space-y-5">
+                    <div class="flex justify-between items-center">
+                      <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho da Descrição</span>
+                      <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskDescriptionSize }}px</span>
+                    </div>
+                    <input type="range" v-model="settings.taskDescriptionSize" min="10" max="28" step="1" class="w-full app-range" @change="settings.saveSetting('app-task-desc-size', settings.taskDescriptionSize)" />
+                  </div>
                 </div>
 
                 <!-- ABA: Tipografia -->

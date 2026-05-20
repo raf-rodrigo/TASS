@@ -46,3 +46,20 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
 - **Proteção contra RCE (Remote Code Execution):** Rotas sensíveis que executam comandos no sistema de arquivos ou no terminal do sistema operacional devem exigir cabeçalhos customizados adicionais (ex: `X-TASS-Client: true`) para prevenir ataques Cross-Origin de scripts automáticos rodando em outras abas do navegador.
 - **Defesa contra Path Traversal:** Em rotas de backend que manipulem caminhos, leiam, escrevam ou excluam arquivos físicos baseados em parâmetros do cliente, sempre utilize `path.resolve` para normalizar o caminho e valide se o caminho final absoluto inicia estritamente dentro da pasta de destino pretendida (`filePath.startsWith(rootDirectory)`).
 - **Validação e Sanitização de Entrada:** Toda entrada recebida pelo backend deve passar por validações estritas antes de ser usada em funções de sistema operacional ou de manipulação direta de dados.
+
+## 8. Prevenção de Regressões e Verificação de Funcionalidades
+- **Prevenção de Perdas Visuais:** Ao alterar qualquer menu, modal ou seção de interface (ex: `InterfaceMenu.vue`, `SettingsModal.vue`), a IA **DEVE** garantir que todos os controles, campos e abas previamente existentes sejam preservados, a menos que sua exclusão seja explicitamente solicitada pelo usuário.
+- **Checklist de Verificação Obrigatória:** A cada alteração efetuada no código, a IA deve revisar mentalmente e validar visualmente (ou através de testes) se as seguintes funcionalidades permanecem intactas e operacionais:
+  1. **Quadro Kanban:** Sincronização, arraste de colunas e tarefas (`vuedraggable`), transições de status e atualização no IndexedDB.
+  2. **Cronômetros e Jornada:** Início/pausa de tarefas, integridade do acumulador `totalWorked` ao ajustar `totalTimeSpent`, e funcionamento da pausa automática fora do expediente.
+  3. **Ajustes Visuais (Interface):**
+     - Seleção e alteração do papel de parede (Presets e Google Drive).
+     - Modificadores de estrutura do quadro (Quantidade e nomes das colunas).
+     - Estilo das tarefas (Espessura do padding, tamanho do título/número da tarefa, tamanho da descrição).
+     - Tipografia global (Modificação de fontes).
+     - Efeitos de transparência e blur aplicados dinamicamente nos alvos configurados.
+  4. **Integração GitLab:** Exibição do menu de contexto, criação de branch com link mágico/API, e merges automáticos com análise de conflitos.
+  5. **Notas Rápidas:** Abertura e fechamento do painel CLI, alteração de cores, e persistência de notas no banco de dados.
+  6. **Dados e Backups:** Importação/Exportação do sistema e de tarefas em JSON, e login/backup automático com o Google Drive.
+- **Expansão da Checklist:** Sempre que um novo elemento, controle ou funcionalidade for adicionado ao sistema, a IA **DEVE** atualizar esta seção no `GEMINI.md`, incluindo o novo item à lista de verificação obrigatória.
+
