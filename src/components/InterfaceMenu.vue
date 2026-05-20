@@ -176,7 +176,7 @@ const handleColumnChange = (n) => {
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div v-for="n in settings.columns" :key="n" class="space-y-1.5">
                           <div class="flex items-center gap-2 mb-1"><div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div><span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Coluna {{ n }}</span></div>
-                          <input v-model="settings.columnTitles[n-1]" type="text" placeholder="Ex: Backlog..." class="focus:ring-indigo-500" @input="settings.saveSetting('app-column-titles', [...settings.columnTitles])" />
+                          <input v-model="settings.columnTitles[n-1]" type="text" placeholder="Ex: Backlog..." class="app-input px-4 py-3 shadow-sm transition-all w-full" @input="settings.saveSetting('app-column-titles', [...settings.columnTitles])" />
                         </div>
                       </div>
                     </div>
@@ -238,7 +238,7 @@ const handleColumnChange = (n) => {
                       
                     </div>
                     <div v-if="showAddWallpaper" class="animate-fadeIn p-4 bg-app-solid rounded-2xl border border-emerald-500/30 space-y-4">
-                      <div class="flex gap-2"><input v-model="newWallpaperUrl" type="text" placeholder="https://..." class="flex-1 bg-slate-100 dark:bg-white/5 border border-app-border-light rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" /><button @click="addCustomWallpaper" class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-lg">Salvar</button></div>
+                      <div class="flex gap-2"><input v-model="newWallpaperUrl" type="text" placeholder="https://..." class="app-input px-4 py-3 shadow-sm transition-all w-full" /><button @click="addCustomWallpaper" class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-lg">Salvar</button></div>
                     </div>
                   </div>
                 </div>

@@ -115,7 +115,7 @@ watch(() => modalStore.isOpen, (newVal) => {
                       ref="inputRef"
                       v-model="modalStore.promptValue"
                       :placeholder="modalStore.promptPlaceholder"
-                      class="w-full rounded-xl bg-black/10 dark:bg-black/30 border border-white/10 px-4 py-3 text-sm text-center text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/40 outline-none transition-all min-h-[80px] placeholder:text-slate-500"
+                      class="app-input px-4 py-3 shadow-sm transition-all text-center min-h-[80px] resize-none placeholder:text-slate-500"
                       @keydown.enter.ctrl="modalStore.handleConfirm"
                     ></textarea>
                     <input
@@ -124,7 +124,7 @@ watch(() => modalStore.isOpen, (newVal) => {
                       type="text"
                       v-model="modalStore.promptValue"
                       :placeholder="modalStore.promptPlaceholder"
-                      class="w-full rounded-xl bg-black/10 dark:bg-black/30 border border-white/10 px-4 py-2.5 text-sm text-center text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/40 outline-none transition-all placeholder:text-slate-500"
+                      class="app-input px-4 py-3 shadow-sm transition-all text-center placeholder:text-slate-500"
                       @keydown.enter="modalStore.handleConfirm"
                       @keydown.esc="modalStore.handleCancel"
                     />

@@ -251,7 +251,7 @@ const submitTask = () => {
               <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Sprint</label>
               <div class="relative">
                 <Layers class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                <select v-model="sprintId" class="pl-10 appearance-none cursor-pointer">
+                <select v-model="sprintId" class="app-input px-4 py-3 shadow-sm transition-all pl-10 appearance-none cursor-pointer">
                   <option value="">Nenhuma Sprint</option>
                   <option v-for="sprint in taskStore.sprints" :key="sprint.id" :value="sprint.id">
                     Ciclo de {{ new Date(sprint.endDate).toLocaleDateString('pt-BR') }}
@@ -263,16 +263,16 @@ const submitTask = () => {
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Sessão Atual</label>
-                <div class="p-2.5 bg-slate-100 dark:bg-white/5 border border-app-border-light rounded-xl flex items-center gap-2">
+                <div class="app-input px-4 py-3 shadow-sm transition-all flex items-center gap-2 cursor-default">
                   <Clock class="w-3.5 h-3.5 text-indigo-500" />
                   <span class="text-[10px] md:text-xs font-black font-mono text-app-main">{{ taskToEdit ? formatMsToHMS(taskToEdit.totalTimeSpent) : '00:00:00' }}</span>
                 </div>
               </div>
               <div>
                 <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Total</label>
-                <div class="p-2.5 bg-indigo-500/5 border border-indigo-500/20 rounded-xl flex items-center gap-2">
-                  <Layout class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                  <span class="text-[10px] md:text-xs font-black font-mono text-indigo-600 dark:text-indigo-400">{{ taskToEdit ? formatMsToHMS(taskToEdit.totalWorked || taskToEdit.totalTimeSpent || 0) : '00:00:00' }}</span>
+                <div class="app-input px-4 py-3 shadow-sm transition-all flex items-center gap-2 cursor-default">
+                  <Layout class="w-3.5 h-3.5 text-indigo-500" />
+                  <span class="text-[10px] md:text-xs font-black font-mono text-app-main">{{ taskToEdit ? formatMsToHMS(taskToEdit.totalWorked || taskToEdit.totalTimeSpent || 0) : '00:00:00' }}</span>
                 </div>
               </div>
             </div>
@@ -283,13 +283,13 @@ const submitTask = () => {
               <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Estimativa</label>
               <div class="relative flex items-center group">
                 <Clock class="absolute left-3 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
-                <input type="number" v-model="estimatedHours" min="0" placeholder="0" class="pl-10 pr-12 font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                <input type="number" v-model="estimatedHours" min="0" placeholder="0" class="app-input px-4 py-3 shadow-sm transition-all pl-10 pr-12 font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                 <span class="absolute right-3 text-[8px] font-black text-slate-400 uppercase tracking-widest pointer-events-none">H</span>
               </div>
             </div>
             <div>
               <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Prioridade</label>
-              <select v-model="priority" class="appearance-none cursor-pointer font-bold">
+              <select v-model="priority" class="app-input px-4 py-3 shadow-sm transition-all appearance-none cursor-pointer font-bold">
                 <option value="Baixa">Baixa</option>
                 <option value="Normal">Normal</option>
                 <option value="Alta">Alta</option>

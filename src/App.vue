@@ -385,6 +385,7 @@ onMounted(async () => {
 
     <TimeAdjustmentModal
       v-if="showTimeAdjustment"
+      :key="taskForTimeAdjustment?.id"
       :task="taskForTimeAdjustment"
       @close="showTimeAdjustment = false"
     />

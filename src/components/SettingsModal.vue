@@ -334,13 +334,13 @@ const handleResetSystem = async () => {
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div class="input-group">
                       <label class="!text-amber-600 dark:!text-amber-400">Início</label>
-                      <VueDatePicker v-model="localSettings.workStart" time-picker auto-apply :dark="settings.theme === 'dark'" class="app-timepicker" teleport="body" :format-locale="ptBR" :locale="ptBR" format="HH:mm">
+                      <VueDatePicker v-model="localSettings.workStart" time-picker auto-apply :dark="settings.theme === 'dark'" class="app-timepicker" input-class-name="app-input px-4 py-3 shadow-sm transition-all w-full text-center font-bold" teleport="body" :format-locale="ptBR" :locale="ptBR" format="HH:mm">
                         <template #input-icon><Clock class="w-4 h-4 ml-2 text-amber-500" /></template>
                       </VueDatePicker>
                     </div>
                     <div class="input-group">
                       <label class="!text-amber-600 dark:!text-amber-400">Término</label>
-                      <VueDatePicker v-model="localSettings.workEnd" time-picker auto-apply :dark="settings.theme === 'dark'" class="app-timepicker" teleport="body" :format-locale="ptBR" :locale="ptBR" format="HH:mm">
+                      <VueDatePicker v-model="localSettings.workEnd" time-picker auto-apply :dark="settings.theme === 'dark'" class="app-timepicker" input-class-name="app-input px-4 py-3 shadow-sm transition-all w-full text-center font-bold" teleport="body" :format-locale="ptBR" :locale="ptBR" format="HH:mm">
                         <template #input-icon><Clock class="w-4 h-4 ml-2 text-amber-500" /></template>
                       </VueDatePicker>
                     </div>
@@ -427,7 +427,7 @@ const handleResetSystem = async () => {
                     </label>
                     <div v-if="localSettings.trackInactivity" class="pt-4 border-t border-app-border-light animate-fadeIn">
                       <div class="flex items-center justify-between gap-4">
-                        <div class="flex-1"><p class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1.5 ml-1">Tempo de Espera (HH:mm)</p><VueDatePicker v-model="localSettings.inactivityThreshold" time-picker auto-apply :dark="settings.theme === 'dark'" class="app-timepicker" teleport="body" :format-locale="ptBR" :locale="ptBR" format="HH:mm"><template #input-icon><Clock class="w-4 h-4 ml-2 text-slate-400" /></template></VueDatePicker></div>
+                        <div class="flex-1"><p class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1.5 ml-1">Tempo de Espera (HH:mm)</p><VueDatePicker v-model="localSettings.inactivityThreshold" time-picker auto-apply :dark="settings.theme === 'dark'" class="app-timepicker" input-class-name="app-input px-4 py-3 shadow-sm transition-all w-full text-center font-bold" teleport="body" :format-locale="ptBR" :locale="ptBR" format="HH:mm"><template #input-icon><Clock class="w-4 h-4 ml-2 text-slate-400" /></template></VueDatePicker></div>
                         <div class="text-right"><p class="text-[10px] text-slate-500 font-bold uppercase">Total</p><p class="text-lg font-black text-indigo-600 dark:text-indigo-400">{{ (localSettings.inactivityThreshold.hours * 60) + localSettings.inactivityThreshold.minutes }} min</p></div>
                       </div>
                     </div>

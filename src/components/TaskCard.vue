@@ -25,7 +25,19 @@ const emit = defineEmits([
 
 const formattedTime = computed(() => formatMsToHMS(props.task.totalTimeSpent));
 
-const handleAdjustTime = () => {
+const handleAdjustTime = (event) => {
+  if (event) {
+    taskStore.contextMenuPosition = { 
+      x: event.clientX, 
+      y: event.clientY 
+    };
+  } else {
+    // Fallback centralizado se disparado sem evento direto
+    taskStore.contextMenuPosition = { 
+      x: window.innerWidth / 2, 
+      y: window.innerHeight / 2 
+    };
+  }
   emit('open-time-adjustment', props.task);
 };
 
@@ -98,7 +110,7 @@ const handleSelect = (event) => {
             task.isRunning ? 'bg-slate-100 dark:bg-slate-900/50 text-indigo-600 dark:text-indigo-400 border-indigo-500/40 font-mono text-[11px] shadow-sm shadow-indigo-500/10' : ''
           ]"
           :data-tip="task.isRunning ? 'Tempo Decorrido (Clique p/ ajustar tempo)' : `Copiar número: ${task.title}`"
-          @click.stop="task.isRunning ? handleAdjustTime() : copyTaskContent()"
+          @click.stop="task.isRunning ? handleAdjustTime($event) : copyTaskContent()"
         >
           {{ task.isRunning ? formattedTime : task.title }}
         </span>
