@@ -147,7 +147,7 @@ app.delete('/api/wallpapers/:name', async (req, res) => {
   }
 });
 
-// Endpoint para executar comandos no terminal do sistema (PowerShell)
+// Endpoint para executar comandos no terminal do sistema (PowerShell no Windows, Bash no Linux/macOS)
 app.post('/api/terminal/execute', (req, res) => {
   if (req.headers['x-tass-client'] !== 'true') {
     console.warn(`[TASS] Requisição de terminal bloqueada: Cabeçalho 'X-TASS-Client' ausente ou inválido.`);
@@ -162,12 +162,18 @@ app.post('/api/terminal/execute', (req, res) => {
   const targetCwd = cwd || __dirname;
   const separator = '___PWD_SEPARATOR___';
   
-  // Configura a codificação do console para UTF-8 e executa o comando
-  const wrappedCommand = `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; ${command}\nWrite-Output "${separator}"\n(Get-Item .).FullName`;
+  const isWin = process.platform === 'win32';
+  
+  // Embrulha o comando de acordo com o OS para coletar o novo diretório atualizado
+  const wrappedCommand = isWin
+    ? `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; ${command}\nWrite-Output "${separator}"\n(Get-Item .).FullName`
+    : `${command}\necho "${separator}"\npwd`;
 
-  console.log(`[TASS] Executando no Terminal: "${command}" em CWD: "${targetCwd}"`);
+  const shellOption = isWin ? 'powershell.exe' : '/bin/bash';
 
-  exec(wrappedCommand, { cwd: targetCwd, shell: 'powershell.exe' }, (error, stdout, stderr) => {
+  console.log(`[TASS] Executando no Terminal (${isWin ? 'Windows' : 'Linux/Unix'}): "${command}" em CWD: "${targetCwd}"`);
+
+  exec(wrappedCommand, { cwd: targetCwd, shell: shellOption }, (error, stdout, stderr) => {
     let realStdout = stdout || '';
     let nextCwd = targetCwd;
 

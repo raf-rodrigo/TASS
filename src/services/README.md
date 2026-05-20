@@ -14,7 +14,7 @@ O `server.js` atua como um orquestrador local rodando na porta **5176**. Ele é 
 | `GET` | `/api/wallpapers` | Lista os arquivos de imagem presentes na pasta local. |
 | `POST` | `/api/drive/import-wallpaper` | Baixa um arquivo do Google Drive, gera um **Hash MD5** e o salva localmente. |
 | `DELETE` | `/api/wallpapers/:name` | Remove fisicamente um arquivo da pasta de wallpapers. |
-| `POST` | `/api/terminal/execute` | Executa comandos no terminal do sistema (PowerShell) mantendo o CWD sincronizado. |
+| `POST` | `/api/terminal/execute` | Executa comandos no terminal do sistema (PowerShell no Windows, Bash no Linux/macOS) mantendo o CWD sincronizado. |
 | `GET` | `/api/terminal/info` | Obtém informações iniciais do terminal, como o CWD base do servidor. |
 
 ---
