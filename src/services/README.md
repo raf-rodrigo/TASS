@@ -14,6 +14,8 @@ O `server.js` atua como um orquestrador local rodando na porta **5176**. Ele é 
 | `GET` | `/api/wallpapers` | Lista os arquivos de imagem presentes na pasta local. |
 | `POST` | `/api/drive/import-wallpaper` | Baixa um arquivo do Google Drive, gera um **Hash MD5** e o salva localmente. |
 | `DELETE` | `/api/wallpapers/:name` | Remove fisicamente um arquivo da pasta de wallpapers. |
+| `POST` | `/api/terminal/execute` | Executa comandos no terminal do sistema (PowerShell) mantendo o CWD sincronizado. |
+| `GET` | `/api/terminal/info` | Obtém informações iniciais do terminal, como o CWD base do servidor. |
 
 ---
 
@@ -42,6 +44,7 @@ Gerencia a conexão com o backend (`server.js`).
 - **Health Check:** Monitora periodicamente se o servidor na porta **5176** está online.
 - **Status Global:** Expõe refs reativas (`isServerOnline`, `serverVersion`) para o restante do app.
 - **Polling:** Realiza verificações a cada 10 segundos para feedback em tempo real na interface.
+- **Execução de Terminal:** Expõe `executeTerminalCommand(cmd, cwd)` e `getTerminalInfo()` para comunicação com o emulador.
 
 ### 🧪 `gitlab.js`
 Integração com a API do GitLab.

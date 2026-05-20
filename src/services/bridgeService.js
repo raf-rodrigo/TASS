@@ -52,5 +52,48 @@ export const bridgeService = {
       clearInterval(intervalId);
       intervalId = null;
     }
+  },
+
+  /**
+   * Executa um comando no terminal do backend.
+   */
+  async executeTerminalCommand(command, cwd) {
+    try {
+      const response = await fetch('http://localhost:5176/api/terminal/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ command, cwd })
+      });
+      if (!response.ok) {
+        throw new Error(`Erro no servidor: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      return {
+        stdout: '',
+        stderr: error.message || 'Falha ao conectar com o servidor.',
+        cwd: cwd,
+        code: -1,
+        error: error.message
+      };
+    }
+  },
+
+  /**
+   * Obtém informações do terminal do backend.
+   */
+  async getTerminalInfo() {
+    try {
+      const response = await fetch('http://localhost:5176/api/terminal/info');
+      if (response.ok) {
+        return await response.json();
+      }
+      throw new Error(`Erro ao obter informações do terminal: ${response.status}`);
+    } catch (error) {
+      console.error('Falha ao obter informações do terminal:', error);
+      return { cwd: '' };
+    }
   }
 };

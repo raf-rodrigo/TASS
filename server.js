@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import cors from 'cors';
 import fs from 'fs/promises';
 import crypto from 'crypto';
+import { exec } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -122,6 +123,49 @@ app.delete('/api/wallpapers/:name', async (req, res) => {
     console.error('[TASS] Erro fatal na exclusão:', error);
     res.status(500).json({ error: 'Erro interno' });
   }
+});
+
+// Endpoint para executar comandos no terminal do sistema (PowerShell)
+app.post('/api/terminal/execute', (req, res) => {
+  const { command, cwd } = req.body;
+  if (!command) {
+    return res.status(400).json({ error: 'Comando não fornecido.' });
+  }
+
+  const targetCwd = cwd || __dirname;
+  const separator = '___PWD_SEPARATOR___';
+  
+  // Configura a codificação do console para UTF-8 e executa o comando
+  const wrappedCommand = `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; ${command}\nWrite-Output "${separator}"\n(Get-Item .).FullName`;
+
+  console.log(`[TASS] Executando no Terminal: "${command}" em CWD: "${targetCwd}"`);
+
+  exec(wrappedCommand, { cwd: targetCwd, shell: 'powershell.exe' }, (error, stdout, stderr) => {
+    let realStdout = stdout || '';
+    let nextCwd = targetCwd;
+
+    if (realStdout.includes(separator)) {
+      const parts = realStdout.split(separator);
+      realStdout = parts[0].trim();
+      const pathPart = parts[1] ? parts[1].trim() : '';
+      if (pathPart) {
+        nextCwd = pathPart;
+      }
+    }
+
+    res.json({
+      stdout: realStdout,
+      stderr: stderr || '',
+      cwd: nextCwd,
+      code: error ? error.code : 0,
+      error: error ? error.message : null
+    });
+  });
+});
+
+// Endpoint para obter informações iniciais do terminal
+app.get('/api/terminal/info', (req, res) => {
+  res.json({ cwd: __dirname });
 });
 
 // --- ESTÁTICOS ---
