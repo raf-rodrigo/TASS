@@ -8,7 +8,7 @@ import {
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
-import { googleDriveService } from '../services/googleDriveService';
+// Google Drive integration removed (wallpapers via link only)
 import { notificationService } from '../services/notificationService';
 import BaseModal from './BaseModal.vue';
 
@@ -22,120 +22,11 @@ const props = defineProps({
 const emit = defineEmits(['close', 'test-wellness', 'open-settings']);
 
 const activeTab = ref('wallpapers');
-const showDrivePicker = ref(false);
-const driveImages = ref([]);
-const isDriveLoading = ref(false);
-const isPromptingAuth = ref(false); // Flag para evitar modais duplicados
-const driveThumbnails = ref({}); // Mapeamento de fileId -> ObjectURL
+// Google Drive picker state removed
 
-/**
- * Função central de busca de imagens na pasta TASS do Drive
- */
-const fetchDriveImages = async () => {
-  if (!googleDriveService.isAuthenticated()) return;
-  
-  isDriveLoading.value = true;
-  driveImages.value = []; // Limpa para mostrar os spinners
-  
-  try {
-    const images = await googleDriveService.listImageFiles();
-    driveImages.value = images;
-    
-    // Inicia o carregamento das miniaturas
-    await loadDriveThumbnails(images);
-  } catch (error) {
-    notificationService.toast('Erro ao sincronizar imagens do Drive', 'error');
-  } finally {
-    isDriveLoading.value = false;
-  }
-};
-
-const openDrivePicker = async () => {
-  if (!googleDriveService.isAuthenticated()) {
-    if (isPromptingAuth.value) return; // Se já estiver perguntando, ignora
-    
-    isPromptingAuth.value = true;
-    const confirmed = await notificationService.confirm(
-      'Google Drive Desconectado',
-      'Você precisa conectar sua conta do Google Drive para acessar suas imagens. Deseja fazer isso agora?',
-      'Conectar Agora',
-      'info'
-    );
-    isPromptingAuth.value = false;
-
-    if (confirmed) {
-      await googleDriveService.login();
-      // O recarregamento automático ocorrerá via callback no onMounted
-    }
-    return;
-  }
-
-  showDrivePicker.value = true;
-  fetchDriveImages();
-};
-
-const loadDriveThumbnails = async (images) => {
-  const token = localStorage.getItem('tass_google_access_token');
-  if (!token) return;
-
-  for (const file of images) {
-    try {
-      const response = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        driveThumbnails.value[file.id] = url;
-      }
-    } catch (e) {
-      console.warn('[TASS] Falha ao carregar thumbnail:', file.name, e);
-    }
-  }
-};
-
-// Limpa URLs criadas ao fechar
-watch(showDrivePicker, (val) => {
-  if (!val) {
-    Object.values(driveThumbnails.value).forEach(url => URL.revokeObjectURL(url));
-    driveThumbnails.value = {};
-  }
-});
-
-const selectDriveImage = async (file) => {
-  isDriveLoading.value = true;
-  try {
-    const result = await googleDriveService.importWallpaper(file.id, file.name);
-    if (result.success) {
-      if (settings.customWallpapers.length < 17) {
-        settings.customWallpapers.push({
-          name: result.name,
-          url: result.url,
-          hash: result.hash,
-          isLocal: true
-        });
-        await settings.saveSetting('app-custom-wallpapers', settings.customWallpapers);
-      }
-      setWallpaper(result.url);
-      notificationService.toast('Wallpaper importado do Drive!', 'success');
-      showDrivePicker.value = false;
-    }
-  } catch (error) {
-    notificationService.alert('Erro na Importação', error.message || 'Falha ao baixar do Drive.', 'error');
-  } finally {
-    isDriveLoading.value = false;
-  }
-};
+// Google Drive wallpaper functions removed
 
 onMounted(() => {
-  // Configura o serviço do Google para atualizar a lista automaticamente após o login
-  googleDriveService.init((status) => {
-    if (status && showDrivePicker.value) {
-      fetchDriveImages();
-    }
-  });
-
   if (settings.keepWindowState) {
     const saved = localStorage.getItem('app-last-interface-tab');
     if (saved) activeTab.value = saved;
@@ -146,7 +37,6 @@ watch(activeTab, (newVal) => {
   if (settings.keepWindowState) {
     localStorage.setItem('app-last-interface-tab', newVal);
   }
-  showDrivePicker.value = false;
 });
 
 // Live Preview para arredondamento
@@ -235,17 +125,14 @@ const handleColumnChange = (n) => {
 <template>
   <BaseModal 
     v-if="isOpen"
-    :title="showDrivePicker ? 'Google Drive' : activeTabObj.label" 
-    :subtitle="showDrivePicker ? 'Selecione uma imagem para importar.' : activeTabObj.desc"
-    :icon="showDrivePicker ? Cloud : activeTabObj.icon"
+    :title="activeTabObj.label" 
+    :subtitle="activeTabObj.desc"
+    :icon="activeTabObj.icon"
     maxWidth="max-w-4xl" 
     customClass="h-[90vh] md:h-[600px]"
     layout="sidebar"
     @close="emit('close')"
   >
-    <template #header-actions v-if="showDrivePicker">
-      <button @click="showDrivePicker = false" class="btn btn-secondary px-3 py-1.5 text-[10px] uppercase font-black mr-2">Voltar</button>
-    </template>
 
     <!-- Sidebar -->
     <template #sidebar>
@@ -272,42 +159,9 @@ const handleColumnChange = (n) => {
 
     <!-- Conteúdo Principal -->
     <transition name="fade-slide" mode="out-in">
-                <div v-if="showDrivePicker" :key="'drive-picker'" class="space-y-6">
-                  <!-- Loader Central -->
-                  <div v-if="isDriveLoading && driveImages.length === 0" class="flex flex-col items-center justify-center py-24 gap-4">
-                    <Loader2 class="w-10 h-10 text-indigo-500 animate-spin" />
-                    <p class="text-[10px] font-black text-app-muted uppercase tracking-widest text-center px-4">Sincronizando com o Google Drive...</p>
-                  </div>
-                  
-                  <div v-else-if="!isDriveLoading && driveImages.length === 0" class="py-12 text-center border-2 border-dashed border-app-border-light rounded-2xl px-6">
-                    <Cloud class="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                    <p class="text-[11px] font-bold text-app-muted uppercase tracking-widest">Nenhuma imagem encontrada.</p>
-                    <p class="text-[9px] text-slate-400 mt-1 italic mb-6">Verifique a pasta <span class="text-indigo-500 font-bold uppercase">TASS</span> no seu Google Drive.</p>
-                    <button @click="fetchDriveImages" class="mx-auto flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-600 dark:text-indigo-400 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
-                      <RotateCcw class="w-3.5 h-3.5" /> Tentar Novamente
-                    </button>
-                  </div>
-
-                  <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div v-for="file in driveImages" :key="file.id" @click="selectDriveImage(file)"
-                      class="relative group aspect-video rounded-xl overflow-hidden border-2 border-transparent hover:border-indigo-500 transition-all cursor-pointer bg-slate-200 dark:bg-white/10"
-                    >
-                      <div v-if="!driveThumbnails[file.id]" class="w-full h-full flex items-center justify-center">
-                        <Loader2 class="w-5 h-5 text-indigo-500/30 animate-spin" />
-                      </div>
-                      <template v-else>
-                        <img :src="driveThumbnails[file.id]" class="w-full h-full object-cover animate-fadeIn" :alt="file.name" />
-                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-center">
-                          <p class="text-[8px] text-white font-bold truncate w-full mb-1">{{ file.name }}</p>
-                          <Plus class="w-4 h-4 text-white" />
-                        </div>
-                      </template>
-                    </div>
-                  </div>
-                </div>
 
                 <!-- ABA: Board -->
-                <div v-else-if="activeTab === 'board'" :key="'board'" class="space-y-8">
+                <div v-if="activeTab === 'board'" :key="'board'" class="space-y-8">
                   <div class="space-y-8">
                     <div class="space-y-3">
                       <label class="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">Quantidade de Colunas</label>
@@ -381,7 +235,7 @@ const handleColumnChange = (n) => {
                       <button v-if="settings.customWallpapers.length > 0" @click="clearWallpaper" class="aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all group" :class="!settings.backgroundImage ? 'border-indigo-500 bg-indigo-500/5 text-indigo-500' : 'border-app-border-light text-slate-400 hover:text-red-500'"><Eraser class="w-6 h-6" /><span class="text-[10px] font-bold uppercase tracking-tighter">Limpar</span></button>
                       <div v-for="(wp, index) in settings.customWallpapers" :key="index" v-tooltip="wp.name || 'Wallpaper'" @click="setWallpaper(wp.url)" class="relative group aspect-video rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-slate-200 dark:bg-white/10" :class="settings.backgroundImage === wp.url ? 'border-emerald-500 scale-95 shadow-lg' : 'border-transparent hover:border-slate-300'"><img :src="wp.url" class="w-full h-full object-cover" alt="Preview" loading="lazy" /><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2"><button @click.stop="removeWallpaper(index)" class="p-2 bg-red-500/80 hover:bg-red-500 text-white rounded-lg"><Trash2 class="w-4 h-4" /></button></div></div>
                       <button v-if="settings.customWallpapers.length < 17" @click="showAddWallpaper = !showAddWallpaper" class="aspect-video rounded-xl border-2 border-dashed border-app-border-light hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-500"><Plus class="w-6 h-6" /><span class="text-[10px] font-bold uppercase tracking-tighter">Novo Link</span></button>
-                      <button v-if="settings.customWallpapers.length < 17" @click="openDrivePicker" class="aspect-video rounded-xl border-2 border-dashed border-indigo-500/30 hover:border-indigo-500 transition-all flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-indigo-500"><Cloud class="w-6 h-6" /><span class="text-[10px] font-bold uppercase tracking-tighter">Google Drive</span></button>
+                      
                     </div>
                     <div v-if="showAddWallpaper" class="animate-fadeIn p-4 bg-app-solid rounded-2xl border border-emerald-500/30 space-y-4">
                       <div class="flex gap-2"><input v-model="newWallpaperUrl" type="text" placeholder="https://..." class="flex-1 bg-slate-100 dark:bg-white/5 border border-app-border-light rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" /><button @click="addCustomWallpaper" class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-lg">Salvar</button></div>
