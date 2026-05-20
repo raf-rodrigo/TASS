@@ -127,8 +127,9 @@ const runCommand = async () => {
   }
 
   if (response.stderr) {
+    // Se o código de saída for 0, trata stderr como output comum (evita pintar de vermelho mensagens informativas de progresso do Git).
     terminalHistory.value.push({
-      type: 'error',
+      type: response.code === 0 ? 'output' : 'error',
       text: response.stderr
     });
   }

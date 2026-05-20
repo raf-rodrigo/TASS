@@ -25,22 +25,26 @@ describe('useShortcuts', () => {
     vi.restoreAllMocks();
   });
 
-  it('deve disparar onToggleNotes ao pressionar "n"', async () => {
-    const wrapper = mount(TestComponent);
-    
-    const event = new KeyboardEvent('keydown', { key: 'n' });
-    window.dispatchEvent(event);
-
-    expect(wrapper.emitted()).toHaveProperty('toggle');
-  });
-
-  it('deve disparar onOpenAddModal ao pressionar "t"', async () => {
+  it('deve disparar onToggleNotes ao pressionar "t"', async () => {
     const wrapper = mount(TestComponent);
     
     const event = new KeyboardEvent('keydown', { key: 't' });
     window.dispatchEvent(event);
 
-    expect(wrapper.emitted()).toHaveProperty('add');
+    expect(wrapper.emitted()).toHaveProperty('toggle');
+  });
+
+  it('não deve disparar nada ao pressionar "n", "c" ou "Alt + w"', async () => {
+    const wrapper = mount(TestComponent);
+    
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'n' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'c' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w', altKey: true }));
+
+    expect(wrapper.emitted()).not.toHaveProperty('toggle');
+    expect(wrapper.emitted()).not.toHaveProperty('add');
+    expect(wrapper.emitted()).not.toHaveProperty('settings');
+    expect(wrapper.emitted()).not.toHaveProperty('wellness');
   });
 
   it('não deve disparar atalhos se o usuário estiver digitando em um input', async () => {
@@ -51,20 +55,11 @@ describe('useShortcuts', () => {
     document.body.appendChild(input);
     input.focus();
 
-    const event = new KeyboardEvent('keydown', { key: 'n' });
+    const event = new KeyboardEvent('keydown', { key: 't' });
     window.dispatchEvent(event);
 
     expect(wrapper.emitted()).not.toHaveProperty('toggle');
     
     document.body.removeChild(input);
-  });
-
-  it('deve disparar onWellnessTest ao pressionar Alt + W', async () => {
-    const wrapper = mount(TestComponent);
-    
-    const event = new KeyboardEvent('keydown', { key: 'w', altKey: true });
-    window.dispatchEvent(event);
-
-    expect(wrapper.emitted()).toHaveProperty('wellness');
   });
 });

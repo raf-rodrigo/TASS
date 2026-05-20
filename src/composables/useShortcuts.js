@@ -16,31 +16,14 @@ export function useShortcuts({ onToggleNotes, onOpenAddModal, onOpenSettings, on
     
     if (isInput) return;
 
-    // Atalhos com Alt
-    if (e.altKey) {
-      if (e.key.toLowerCase() === 'w' && onWellnessTest) {
-        e.preventDefault();
-        onWellnessTest();
-      }
-      return;
-    }
-
     // Atalhos Simples (Letras Sozinhas)
-    if (e.ctrlKey || e.metaKey) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
 
     const key = e.key.toLowerCase();
     switch (key) {
-      case 'n':
-        e.preventDefault();
-        onToggleNotes();
-        break;
       case 't':
         e.preventDefault();
-        onOpenAddModal();
-        break;
-      case 'c':
-        e.preventDefault();
-        onOpenSettings();
+        onToggleNotes();
         break;
     }
   };
