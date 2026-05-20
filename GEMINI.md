@@ -40,3 +40,9 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
 - **Idioma:** Todo o raciocínio e comunicação devem ser realizados em **Português**.
 - **Fluxo de Eventos:** Seguir o padrão de "Props down, Events up". Modais de ação devem ser disparados pelo `App.vue` através de eventos emitidos pelos componentes filhos (`TaskCard` -> `TaskBoard` -> `App`).
 - **Commits:** Sugerir mensagens seguindo o padrão **Conventional Commits** em uma única linha de comando. Importante: a linha não precisa ser curta; ela deve ser tão detalhada quanto necessário para descrever todas as alterações em um único comando `-m`, independentemente do comprimento.
+
+## 7. Recomendações de Segurança (Backend e Comunicação Local)
+- **Zero CORS Permissivo (`*`):** Em servidores locais de desenvolvimento que expõem APIs (como o `server.js` na porta 5176), nunca configure `origin: '*'`. O CORS deve ser restrito exclusivamente a origens locais confiáveis (`localhost` e `127.0.0.1` em qualquer porta).
+- **Proteção contra RCE (Remote Code Execution):** Rotas sensíveis que executam comandos no sistema de arquivos ou no terminal do sistema operacional devem exigir cabeçalhos customizados adicionais (ex: `X-TASS-Client: true`) para prevenir ataques Cross-Origin de scripts automáticos rodando em outras abas do navegador.
+- **Defesa contra Path Traversal:** Em rotas de backend que manipulem caminhos, leiam, escrevam ou excluam arquivos físicos baseados em parâmetros do cliente, sempre utilize `path.resolve` para normalizar o caminho e valide se o caminho final absoluto inicia estritamente dentro da pasta de destino pretendida (`filePath.startsWith(rootDirectory)`).
+- **Validação e Sanitização de Entrada:** Toda entrada recebida pelo backend deve passar por validações estritas antes de ser usada em funções de sistema operacional ou de manipulação direta de dados.
