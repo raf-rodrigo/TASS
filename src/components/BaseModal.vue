@@ -26,7 +26,8 @@ const props = defineProps({
   title: String,
   subtitle: { type: String, default: '' },
   icon: { type: [Object, Function], default: null },
-  layout: { type: String, default: 'standard', validator: v => ['standard', 'custom'].includes(v) },
+  iconBgColor: { type: String, default: '' },
+  layout: { type: String, default: 'standard', validator: v => ['standard', 'custom', 'sidebar'].includes(v) },
   showClose: { type: Boolean, default: true },
   closeOnClickOutside: { type: Boolean, default: true },
   isWindow: { type: Boolean, default: false },
@@ -77,6 +78,67 @@ const { position, onMouseDown } = useModalDrag();
       </template>
 
       <!-- ============================================== -->
+      <!-- MODO: SIDEBAR (Layout de duas colunas com Abas) -->
+      <!-- ============================================== -->
+      <template v-else-if="layout === 'sidebar'">
+        <!-- Header -->
+        <header 
+          class="tass-layout-header"
+          :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
+          @mousedown="onMouseDown"
+        >
+          <slot name="header" :onMouseDown="onMouseDown">
+            <div class="flex items-center gap-3">
+              <div 
+                v-if="icon" 
+                class="p-2 rounded-xl text-white shadow-lg" 
+                :style="{ 
+                  backgroundColor: iconBgColor || '#6366f1', 
+                  boxShadow: iconBgColor ? `0 4px 12px -2px ${iconBgColor}44` : '0 4px 12px -2px rgba(99, 102, 241, 0.3)' 
+                }"
+              >
+                <component :is="icon" class="w-4 h-4" />
+              </div>
+              <div v-else class="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
+              
+              <div>
+                <h2 class="text-sm font-black text-app-main uppercase tracking-tighter leading-none">
+                  {{ title }}
+                </h2>
+                <p v-if="subtitle" class="text-[9px] text-app-muted font-bold uppercase tracking-widest mt-1">
+                  {{ subtitle }}
+                </p>
+              </div>
+            </div>
+          </slot>
+          
+          <button v-if="showClose" type="button" @click="emit('close')" class="icon-btn -mr-2">
+            <X class="w-5 h-5" />
+          </button>
+        </header>
+
+        <div class="flex flex-col md:flex-row flex-1 overflow-hidden relative">
+          <!-- Sidebar -->
+          <aside 
+            class="tass-layout-sidebar"
+            :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-sidebar-opacity))` }"
+          >
+            <slot name="sidebar"></slot>
+          </aside>
+
+          <!-- Conteúdo Central -->
+          <main 
+            class="tass-layout-main"
+            :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-body-opacity))` }"
+          >
+            <div class="tass-layout-content">
+              <slot :onMouseDown="onMouseDown"></slot>
+            </div>
+          </main>
+        </div>
+      </template>
+
+      <!-- ============================================== -->
       <!-- MODO: STANDARD (Padrão Cursorrules) -->
       <!-- ============================================== -->
       <template v-else>
@@ -119,7 +181,7 @@ const { position, onMouseDown } = useModalDrag();
       <!-- Footer Area (Global: Disponível em todos os layouts se props existirem) -->
       <footer 
         v-if="$slots.footer || okText || cancelText" 
-        class="py-4 px-6 border-t border-app-border-light flex justify-end items-center gap-3 mt-auto"
+        :class="layout === 'sidebar' ? 'tass-layout-footer' : 'py-4 px-6 border-t border-app-border-light flex justify-end items-center gap-3 mt-auto'"
         :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
       >
         <slot name="footer">

@@ -249,80 +249,50 @@ const handleResetSystem = async () => {
 
 <template>
   <BaseModal 
-    title="Ajustes TASS" 
+    :title="activeTabObj.label" 
+    :subtitle="activeTabObj.desc"
+    :icon="activeTabObj.icon"
     maxWidth="max-w-4xl" 
-    customClass="h-[90vh] md:h-[600px] !p-0"
-    layout="custom"
+    customClass="h-[90vh] md:h-[600px]"
+    layout="sidebar"
     @close="emit('close')"
   >
-    <template #default="{ onMouseDown }">
-      <div class="flex flex-col h-full w-full bg-transparent overflow-hidden transform-gpu">
-        <!-- HEADER GLOBAL -->
-        <header 
-          class="tass-layout-header" 
-          :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
-          @mousedown="onMouseDown"
+    <!-- Sidebar -->
+    <template #sidebar>
+      <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
+        <button 
+          v-for="tab in tabs" 
+          :key="tab.id"
+          @click="activeTab = tab.id"
+          class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
+          :class="activeTab === tab.id 
+            ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' 
+            : 'text-app-sub hover:bg-app-surface'"
         >
-          <div class="flex items-center gap-4">
-            <div class="p-2 rounded-xl text-white shadow-lg bg-indigo-500 shadow-indigo-500/20">
-              <component :is="activeTabObj.icon" class="w-4 h-4" />
-            </div>
-            <div>
-              <h2 class="text-sm font-black text-app-main uppercase tracking-tighter leading-none">{{ activeTabObj.label }}</h2>
-              <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest mt-1">{{ activeTabObj.desc }}</p>
-            </div>
-          </div>
-          
-          <button type="button" @click="emit('close')" class="icon-btn -mr-2">
-            <X class="w-5 h-5" />
-          </button>
-        </header>
+          <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
+          <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
+        </button>
 
-        <div class="flex flex-col md:flex-row flex-1 overflow-hidden relative">
-          <!-- Sidebar -->
-          <aside 
-            class="tass-layout-sidebar"
-            :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-sidebar-opacity))` }"
-          >
-            <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
-              <button 
-                v-for="tab in tabs" 
-                :key="tab.id"
-                @click="activeTab = tab.id"
-                class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
-                :class="activeTab === tab.id 
-                  ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' 
-                  : 'text-app-sub hover:bg-app-surface'"
-              >
-                <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
-                <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
-              </button>
+        <div class="hidden md:block w-full h-px border-t border-app-border-light my-2"></div>
 
-              <div class="hidden md:block w-full h-px border-t border-app-border-light my-2"></div>
+        <button 
+          @click="emit('open-interface')"
+          class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
+        >
+          <Palette class="w-4 h-4" />
+          <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">Ajustes Visuais</span>
+        </button>
+      </nav>
+      
+      <div class="hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-app-border-light mt-auto">
+        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
+          Confirme as alterações no botão abaixo para persistir no banco de dados.
+        </p>
+      </div>
+    </template>
 
-              <button 
-                @click="emit('open-interface')"
-                class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
-              >
-                <Palette class="w-4 h-4" />
-                <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">Ajustes Visuais</span>
-              </button>
-            </nav>
-            
-            <div class="hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-app-border-light mt-auto">
-              <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-                Confirme as alterações no botão abaixo para persistir no banco de dados.
-              </p>
-            </div>
-          </aside>
-
-          <!-- Conteúdo da Aba -->
-          <main 
-            class="tass-layout-main"
-            :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-body-opacity))` }"
-          >
-            <div class="tass-layout-content">
-              <transition name="fade-slide" mode="out-in">
+    <!-- Conteúdo Principal -->
+    <transition name="fade-slide" mode="out-in">
                 <div v-if="activeTab === 'gitlab'" :key="'gitlab'" class="space-y-8">
                 <div class="glass-section p-6 space-y-6">
                   <div class="flex items-center justify-between mb-2">
@@ -525,20 +495,12 @@ const handleResetSystem = async () => {
                 </div>
                 <div class="glass-section p-6 bg-red-500/5 dark:bg-red-500/10 border-red-500/20 space-y-4"><div class="flex items-center gap-3 mb-2"><Activity class="w-5 h-5 text-red-500" /><h4 class="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-tight">Zona de Perigo</h4></div><p class="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4">Deseja limpar tudo e começar do zero? Esta ação removerá todas as tarefas e sprints do seu banco de dados local.</p><button @click="handleResetSystem" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 active:scale-95">Zerar Banco de Dados</button></div>
               </div>
-            </transition>
-          </div>
-          </main>
-        </div>
+      </transition>
 
-        <!-- Footer -->
-        <footer 
-          class="tass-layout-footer"
-          :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
-        >
-          <button type="button" @click="emit('close')" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Cancelar</button>
-          <button type="button" @click="handleSave" class="btn btn-primary px-8 py-2 border-none shadow-none text-xs font-black uppercase tracking-widest">Salvar</button>
-        </footer>
-      </div>
+    <!-- Footer -->
+    <template #footer>
+      <button type="button" @click="emit('close')" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Cancelar</button>
+      <button type="button" @click="handleSave" class="btn btn-primary px-8 py-2 border-none shadow-none text-xs font-black uppercase tracking-widest">Salvar</button>
     </template>
   </BaseModal>
 </template>

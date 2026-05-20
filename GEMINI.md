@@ -15,9 +15,15 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
 - **Política "Zero Hardcoded":** Proibido o uso de valores visuais fixos. Use sempre tokens semânticos (`text-app-*`, `bg-app-*`, `border-app-*`).
 - **Componentes Base Obrigatórios:** 
   - Usar `BaseModal.vue` para todos os modais (nunca remover a classe `!p-0`).
+  - **Layout de Modais Complexos (Duas Colunas com Abas):** Para modais que requerem navegação lateral e seções de conteúdo (como `TaskModal`, `SettingsModal` e `InterfaceMenu`), é obrigatório o uso do layout unificado do `BaseModal` configurado com `layout="sidebar"`.
+    - **Slots Disponíveis:**
+      - `#sidebar`: Onde deve ser colocada a navegação por abas (`<nav>`) e elementos estáticos de ajuda.
+      - `#default` (slot principal): Onde o conteúdo correspondente a cada aba deve ser renderizado. O `BaseModal` já envolve este slot com a área rolável `.tass-layout-content`.
+      - `#footer`: Onde devem ser inseridos os botões de ação final do modal (Cancelar, Salvar, Fechar).
+      - `#header-actions`: Slot opcional no header para botões auxiliares (ex: botão "Voltar" do Google Drive).
   - Usar `AppInput.vue` e `AppTextarea.vue` para formulários.
   - Usar `AppTimePicker.vue` para qualquer seleção ou ajuste de horas/minutos.
-- **Geometria (Radius Harmony):** Use `var(--app-card-radius)` para containers e `var(--app-input-radius)` para elementos internos.
+- **Geometria (Radius Harmony):** Use `var(--app-card-radius)` para containers e `var(--app-input-radius)` para elements internos.
 - **Glassmorphism:** Utilize a classe `.glass-panel` e as variáveis de opacidade/blur (`--app-card-opacity`, `--app-glass-blur`).
 - **UX Premium:** Priorizar micro-interações, feedbacks visuais via `notificationService` (evitar `alert`/`confirm` nativos) e alinhamento óptico.
 - **Uso Seguro do @apply:** 
@@ -61,5 +67,6 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
   4. **Integração GitLab:** Exibição do menu de contexto, criação de branch com link mágico/API, e merges automáticos com análise de conflitos.
   5. **Notas Rápidas:** Abertura e fechamento do painel CLI, alteração de cores, e persistência de notas no banco de dados.
   6. **Dados e Backups:** Importação/Exportação do sistema e de tarefas em JSON, e login/backup automático com o Google Drive.
+  7. **Consistência de Modais com `layout="sidebar"`**: Funcionamento, transição de abas e botões de ação final dos modais complexos (`TaskModal.vue`, `SettingsModal.vue` e `InterfaceMenu.vue`).
 - **Expansão da Checklist:** Sempre que um novo elemento, controle ou funcionalidade for adicionado ao sistema, a IA **DEVE** atualizar esta seção no `GEMINI.md`, incluindo o novo item à lista de verificação obrigatória.
 

@@ -235,81 +235,43 @@ const handleColumnChange = (n) => {
 <template>
   <BaseModal 
     v-if="isOpen"
-    title="Interface" 
+    :title="showDrivePicker ? 'Google Drive' : activeTabObj.label" 
+    :subtitle="showDrivePicker ? 'Selecione uma imagem para importar.' : activeTabObj.desc"
+    :icon="showDrivePicker ? Cloud : activeTabObj.icon"
     maxWidth="max-w-4xl" 
-    customClass="h-[90vh] md:h-[600px] !p-0"
-    layout="custom"
+    customClass="h-[90vh] md:h-[600px]"
+    layout="sidebar"
     @close="emit('close')"
   >
-    <template #default="{ onMouseDown }">
-      <div class="flex flex-col h-full w-full bg-transparent overflow-hidden transform-gpu">
-        <!-- HEADER GLOBAL -->
-        <header 
-          class="tass-layout-header" 
-          :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
-          @mousedown="onMouseDown"
+    <template #header-actions v-if="showDrivePicker">
+      <button @click="showDrivePicker = false" class="btn btn-secondary px-3 py-1.5 text-[10px] uppercase font-black mr-2">Voltar</button>
+    </template>
+
+    <!-- Sidebar -->
+    <template #sidebar>
+      <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
+        <button 
+          v-for="tab in tabs" :key="tab.id"
+          @click="activeTab = tab.id"
+          class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
+          :class="activeTab === tab.id ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' : 'text-app-sub hover:bg-app-surface'"
         >
-          <div class="flex items-center gap-4">
-            <div class="p-2 rounded-xl text-white shadow-lg bg-indigo-500 shadow-indigo-500/20">
-              <template v-if="showDrivePicker">
-                <Cloud class="w-4 h-4" />
-              </template>
-              <component v-else :is="activeTabObj.icon" class="w-4 h-4" />
-            </div>
-            <div>
-              <template v-if="showDrivePicker">
-                <h2 class="text-sm font-black text-app-main uppercase tracking-tighter leading-none">Google Drive</h2>
-                <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest mt-1">Selecione uma imagem para importar.</p>
-              </template>
-              <template v-else>
-                <h2 class="text-sm font-black text-app-main uppercase tracking-tighter leading-none">{{ activeTabObj.label }}</h2>
-                <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest mt-1">{{ activeTabObj.desc }}</p>
-              </template>
-            </div>
-          </div>
-          
-          <div class="flex items-center gap-2">
-            <button v-if="showDrivePicker" @click="showDrivePicker = false" class="btn btn-secondary px-3 py-1.5 text-[10px] uppercase font-black">Voltar</button>
-            <button type="button" @click="emit('close')" class="icon-btn -mr-2">
-              <X class="w-5 h-5" />
-            </button>
-          </div>
-        </header>
+          <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
+          <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
+        </button>
+        <div class="hidden md:block w-full h-px border-t border-app-border-light my-2"></div>
+        <button 
+          @click="emit('open-settings')"
+          class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
+        >
+          <Settings class="w-4 h-4" />
+          <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">Configurações</span>
+        </button>
+      </nav>
+    </template>
 
-        <div class="flex flex-col md:flex-row flex-1 overflow-hidden relative">
-          <!-- Sidebar -->
-          <aside 
-            class="tass-layout-sidebar"
-            :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-sidebar-opacity))` }"
-          >
-            <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
-              <button 
-                v-for="tab in tabs" :key="tab.id"
-                @click="activeTab = tab.id"
-                class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
-                :class="activeTab === tab.id ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' : 'text-app-sub hover:bg-app-surface'"
-              >
-                <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
-                <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
-              </button>
-              <div class="hidden md:block w-full h-px border-t border-app-border-light my-2"></div>
-              <button 
-                @click="emit('open-settings')"
-                class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
-              >
-                <Settings class="w-4 h-4" />
-                <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">Configurações</span>
-              </button>
-            </nav>
-          </aside>
-
-          <!-- Conteúdo Principal -->
-          <main 
-            class="tass-layout-main"
-            :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-body-opacity))` }"
-          >
-            <div class="tass-layout-content">
-              <transition name="fade-slide" mode="out-in">
+    <!-- Conteúdo Principal -->
+    <transition name="fade-slide" mode="out-in">
                 <div v-if="showDrivePicker" :key="'drive-picker'" class="space-y-6">
                   <!-- Loader Central -->
                   <div v-if="isDriveLoading && driveImages.length === 0" class="flex flex-col items-center justify-center py-24 gap-4">
@@ -531,18 +493,11 @@ const handleColumnChange = (n) => {
                     </div>
                   </div>
                 </div>
-              </transition>
-            </div>
-          </main>
-        </div>
+      </transition>
 
-        <footer 
-          class="tass-layout-footer"
-          :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
-        >
-          <button type="button" @click="emit('close')" class="btn btn-primary px-10 py-2.5 text-xs font-black uppercase tracking-widest">Fechar Ajustes</button>
-        </footer>
-      </div>
+    <!-- Footer -->
+    <template #footer>
+      <button type="button" @click="emit('close')" class="btn btn-primary px-10 py-2.5 text-xs font-black uppercase tracking-widest">Fechar Ajustes</button>
     </template>
   </BaseModal>
 </template>
