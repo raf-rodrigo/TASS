@@ -62,7 +62,8 @@ export const bridgeService = {
       const response = await fetch('http://localhost:5176/api/terminal/execute', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-TASS-Client': 'true'
         },
         body: JSON.stringify({ command, cwd })
       });
@@ -86,7 +87,11 @@ export const bridgeService = {
    */
   async getTerminalInfo() {
     try {
-      const response = await fetch('http://localhost:5176/api/terminal/info');
+      const response = await fetch('http://localhost:5176/api/terminal/info', {
+        headers: {
+          'X-TASS-Client': 'true'
+        }
+      });
       if (response.ok) {
         return await response.json();
       }

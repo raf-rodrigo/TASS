@@ -12,11 +12,27 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 5176;
 
-// Configuração de CORS Permissiva
+// Configuração de CORS Restrita a Origens de Desenvolvimento Local
+const allowedOrigins = [
+  /^http:\/\/localhost(:\d+)?$/,
+  /^http:\/\/127\.0\.0\.1(:\d+)?$/
+];
+
 app.use(cors({
-  origin: '*',
+  origin: (origin, callback) => {
+    // Permite requisições sem origem (como ferramentas locais de backend ou carregamento direto)
+    if (!origin) return callback(null, true);
+    
+    const isAllowed = allowedOrigins.some(regex => regex.test(origin));
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.warn(`[TASS] Requisição bloqueada por política CORS de origem não confiável: ${origin}`);
+      callback(new Error('Bloqueado por política CORS do TASS (Origem não confiável)'));
+    }
+  },
   methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-TASS-Client']
 }));
 
 app.use(express.json());
@@ -106,7 +122,13 @@ app.delete('/api/wallpapers/:name', async (req, res) => {
   try {
     const fileName = decodeURIComponent(req.params.name);
     const wallpapersDir = path.resolve(__dirname, 'public', 'wallpapers');
-    const filePath = path.join(wallpapersDir, fileName);
+    const filePath = path.resolve(wallpapersDir, fileName);
+
+    // Proteção contra Path Traversal: Garante que o caminho resolvido está estritamente dentro de wallpapersDir
+    if (!filePath.startsWith(wallpapersDir)) {
+      console.warn(`[TASS] Bloqueada tentativa de Path Traversal na exclusão: ${fileName}`);
+      return res.status(403).json({ error: 'Acesso negado. Operação não autorizada.' });
+    }
 
     console.log(`[TASS] Tentativa de exclusão física: ${filePath}`);
 
@@ -127,6 +149,11 @@ app.delete('/api/wallpapers/:name', async (req, res) => {
 
 // Endpoint para executar comandos no terminal do sistema (PowerShell)
 app.post('/api/terminal/execute', (req, res) => {
+  if (req.headers['x-tass-client'] !== 'true') {
+    console.warn(`[TASS] Requisição de terminal bloqueada: Cabeçalho 'X-TASS-Client' ausente ou inválido.`);
+    return res.status(403).json({ error: 'Acesso negado. Cliente não autorizado.' });
+  }
+
   const { command, cwd } = req.body;
   if (!command) {
     return res.status(400).json({ error: 'Comando não fornecido.' });
@@ -165,6 +192,10 @@ app.post('/api/terminal/execute', (req, res) => {
 
 // Endpoint para obter informações iniciais do terminal
 app.get('/api/terminal/info', (req, res) => {
+  if (req.headers['x-tass-client'] !== 'true') {
+    console.warn(`[TASS] Requisição de informações do terminal bloqueada: Cabeçalho 'X-TASS-Client' ausente ou inválido.`);
+    return res.status(403).json({ error: 'Acesso negado. Cliente não autorizado.' });
+  }
   res.json({ cwd: __dirname });
 });
 
