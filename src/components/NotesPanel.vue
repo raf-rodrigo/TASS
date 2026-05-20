@@ -87,6 +87,9 @@ const runCommand = async () => {
   if (cleanCmd === 'clear' || cleanCmd === 'cls') {
     terminalHistory.value = [];
     scrollToBottom();
+    nextTick(() => {
+      focusTerminalInput();
+    });
     return;
   }
 
@@ -99,6 +102,9 @@ const runCommand = async () => {
             'Qualquer outro comando inserido será executado via PowerShell no backend do TASS.'
     });
     scrollToBottom();
+    nextTick(() => {
+      focusTerminalInput();
+    });
     return;
   }
 
@@ -109,6 +115,9 @@ const runCommand = async () => {
       text: 'Erro: O servidor backend do TASS está offline. Inicie o servidor (npm run dev/server.js) para executar comandos.'
     });
     scrollToBottom();
+    nextTick(() => {
+      focusTerminalInput();
+    });
     return;
   }
 
@@ -139,6 +148,9 @@ const runCommand = async () => {
   }
 
   scrollToBottom();
+  nextTick(() => {
+    focusTerminalInput();
+  });
 };
 
 const handleKeyDown = (e) => {
