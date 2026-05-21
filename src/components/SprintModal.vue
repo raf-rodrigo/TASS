@@ -140,6 +140,7 @@ const isPast = (dateStr) => {
             auto-apply
             :enable-time-picker="false"
             class="app-datepicker"
+            input-class-name="app-input px-4 py-3 shadow-sm transition-all w-full"
             teleport="body"
             :format-locale="ptBR"
             :locale="ptBR"

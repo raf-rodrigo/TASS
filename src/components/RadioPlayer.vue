@@ -6,6 +6,7 @@ import {
   ChevronDown, ChevronUp, X, Pencil
 } from 'lucide-vue-next';
 import { useRadioStore } from '../stores/radioStore';
+import { useSettingsStore } from '../stores/settingsStore';
 import RadioModal from './RadioModal.vue';
 import BaseModal from './BaseModal.vue';
 
@@ -19,6 +20,7 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 
 const radioStore = useRadioStore();
+const settings = useSettingsStore();
 
 onMounted(() => {
   radioStore.init();
@@ -51,23 +53,27 @@ const handleCloseModal = () => {
     @close="emit('close')"
   >
     <template #default="{ onMouseDown }">
-      <div class="flex flex-col">
-        <!-- Header Discreto e Arrastável (Flush with edges) -->
-        <div 
-          class="flex items-center justify-between cursor-grab text-slate-400 hover:text-amber-500 transition-colors px-6 py-3 border-b border-app-border-light"
-          :style="{ borderTopLeftRadius: 'var(--app-card-radius)', borderTopRightRadius: 'var(--app-card-radius)' }"
+      <div class="flex flex-col h-full w-full bg-transparent overflow-hidden">
+        <!-- HEADER GLOBAL (Unificado Sidebar + Corpo) -->
+        <header 
+          class="flex items-center justify-between px-6 py-4 border-b border-app-border-light shrink-0 cursor-grab active:cursor-grabbing select-none"
+          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-app-solid'"
           @mousedown="onMouseDown"
         >
-          <div class="flex items-center gap-3">
-            <div class="p-1.5 rounded-lg bg-amber-500/10 text-amber-500">
+          <div class="flex items-center gap-4">
+            <div class="p-2 rounded-xl text-white shadow-lg bg-amber-500 shadow-amber-500/20">
               <Headphones class="w-4 h-4" />
             </div>
-            <span class="text-[10px] font-black uppercase tracking-widest leading-none">Web Radio</span>
+            <div>
+              <h2 class="text-sm font-black text-app-main uppercase tracking-tighter leading-none">Web Radio</h2>
+              <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest mt-1">Sintonizador Imersivo</p>
+            </div>
           </div>
-          <button @click="emit('close')" class="icon-btn -mr-2" @mousedown.stop>
-            <X class="w-4 h-4" />
+          
+          <button type="button" @click="emit('close')" class="icon-btn -mr-2">
+            <X class="w-5 h-5" />
           </button>
-        </div>
+        </header>
 
         <div class="p-6 flex flex-col">
           <!-- Área Superior: Player em Destaque -->

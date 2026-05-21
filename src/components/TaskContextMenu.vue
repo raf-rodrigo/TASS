@@ -125,7 +125,7 @@ onUnmounted(() => {
     ref="menuRef"
     class="fixed z-[1000] w-full px-2 pointer-events-none transition-all duration-300"
     :class="[
-      isFloating ? 'max-w-fit' : 'bottom-6 left-1/2 -translate-x-1/2 max-w-[95%] md:max-w-fit'
+      isFloating ? 'max-w-fit' : (settings.contextMenuMode === 'stack' ? 'bottom-24' : 'bottom-6') + ' left-1/2 -translate-x-1/2 max-w-[95%] md:max-w-fit'
     ]"
     :style="isFloating ? menuStyle : {}"
   >
@@ -210,12 +210,10 @@ onUnmounted(() => {
     <!-- DESIGN 2: DOCK (HORIZONTAL/CLÁSSICO) -->
     <div 
       v-else
-      class="glass-panel !p-2 flex flex-col md:flex-row items-center gap-2 md:gap-4 shadow-2xl border-indigo-500/30 backdrop-blur-md ring-1 ring-black/5 pointer-events-auto transition-all duration-300 animate-scaleIn"
+      class="glass-panel !p-1.5 flex flex-col md:flex-row items-center gap-2 md:gap-3 shadow-2xl border border-app-border-light backdrop-blur-xl ring-1 ring-black/5 pointer-events-auto transition-all duration-300 animate-scaleIn"
       @click.stop
       :style="{ 
-        backgroundColor: settings.theme === 'dark' 
-          ? `rgba(30, 41, 59, ${settings.opacityTargets.contextMenu ? (100 - settings.cardOpacity) / 100 : 0.98})` 
-          : `rgba(255, 255, 255, ${settings.opacityTargets.contextMenu ? (100 - settings.cardOpacity) / 100 : 0.95})`,
+        backgroundColor: `rgba(var(--app-bg-raw), var(--app-bottom-opacity))`,
         borderRadius: 'var(--app-card-radius)'
       }"
     >

@@ -18,6 +18,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const activeSprintId = ref('all');
   const taskNumberSize = ref(12);
   const taskDescriptionSize = ref(13);
+  const taskTimerSize = ref(10);
   const notesSide = ref('right');
   const backgroundImage = ref('');
   const keepWindowState = ref(localStorage.getItem('app-keep-window-state') === 'true');
@@ -50,11 +51,16 @@ export const useSettingsStore = defineStore('settings', () => {
     contextMenu: true,
     actionBar: true,
     modals: true,
+    modalSidebar: true,
+    modalBody: true,
+    modalHeaderFooter: true,
     alerts: true
   });
   const columnTitles = ref(['', '', '', '']);
   const contextMenuStyle = ref('floating'); // 'floating' (estilo OS) ou 'dock' (estilo clássico)
+  const contextMenuMode = ref('stack'); // 'stack' (empilhado) ou 'replace' (substitui a dock)
   const contrastEnhanced = ref(true);
+  const darkenWallpaper = ref(true);
 
 
   const customWallpapers = ref([
@@ -100,20 +106,21 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-work-end'] !== undefined) workEnd.value = settingsMap['app-work-end'];
       if (settingsMap['app-work-days'] !== undefined) workDays.value = settingsMap['app-work-days'];
       if (settingsMap['app-auto-pause-work'] !== undefined) autoPauseOutsideWork.value = settingsMap['app-auto-pause-work'];
-      if (settingsMap['app-bg-image'] !== undefined) backgroundImage.value = settingsMap['app-bg-image'];
+      if (settingsMap['app-bg-image'] !== undefined) {
+        backgroundImage.value = settingsMap['app-bg-image'];
+      }
       if (settingsMap['app-bg-blur'] !== undefined) backgroundBlur.value = settingsMap['app-bg-blur'];
       if (settingsMap['app-card-opacity'] !== undefined) cardOpacity.value = settingsMap['app-card-opacity'];
       if (settingsMap['app-card-radius'] !== undefined) cardBorderRadius.value = settingsMap['app-card-radius'];
       if (settingsMap['app-font-family'] !== undefined) fontFamily.value = settingsMap['app-font-family'];
       if (settingsMap['app-opacity-targets'] !== undefined) opacityTargets.value = settingsMap['app-opacity-targets'];
+      
+      // Carrega wallpapers customizados salvos no banco
       if (settingsMap['app-custom-wallpapers'] !== undefined) {
-        // Limpeza de Órfãos: Remove links locais que não existem mais (/wallpapers/)
-        customWallpapers.value = settingsMap['app-custom-wallpapers'].filter(wp => 
-          wp.url && !wp.url.startsWith('/wallpapers/')
-        );
+        customWallpapers.value = settingsMap['app-custom-wallpapers'];
       }
 
-      // Injeção Inteligente: Sugere os wallpapers de elite apenas se a galeria estiver vazia
+      // Injeção Inteligente: Sugere os wallpapers de elite apenas se a galeria ainda estiver vazia
       if (customWallpapers.value.length === 0) {
         const eliteWallpapers = [
           { name: 'Minimalist Zen', url: 'https://images.unsplash.com/photo-1510672981848-a1c4f1cb5ccf?q=80&w=1920&auto=format&fit=crop' },
@@ -128,6 +135,7 @@ export const useSettingsStore = defineStore('settings', () => {
       }
       if (settingsMap['app-task-number-size'] !== undefined) taskNumberSize.value = settingsMap['app-task-number-size'];
       if (settingsMap['app-task-desc-size'] !== undefined) taskDescriptionSize.value = settingsMap['app-task-desc-size'];
+      if (settingsMap['app-task-timer-size'] !== undefined) taskTimerSize.value = settingsMap['app-task-timer-size'];
       if (settingsMap['app-notes-side'] !== undefined) notesSide.value = settingsMap['app-notes-side'];
       if (settingsMap['app-notes-btn-top'] !== undefined) notesButtonTop.value = settingsMap['app-notes-btn-top'];
       if (settingsMap['app-notes-width'] !== undefined) notesWidth.value = settingsMap['app-notes-width'];
@@ -135,7 +143,9 @@ export const useSettingsStore = defineStore('settings', () => {
 
       if (settingsMap['app-column-titles'] !== undefined) columnTitles.value = settingsMap['app-column-titles'];
       if (settingsMap['app-context-menu-style'] !== undefined) contextMenuStyle.value = settingsMap['app-context-menu-style'];
+      if (settingsMap['app-context-menu-mode'] !== undefined) contextMenuMode.value = settingsMap['app-context-menu-mode'];
       if (settingsMap['app-contrast-enhanced'] !== undefined) contrastEnhanced.value = settingsMap['app-contrast-enhanced'] === true;
+      if (settingsMap['app-darken-wallpaper'] !== undefined) darkenWallpaper.value = settingsMap['app-darken-wallpaper'] === true;
       
       // Carrega configuração do localStorage
       keepWindowState.value = localStorage.getItem('app-keep-window-state') === 'true';
@@ -187,6 +197,7 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-custom-wallpapers', value: customWallpapers.value },
       { key: 'app-task-number-size', value: taskNumberSize.value },
       { key: 'app-task-desc-size', value: taskDescriptionSize.value },
+      { key: 'app-task-timer-size', value: taskTimerSize.value },
       { key: 'app-notes-side', value: notesSide.value },
       { key: 'app-notes-btn-top', value: notesButtonTop.value },
       { key: 'app-notes-width', value: notesWidth.value },
@@ -194,7 +205,9 @@ export const useSettingsStore = defineStore('settings', () => {
 
       { key: 'app-column-titles', value: columnTitles.value },
       { key: 'app-context-menu-style', value: contextMenuStyle.value },
-      { key: 'app-contrast-enhanced', value: contrastEnhanced.value }
+      { key: 'app-context-menu-mode', value: contextMenuMode.value },
+      { key: 'app-contrast-enhanced', value: contrastEnhanced.value },
+      { key: 'app-darken-wallpaper', value: darkenWallpaper.value }
 
     ].map(item => ({
       key: item.key,
@@ -216,13 +229,13 @@ export const useSettingsStore = defineStore('settings', () => {
     theme, columns, appWidth, gitlabUrl, gitlabIntegrationMode,
     gitlabProjectId, gitlabToken, gitlabBaseBranch,
     inactivityThreshold, activeSprintId, taskNumberSize,
-    taskDescriptionSize, notesSide, backgroundImage, backgroundBlur,
+    taskDescriptionSize, taskTimerSize, notesSide, backgroundImage, backgroundBlur,
     notesButtonTop, notesWidth, cardPadding, fontFamily, trackInactivity,
 
     workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,
     cardBorderRadius, opacityTargets, customWallpapers, columnTitles,
-    wellnessEnabled, wellnessInterval, contrastEnhanced, keepWindowState,
-    contextMenuStyle,
+    wellnessEnabled, wellnessInterval, contrastEnhanced, darkenWallpaper, keepWindowState,
+    contextMenuStyle, contextMenuMode,
     isInitialized, loadSettings, saveSetting, saveAllSettings
 
   };

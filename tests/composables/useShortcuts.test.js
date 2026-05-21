@@ -5,12 +5,19 @@ import { defineComponent } from 'vue';
 
 // Criamos um componente wrapper para testar o composable dentro do ciclo de vida do Vue
 const TestComponent = defineComponent({
+  props: {
+    isOpen: {
+      type: Boolean,
+      default: false
+    }
+  },
   setup(props, { emit }) {
     useShortcuts({
-      onToggleNotes: () => emit('toggle'),
+      onToggleNotes: (val) => emit('toggle', val),
       onOpenAddModal: () => emit('add'),
       onOpenSettings: () => emit('settings'),
-      onWellnessTest: () => emit('wellness')
+      onWellnessTest: () => emit('wellness'),
+      isNotesOpen: () => props.isOpen
     });
     return () => null;
   }
@@ -25,22 +32,26 @@ describe('useShortcuts', () => {
     vi.restoreAllMocks();
   });
 
-  it('deve disparar onToggleNotes ao pressionar "n"', async () => {
-    const wrapper = mount(TestComponent);
-    
-    const event = new KeyboardEvent('keydown', { key: 'n' });
-    window.dispatchEvent(event);
-
-    expect(wrapper.emitted()).toHaveProperty('toggle');
-  });
-
-  it('deve disparar onOpenAddModal ao pressionar "t"', async () => {
+  it('deve disparar onToggleNotes ao pressionar "t"', async () => {
     const wrapper = mount(TestComponent);
     
     const event = new KeyboardEvent('keydown', { key: 't' });
     window.dispatchEvent(event);
 
-    expect(wrapper.emitted()).toHaveProperty('add');
+    expect(wrapper.emitted()).toHaveProperty('toggle');
+  });
+
+  it('não deve disparar nada ao pressionar "n", "c" ou "Alt + w"', async () => {
+    const wrapper = mount(TestComponent);
+    
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'n' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'c' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w', altKey: true }));
+
+    expect(wrapper.emitted()).not.toHaveProperty('toggle');
+    expect(wrapper.emitted()).not.toHaveProperty('add');
+    expect(wrapper.emitted()).not.toHaveProperty('settings');
+    expect(wrapper.emitted()).not.toHaveProperty('wellness');
   });
 
   it('não deve disparar atalhos se o usuário estiver digitando em um input', async () => {
@@ -51,7 +62,7 @@ describe('useShortcuts', () => {
     document.body.appendChild(input);
     input.focus();
 
-    const event = new KeyboardEvent('keydown', { key: 'n' });
+    const event = new KeyboardEvent('keydown', { key: 't' });
     window.dispatchEvent(event);
 
     expect(wrapper.emitted()).not.toHaveProperty('toggle');
@@ -59,12 +70,18 @@ describe('useShortcuts', () => {
     document.body.removeChild(input);
   });
 
-  it('deve disparar onWellnessTest ao pressionar Alt + W', async () => {
-    const wrapper = mount(TestComponent);
-    
-    const event = new KeyboardEvent('keydown', { key: 'w', altKey: true });
-    window.dispatchEvent(event);
+  it('quando aberto, deve permitir apenas Escape para fechar e ignorar outras teclas', async () => {
+    const wrapper = mount(TestComponent, {
+      props: { isOpen: true }
+    });
 
-    expect(wrapper.emitted()).toHaveProperty('wellness');
+    // Pressiona 't' -> Não deve alternar ou disparar evento toggle (bloqueado)
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 't' }));
+    expect(wrapper.emitted('toggle')).toBeUndefined();
+
+    // Pressiona Escape -> Deve disparar toggle com o valor false para fechar
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(wrapper.emitted('toggle')).toBeTruthy();
+    expect(wrapper.emitted('toggle')[0]).toEqual([false]);
   });
 });

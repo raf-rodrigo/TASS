@@ -1,7 +1,17 @@
 import { onMounted, onUnmounted } from 'vue';
 
-export function useShortcuts({ onToggleNotes, onOpenAddModal, onOpenSettings, onWellnessTest }) {
+export function useShortcuts({ onToggleNotes, onOpenAddModal, onOpenSettings, onWellnessTest, isNotesOpen }) {
   const handleGlobalKeydown = (e) => {
+    const open = typeof isNotesOpen === 'function' ? isNotesOpen() : (isNotesOpen?.value ?? isNotesOpen);
+
+    if (open) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onToggleNotes(false);
+      }
+      return; // Ignora qualquer outro atalho global se o painel estiver aberto
+    }
+
     if (e.key === 'Escape') {
       e.preventDefault();
       onToggleNotes(false);
@@ -16,31 +26,14 @@ export function useShortcuts({ onToggleNotes, onOpenAddModal, onOpenSettings, on
     
     if (isInput) return;
 
-    // Atalhos com Alt
-    if (e.altKey) {
-      if (e.key.toLowerCase() === 'w' && onWellnessTest) {
-        e.preventDefault();
-        onWellnessTest();
-      }
-      return;
-    }
-
     // Atalhos Simples (Letras Sozinhas)
-    if (e.ctrlKey || e.metaKey) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
 
     const key = e.key.toLowerCase();
     switch (key) {
-      case 'n':
-        e.preventDefault();
-        onToggleNotes();
-        break;
       case 't':
         e.preventDefault();
-        onOpenAddModal();
-        break;
-      case 'c':
-        e.preventDefault();
-        onOpenSettings();
+        onToggleNotes();
         break;
     }
   };

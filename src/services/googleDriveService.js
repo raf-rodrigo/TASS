@@ -1,33 +1,31 @@
 import { notificationService } from './notificationService';
 
 const CLIENT_ID = '852004924790-groj6mfjrak697vv3ntmeeajk4ineuv3.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile';
-const FOLDER_NAME = 'TASS Backups';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/userinfo.profile';
+const FOLDER_NAME = 'TASS';
 
 let tokenClient = null;
 let accessToken = null;
 let authChangeCallback = null;
 let userProfile = null;
+let cachedFolderId = null;
 
 export const googleDriveService = {
   /**
    * Inicializa o cliente GIS (Google Identity Services)
-   * Carrega o script dinamicamente se ainda não estiver presente
    */
   async init(onAuthChange) {
     authChangeCallback = onAuthChange;
     
-    // 1. Garante que o script do Google esteja carregado
     await this._loadGoogleScript();
 
-    // 2. Configura o cliente de token
     return new Promise((resolve) => {
       this._setupTokenClient(resolve);
     });
   },
 
   /**
-   * Injeta o script do Google no documento dinamicamente
+   * Injeta o script do Google dinamicamente
    */
   _loadGoogleScript() {
     return new Promise((resolve, reject) => {
@@ -36,7 +34,6 @@ export const googleDriveService = {
         return;
       }
 
-      // Evita carregar múltiplos scripts se chamado simultaneamente
       if (document.getElementById('google-gsi-client')) {
         const checkInterval = setInterval(() => {
           if (typeof google !== 'undefined' && google.accounts) {
@@ -69,7 +66,6 @@ export const googleDriveService = {
         }
         accessToken = response.access_token;
         
-        // Persiste o token e a expiração (expires_in vem em segundos)
         const expiryTime = Date.now() + (response.expires_in * 1000);
         localStorage.setItem('tass_google_access_token', accessToken);
         localStorage.setItem('tass_google_token_expiry', expiryTime.toString());
@@ -80,7 +76,6 @@ export const googleDriveService = {
       },
     });
 
-    // Tenta recuperar sessão existente do localStorage
     const savedToken = localStorage.getItem('tass_google_access_token');
     const expiry = localStorage.getItem('tass_google_token_expiry');
 
@@ -108,6 +103,10 @@ export const googleDriveService = {
       const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
+      if (response.status === 401 || response.status === 403) {
+        this.clearSession();
+        return;
+      }
       if (!response.ok) throw new Error('Falha ao buscar perfil');
       userProfile = await response.json();
       return userProfile;
@@ -117,35 +116,24 @@ export const googleDriveService = {
     }
   },
 
-  /**
-   * Retorna o perfil atual do usuário
-   */
   getProfile() {
     return userProfile;
   },
 
-  /**
-   * Solicita um token de acesso ao usuário
-   */
   async login() {
     if (!tokenClient) await this.init();
     tokenClient.requestAccessToken({ prompt: 'consent' });
   },
 
-  /**
-   * Limpa os dados de sessão localmente
-   */
   clearSession() {
     accessToken = null;
     userProfile = null;
+    cachedFolderId = null;
     localStorage.removeItem('tass_google_access_token');
     localStorage.removeItem('tass_google_token_expiry');
     if (authChangeCallback) authChangeCallback(false, null);
   },
 
-  /**
-   * Faz logout e revoga o acesso
-   */
   logout() {
     if (accessToken) {
       google.accounts.oauth2.revoke(accessToken, () => {
@@ -158,23 +146,26 @@ export const googleDriveService = {
   },
 
   /**
-   * Encontra ou cria a pasta de backups no Drive
+   * Encontra ou cria a pasta 'TASS' no Drive (Case Insensitive)
    */
   async getOrCreateFolder() {
     if (!accessToken) throw new Error('Não autenticado');
+    if (cachedFolderId) return cachedFolderId;
 
-    // 1. Procurar a pasta
-    const query = encodeURIComponent(`name = '${FOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
+    const query = encodeURIComponent(`name contains '${FOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
     const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, {
       headers: { Authorization: `Bearer ${accessToken}` }
     });
     const data = await response.json();
 
-    if (data.files && data.files.length > 0) {
-      return data.files[0].id;
+    const folder = data.files?.find(f => f.name.toLowerCase() === FOLDER_NAME.toLowerCase());
+    
+    if (folder) {
+      cachedFolderId = folder.id;
+      return folder.id;
     }
 
-    // 2. Criar se não existir
+    console.log('[TASS] Criando pasta centralizada TASS no Drive...');
     const createResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
       method: 'POST',
       headers: {
@@ -186,12 +177,13 @@ export const googleDriveService = {
         mimeType: 'application/vnd.google-apps.folder'
       })
     });
-    const folder = await createResponse.json();
-    return folder.id;
+    const newFolder = await createResponse.json();
+    cachedFolderId = newFolder.id;
+    return newFolder.id;
   },
 
   /**
-   * Faz upload de um backup para o Drive
+   * Upload de backup
    */
   async uploadBackup(data) {
     try {
@@ -216,24 +208,20 @@ export const googleDriveService = {
       });
 
       if (!response.ok) throw new Error('Falha no upload');
-
       return true;
     } catch (error) {
       console.error('Google Drive Upload Error:', error);
-      notificationService.alert('Erro no Backup', 'Não foi possível salvar no Google Drive.', 'error');
+      notificationService.alert('Erro no Backup', 'Não foi possível salvar na pasta TASS.', 'error');
       return false;
     }
   },
 
-  /**
-   * Lista arquivos de backup na pasta do Drive
-   */
   async listBackups() {
     try {
       if (!accessToken) throw new Error('Não autenticado');
       const folderId = await this.getOrCreateFolder();
 
-      const query = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
+      const query = encodeURIComponent(`'${folderId}' in parents and name contains 'tass_backup' and trashed = false`);
       const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&orderBy=createdTime desc&fields=files(id, name, createdTime)`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
@@ -245,46 +233,32 @@ export const googleDriveService = {
     }
   },
 
-  /**
-   * Baixa o conteúdo de um arquivo de backup
-   */
   async downloadBackup(fileId) {
     try {
       if (!accessToken) throw new Error('Não autenticado');
-      
       const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
-      
       if (!response.ok) throw new Error('Falha no download');
-      
       return await response.json();
     } catch (error) {
       console.error('Google Drive Download Error:', error);
-      notificationService.alert('Erro na Restauração', 'Não foi possível baixar o backup do Google Drive.', 'error');
       return null;
     }
   },
 
-  /**
-   * Exclui um arquivo de backup do Drive
-   */
   async deleteBackup(fileId) {
     try {
       if (!accessToken) throw new Error('Não autenticado');
-
       const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${accessToken}` }
       });
-
       if (!response.ok) throw new Error('Falha na exclusão');
-
-      notificationService.toast('Backup removido do Google Drive!', 'success');
+      notificationService.toast('Arquivo removido da pasta TASS!', 'success');
       return true;
     } catch (error) {
       console.error('Google Drive Delete Error:', error);
-      notificationService.alert('Erro na Exclusão', 'Não foi possível remover o arquivo da nuvem.', 'error');
       return false;
     }
   },

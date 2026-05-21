@@ -39,6 +39,7 @@ const isDark = computed(() => settings.theme === 'dark');
           :dark="isDark"
           format="HH:mm"
           class="tass-datepicker-standard"
+          input-class-name="app-input px-4 py-3 shadow-sm transition-all w-full text-center font-bold text-lg"
           auto-apply
           teleport="body"
           :locale="ptBR"

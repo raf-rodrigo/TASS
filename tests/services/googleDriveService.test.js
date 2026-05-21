@@ -9,51 +9,65 @@ vi.mock('../../src/services/notificationService', () => ({
   }
 }));
 
-// Mock global de fetch e google accounts
+// Mock global de fetch
 global.fetch = vi.fn();
+
+// Mock do objeto google para passar no init
 global.google = {
   accounts: {
     oauth2: {
-      initTokenClient: vi.fn(),
-      revoke: vi.fn()
+      initTokenClient: vi.fn((config) => ({
+        requestAccessToken: () => config.callback({ access_token: 'mock_token', expires_in: 3600 })
+      }))
     }
   }
 };
 
-describe('googleDriveService', () => {
-  beforeEach(() => {
+describe('googleDriveService - Isolamento e Lógica', () => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     localStorage.clear();
+    
+    // Reset manual de variáveis internas via métodos públicos ou mock
     googleDriveService.clearSession();
+    
+    // Mock inicial do getUserProfile que ocorre no login
+    fetch.mockResolvedValue({ ok: true, json: async () => ({ name: 'Test' }) });
+    
+    await googleDriveService.init();
+    await googleDriveService.login();
+    
+    // Limpa os mocks após o setup do login para focar nos métodos reais
+    vi.clearAllMocks();
   });
 
-  describe('getUserProfile', () => {
-    it('deve buscar o perfil do usuário e armazenar localmente', async () => {
-      const mockProfile = { name: 'User Test', picture: 'photo.jpg' };
-      
-      // Simula que existe um accessToken (normalmente setado no callback do GIS)
-      // Como a variável é local no módulo, precisamos de uma forma de injetá-la ou simular o login
-      // Para o teste unitário do método getUserProfile, vamos focar na lógica de fetch
-      
-      // Mock do fetch para userinfo
-      fetch.mockResolvedValue({
+  describe('getOrCreateFolder', () => {
+    it('deve buscar e retornar pasta TASS existente', async () => {
+      fetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => mockProfile
+        json: async () => ({
+          files: [{ id: 'folder_abc', name: 'TASS', mimeType: 'application/vnd.google-apps.folder' }]
+        })
       });
 
-      // Simula um login bem sucedido (setando token manualmente via implementação interna se possível ou mockando o comportamento)
-      // Como accessToken não é exportado, testamos indiretamente via os fluxos que o utilizam
+      const id = await googleDriveService.getOrCreateFolder();
+      expect(id).toBe('folder_abc');
     });
 
-    it('deve limpar o perfil no clearSession', () => {
-      googleDriveService.clearSession();
-      expect(googleDriveService.getProfile()).toBeNull();
-    });
-  });
+    it('deve criar a pasta TASS se não existir', async () => {
+      // 1. Busca retorna vazio
+      fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ files: [] })
+      });
+      // 2. Criação da pasta
+      fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 'new_folder_xyz' })
+      });
 
-  describe('isAuthenticated', () => {
-    it('deve retornar false quando não há token', () => {
-      expect(googleDriveService.isAuthenticated()).toBe(false);
+      const id = await googleDriveService.getOrCreateFolder();
+      expect(id).toBe('new_folder_xyz');
     });
   });
 });

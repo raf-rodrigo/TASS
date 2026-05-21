@@ -26,7 +26,8 @@ const props = defineProps({
   title: String,
   subtitle: { type: String, default: '' },
   icon: { type: [Object, Function], default: null },
-  layout: { type: String, default: 'standard', validator: v => ['standard', 'custom'].includes(v) },
+  iconBgColor: { type: String, default: '' },
+  layout: { type: String, default: 'standard', validator: v => ['standard', 'custom', 'sidebar'].includes(v) },
   showClose: { type: Boolean, default: true },
   closeOnClickOutside: { type: Boolean, default: true },
   isWindow: { type: Boolean, default: false },
@@ -64,7 +65,9 @@ const { position, onMouseDown } = useModalDrag();
         '--modal-x': `${position.x}px`,
         '--modal-y': `${position.y}px`,
         transform: `translate(var(--modal-x), var(--modal-y))`,
-        backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-opacity))`
+        backgroundColor: settings.opacityTargets.modals ? 'transparent' : 'rgba(var(--app-bg-raw), 1)',
+        backdropFilter: settings.opacityTargets.modals ? 'blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))' : 'none',
+        WebkitBackdropFilter: settings.opacityTargets.modals ? 'blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))' : 'none'
       }"
     >
       <!-- ============================================== -->
@@ -75,12 +78,74 @@ const { position, onMouseDown } = useModalDrag();
       </template>
 
       <!-- ============================================== -->
+      <!-- MODO: SIDEBAR (Layout de duas colunas com Abas) -->
+      <!-- ============================================== -->
+      <template v-else-if="layout === 'sidebar'">
+        <!-- Header -->
+        <header 
+          class="tass-layout-header"
+          :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
+          @mousedown="onMouseDown"
+        >
+          <slot name="header" :onMouseDown="onMouseDown">
+            <div class="flex items-center gap-3">
+              <div 
+                v-if="icon" 
+                class="p-2 rounded-xl text-white shadow-lg" 
+                :style="{ 
+                  backgroundColor: iconBgColor || '#6366f1', 
+                  boxShadow: iconBgColor ? `0 4px 12px -2px ${iconBgColor}44` : '0 4px 12px -2px rgba(99, 102, 241, 0.3)' 
+                }"
+              >
+                <component :is="icon" class="w-4 h-4" />
+              </div>
+              <div v-else class="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
+              
+              <div>
+                <h2 class="text-sm font-black text-app-main uppercase tracking-tighter leading-none">
+                  {{ title }}
+                </h2>
+                <p v-if="subtitle" class="text-[9px] text-app-muted font-bold uppercase tracking-widest mt-1">
+                  {{ subtitle }}
+                </p>
+              </div>
+            </div>
+          </slot>
+          
+          <button v-if="showClose" type="button" @click="emit('close')" class="icon-btn -mr-2">
+            <X class="w-5 h-5" />
+          </button>
+        </header>
+
+        <div class="flex flex-col md:flex-row flex-1 overflow-hidden relative">
+          <!-- Sidebar -->
+          <aside 
+            class="tass-layout-sidebar"
+            :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-sidebar-opacity))` }"
+          >
+            <slot name="sidebar"></slot>
+          </aside>
+
+          <!-- Conteúdo Central -->
+          <main 
+            class="tass-layout-main overflow-y-auto custom-scrollbar"
+            :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-body-opacity))` }"
+          >
+            <div class="tass-layout-content">
+              <slot :onMouseDown="onMouseDown"></slot>
+            </div>
+          </main>
+        </div>
+      </template>
+
+      <!-- ============================================== -->
       <!-- MODO: STANDARD (Padrão Cursorrules) -->
       <!-- ============================================== -->
       <template v-else>
         <!-- Header -->
         <header 
           class="flex items-center justify-between p-6 pb-4 border-b border-app-border-light cursor-grab active:cursor-grabbing select-none"
+          :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
           @mousedown="onMouseDown"
         >
           <slot name="header" :onMouseDown="onMouseDown">
@@ -105,16 +170,23 @@ const { position, onMouseDown } = useModalDrag();
         </header>
 
         <!-- Content Area -->
-        <main class="flex-1 p-6 space-y-5 overflow-y-auto custom-scrollbar">
+        <main 
+          class="flex-1 p-6 space-y-5 overflow-y-auto custom-scrollbar"
+          :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-body-opacity))` }"
+        >
           <slot :onMouseDown="onMouseDown"></slot>
         </main>
       </template>
 
       <!-- Footer Area (Global: Disponível em todos os layouts se props existirem) -->
-      <footer v-if="$slots.footer || okText || cancelText" class="p-6 border-t border-app-border-light bg-app-surface flex justify-end items-center gap-3 mt-auto">
+      <footer 
+        v-if="$slots.footer || okText || cancelText" 
+        :class="layout === 'sidebar' ? 'tass-layout-footer' : 'py-4 px-6 border-t border-app-border-light flex justify-end items-center gap-3 mt-auto'"
+        :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
+      >
         <slot name="footer">
-          <button v-if="cancelText" type="button" @click="emit('cancel')" class="btn btn-secondary px-6 border-none shadow-none">{{ cancelText }}</button>
-          <button v-if="okText" type="submit" @click="emit('ok')" class="btn btn-primary px-6 border-none shadow-none" :disabled="okLoading">
+          <button v-if="cancelText" type="button" @click="emit('cancel')" class="btn btn-secondary px-6 border-none shadow-none py-2 text-xs">{{ cancelText }}</button>
+          <button v-if="okText" type="submit" @click="emit('ok')" class="btn btn-primary px-6 border-none shadow-none py-2 text-xs" :disabled="okLoading">
             <span v-if="okLoading" class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
             {{ okText }}
           </button>
@@ -126,4 +198,3 @@ const { position, onMouseDown } = useModalDrag();
 
 <style scoped>
 </style>
-

@@ -31,14 +31,21 @@ describe('SettingsStore', () => {
     const store = useSettingsStore();
     db.settings.toArray.mockResolvedValue([
       { key: 'app-theme', value: 'light' },
-      { key: 'app-columns', value: 4 }
+      { key: 'app-columns', value: 4 },
+      { key: 'app-darken-wallpaper', value: false }
     ]);
 
     await store.loadSettings();
 
     expect(store.theme).toBe('light');
     expect(store.columns).toBe(4);
+    expect(store.darkenWallpaper).toBe(false);
     expect(store.isInitialized).toBe(true);
+  });
+
+  it('deve ter darkenWallpaper como true por padrão', () => {
+    const store = useSettingsStore();
+    expect(store.darkenWallpaper).toBe(true);
   });
 
   it('deve salvar uma configuração individual', async () => {
@@ -53,7 +60,7 @@ describe('SettingsStore', () => {
 
     await store.loadSettings();
 
-    expect(store.appWidth).toBe(1400);
+      expect(store.appWidth).toBe(1400);
     expect(db.settings.put).toHaveBeenCalledWith({ key: 'app-width', value: 1400 });
   });
 });
