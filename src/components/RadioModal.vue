@@ -137,117 +137,92 @@ const handleSave = async () => {
 <template>
   <BaseModal 
     maxWidth="max-w-md" 
-    layout="custom"
+    layout="standard"
+    :title="radioToEdit ? 'Editar Rádio' : 'Adicionar Rádio'"
+    subtitle="Streaming de Áudio"
+    :icon="Headphones"
+    iconBgColor="#f59e0b"
     @close="emit('close')"
   >
-    <template #default="{ onMouseDown }">
-      <div class="flex flex-col">
-        <!-- Header Unificado e Arrastável -->
-        <header 
-          class="flex items-center justify-between px-6 py-4 border-b border-app-border-light shrink-0 cursor-grab active:cursor-grabbing select-none"
-          :class="settings.opacityTargets.modals ? 'bg-transparent' : 'bg-app-solid'"
-          @mousedown="onMouseDown"
-        >
-          <div class="flex items-center gap-4">
-            <div class="p-2 rounded-xl text-white shadow-lg bg-amber-500 shadow-amber-500/20">
-              <Headphones class="w-4 h-4" />
-            </div>
-            <div>
-              <h2 class="text-sm font-black text-app-main uppercase tracking-tighter leading-none">
-                {{ radioToEdit ? 'Editar Rádio' : 'Adicionar Rádio' }}
-              </h2>
-              <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest mt-1">Streaming de Áudio</p>
-            </div>
-          </div>
-          
-          <button type="button" @click="emit('close')" class="icon-btn -mr-2">
-            <X class="w-5 h-5" />
-          </button>
-        </header>
-
-        <div class="p-6 space-y-6">
-          <!-- Corpo do Formulário -->
-          <div class="space-y-1.5">
-            <div class="flex items-center justify-between px-1">
-              <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                Nome da Rádio
-              </label>
-            </div>
-            <AppInput 
-              v-model="radioName" 
-              placeholder="Ex: Jazz Lounge" 
-              :error="error && !radioName ? 'Obrigatório' : ''"
-            />
-          </div>
-          
-          <div class="space-y-1.5">
-            <div class="flex items-center justify-between px-1">
-              <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                URL de Streaming (.mp3, .aac...)
-              </label>
-              
-              <!-- Botão de Teste -->
-              <button 
-                @click="handleTestUrl"
-                type="button"
-                class="flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter transition-all active:scale-95 z-10"
-                :class="[
-                  isTestPlaying 
-                    ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' 
-                    : 'bg-amber-500/10 text-amber-600 hover:bg-amber-500 hover:text-white dark:text-amber-400 dark:hover:text-white'
-                ]"
-                :disabled="isTesting"
-              >
-                <template v-if="isTesting">
-                  <Loader2 class="w-3 h-3 animate-spin" />
-                  <span>Conectando...</span>
-                </template>
-                <template v-else-if="isTestPlaying">
-                  <Square class="w-3 h-3 fill-current" />
-                  <span>Parar Teste</span>
-                </template>
-                <template v-else>
-                  <Play class="w-3 h-3 fill-current" />
-                  <span>Testar Link</span>
-                </template>
-              </button>
-            </div>
-
-            <AppInput 
-              v-model="radioUrl" 
-              type="url" 
-              placeholder="https://..." 
-              :error="error && !radioUrl ? 'Obrigatório' : ''"
-            />
-          </div>
-
-          <div 
-            v-if="error" 
-            class="text-center text-red-500 text-[10px] font-black uppercase tracking-widest animate-shake p-2 border border-red-500/20"
-            :style="{ borderRadius: 'var(--app-input-radius)' }"
-          >
-            {{ error }}
-          </div>
-
-          <!-- Footer Compacto -->
-          <div class="flex justify-end items-center gap-2 pt-2">
-            <button 
-              @click="emit('close')" 
-              class="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button 
-              @click="handleSave" 
-              class="px-5 py-2 text-[10px] font-black uppercase tracking-widest bg-amber-500 text-white shadow-lg shadow-amber-500/30 hover:bg-amber-600 transition-all active:scale-95"
-              :style="{ borderRadius: 'var(--app-input-radius)' }"
-            >
-              {{ radioToEdit ? 'Atualizar' : 'Salvar Rádio' }}
-            </button>
-          </div>
-        </div>
+    <!-- Corpo do Formulário -->
+    <div class="space-y-1.5">
+      <div class="flex items-center justify-between px-1">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          Nome da Rádio
+        </label>
       </div>
-    </template>
+      <AppInput 
+        v-model="radioName" 
+        placeholder="Ex: Jazz Lounge" 
+        :error="error && !radioName ? 'Obrigatório' : ''"
+      />
+    </div>
+    
+    <div class="space-y-1.5">
+      <div class="flex items-center justify-between px-1">
+        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          URL de Streaming (.mp3, .aac...)
+        </label>
+        
+        <!-- Botão de Teste -->
+        <button 
+          @click="handleTestUrl"
+          type="button"
+          class="flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter transition-all active:scale-95 z-10"
+          :class="[
+            isTestPlaying 
+              ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' 
+              : 'bg-amber-500/10 text-amber-600 hover:bg-amber-500 hover:text-white dark:text-amber-400 dark:hover:text-white'
+          ]"
+          :disabled="isTesting"
+        >
+          <template v-if="isTesting">
+            <Loader2 class="w-3 h-3 animate-spin" />
+            <span>Conectando...</span>
+          </template>
+          <template v-else-if="isTestPlaying">
+            <Square class="w-3 h-3 fill-current" />
+            <span>Parar Teste</span>
+          </template>
+          <template v-else>
+            <Play class="w-3 h-3 fill-current" />
+            <span>Testar Link</span>
+          </template>
+        </button>
+      </div>
+
+      <AppInput 
+        v-model="radioUrl" 
+        type="url" 
+        placeholder="https://..." 
+        :error="error && !radioUrl ? 'Obrigatório' : ''"
+      />
+    </div>
+
+    <div 
+      v-if="error" 
+      class="text-center text-red-500 text-[10px] font-black uppercase tracking-widest animate-shake p-2 border border-red-500/20"
+      :style="{ borderRadius: 'var(--app-input-radius)' }"
+    >
+      {{ error }}
+    </div>
+
+    <!-- Footer Compacto -->
+    <div class="flex justify-end items-center gap-2 pt-2">
+      <button 
+        @click="emit('close')" 
+        class="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+      >
+        Cancelar
+      </button>
+      <button 
+        @click="handleSave" 
+        class="px-5 py-2 text-[10px] font-black uppercase tracking-widest bg-amber-500 text-white shadow-lg shadow-amber-500/30 hover:bg-amber-600 transition-all active:scale-95"
+        :style="{ borderRadius: 'var(--app-input-radius)' }"
+      >
+        {{ radioToEdit ? 'Atualizar' : 'Salvar Rádio' }}
+      </button>
+    </div>
   </BaseModal>
 </template>
 

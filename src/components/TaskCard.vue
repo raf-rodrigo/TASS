@@ -159,7 +159,8 @@ const handleSelect = (event) => {
         <!-- Contador (Tempo) - Escondido quando rodando ou no mobile -->
         <span 
           v-if="!task.isRunning" 
-          class="hidden sm:inline text-[10px] font-bold text-app-sub leading-none mr-1 hover:text-indigo-500 cursor-pointer transition-colors"
+          class="hidden sm:inline font-bold text-app-sub leading-none mr-1 hover:text-indigo-500 cursor-pointer transition-colors"
+          :style="{ fontSize: settings.taskTimerSize + 'px' }"
           data-tip="Clique para ajustar o tempo"
           @click.stop="handleAdjustTime"
         >

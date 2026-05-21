@@ -118,6 +118,23 @@ const colors = [
   { name: 'Slate', value: '#64748b' }
 ];
 
+const sprintOptions = computed(() => {
+  return [
+    { label: 'Nenhuma Sprint', value: '' },
+    ...taskStore.sprints.map(sprint => ({
+      label: `Ciclo de ${new Date(sprint.endDate).toLocaleDateString('pt-BR')}`,
+      value: sprint.id
+    }))
+  ];
+});
+
+const priorityOptions = [
+  { label: 'Baixa', value: 'Baixa' },
+  { label: 'Normal', value: 'Normal' },
+  { label: 'Alta', value: 'Alta' },
+  { label: 'Urgente', value: 'Urgente' }
+];
+
 onMounted(() => {
   if (!props.taskToEdit && taskStore.sprints.length > 0) {
     const latestSprint = [...taskStore.sprints].sort((a, b) => new Date(b.endDate) - new Date(a.endDate))[0];
@@ -174,7 +191,6 @@ const submitTask = () => {
     :title="activeTabObj.label"
     :subtitle="activeTabObj.desc"
     :icon="activeTabObj.icon"
-    :iconBgColor="color"
   >
     <!-- Sidebar (Navegação) -->
     <template #sidebar>
@@ -238,28 +254,44 @@ const submitTask = () => {
             </div>
           </div>
 
-          <AppTextarea
+          <AppInput
             v-model="description"
-            label="Título da Tarefa"
+            label="Descrição"
             placeholder="O que você precisa fazer?"
-            rows="2"
             class="font-medium"
           />
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Sprint</label>
-              <div class="relative">
-                <Layers class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                <select v-model="sprintId" class="app-input px-4 py-3 shadow-sm transition-all pl-10 appearance-none cursor-pointer">
-                  <option value="">Nenhuma Sprint</option>
-                  <option v-for="sprint in taskStore.sprints" :key="sprint.id" :value="sprint.id">
-                    Ciclo de {{ new Date(sprint.endDate).toLocaleDateString('pt-BR') }}
-                  </option>
-                </select>
-              </div>
+              <AppSelect
+                v-model="sprintId"
+                label="Sprint"
+                :icon="Layers"
+                iconColor="text-slate-400"
+                :options="sprintOptions"
+              />
             </div>
 
+            <div>
+              <AppSelect 
+                v-model="priority" 
+                label="Prioridade" 
+                :options="priorityOptions" 
+                class="font-bold" 
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Estimativa</label>
+              <div class="relative flex items-center group">
+                <Clock class="absolute left-3 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
+                <input type="number" v-model="estimatedHours" min="0" placeholder="0" class="app-input px-4 py-3 shadow-sm transition-all !pl-10 pr-12 font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                <span class="absolute right-4 text-[12px] font-black text-slate-400 pointer-events-none">H</span>
+              </div>
+            </div>
+            
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Sessão Atual</label>
@@ -275,26 +307,6 @@ const submitTask = () => {
                   <span class="text-[10px] md:text-xs font-black font-mono text-app-main">{{ taskToEdit ? formatMsToHMS(taskToEdit.totalWorked || taskToEdit.totalTimeSpent || 0) : '00:00:00' }}</span>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Estimativa</label>
-              <div class="relative flex items-center group">
-                <Clock class="absolute left-3 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
-                <input type="number" v-model="estimatedHours" min="0" placeholder="0" class="app-input px-4 py-3 shadow-sm transition-all pl-10 pr-12 font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                <span class="absolute right-3 text-[8px] font-black text-slate-400 uppercase tracking-widest pointer-events-none">H</span>
-              </div>
-            </div>
-            <div>
-              <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Prioridade</label>
-              <select v-model="priority" class="app-input px-4 py-3 shadow-sm transition-all appearance-none cursor-pointer font-bold">
-                <option value="Baixa">Baixa</option>
-                <option value="Normal">Normal</option>
-                <option value="Alta">Alta</option>
-                <option value="Urgente">Urgente</option>
-              </select>
             </div>
           </div>
         </div>

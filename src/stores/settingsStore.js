@@ -18,6 +18,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const activeSprintId = ref('all');
   const taskNumberSize = ref(12);
   const taskDescriptionSize = ref(13);
+  const taskTimerSize = ref(10);
   const notesSide = ref('right');
   const backgroundImage = ref('');
   const keepWindowState = ref(localStorage.getItem('app-keep-window-state') === 'true');
@@ -170,6 +171,7 @@ export const useSettingsStore = defineStore('settings', () => {
       }
       if (settingsMap['app-task-number-size'] !== undefined) taskNumberSize.value = settingsMap['app-task-number-size'];
       if (settingsMap['app-task-desc-size'] !== undefined) taskDescriptionSize.value = settingsMap['app-task-desc-size'];
+      if (settingsMap['app-task-timer-size'] !== undefined) taskTimerSize.value = settingsMap['app-task-timer-size'];
       if (settingsMap['app-notes-side'] !== undefined) notesSide.value = settingsMap['app-notes-side'];
       if (settingsMap['app-notes-btn-top'] !== undefined) notesButtonTop.value = settingsMap['app-notes-btn-top'];
       if (settingsMap['app-notes-width'] !== undefined) notesWidth.value = settingsMap['app-notes-width'];
@@ -231,6 +233,7 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-custom-wallpapers', value: customWallpapers.value },
       { key: 'app-task-number-size', value: taskNumberSize.value },
       { key: 'app-task-desc-size', value: taskDescriptionSize.value },
+      { key: 'app-task-timer-size', value: taskTimerSize.value },
       { key: 'app-notes-side', value: notesSide.value },
       { key: 'app-notes-btn-top', value: notesButtonTop.value },
       { key: 'app-notes-width', value: notesWidth.value },
@@ -262,7 +265,7 @@ export const useSettingsStore = defineStore('settings', () => {
     theme, columns, appWidth, gitlabUrl, gitlabIntegrationMode,
     gitlabProjectId, gitlabToken, gitlabBaseBranch,
     inactivityThreshold, activeSprintId, taskNumberSize,
-    taskDescriptionSize, notesSide, backgroundImage, backgroundBlur,
+    taskDescriptionSize, taskTimerSize, notesSide, backgroundImage, backgroundBlur,
     notesButtonTop, notesWidth, cardPadding, fontFamily, trackInactivity,
 
     workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,
