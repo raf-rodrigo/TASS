@@ -92,15 +92,6 @@ const addCustomWallpaper = () => {
 
 const removeWallpaper = async (index) => {
   try {
-    const wp = settings.customWallpapers[index];
-    if (wp.isLocal || wp.url.includes('/wallpapers/')) {
-      const fileName = wp.url.split('/').pop();
-      try {
-        await fetch(`http://127.0.0.1:5176/api/wallpapers/${fileName}`, { method: 'DELETE' });
-      } catch (e) {
-        console.warn('[TASS] Falha ao excluir arquivo físico:', fileName);
-      }
-    }
     settings.customWallpapers.splice(index, 1);
     await settings.saveSetting('app-custom-wallpapers', [...settings.customWallpapers]);
     notificationService.toast('Papel de parede removido!');

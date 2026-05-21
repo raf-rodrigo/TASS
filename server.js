@@ -52,53 +52,6 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: '1.0.5', port: PORT });
 });
 
-// Endpoint para listar wallpapers locais
-app.get('/api/wallpapers', async (req, res) => {
-  try {
-    const wallpapersDir = path.resolve(__dirname, 'public', 'wallpapers');
-    await fs.mkdir(wallpapersDir, { recursive: true });
-    const files = await fs.readdir(wallpapersDir);
-    const list = files.filter(f => /\.(jpg|jpeg|png|webp)$/i.test(f)).map(f => ({
-      name: f,
-      url: `/wallpapers/${f}`,
-      isLocal: true
-    }));
-    res.json(list);
-  } catch (e) {
-    res.status(500).json([]);
-  }
-});
-
-// Endpoint para excluir wallpaper físico
-app.delete('/api/wallpapers/:name', async (req, res) => {
-  try {
-    const fileName = decodeURIComponent(req.params.name);
-    const wallpapersDir = path.resolve(__dirname, 'public', 'wallpapers');
-    const filePath = path.resolve(wallpapersDir, fileName);
-
-    // Proteção contra Path Traversal: Garante que o caminho resolvido está estritamente dentro de wallpapersDir
-    if (!filePath.startsWith(wallpapersDir)) {
-      console.warn(`[TASS] Bloqueada tentativa de Path Traversal na exclusão: ${fileName}`);
-      return res.status(403).json({ error: 'Acesso negado. Operação não autorizada.' });
-    }
-
-    console.log(`[TASS] Tentativa de exclusão física: ${filePath}`);
-
-    try {
-      await fs.access(filePath);
-      await fs.unlink(filePath);
-      console.log(`[TASS] Arquivo excluído com sucesso: ${fileName}`);
-      res.json({ success: true });
-    } catch (e) {
-      console.warn(`[TASS] Arquivo não encontrado para exclusão direta: ${fileName}`);
-      res.status(404).json({ error: 'Não encontrado' });
-    }
-  } catch (error) {
-    console.error('[TASS] Erro fatal na exclusão:', error);
-    res.status(500).json({ error: 'Erro interno' });
-  }
-});
-
 // Endpoint para executar comandos no terminal do sistema (PowerShell no Windows, Bash no Linux/macOS)
 app.post('/api/terminal/execute', (req, res) => {
   if (req.headers['x-tass-client'] !== 'true') {

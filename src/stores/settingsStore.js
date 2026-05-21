@@ -76,33 +76,6 @@ export const useSettingsStore = defineStore('settings', () => {
 
   const isInitialized = ref(false);
 
-  const syncWallpapers = async () => {
-    try {
-      let hasChanges = false;
-      
-      // Normalização Resiliente: Usa caminhos relativos para imagens na pasta public/wallpapers
-      // Isso permite que o navegador carregue a imagem mesmo se o servidor backend (5176) estiver offline.
-      customWallpapers.value = customWallpapers.value.map(wp => {
-        if (wp.url && wp.url.includes('/wallpapers/')) {
-          const fileName = wp.url.split('/').pop();
-          const correctedUrl = `/wallpapers/${fileName}`;
-          
-          if (wp.url !== correctedUrl) {
-            hasChanges = true;
-            return { ...wp, url: correctedUrl, isLocal: true };
-          }
-        }
-        return wp;
-      });
-
-      if (hasChanges) {
-        await saveSetting('app-custom-wallpapers', JSON.parse(JSON.stringify(customWallpapers.value)));
-      }
-    } catch (error) {
-      console.warn('[TASS] Erro ao normalizar caminhos dos wallpapers.');
-    }
-  };
-
   const loadSettings = async () => {
     try {
       const allSettings = await db.settings.toArray();
@@ -134,13 +107,7 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-work-days'] !== undefined) workDays.value = settingsMap['app-work-days'];
       if (settingsMap['app-auto-pause-work'] !== undefined) autoPauseOutsideWork.value = settingsMap['app-auto-pause-work'];
       if (settingsMap['app-bg-image'] !== undefined) {
-        let bgUrl = settingsMap['app-bg-image'];
-        // Normaliza para caminho relativo se for uma imagem local
-        if (bgUrl && bgUrl.includes('/wallpapers/')) {
-          const fileName = bgUrl.split('/').pop();
-          bgUrl = `/wallpapers/${fileName}`;
-        }
-        backgroundImage.value = bgUrl;
+        backgroundImage.value = settingsMap['app-bg-image'];
       }
       if (settingsMap['app-bg-blur'] !== undefined) backgroundBlur.value = settingsMap['app-bg-blur'];
       if (settingsMap['app-card-opacity'] !== undefined) cardOpacity.value = settingsMap['app-card-opacity'];
@@ -152,9 +119,6 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-custom-wallpapers'] !== undefined) {
         customWallpapers.value = settingsMap['app-custom-wallpapers'];
       }
-
-      // Sincroniza com wallpapers locais (arquivos na pasta public/wallpapers)
-      await syncWallpapers();
 
       // Injeção Inteligente: Sugere os wallpapers de elite apenas se a galeria ainda estiver vazia
       if (customWallpapers.value.length === 0) {
@@ -272,7 +236,7 @@ export const useSettingsStore = defineStore('settings', () => {
     cardBorderRadius, opacityTargets, customWallpapers, columnTitles,
     wellnessEnabled, wellnessInterval, contrastEnhanced, darkenWallpaper, keepWindowState,
     contextMenuStyle, contextMenuMode,
-    isInitialized, loadSettings, syncWallpapers, saveSetting, saveAllSettings
+    isInitialized, loadSettings, saveSetting, saveAllSettings
 
   };
 });

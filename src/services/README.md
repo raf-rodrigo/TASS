@@ -11,8 +11,6 @@ O `server.js` atua como um orquestrador local rodando na porta **5176**. Ele é 
 | Método | Rota | Descrição |
 | :--- | :--- | :--- |
 | `GET` | `/api/health` | Verifica a saúde e a versão do backend. |
-| `GET` | `/api/wallpapers` | Lista os arquivos de imagem presentes na pasta local. |
-| `DELETE` | `/api/wallpapers/:name` | Remove fisicamente um arquivo da pasta de wallpapers. |
 | `POST` | `/api/terminal/execute` | Executa comandos no terminal do sistema (PowerShell no Windows, Bash no Linux/macOS) mantendo o CWD sincronizado. |
 | `GET` | `/api/terminal/info` | Obtém informações iniciais do terminal, como o CWD base do servidor. |
 
@@ -61,6 +59,5 @@ Service Worker responsável por manter a precisão dos cronômetros.
 ---
 
 ## 🛡️ Padrões de Segurança
-- **Identificadores Únicos:** Arquivos locais são salvos via Hash (MD5) para evitar conflitos de nomes e injeção de caracteres especiais.
 - **Isolamento:** O backend opera em porta distinta (5176) para não interferir no ambiente de desenvolvimento do Vite (5175).
 - **Lazy Loading:** SDKs de terceiros (como o do Google) são carregados sob demanda apenas quando o serviço é inicializado.
