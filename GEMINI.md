@@ -45,7 +45,8 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
 ## 6. Comunicação e Workflow
 - **Idioma:** Todo o raciocínio e comunicação devem ser realizados em **Português**.
 - **Fluxo de Eventos:** Seguir o padrão de "Props down, Events up". Modais de ação devem ser disparados pelo `App.vue` através de eventos emitidos pelos componentes filhos (`TaskCard` -> `TaskBoard` -> `App`).
-- **Commits:** Sugerir mensagens seguindo o padrão **Conventional Commits** em uma única linha de comando. Importante: a linha não precisa ser curta; ela deve ser tão detalhada quanto necessário para descrever todas as alterações em um único comando `-m`, independentemente do comprimento.
+- **Proibição de Operações Git:** A IA está terminantemente **PROIBIDA** de executar comandos de Git (`add`, `commit`, `push`, `branch`, etc.) diretamente no terminal. Toda e qualquer alteração deve ser limitada ao escopo dos arquivos locais. O controle de versão é responsabilidade exclusiva do usuário.
+- **Sugestão de Commits:** A IA deve apenas **SUGERIR** a mensagem de commit seguindo o padrão **Conventional Commits** em uma única linha de comando detalhada, para que o usuário possa revisar e executar manualmente se desejar.
 
 ## 7. Recomendações de Segurança (Backend e Comunicação Local)
 - **Zero CORS Permissivo (`*`):** Em servidores locais de desenvolvimento que expõem APIs (como o `server.js` na porta 5176), nunca configure `origin: '*'`. O CORS deve ser restrito exclusivamente a origens locais confiáveis (`localhost` e `127.0.0.1` em qualquer porta).
