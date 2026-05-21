@@ -16,6 +16,7 @@ import { ptBR } from 'date-fns/locale';
 import '@vuepic/vue-datepicker/dist/main.css';
 import AppInput from './base/AppInput.vue';
 import AppSelect from './base/AppSelect.vue';
+import AppRadio from './base/AppRadio.vue';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -396,18 +397,43 @@ const handleResetSystem = async () => {
 
               <div v-else-if="activeTab === 'system'" :key="'system'" class="space-y-8">
                 <div class="space-y-4">
-                  <div class="glass-section p-4 space-y-4">
-                    <div class="flex items-center gap-3 mb-2"><Layout class="w-4 h-4 text-indigo-500" /><p class="text-sm font-bold text-slate-700 dark:text-slate-200">Estilo do Menu de Contexto</p></div>
-                    <p class="text-[10px] text-slate-500 mb-4">Escolha como as opções da tarefa devem ser exibidas.</p>
-                    <div class="grid grid-cols-2 gap-3">
-                      <button @click="localSettings.contextMenuStyle = 'floating'" class="flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all group" :class="localSettings.contextMenuStyle === 'floating' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'bg-app-surface border-transparent text-slate-400 hover:border-slate-300 dark:hover:border-white/10'"><MousePointer2 class="w-6 h-6" :class="localSettings.contextMenuStyle === 'floating' ? 'animate-bounce' : ''" /><div class="text-center"><p class="text-xs font-black uppercase tracking-tighter">Flutuante (OS)</p><p class="text-[9px] font-bold opacity-60">Abre no cursor</p></div></button>
-                      <button @click="localSettings.contextMenuStyle = 'dock'" class="flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all group" :class="localSettings.contextMenuStyle === 'dock' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'bg-app-surface border-transparent text-slate-400 hover:border-slate-300 dark:hover:border-white/10'"><Layout class="w-6 h-6" /><div class="text-center"><p class="text-xs font-black uppercase tracking-tighter">Dock Fixo</p><p class="text-[9px] font-bold opacity-60">Barra no rodapé</p></div></button>
+                  <div class="glass-section p-6 space-y-6">
+                    <div class="flex items-center gap-3">
+                      <MousePointer2 class="w-5 h-5 text-indigo-500" />
+                      <h3 class="text-sm font-bold text-app-main uppercase tracking-tight">Menu de Contexto</h3>
                     </div>
-                    <div class="mt-6 pt-6 border-t border-indigo-500/10 animate-fadeIn">
-                      <div class="flex items-center justify-between mb-4"><div class="flex items-center gap-2"><Layers class="w-3.5 h-3.5 text-indigo-500" /><p class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Comportamento da Dock</p></div><span class="text-[8px] font-bold text-slate-400 italic">Válido apenas para o modo 'Dock Fixo'</span></div>
-                      <div class="grid grid-cols-2 gap-3">
-                        <button @click="localSettings.contextMenuMode = 'stack'" class="flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all group" :class="localSettings.contextMenuMode === 'stack' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'bg-app-surface border-transparent text-slate-400 hover:border-slate-300 dark:hover:border-white/10'"><Layers class="w-5 h-5" :class="localSettings.contextMenuMode === 'stack' ? 'animate-pulse' : ''" /><div class="text-center"><p class="text-xs font-black uppercase tracking-tighter">Empilhar Acima</p><p class="text-[8px] font-bold opacity-60">Sobrepõe a Dock</p></div></button>
-                        <button @click="localSettings.contextMenuMode = 'replace'" class="flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all group" :class="localSettings.contextMenuMode === 'replace' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'bg-app-surface border-transparent text-slate-400 hover:border-slate-300 dark:hover:border-white/10'"><Maximize class="w-5 h-5" /><div class="text-center"><p class="text-xs font-black uppercase tracking-tighter">Substituir Dock</p><p class="text-[8px] font-bold opacity-60">Troca uma pela outra</p></div></button>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-12">
+                      <div class="space-y-4">
+                        <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Estilo Visual</p>
+                        <div class="flex flex-col gap-3">
+                          <AppRadio
+                            v-model="localSettings.contextMenuStyle"
+                            value="floating"
+                            label="Flutuante (OS)"
+                          />
+                          <AppRadio
+                            v-model="localSettings.contextMenuStyle"
+                            value="dock"
+                            label="Dock Fixo"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="space-y-4" :class="{ 'opacity-40 pointer-events-none': localSettings.contextMenuStyle !== 'dock' }">
+                        <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Comportamento da Dock</p>
+                        <div class="flex flex-col gap-3">
+                          <AppRadio
+                            v-model="localSettings.contextMenuMode"
+                            value="stack"
+                            label="Empilhar Acima"
+                          />
+                          <AppRadio
+                            v-model="localSettings.contextMenuMode"
+                            value="replace"
+                            label="Substituir"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>

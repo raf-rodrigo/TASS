@@ -318,13 +318,7 @@ const submitTask = () => {
               <GitBranch class="w-4 h-4 text-indigo-500" />
               <h4 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.2em]">Source Control</h4>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <AppInput 
-                v-model="branchName" 
-                label="Nome da Branch" 
-                placeholder="Ex: TSK-1234-feat-abc"
-                class="font-mono"
-              />
+            <div class="grid grid-cols-1 gap-6">
               <AppInput 
                 v-model="taskUrl" 
                 type="url" 

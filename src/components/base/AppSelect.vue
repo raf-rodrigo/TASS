@@ -1,10 +1,8 @@
 <script setup>
-import { ref, useAttrs, onMounted, onUnmounted, computed } from 'vue';
+import { ref, useAttrs, onMounted, onUnmounted, computed, nextTick } from 'vue';
 import { ChevronDown } from 'lucide-vue-next';
 
 defineOptions({
-  // Impede que as classes e atributos passados pelo pai
-  // sejam aplicados na div wrapper.
   inheritAttrs: false
 });
 
@@ -19,7 +17,7 @@ const props = defineProps({
   },
   options: {
     type: Array,
-    default: () => [] // [{ label: 'Opção 1', value: '1' }]
+    default: () => [] 
   },
   icon: {
     type: [Object, Function],
@@ -44,9 +42,32 @@ const attrs = useAttrs();
 
 const isOpen = ref(false);
 const containerRef = ref(null);
+const dropdownStyle = ref({
+  top: '0px',
+  left: '0px',
+  width: '0px'
+});
+
+// Função crucial: Calcula a posição do dropdown no body
+const updatePosition = () => {
+  if (containerRef.value && isOpen.value) {
+    const trigger = containerRef.value.querySelector('.app-select-trigger');
+    if (trigger) {
+      const rect = trigger.getBoundingClientRect();
+      dropdownStyle.value = {
+        top: `${rect.bottom + 8}px`,
+        left: `${rect.left}px`,
+        width: `${rect.width}px`
+      };
+    }
+  }
+};
 
 const toggle = () => {
   isOpen.value = !isOpen.value;
+  if (isOpen.value) {
+    nextTick(() => updatePosition());
+  }
 };
 
 const selectOption = (option) => {
@@ -56,16 +77,24 @@ const selectOption = (option) => {
 
 const handleClickOutside = (event) => {
   if (containerRef.value && !containerRef.value.contains(event.target)) {
+    // Se o clique não foi no trigger nem no dropdown, fecha
+    const dropdown = document.querySelector('.app-select-dropdown');
+    if (dropdown && dropdown.contains(event.target)) return;
     isOpen.value = false;
   }
 };
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
+  // Captura scroll em qualquer container pai para manter posição
+  window.addEventListener('scroll', updatePosition, true);
+  window.addEventListener('resize', updatePosition);
 });
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
+  window.removeEventListener('scroll', updatePosition, true);
+  window.removeEventListener('resize', updatePosition);
 });
 
 const selectedLabel = computed(() => {
@@ -92,11 +121,11 @@ const selectedLabel = computed(() => {
       </label>
     </div>
 
-    <!-- CUSTOM SELECT TRIGGER -->
+    <!-- TRIGGER (O botão que abre o select) -->
     <div 
       @click="toggle"
       v-bind="attrs"
-      class="app-input px-4 py-3 shadow-sm transition-all cursor-pointer flex items-center justify-between group"
+      class="app-select-trigger app-input px-4 py-3 shadow-sm transition-all cursor-pointer flex items-center justify-between group"
       :class="[
         error ? 'border-red-500/50 ring-1 ring-red-500/20' : '',
         isOpen ? 'ring-2 ring-indigo-500/40 border-indigo-500/50' : '',
@@ -115,35 +144,42 @@ const selectedLabel = computed(() => {
       />
     </div>
 
-    <!-- OPTIONS DROPDOWN -->
-    <transition
-      enter-active-class="transition duration-200 ease-out"
-      enter-from-class="opacity-0 scale-95 -translate-y-2"
-      enter-to-class="opacity-100 scale-100 translate-y-0"
-      leave-active-class="transition duration-150 ease-in"
-      leave-from-class="opacity-100 scale-100 translate-y-0"
-      leave-to-class="opacity-0 scale-95 -translate-y-2"
-    >
-      <div 
-        v-if="isOpen"
-        class="absolute z-50 w-full mt-2 bg-white dark:bg-slate-900 backdrop-blur-xl border border-app-border-light shadow-2xl overflow-hidden py-1 max-h-60 overflow-y-auto custom-scrollbar"
-        :style="{ borderRadius: 'var(--app-input-radius)' }"
+    <!-- DROPDOWN (Teleportado para o body para ignorar filtros de blur/overflow) -->
+    <teleport to="body">
+      <transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="opacity-0 scale-95 -translate-y-2"
+        enter-to-class="opacity-100 scale-100 translate-y-0"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 scale-100 translate-y-0"
+        leave-to-class="opacity-0 scale-95 -translate-y-2"
       >
         <div 
-          v-for="option in options" 
-          :key="option.value"
-          @click="selectOption(option)"
-          class="px-4 py-2.5 text-sm font-medium cursor-pointer transition-all hover:bg-indigo-500/10 flex items-center justify-between"
-          :class="modelValue === option.value ? 'text-indigo-500 bg-indigo-500/5 font-black' : 'text-slate-700 dark:text-slate-300'"
+          v-if="isOpen"
+          class="app-select-dropdown fixed z-[99999] bg-white dark:bg-slate-900 border border-app-border-light shadow-2xl overflow-hidden py-1 max-h-60 overflow-y-auto custom-scrollbar ring-1 ring-black/10 backdrop-blur-xl"
+          :style="{ 
+            borderRadius: 'var(--app-card-radius)',
+            top: dropdownStyle.top,
+            left: dropdownStyle.left,
+            width: dropdownStyle.width
+          }"
         >
-          {{ option.label }}
-          <div v-if="modelValue === option.value" class="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+          <div 
+            v-for="option in options" 
+            :key="option.value"
+            @click="selectOption(option)"
+            class="px-4 py-2.5 text-sm font-medium cursor-pointer transition-all hover:bg-indigo-500/10 flex items-center justify-between"
+            :class="modelValue === option.value ? 'text-indigo-500 bg-indigo-500/5 font-black' : 'text-slate-700 dark:text-slate-300'"
+          >
+            {{ option.label }}
+            <div v-if="modelValue === option.value" class="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+          </div>
+          <div v-if="options.length === 0" class="px-4 py-3 text-xs text-slate-400 text-center italic">
+            Nenhuma opção disponível
+          </div>
         </div>
-        <div v-if="options.length === 0" class="px-4 py-3 text-xs text-slate-400 text-center italic">
-          Nenhuma opção disponível
-        </div>
-      </div>
-    </transition>
+      </transition>
+    </teleport>
 
     <!-- CAIXA DE ERRO -->
     <div 

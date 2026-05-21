@@ -128,7 +128,7 @@ const { position, onMouseDown } = useModalDrag();
 
           <!-- Conteúdo Central -->
           <main 
-            class="tass-layout-main"
+            class="tass-layout-main overflow-y-auto custom-scrollbar"
             :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-body-opacity))` }"
           >
             <div class="tass-layout-content">

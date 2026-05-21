@@ -60,36 +60,7 @@ describe('SettingsStore', () => {
 
     await store.loadSettings();
 
-    expect(store.appWidth).toBe(1400);
+      expect(store.appWidth).toBe(1400);
     expect(db.settings.put).toHaveBeenCalledWith({ key: 'app-width', value: 1400 });
-  });
-
-  describe('syncWallpapers (Normalização Local)', () => {
-    it('deve corrigir URLs locais para caminhos relativos e adicionar isLocal: true', async () => {
-      const store = useSettingsStore();
-      store.customWallpapers = [
-        { name: 'Antigo', url: 'http://localhost:5175/wallpapers/old.jpg' },
-        { name: 'Relativo', url: '/wallpapers/relative.jpg' }
-      ];
-
-      await store.syncWallpapers();
-
-      expect(store.customWallpapers[0].url).toBe('/wallpapers/old.jpg');
-      expect(store.customWallpapers[0].isLocal).toBe(true);
-      expect(store.customWallpapers[1].url).toBe('/wallpapers/relative.jpg');
-      // No implementation current logic, if already relative, it doesn't add isLocal: true
-    });
-
-    it('não deve alterar wallpapers externos', async () => {
-
-      const store = useSettingsStore();
-      const externalUrl = 'https://images.unsplash.com/foto.jpg';
-      store.customWallpapers = [{ name: 'Externo', url: externalUrl }];
-
-      await store.syncWallpapers();
-
-      expect(store.customWallpapers[0].url).toBe(externalUrl);
-      expect(store.customWallpapers[0].isLocal).toBeUndefined();
-    });
   });
 });

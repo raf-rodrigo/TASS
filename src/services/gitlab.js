@@ -54,6 +54,27 @@ export const gitlabService = {
       const urlObj = new URL(gitlabUrl);
       const gitlabOrigin = urlObj.origin;
       const safeProjectId = encodeURIComponent(decodeURIComponent(gitlabProjectId));
+      const baseUrl = gitlabUrl.replace(/\/$/, '');
+      const treeUrl = `${baseUrl}/-/tree/${encodeURIComponent(branchName)}`;
+
+      // Se existe remoto mas NÃO tem link local, oferece vincular
+      if (!task.branchUrl) {
+        const confirmed = await notificationService.confirm(
+          'Branch Encontrada',
+          `A branch '${branchName}' já existe no GitLab, mas não está vinculada a esta tarefa.\nDeseja vincular este link localmente?`,
+          'Sim, Vincular',
+          'info'
+        );
+
+        if (confirmed) {
+          await db.tasks.update(task.id, { branchUrl: treeUrl, branchName: branchName });
+          task.branchUrl = treeUrl;
+          task.branchName = branchName;
+          notificationService.toast('Link da branch vinculado com sucesso!', 'success');
+          return treeUrl;
+        }
+      }
+
       return await this.handleExistingBranch(task, branchName, gitlabUrl, gitlabOrigin, safeProjectId, gitlabToken);
     } else {
       if (task.branchUrl) {
