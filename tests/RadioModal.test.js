@@ -43,9 +43,9 @@ describe("RadioModal.vue", () => {
     });
   });
 
-  it("uses custom layout for custom header", () => {
+  it("uses standard layout for standard header", () => {
     const baseModal = wrapper.findComponent({ name: "BaseModal" });
-    expect(baseModal.props("layout")).toBe("custom");
+    expect(baseModal.props("layout")).toBe("standard");
   });
 
   it("renders small size action buttons", () => {

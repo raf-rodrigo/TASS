@@ -263,53 +263,6 @@ export const googleDriveService = {
     }
   },
 
-  async listImageFiles() {
-    try {
-      if (!accessToken) throw new Error('Não autenticado');
-      const folderId = await this.getOrCreateFolder();
-      
-      const query = encodeURIComponent(`'${folderId}' in parents and mimeType contains 'image/' and trashed = false`);
-      const url = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id, name, thumbnailLink, mimeType)&pageSize=50`;
-      
-      const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-      
-      if (!response.ok) {
-        if (response.status === 403 || response.status === 401) {
-          this.clearSession();
-          notificationService.alert('Acesso Expirado', 'Por favor, conecte-se novamente ao Google Drive.', 'info');
-        }
-        return [];
-      }
-      
-      const data = await response.json();
-      return data.files || [];
-    } catch (error) {
-      console.error('Google Drive List Images Error:', error);
-      return [];
-    }
-  },
-
-  async importWallpaper(fileId, fileName) {
-    if (!accessToken) throw new Error('Não autenticado');
-    try {
-      const response = await fetch('http://127.0.0.1:5176/api/drive/import-wallpaper', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileId, fileName, accessToken })
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Falha na importação');
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Import Wallpaper Error:', error);
-      throw error;
-    }
-  },
-
   isAuthenticated() {
     return !!accessToken;
   }

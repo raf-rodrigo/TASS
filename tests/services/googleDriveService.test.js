@@ -70,38 +70,4 @@ describe('googleDriveService - Isolamento e Lógica', () => {
       expect(id).toBe('new_folder_xyz');
     });
   });
-
-  describe('listImageFiles', () => {
-    it('deve retornar lista de imagens da pasta TASS', async () => {
-      // 1. getOrCreateFolder (busca)
-      fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ files: [{ id: 'folder_id', name: 'TASS' }] })
-      });
-      // 2. listagem de imagens
-      fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          files: [{ id: 'img_id', name: 'test.png', thumbnailLink: 'link' }]
-        })
-      });
-
-      const images = await googleDriveService.listImageFiles();
-      expect(images).toHaveLength(1);
-      expect(images[0].name).toBe('test.png');
-    });
-  });
-
-  describe('importWallpaper', () => {
-    it('deve comunicar com a API local 5176', async () => {
-      fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ success: true, url: '/wallpapers/hash.jpg' })
-      });
-
-      const res = await googleDriveService.importWallpaper('fid', 'name.jpg');
-      expect(res.success).toBe(true);
-      expect(fetch).toHaveBeenCalledWith(expect.stringContaining(':5176/api/drive/import-wallpaper'), expect.any(Object));
-    });
-  });
 });

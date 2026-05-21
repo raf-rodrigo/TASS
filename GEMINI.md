@@ -59,7 +59,7 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
   1. **Quadro Kanban:** Sincronização, arraste de colunas e tarefas (`vuedraggable`), transições de status e atualização no IndexedDB.
   2. **Cronômetros e Jornada:** Início/pausa de tarefas, integridade do acumulador `totalWorked` ao ajustar `totalTimeSpent`, e funcionamento da pausa automática fora do expediente.
   3. **Ajustes Visuais (Interface):**
-     - Seleção e alteração do papel de parede (Presets e Google Drive).
+     - Seleção e alteração do papel de parede (Presets, Links Externos e Locais).
      - Modificadores de estrutura do quadro (Quantidade e nomes das colunas).
      - Estilo das tarefas (Espessura do padding, tamanho do título/número da tarefa, tamanho da descrição).
      - Tipografia global (Modificação de fontes).

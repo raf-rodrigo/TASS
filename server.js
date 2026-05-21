@@ -52,54 +52,6 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: '1.0.5', port: PORT });
 });
 
-// Endpoint para importar wallpaper do Google Drive (USANDO HASH)
-app.post('/api/drive/import-wallpaper', async (req, res) => {
-  const { fileId, fileName, accessToken } = req.body;
-  if (!fileId || !fileName || !accessToken) {
-    console.error('[TASS] Erro: Dados insuficientes no payload.');
-    return res.status(400).json({ error: 'Dados insuficientes.' });
-  }
-
-  try {
-    console.log(`[TASS] Solicitando arquivo ao Google Drive: ${fileId}`);
-    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[TASS] Erro Google Drive (${response.status}):`, errorText);
-      throw new Error(`Erro no Google Drive: ${response.status}`);
-    }
-
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    
-    // --- GERAÇÃO DE HASH PARA NOME FÍSICO ---
-    const hash = crypto.createHash('md5').update(buffer).digest('hex');
-    const ext = path.extname(fileName).toLowerCase() || '.jpg';
-    const hashedFileName = `${hash}${ext}`;
-
-    const wallpapersDir = path.resolve(__dirname, 'public', 'wallpapers');
-    await fs.mkdir(wallpapersDir, { recursive: true });
-
-    const finalPath = path.join(wallpapersDir, hashedFileName);
-    
-    await fs.writeFile(finalPath, buffer);
-    console.log(`[TASS] ARQUIVO SALVO NO DISCO: ${hashedFileName} (Original: ${fileName})`);
-    
-    res.json({ 
-      success: true, 
-      url: `/wallpapers/${hashedFileName}`,
-      name: fileName,
-      hash: hashedFileName 
-    });
-  } catch (error) {
-    console.error('[TASS] Erro fatal no Import:', error.message);
-    res.status(500).json({ error: `Falha no download: ${error.message}` });
-  }
-});
-
 // Endpoint para listar wallpapers locais
 app.get('/api/wallpapers', async (req, res) => {
   try {

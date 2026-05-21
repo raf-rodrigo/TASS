@@ -12,7 +12,6 @@ O `server.js` atua como um orquestrador local rodando na porta **5176**. Ele é 
 | :--- | :--- | :--- |
 | `GET` | `/api/health` | Verifica a saúde e a versão do backend. |
 | `GET` | `/api/wallpapers` | Lista os arquivos de imagem presentes na pasta local. |
-| `POST` | `/api/drive/import-wallpaper` | Baixa um arquivo do Google Drive, gera um **Hash MD5** e o salva localmente. |
 | `DELETE` | `/api/wallpapers/:name` | Remove fisicamente um arquivo da pasta de wallpapers. |
 | `POST` | `/api/terminal/execute` | Executa comandos no terminal do sistema (PowerShell no Windows, Bash no Linux/macOS) mantendo o CWD sincronizado. |
 | `GET` | `/api/terminal/info` | Obtém informações iniciais do terminal, como o CWD base do servidor. |
@@ -24,8 +23,8 @@ O `server.js` atua como um orquestrador local rodando na porta **5176**. Ele é 
 ### ☁️ `googleDriveService.js`
 Gerencia a integração com o Google Identity Services (GIS) e a API do Drive v3.
 - **Pasta Central:** Opera exclusivamente na pasta `TASS` (case-insensitive).
-- **Escopos:** Utiliza `drive.file` (escrita restrita) e `drive.readonly` (leitura de imagens).
-- **Fluxos:** Login/Logout, Backup/Restore de banco de dados e navegação de imagens.
+- **Escopos:** Utiliza `drive.file` (leitura/escrita de backups) e `userinfo.profile`.
+- **Fluxos:** Login/Logout, Backup/Restore de banco de dados e Perfil de Usuário.
 
 ### 💾 `backupService.js`
 Orquestra o ciclo de vida dos backups.
