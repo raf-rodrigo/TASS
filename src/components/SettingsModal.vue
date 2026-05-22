@@ -2,7 +2,8 @@
 import { ref, watch, onMounted, computed } from 'vue';
 import { 
   Download, Upload, Globe, Palette, Cloud, Loader2, LogOut, LogIn, Trash2,
-  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles, Bug, MousePointer2, Layout, Layers, Maximize
+  ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles, Bug, MousePointer2, Layout, Layers, Maximize,
+  RefreshCw, Play, CheckCircle2, AlertTriangle, Terminal, ArrowRight, History
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
@@ -20,9 +21,16 @@ import AppRadio from './base/AppRadio.vue';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
-const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'export-system', 'import-system', 'test-wellness', 'open-interface', 'test-modal']);
+const props = defineProps({
+  initialTab: {
+    type: String,
+    default: null
+  }
+});
 
-const activeTab = ref('gitlab');
+const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'export-system', 'import-system', 'test-wellness', 'open-interface', 'test-modal', 'open-git-rebuilder']);
+
+const activeTab = ref(props.initialTab || 'gitlab');
 const isGoogleLoading = ref(false);
 const isGoogleAuthenticated = ref(googleDriveService.isAuthenticated());
 const googleUser = ref(null);
@@ -36,20 +44,26 @@ onMounted(() => {
     googleUser.value = profile;
   });
 
-  if (settings.keepWindowState) {
+  if (props.initialTab) {
+    activeTab.value = props.initialTab;
+  } else if (settings.keepWindowState) {
     const saved = localStorage.getItem('app-last-settings-tab');
     if (saved) activeTab.value = saved;
   }
 });
 
 watch(activeTab, (newVal) => {
-  if (settings.keepWindowState) {
+  if (newVal === 'git-rebuilder') {
+    emit('open-git-rebuilder');
+    activeTab.value = 'gitlab';
+  } else if (settings.keepWindowState) {
     localStorage.setItem('app-last-settings-tab', newVal);
   }
 });
 
 const tabs = [
   { id: 'gitlab', label: 'Integração GitLab', icon: Globe, color: 'text-indigo-500', desc: 'Conecte ao GitLab e automatize seu workflow.' },
+  { id: 'git-rebuilder', label: 'Reconstrutor Git', icon: RefreshCw, color: 'text-indigo-500', desc: 'Simulador de limpeza e reconstrução de ambientes de integração.' },
   { id: 'work', label: 'Jornada de Trabalho', icon: Briefcase, color: 'text-indigo-500', desc: 'Defina seu horário e dias de trabalho.' },
   { id: 'health', label: 'Saúde e Bem-estar', icon: Activity, color: 'text-indigo-500', desc: 'Lembretes inteligentes para manter sua saúde.' },
   { id: 'system', label: 'Sistema e Interface', icon: Monitor, color: 'text-indigo-500', desc: 'Configurações globais de comportamento.' },
@@ -329,6 +343,8 @@ const handleResetSystem = async () => {
                   </div>
                 </div>
               </div>
+
+
 
               <div v-else-if="activeTab === 'work'" :key="'work'" class="space-y-8">
                 <div class="glass-section p-6 space-y-6">

@@ -32,3 +32,9 @@ dist-ssr
 .claude/
 auditoria.md
 MEMORY.md
+
+# SQLite databases
+tass.db
+*.db
+*.sqlite
+*.sqlite3

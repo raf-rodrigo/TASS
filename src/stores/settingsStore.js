@@ -22,6 +22,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const notesSide = ref('right');
   const backgroundImage = ref('');
   const keepWindowState = ref(localStorage.getItem('app-keep-window-state') === 'true');
+  const hideWelcomeModal = ref(false);
 
   // Sincroniza mudança do keepWindowState com localStorage e limpa se necessário
   watch(keepWindowState, (val) => {
@@ -149,6 +150,7 @@ export const useSettingsStore = defineStore('settings', () => {
       
       // Carrega configuração do localStorage
       keepWindowState.value = localStorage.getItem('app-keep-window-state') === 'true';
+      if (settingsMap['app-hide-welcome'] !== undefined) hideWelcomeModal.value = settingsMap['app-hide-welcome'] === true;
 
       isInitialized.value = true;
     } catch (error) {
@@ -207,7 +209,8 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-context-menu-style', value: contextMenuStyle.value },
       { key: 'app-context-menu-mode', value: contextMenuMode.value },
       { key: 'app-contrast-enhanced', value: contrastEnhanced.value },
-      { key: 'app-darken-wallpaper', value: darkenWallpaper.value }
+      { key: 'app-darken-wallpaper', value: darkenWallpaper.value },
+      { key: 'app-hide-welcome', value: hideWelcomeModal.value }
 
     ].map(item => ({
       key: item.key,
@@ -235,7 +238,7 @@ export const useSettingsStore = defineStore('settings', () => {
     workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,
     cardBorderRadius, opacityTargets, customWallpapers, columnTitles,
     wellnessEnabled, wellnessInterval, contrastEnhanced, darkenWallpaper, keepWindowState,
-    contextMenuStyle, contextMenuMode,
+    contextMenuStyle, contextMenuMode, hideWelcomeModal,
     isInitialized, loadSettings, saveSetting, saveAllSettings
 
   };

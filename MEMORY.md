@@ -91,6 +91,18 @@ O sistema injeta variáveis CSS dinâmicas no `:root` baseadas no estado da conf
 ---
 *Nota: Esta solução foi adotada para evitar o "Shotgun Surgery" (ter que alterar 20 arquivos para mudar um detalhe visual) e manter o código acessível para desenvolvedores de todos os níveis.*
 
+## 🔄 Reconstrutor de Ambientes Git: Operações Reais vs. Simuladas
+
+Para manter o fluxo Git saudável (`master` -> `hml` -> `dev`) sem afetar os ambientes compartilhados prematuramente, o Reconstrutor Git segue uma arquitetura híbrida de execução:
+
+### 1. Operações Reais (100% Seguras)
+*   **Consulta de MRs Ativos:** Chamadas de leitura `GET` na API do GitLab para obter as branches de origem de MRs abertos direcionados ao ambiente de destino.
+*   **Verificação de Conflitos (Análise em Memória):** Execução do comando `git merge-tree` no backend para calcular os conflitos de mesclagem na memória do servidor, sem alterar o diretório de trabalho do disco local.
+*   **Sinalizadores visuais:** Toda operação real é marcada com a tag `[Real]` e as operações de mock/simulação com `[Simulado]`.
+
+### 2. Operações Simuladas / Críticas
+*   **Envio para o Servidor (`git push --force`):** A publicação e reescrita do histórico remoto é a parte mais crítica. Permanece como simulação até que seja implementada uma confirmação dupla obrigatória de segurança.
+
 ## 🤖 Diretrizes de IA e Comunicação (MANDATÓRIO)
 1. **Idioma de Operação:** Toda a comunicação entre o sistema e o usuário deve ser em **Português (Brasil)**.
 2. **Raciocínio Interno:** O processo de pensamento da IA deve ser realizado em Português para manter o alinhamento cultural e técnico.

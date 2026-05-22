@@ -14,6 +14,8 @@ import GlobalModal from './components/GlobalModal.vue';
 import TaskContextMenu from './components/TaskContextMenu.vue';
 import GlobalDock from './components/GlobalDock.vue';
 import RadioPlayer from './components/RadioPlayer.vue';
+import WelcomeModal from './components/WelcomeModal.vue';
+import GitRebuilderFullscreen from './components/GitRebuilderFullscreen.vue';
 
 // Composables
 import { useWellness } from './composables/useWellness.js';
@@ -40,14 +42,17 @@ const taskStore = useTaskStore();
 const boardColumns = ref([[], [], [], []]);
 
 const syncBoardWithStore = () => {
+  const newCols = [[], [], [], []];
   for (let i = 1; i <= 4; i++) {
-    boardColumns.value[i-1] = taskStore.filteredTasks
+    newCols[i-1] = taskStore.filteredTasks
       .filter(t => t.columnId === i)
       .sort((a, b) => a.position - b.position);
   }
+  boardColumns.value = newCols;
 };
 
 // UI State
+const showWelcome = ref(false);
 const showModal = ref(false);
 const showSettings = ref(false);
 const showSprints = ref(false);
@@ -57,6 +62,12 @@ const showRadio = ref(false);
 const showTimeAdjustment = ref(false);
 const taskToEdit = ref(null);
 const taskForTimeAdjustment = ref(null);
+const showGitRebuilder = ref(false);
+
+// Modal initial states for Welcome Modal redirects
+const settingsInitialTab = ref(null);
+const interfaceInitialTab = ref(null);
+const sprintInitialShowAddForm = ref(false);
 
 // Sincroniza o board local quando as tarefas ou filtros mudam
 watch(
@@ -158,6 +169,46 @@ const handleToggleRadio = () => {
   showRadio.value = !showRadio.value;
 };
 
+// Dock openers that reset welcome modal initial selections
+const openSettingsFromDock = () => {
+  settingsInitialTab.value = null;
+  showSettings.value = true;
+};
+
+const openInterfaceFromDock = () => {
+  interfaceInitialTab.value = null;
+  showInterfaceMenu.value = true;
+};
+
+const openSprintsFromDock = () => {
+  sprintInitialShowAddForm.value = false;
+  showSprints.value = true;
+};
+
+// Handle welcome modal shortcut selection
+const handleWelcomeShortcut = (action) => {
+  showWelcome.value = false;
+  if (action === 'wallpaper') {
+    interfaceInitialTab.value = 'wallpapers';
+    showInterfaceMenu.value = true;
+  } else if (action === 'task') {
+    openAddModal();
+  } else if (action === 'sprint') {
+    sprintInitialShowAddForm.value = true;
+    showSprints.value = true;
+  } else if (action === 'radio') {
+    showRadio.value = true;
+  } else if (action === 'gitlab') {
+    settingsInitialTab.value = 'gitlab';
+    showSettings.value = true;
+  }
+};
+
+const handleOpenGitRebuilder = () => {
+  showSettings.value = false;
+  showGitRebuilder.value = true;
+};
+
 const handleTestModal = async (type) => {
   if (type === 'success') {
     notificationService.alert('Teste Concluído!', 'O modal de sucesso está funcionando.', 'success');
@@ -240,6 +291,10 @@ onMounted(async () => {
   await taskStore.loadTasks();
   await taskStore.loadSprints();
   syncBoardWithStore();
+
+  if (!settings.hideWelcomeModal) {
+    showWelcome.value = true;
+  }
   
   // Inicia monitoramento do backend
   bridgeService.startPolling();
@@ -364,10 +419,10 @@ onMounted(async () => {
         <GlobalDock 
           v-if="!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating'"
           @add-task="openAddModal"
-          @open-sprints="showSprints = true"
+          @open-sprints="openSprintsFromDock"
           @open-notes="showNotes = !showNotes"
-          @open-interface="showInterfaceMenu = true"
-          @open-settings="showSettings = true"
+          @open-interface="openInterfaceFromDock"
+          @open-settings="openSettingsFromDock"
           @toggle-theme="toggleTheme"
           @open-radio="handleToggleRadio"
         />
@@ -392,6 +447,7 @@ onMounted(async () => {
 
     <SettingsModal
       v-if="showSettings"
+      :initialTab="settingsInitialTab"
       @close="showSettings = false"
       @open-interface="() => { showSettings = false; showInterfaceMenu = true; }"
       @save="() => {}"
@@ -401,11 +457,13 @@ onMounted(async () => {
       @import-tasks="handleImportTasks"
       @export-system="handleExportSystem"
       @import-system="handleImportSystem"
+      @open-git-rebuilder="handleOpenGitRebuilder"
     />
 
     <SprintModal
       v-if="showSprints"
       :activeSprintId="settings.activeSprintId"
+      :initialShowAddForm="sprintInitialShowAddForm"
       @close="showSprints = false"
       @select-sprint="(id) => settings.activeSprintId = id"
       @updated="taskStore.loadSprints"
@@ -414,6 +472,7 @@ onMounted(async () => {
     <InterfaceMenu
       v-if="showInterfaceMenu"
       :isOpen="showInterfaceMenu"
+      :initialTab="interfaceInitialTab"
       @close="showInterfaceMenu = false"
       @open-settings="() => { showInterfaceMenu = false; showSettings = true; }"
     />
@@ -429,6 +488,17 @@ onMounted(async () => {
     <WellnessToast 
       :message="currentMessage" 
       :show="showMessage" 
+    />
+
+    <WelcomeModal
+      v-if="showWelcome"
+      @close="showWelcome = false"
+      @select-shortcut="handleWelcomeShortcut"
+    />
+
+    <GitRebuilderFullscreen
+      v-if="showGitRebuilder"
+      @close="showGitRebuilder = false"
     />
   </div>
   <div v-else class="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
