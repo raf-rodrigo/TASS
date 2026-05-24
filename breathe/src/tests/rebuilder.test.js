@@ -81,6 +81,7 @@ describe("GitRebuilder.vue", () => {
   it("seleciona uma branch e não quebra a interface", async () => {
     wrapper.vm.activeTab = "merges";
     wrapper.vm.mergeTarget = "dev-06";
+    wrapper.vm.branchesFetched = true;
     wrapper.vm.simulationBranches = [
       { name: "feature/test-branch", mr: null, title: "Test Title", status: "waiting", committedDate: "2026-05-24T00:00:00Z", authorName: "Tester" }
     ];

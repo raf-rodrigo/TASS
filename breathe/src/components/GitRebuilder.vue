@@ -38,6 +38,7 @@ const mergeTargetType = ref(null);    // 'dev' ou 'hml'
 const mergeLogs = ref([]);          // Logs da aba de mesclagem
 const mergeLoadingMap = ref({});    // Mapeamento de branch -> boolean
 const mergeStatusMap = ref({});     // Mapeamento de branch -> status string
+const branchesFetched = ref(false);
 
 // --- ESTADOS DE CONFIGURAÇÕES E MODAIS ---
 const showSettingsModal = ref(false);
@@ -233,7 +234,8 @@ const fetchBranches = async (target, isBackgroundSearch = false) => {
     }
     const safeProjectId = encodeURIComponent(decodeURIComponent(settingsStore.gitlabProjectId));
     
-    let url = `${apiBase}/projects/${safeProjectId}/repository/branches?per_page=100`;
+    const apiOrder = branchesOrder.value === 'desc' ? 'updated_desc' : 'updated_asc';
+    let url = `${apiBase}/projects/${safeProjectId}/repository/branches?per_page=100&sort=${apiOrder}`;
     // Se for busca em background, envia o filtro também para a API do GitLab (trazendo resultados fora das top 100 mais recentes)
     if (searchQuery.value) {
       url += `&search=${encodeURIComponent(searchQuery.value)}`;
@@ -312,6 +314,34 @@ const selectMergeTarget = (target, type) => {
   mergeTarget.value = target;
   mergeTargetType.value = type;
   fetchBranches(target, false);
+};
+
+const listAllBranches = async () => {
+  searchQuery.value = '';
+  branchesError.value = '';
+  selectedBranches.value = [];
+  // Usamos Desenvolvimento por padrão para a chamada do GitLab
+  mergeTarget.value = settingsStore.branchDesenvolvimento;
+  mergeTargetType.value = 'dev';
+  await fetchBranches(settingsStore.branchDesenvolvimento, false);
+  branchesFetched.value = true;
+};
+
+const runMergeToTarget = async (targetBranch, targetType) => {
+  if (selectedBranches.value.length !== 1) return;
+  const branchName = selectedBranches.value[0];
+  
+  mergeTarget.value = targetBranch;
+  mergeTargetType.value = targetType;
+  
+  await runIndividualMerge(branchName);
+};
+
+const toggleOrderAndRefetch = async () => {
+  branchesOrder.value = branchesOrder.value === 'desc' ? 'asc' : 'desc';
+  if (branchesFetched.value) {
+    await fetchBranches(settingsStore.branchDesenvolvimento, false);
+  }
 };
 
 const formatDate = (dateString) => {
@@ -974,9 +1004,9 @@ const toggleTheme = () => {
           <!-- Coluna 1 (Lado Esquerdo): Branches Disponíveis (5 colunas) -->
           <div class="md:col-span-5 space-y-4 text-left flex flex-col lg:h-full min-h-0 min-w-0">
             <div class="flex items-center justify-between h-6 shrink-0">
-              <h4 class="text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <h4 class="text-[10px] font-black text-slate-555 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
                 <History class="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-                Branches Disponíveis [CONTAINER ESQUERDO]
+                Branches Disponíveis
               </h4>
             </div>
 
@@ -987,7 +1017,7 @@ const toggleTheme = () => {
                   v-model="searchQuery"
                   type="text"
                   placeholder="Buscar branch..."
-                  :disabled="!mergeTarget"
+                  :disabled="!branchesFetched"
                   class="w-full h-full bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-white/[0.06] rounded-xl pl-4 pr-10 py-0 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 transition-all font-mono min-w-0 disabled:opacity-50"
                   @input="handleSearch"
                 />
@@ -998,15 +1028,15 @@ const toggleTheme = () => {
               </div>
 
               <!-- Total de branches na mesma linha do input de busca -->
-              <span v-if="mergeTarget && totalBranchesCount > 0" class="px-2.5 h-full bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 text-[9px] font-black uppercase tracking-wider rounded-xl border border-indigo-500/20 whitespace-nowrap flex items-center shrink-0">
+              <span v-if="branchesFetched && totalBranchesCount > 0" class="px-2.5 h-full bg-indigo-500/10 text-indigo-655 dark:text-indigo-400 text-[9px] font-black uppercase tracking-wider rounded-xl border border-indigo-500/20 whitespace-nowrap flex items-center shrink-0">
                 Total: {{ totalBranchesCount }}
               </span>
 
               <!-- Botão de ordenação com texto dinâmico -->
               <button
                 type="button"
-                @click="branchesOrder = branchesOrder === 'desc' ? 'asc' : 'desc'"
-                :disabled="!mergeTarget"
+                @click="toggleOrderAndRefetch"
+                :disabled="!branchesFetched"
                 class="h-full px-3.5 bg-white/85 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-white/[0.06] rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer text-[10px] font-black uppercase tracking-wider shrink-0 disabled:opacity-50"
                 :title="branchesOrder === 'desc' ? 'Ordenando do mais novo ao mais antigo' : 'Ordenando do mais antigo ao mais novo'"
               >
@@ -1017,9 +1047,9 @@ const toggleTheme = () => {
 
             <!-- Listagem das branches com altura calculada para alinhar com os vizinhos -->
             <div class="space-y-2 overflow-y-auto pr-2 custom-scrollbar max-h-[calc(100vh-320px)] flex-1 min-h-0">
-              <div v-if="!mergeTarget" class="p-8 text-center text-xs text-slate-500 dark:text-slate-400 border border-dashed border-slate-250 dark:border-white/[0.06] rounded-2xl bg-slate-50/50 dark:bg-white/[0.01] flex flex-col items-center justify-center gap-2 h-full">
+              <div v-if="!branchesFetched" class="p-8 text-center text-xs text-slate-500 dark:text-slate-400 border border-dashed border-slate-250 dark:border-white/[0.06] rounded-2xl bg-slate-50/50 dark:bg-white/[0.01] flex flex-col items-center justify-center gap-2 h-full">
                 <GitBranch class="w-6 h-6 text-slate-400 dark:text-slate-655 animate-pulse" />
-                <span>Selecione um ambiente no controle central para listar as branches de feature.</span>
+                <span>Clique em "Listar branches" no controle central para carregar as branches de feature.</span>
               </div>
               <div v-else-if="branchesError" class="p-6 text-center text-xs text-red-400 border border-dashed border-red-500/20 rounded-2xl bg-red-500/5 flex flex-col items-center gap-2">
                 <AlertCircle class="w-5 h-5 text-red-500 animate-pulse" />
@@ -1066,41 +1096,29 @@ const toggleTheme = () => {
                   </p>
                 </div>
 
-                <!-- Data de Interação Alinhada à Direita (fora do @click.stop) -->
+                <!-- Data do Último Commit Alinhada à Direita (fora do @click.stop) -->
                 <span v-if="branch.committedDate" class="text-[10px] font-bold bg-slate-100 dark:bg-slate-800/90 text-slate-655 dark:text-slate-350 px-3 py-1 rounded-lg border border-slate-200 dark:border-white/[0.06] tracking-wide whitespace-nowrap mr-2 shrink-0">
-                  Interação: {{ formatDate(branch.committedDate) }}
+                  Último Commit: {{ formatDate(branch.committedDate) }}
                 </span>
 
                 <div class="flex items-center gap-2 shrink-0" @click.stop>
+                  <!-- Loading State -->
+                  <span v-if="mergeLoadingMap[branch.name]" class="flex items-center gap-1.5 px-2.5 py-1 text-[8px] font-black uppercase rounded-lg tracking-wider bg-indigo-500/10 text-indigo-655 dark:text-indigo-400 border border-indigo-500/20">
+                    <RefreshCw class="w-3 h-3 text-indigo-500 dark:text-indigo-400 animate-spin" />
+                    Mesclando
+                  </span>
+
                   <!-- Status Map Checks -->
-                  <span v-if="mergeStatusMap[branch.name] === 'success'" class="flex items-center gap-1.5 px-2.5 py-1 text-[8px] font-black uppercase rounded-lg tracking-wider bg-emerald-500/10 text-emerald-650 dark:text-emerald-400 border border-emerald-500/20">
-                    <Check class="w-3 h-3 text-emerald-555 dark:text-emerald-450" />
-                    Mesclado
-                  </span>
-                  <span v-else-if="mergeStatusMap[branch.name] === 'conflict'" class="flex items-center gap-1.5 px-2.5 py-1 text-[8px] font-black uppercase rounded-lg tracking-wider bg-red-500/10 text-red-655 dark:text-red-400 border border-red-500/20" title="Resolva Conflitos no GitLab">
-                    <AlertCircle class="w-3 h-3 text-red-505 dark:text-red-450" />
-                    Conflito
-                  </span>
-
-                  <!-- Mesclar Action -->
-                  <button
-                    v-if="!mergeStatusMap[branch.name] || mergeStatusMap[branch.name] === 'error'"
-                    @click="runIndividualMerge(branch.name)"
-                    :disabled="mergeLoadingMap[branch.name]"
-                    class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[9px] font-black uppercase tracking-wider transition-colors disabled:opacity-50 flex items-center gap-1 cursor-pointer"
-                  >
-                    <RefreshCw v-if="mergeLoadingMap[branch.name]" class="w-2.5 h-2.5 animate-spin" />
-                    <span v-else>Mesclar</span>
-                  </button>
-
-                  <!-- Excluir Action -->
-                  <button
-                    @click="requestDeleteBranch(branch.name)"
-                    class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 rounded-lg border border-red-500/20 hover:border-red-500/30 transition-all font-black uppercase text-[9px] tracking-wider cursor-pointer"
-                    title="Excluir branch"
-                  >
-                    Excluir
-                  </button>
+                  <template v-else>
+                    <span v-if="mergeStatusMap[branch.name] === 'success'" class="flex items-center gap-1.5 px-2.5 py-1 text-[8px] font-black uppercase rounded-lg tracking-wider bg-emerald-500/10 text-emerald-650 dark:text-emerald-400 border border-emerald-500/20">
+                      <Check class="w-3 h-3 text-emerald-555 dark:text-emerald-450" />
+                      Mesclado
+                    </span>
+                    <span v-else-if="mergeStatusMap[branch.name] === 'conflict'" class="flex items-center gap-1.5 px-2.5 py-1 text-[8px] font-black uppercase rounded-lg tracking-wider bg-red-500/10 text-red-655 dark:text-red-400 border border-red-500/20" title="Resolva Conflitos no GitLab">
+                      <AlertCircle class="w-3 h-3 text-red-505 dark:text-red-450" />
+                      Conflito
+                    </span>
+                  </template>
                 </div>
               </div>
             </div>
@@ -1120,44 +1138,52 @@ const toggleTheme = () => {
 
               <!-- Botões de Ações Centralizados e Harmonizados em Tamanho -->
               <div class="flex-1 flex flex-col gap-3 justify-center">
-                <!-- Botão DEV -->
+                <!-- Botão Listar branches (sempre visível e ativo) -->
                 <button
-                  @click="selectMergeTarget(settingsStore.branchDesenvolvimento || 'dev-06', 'dev')"
-                  class="w-full py-4 px-2 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1 shrink-0"
-                  :class="mergeTarget === (settingsStore.branchDesenvolvimento || 'dev-06')
-                    ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-400 shadow-md dark:shadow-none'
-                    : 'bg-slate-50 dark:bg-slate-950/20 border-slate-250 dark:border-white/[0.06] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'"
+                  @click="listAllBranches"
+                  :disabled="branchesLoading"
+                  class="w-full py-4 px-2 rounded-xl border bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-500/20 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1 shrink-0 shadow-lg shadow-indigo-500/10 disabled:opacity-50"
                 >
-                  <span class="text-[11px] font-black uppercase tracking-wider">DEV</span>
-                  <span class="text-[8px] opacity-80 truncate max-w-full font-mono font-bold">{{ settingsStore.branchDesenvolvimento || 'dev-06' }}</span>
-                </button>
-
-                <!-- Botão HML -->
-                <button
-                  @click="selectMergeTarget(settingsStore.branchHomologacao || 'hml', 'hml')"
-                  class="w-full py-4 px-2 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1 shrink-0"
-                  :class="mergeTarget === (settingsStore.branchHomologacao || 'hml')
-                    ? 'bg-indigo-500/10 border-indigo-500 text-indigo-650 dark:text-indigo-450 shadow-md dark:shadow-none'
-                    : 'bg-slate-50 dark:bg-slate-950/20 border-slate-250 dark:border-white/[0.06] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'"
-                >
-                  <span class="text-[11px] font-black uppercase tracking-wider">HML</span>
-                  <span class="text-[8px] opacity-80 truncate max-w-full font-mono font-bold">{{ settingsStore.branchHomologacao || 'hml' }}</span>
-                </button>
-
-                <!-- Botão Excluir Selecionadas (Bulk Delete) -->
-                <button
-                  @click="requestBulkDelete"
-                  :disabled="selectedBranches.length === 0"
-                  class="w-full py-4 px-2 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1 shrink-0"
-                  :class="selectedBranches.length > 0
-                    ? 'bg-red-500/10 border-red-500 text-red-655 dark:text-red-400 hover:bg-red-500/20 shadow-md dark:shadow-none'
-                    : 'bg-slate-50 dark:bg-slate-955/20 border-slate-200 dark:border-white/[0.04] text-slate-450 dark:text-slate-600 opacity-40 cursor-not-allowed'"
-                >
-                  <span class="text-[11px] font-black uppercase tracking-wider text-center">Excluir</span>
-                  <span class="text-[8px] font-bold">
-                    {{ selectedBranches.length > 0 ? `Marcadas: ${selectedBranches.length}` : 'Nenhuma' }}
+                  <span class="text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                    <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': branchesLoading }" />
+                    Listar branches
                   </span>
                 </button>
+
+                <!-- Divisor Visual caso tenhamos seleção -->
+                <div v-if="selectedBranches.length > 0" class="w-full h-px bg-slate-100 dark:bg-white/[0.04] my-1"></div>
+
+                <!-- Botões DEV e HML (Habilitados apenas se exatamente 1 branch selecionada) -->
+                <template v-if="selectedBranches.length === 1">
+                  <!-- Botão DEV (Desenvolvimento) -->
+                  <button
+                    @click="runMergeToTarget(settingsStore.branchDesenvolvimento || 'dev-06', 'dev')"
+                    class="w-full py-4 px-2 rounded-xl border bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1 shrink-0"
+                  >
+                    <span class="text-[11px] font-black uppercase tracking-wider">Mesclar com {{ settingsStore.branchDesenvolvimento || 'dev-06' }}</span>
+                  </button>
+
+                  <!-- Botão HML (Homologação) -->
+                  <button
+                    @click="runMergeToTarget(settingsStore.branchHomologacao || 'hml', 'hml')"
+                    class="w-full py-4 px-2 rounded-xl border bg-indigo-500/10 border-indigo-500 text-indigo-650 dark:text-indigo-400 hover:bg-indigo-500/20 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1 shrink-0"
+                  >
+                    <span class="text-[11px] font-black uppercase tracking-wider">Mesclar com {{ settingsStore.branchHomologacao || 'hml' }}</span>
+                  </button>
+                </template>
+
+                <!-- Botão Excluir em Lote (Habilitado apenas se mais de 1 branch selecionada) -->
+                <template v-if="selectedBranches.length > 1">
+                  <button
+                    @click="requestBulkDelete"
+                    class="w-full py-4 px-2 rounded-xl border bg-red-500/10 border-red-500 text-red-655 dark:text-red-400 hover:bg-red-500/20 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1 shrink-0 shadow-md"
+                  >
+                    <span class="text-[11px] font-black uppercase tracking-wider text-center">Excluir</span>
+                    <span class="text-[8px] font-bold">
+                      Marcadas: {{ selectedBranches.length }}
+                    </span>
+                  </button>
+                </template>
               </div>
 
               <div class="pt-2 border-t border-slate-150 dark:border-white/[0.04] text-center shrink-0">
