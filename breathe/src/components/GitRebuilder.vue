@@ -974,13 +974,10 @@ const toggleTheme = () => {
           <!-- Coluna 1 (Lado Esquerdo): Branches Disponíveis (5 colunas) -->
           <div class="md:col-span-5 space-y-4 text-left flex flex-col lg:h-full min-h-0 min-w-0">
             <div class="flex items-center justify-between h-6 shrink-0">
-              <h4 class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <h4 class="text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
                 <History class="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
                 Branches Disponíveis [CONTAINER ESQUERDO]
               </h4>
-              <span v-if="mergeTarget && totalBranchesCount > 0" class="px-2.5 py-1 bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 text-[8px] font-black uppercase tracking-wider rounded-lg border border-indigo-500/20">
-                Total: {{ totalBranchesCount }}
-              </span>
             </div>
 
             <!-- Campo de Busca e Ordenação -->
@@ -1000,14 +997,21 @@ const toggleTheme = () => {
                 </div>
               </div>
 
+              <!-- Total de branches na mesma linha do input de busca -->
+              <span v-if="mergeTarget && totalBranchesCount > 0" class="px-2.5 h-full bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 text-[9px] font-black uppercase tracking-wider rounded-xl border border-indigo-500/20 whitespace-nowrap flex items-center shrink-0">
+                Total: {{ totalBranchesCount }}
+              </span>
+
+              <!-- Botão de ordenação com texto dinâmico -->
               <button
                 type="button"
                 @click="branchesOrder = branchesOrder === 'desc' ? 'asc' : 'desc'"
                 :disabled="!mergeTarget"
-                class="h-full px-3.5 bg-white/85 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-white/[0.06] rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer text-xs shrink-0 disabled:opacity-50"
+                class="h-full px-3.5 bg-white/85 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-white/[0.06] rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer text-[10px] font-black uppercase tracking-wider shrink-0 disabled:opacity-50"
                 :title="branchesOrder === 'desc' ? 'Ordenando do mais novo ao mais antigo' : 'Ordenando do mais antigo ao mais novo'"
               >
                 <ArrowUpDown class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                <span>{{ branchesOrder === 'desc' ? 'Mais recente' : 'Mais antigo' }}</span>
               </button>
             </div>
 
