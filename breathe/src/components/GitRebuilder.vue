@@ -1019,7 +1019,7 @@ const toggleTheme = () => {
             <div class="space-y-2 overflow-y-auto pr-2 custom-scrollbar max-h-[calc(100vh-320px)] flex-1 min-h-0">
               <div v-if="!mergeTarget" class="p-8 text-center text-xs text-slate-500 dark:text-slate-400 border border-dashed border-slate-250 dark:border-white/[0.06] rounded-2xl bg-slate-50/50 dark:bg-white/[0.01] flex flex-col items-center justify-center gap-2 h-full">
                 <GitBranch class="w-6 h-6 text-slate-400 dark:text-slate-655 animate-pulse" />
-                <span>Selecione um ambiente no painel central para listar as branches de feature.</span>
+                <span>Selecione um ambiente no controle central para listar as branches de feature.</span>
               </div>
               <div v-else-if="branchesError" class="p-6 text-center text-xs text-red-400 border border-dashed border-red-500/20 rounded-2xl bg-red-500/5 flex flex-col items-center gap-2">
                 <AlertCircle class="w-5 h-5 text-red-500 animate-pulse" />
@@ -1111,15 +1111,12 @@ const toggleTheme = () => {
             <div class="flex items-center justify-between h-6 shrink-0">
               <h4 class="text-[10px] font-black text-slate-555 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
                 <Settings class="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-                Painel
+                Controle
               </h4>
             </div>
 
             <!-- Painel de Controle de Ambiente e Ações -->
             <div class="border border-slate-200 dark:border-white/[0.06] rounded-2xl bg-white dark:bg-slate-900/40 p-4 flex flex-col justify-between gap-4 max-h-[calc(100vh-280px)] flex-1 min-h-0">
-              <div class="text-left shrink-0">
-                <p class="text-[10px] text-slate-550 dark:text-slate-400 font-bold uppercase tracking-wider">Controle</p>
-              </div>
 
               <!-- Botões de Ações Centralizados e Harmonizados em Tamanho -->
               <div class="flex-1 flex flex-col gap-3 justify-center">
