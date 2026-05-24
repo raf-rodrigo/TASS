@@ -60,6 +60,12 @@ const showDeleteConfirmModal = ref(false);
 const branchToDelete = ref(null);
 const deleteLoading = ref(false);
 
+// Modal de Confirmação de Mesclagem
+const showMergeConfirmModal = ref(false);
+const mergeConfirmTargetBranch = ref('');
+const mergeConfirmTargetType = ref('');
+const mergeConfirmSourceBranch = ref('');
+
 // Exclusão em lote (Bulk Delete)
 const selectedBranches = ref([]);
 const showBulkDeleteModal = ref(false);
@@ -327,9 +333,24 @@ const listAllBranches = async () => {
   branchesFetched.value = true;
 };
 
-const runMergeToTarget = async (targetBranch, targetType) => {
+const runMergeToTarget = (targetBranch, targetType) => {
   if (selectedBranches.value.length !== 1) return;
   const branchName = selectedBranches.value[0];
+  
+  mergeConfirmTargetBranch.value = targetBranch;
+  mergeConfirmTargetType.value = targetType;
+  mergeConfirmSourceBranch.value = branchName;
+  showMergeConfirmModal.value = true;
+};
+
+const executeMergeAfterConfirm = async () => {
+  showMergeConfirmModal.value = false;
+  
+  const branchName = mergeConfirmSourceBranch.value;
+  const targetBranch = mergeConfirmTargetBranch.value;
+  const targetType = mergeConfirmTargetType.value;
+  
+  if (!branchName || !targetBranch) return;
   
   mergeTarget.value = targetBranch;
   mergeTargetType.value = targetType;
@@ -1361,6 +1382,34 @@ const toggleTheme = () => {
               <label class="text-[9px] font-black text-app-muted uppercase tracking-widest mb-1.5 block">Desenvolvimento</label>
               <AppInput v-model="editBranchDesenvolvimento" placeholder="dev-06" />
             </div>
+          </div>
+        </div>
+      </div>
+    </BaseModal>
+
+    <!-- ========================================== -->
+    <!-- MODAL: CONFIRMAÇÃO DE MESCLAGEM (BaseModal) -->
+    <!-- ========================================== -->
+    <BaseModal 
+      v-if="showMergeConfirmModal"
+      title="Confirmar Mesclagem de Branch"
+      subtitle="Mesclar código de feature no ambiente integrado"
+      :icon="GitBranch"
+      okText="Confirmar Mesclagem"
+      cancelText="Cancelar"
+      @close="showMergeConfirmModal = false"
+      @cancel="showMergeConfirmModal = false"
+      @ok="executeMergeAfterConfirm"
+    >
+      <div class="space-y-4 text-left">
+        <div class="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-start gap-3">
+          <Info class="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+          <div class="text-xs text-slate-600 dark:text-slate-350 leading-relaxed">
+            <p class="font-bold text-indigo-700 dark:text-indigo-400 mb-1">Ação de Integração:</p>
+            Você está prestes a mesclar a branch de feature 
+            <span class="font-mono text-indigo-650 dark:text-indigo-300 font-bold bg-indigo-50 dark:bg-black/35 px-1.5 py-0.5 rounded">{{ mergeConfirmSourceBranch }}</span> 
+            no ambiente de destino 
+            <span class="font-mono text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-black/35 px-1.5 py-0.5 rounded">{{ mergeConfirmTargetBranch }}</span>.
           </div>
         </div>
       </div>
