@@ -1,0 +1,30 @@
+# 🛠️ Guia de Padronização Visual e Regras (Breathe)
+
+Este documento define os padrões visuais, de segurança e de engenharia para o projeto Breathe.
+
+## 0. Política de "Zero Hardcoded" (Design Tokens)
+- **Cores**: Use os tokens semânticos `text-app-*`, `bg-app-*`, e `border-app-*`.
+- **Geometria**: Use `--app-card-radius` para contêineres principais e `--app-input-radius` para inputs e botões.
+- **Glassmorphism**: Aplique a classe `.glass-panel` e controle a opacidade/blur por meio das variáveis CSS centralizadas.
+
+## 1. Segurança e Proteção de Ambiente
+- **Branch Master Intocável**: A branch configurada como Master é protegida por regras rígidas. O botão de "Recriar" ou qualquer ação de "Exclusão" não deve aparecer ou deve estar estritamente bloqueado para ela.
+- **Confirmação Dupla na Exclusão**: A aba de Merges permite deletar branches no GitLab. A deleção deve exibir um modal de diálogo com botão de dupla confirmação antes de submeter a requisição.
+- **Mascaramento de Credenciais**: O campo de token do GitLab nas configurações deve usar `type="password"` por padrão, contendo um botão (olho) para alternar a exibição.
+
+## 2. Padrões de Layout
+- **Responsividade e Design Premium**: Visual dark elegante, paleta com gradientes suaves (indigo, amber, emerald, red para perigo).
+- **Componentes Reutilizáveis**: Os inputs devem usar `AppInput.vue` e `AppTextarea.vue`. Os modais devem herdar a base de modal para preservar comportamento consistente.
+
+## 3. Gestão de Dados (IndexedDB)
+- Todas as configurações do GitLab (URL, Token, Project ID) e os nomes físicos das ramificações (Master, Homologação, Desenvolvimento) são persistidos na tabela `settings` da base `BreatheDB`.
+- Modificações na tela de configurações devem atualizar reativamente a interface de monitoramento e de merges.
+
+## 4. Servidor Backend (Porta 5186)
+- O backend Express roda na porta **5186**.
+- Restrinja o CORS para a origem do frontend do Breathe (`http://localhost:5185`).
+- Valide todas as entradas para proteção contra Path Traversal e Injeção de Comandos.
+
+## 5. Testes e Qualidade
+- Execute `npm run test` para validar lógicas de proteção de ramificação e alterações de stores.
+- A IA não realiza commits, apenas sugere a mensagem em Conventional Commits em linha única: `git commit -m "tipo(escopo): mensagem"`.

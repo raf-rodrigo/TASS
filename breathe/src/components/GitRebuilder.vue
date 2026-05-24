@@ -1,20 +1,20 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { 
-  RefreshCw, ArrowRight, History, Terminal, X, ChevronLeft, 
-  GitBranch, CheckCircle2, AlertTriangle, Play, Search, Check, AlertCircle,
-  Sun, Moon, Trash2, Settings, ArrowUpDown
+  RefreshCw, ArrowRight, History, Terminal, X,
+  GitBranch, CheckCircle2, AlertTriangle, Search, Check, AlertCircle,
+  Trash2, Eye, EyeOff, Lock, Settings, Info, CloudLightning, ArrowUpDown,
+  Sun, Moon
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import BaseModal from './BaseModal.vue';
+import AppInput from './base/AppInput.vue';
 
 const settingsStore = useSettingsStore();
 
-const emit = defineEmits(['close']);
-
 // --- ESTADOS DA SIMULAÇÃO ---
 const simulationActive = ref(false);
-const simulationTarget = ref(null);
+const simulationTarget = ref(null); // 'dev' ou 'hml'
 const simulationStep = ref(0);
 const simulationLogs = ref([]);
 const simulationBranches = ref([]);
@@ -31,20 +31,131 @@ const confirmDestruction = () => {
   }
 };
 
-// --- ESTADOS DAS ABAS E MESCLAGEM ---
+// --- ESTADOS DAS ABAS, MESCLAGEM E DELEÇÃO ---
 const activeTab = ref('rebuilder'); // 'rebuilder' ou 'merges'
-const mergeTarget = ref(null);      // 'dev-06' ou 'hml'
+const mergeTarget = ref(null);      // Nome físico da branch selecionada (dev ou hml)
+const mergeTargetType = ref(null);    // 'dev' ou 'hml'
 const mergeLogs = ref([]);          // Logs da aba de mesclagem
 const mergeLoadingMap = ref({});    // Mapeamento de branch -> boolean
 const mergeStatusMap = ref({});     // Mapeamento de branch -> status string
 
-// Exclusão em lote e deleção individual
-const selectedBranches = ref([]);
-const showBulkDeleteModal = ref(false);
+// --- ESTADOS DE CONFIGURAÇÕES E MODAIS ---
+const showSettingsModal = ref(false);
+const diagnosticStatus = ref(null); // 'checking', 'success', 'error'
+const diagnosticMessage = ref('');
+const showToken = ref(false);
+
+// Configurações locais para edição temporária
+const editGitlabUrl = ref(settingsStore.gitlabUrl);
+const editGitlabProjectId = ref(settingsStore.gitlabProjectId);
+const editGitlabToken = ref(settingsStore.gitlabToken);
+const editBranchMaster = ref(settingsStore.branchMaster);
+const editBranchHomologacao = ref(settingsStore.branchHomologacao);
+const editBranchDesenvolvimento = ref(settingsStore.branchDesenvolvimento);
+const editConsoleFontSize = ref(settingsStore.consoleFontSize);
+
+// Modal de deleção
 const showDeleteConfirmModal = ref(false);
 const branchToDelete = ref(null);
 const deleteLoading = ref(false);
-const branchesOrder = ref('desc'); // 'desc' ou 'asc'
+
+// Exclusão em lote (Bulk Delete)
+const selectedBranches = ref([]);
+const showBulkDeleteModal = ref(false);
+
+const openSettings = () => {
+  editGitlabUrl.value = settingsStore.gitlabUrl;
+  editGitlabProjectId.value = settingsStore.gitlabProjectId;
+  editGitlabToken.value = settingsStore.gitlabToken;
+  editBranchMaster.value = settingsStore.branchMaster;
+  editBranchHomologacao.value = settingsStore.branchHomologacao;
+  editBranchDesenvolvimento.value = settingsStore.branchDesenvolvimento;
+  editConsoleFontSize.value = settingsStore.consoleFontSize;
+  diagnosticStatus.value = null;
+  diagnosticMessage.value = '';
+  showSettingsModal.value = true;
+};
+
+const saveSettings = async () => {
+  settingsStore.gitlabUrl = editGitlabUrl.value;
+  settingsStore.gitlabProjectId = editGitlabProjectId.value;
+  settingsStore.gitlabToken = editGitlabToken.value;
+  settingsStore.branchMaster = editBranchMaster.value;
+  settingsStore.branchHomologacao = editBranchHomologacao.value;
+  settingsStore.branchDesenvolvimento = editBranchDesenvolvimento.value;
+  settingsStore.consoleFontSize = editConsoleFontSize.value;
+  
+  await settingsStore.saveAllSettings();
+  showSettingsModal.value = false;
+  
+  // Atualiza listagem se aplicável
+  if (mergeTarget.value) {
+    const isMaster = mergeTarget.value === settingsStore.branchMaster;
+    if (isMaster) {
+      mergeTarget.value = null;
+      mergeTargetType.value = null;
+    } else {
+      fetchBranches(mergeTarget.value, false);
+    }
+  }
+};
+
+const decreaseFontSize = () => {
+  if (settingsStore.consoleFontSize > 10) {
+    settingsStore.consoleFontSize--;
+    settingsStore.saveSetting('consoleFontSize', settingsStore.consoleFontSize);
+  }
+};
+
+const increaseFontSize = () => {
+  if (settingsStore.consoleFontSize < 18) {
+    settingsStore.consoleFontSize++;
+    settingsStore.saveSetting('consoleFontSize', settingsStore.consoleFontSize);
+  }
+};
+
+const testConnection = async () => {
+  diagnosticStatus.value = 'checking';
+  diagnosticMessage.value = 'Testando conexão com o GitLab...';
+
+  const token = editGitlabToken.value;
+  const projectId = editGitlabProjectId.value;
+  let apiBase = editGitlabUrl.value || 'https://gitlab.com';
+
+  if (!projectId || !token) {
+    diagnosticStatus.value = 'error';
+    diagnosticMessage.value = 'Token e ID do Projeto são obrigatórios.';
+    return;
+  }
+
+  try {
+    if (!apiBase.includes('/api/v4')) {
+      const urlObj = new URL(apiBase);
+      apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
+    }
+    const safeProjectId = encodeURIComponent(decodeURIComponent(projectId));
+    const url = `${apiBase}/projects/${safeProjectId}`;
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'PRIVATE-TOKEN': token
+      }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      diagnosticStatus.value = 'success';
+      diagnosticMessage.value = `Conectado com sucesso! Projeto: "${data.name_with_namespace}"`;
+    } else {
+      diagnosticStatus.value = 'error';
+      diagnosticMessage.value = `GitLab respondeu com erro HTTP ${res.status}: ${res.statusText}`;
+    }
+  } catch (err) {
+    diagnosticStatus.value = 'error';
+    diagnosticMessage.value = `Erro de rede/resolução: ${err.message}`;
+  }
+};
 
 const addSimLog = (text, type = 'info') => {
   simulationLogs.value.push({
@@ -63,37 +174,57 @@ const addMergeLog = (text, type = 'info') => {
 };
 
 const branchesLoading = ref(false);
+const branchesError = ref('');
 const searchQuery = ref('');
+const branchesOrder = ref('desc'); // 'desc' (mais novo) ou 'asc' (mais antigo)
 
-const fetchBranches = async (target, query = '') => {
-  branchesLoading.value = true;
-  selectedBranches.value = []; // Limpa a seleção ao recarregar
-  const useGitLab = !!(settingsStore.gitlabToken && settingsStore.gitlabProjectId);
-  if (!useGitLab) {
-    const getFallbackMRs = (tgt) => {
-      if (tgt === 'dev-06' || tgt === settingsStore.branchDesenvolvimento) {
-        return [
-          { name: 'feature/sist-social-cadastro-unico-128', mr: 128, status: 'waiting', committedDate: new Date(Date.now() - 3600000).toISOString(), title: 'Implementa cadastro de famílias' },
-          { name: 'feature/sist-social-relatorio-atendimentos-132', mr: 132, status: 'waiting', committedDate: new Date(Date.now() - 7200000).toISOString(), title: 'Gera PDF de atendimentos' },
-          { name: 'bugfix/sist-social-correcao-busca-135', mr: 135, status: 'waiting', committedDate: new Date(Date.now() - 10800000).toISOString(), title: 'Corrige busca de NIS duplicado' }
-        ];
-      } else {
-        return [
-          { name: 'feature/sist-social-integracao-cadunico-118', mr: 118, status: 'waiting', committedDate: new Date(Date.now() - 4000000).toISOString(), title: 'Conexão com API do governo' },
-          { name: 'release/sist-social-v1.2.0-rc1-115', mr: 115, status: 'waiting', committedDate: new Date(Date.now() - 8000000).toISOString(), title: 'Release Candidate para homologação' }
-        ];
-      }
-    };
-    let list = getFallbackMRs(target);
-    if (query) {
-      list = list.filter(b => b.name.toLowerCase().includes(query.toLowerCase()));
+// Computed property para filtrar e ordenar as branches no frontend de forma instantânea
+const filteredBranches = computed(() => {
+  let list = [...simulationBranches.value];
+  
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase().trim();
+    list = list.filter(b => 
+      b.name.toLowerCase().includes(q) || 
+      (b.title && b.title.toLowerCase().includes(q))
+    );
+  }
+  
+  list.sort((a, b) => {
+    const dateA = a.committedDate ? new Date(a.committedDate).getTime() : 0;
+    const dateB = b.committedDate ? new Date(b.committedDate).getTime() : 0;
+    if (branchesOrder.value === 'desc') {
+      return dateB - dateA;
+    } else {
+      return dateA - dateB;
     }
-    simulationBranches.value = list;
-    totalBranchesCount.value = list.length;
-    branchesLoading.value = false;
+  });
+  
+  return list;
+});
+
+const fetchBranches = async (target, isBackgroundSearch = false) => {
+  // Impede listagem se tentar listar master
+  if (target === settingsStore.branchMaster) {
+    simulationBranches.value = [];
+    totalBranchesCount.value = 0;
+    branchesError.value = '';
     return;
   }
 
+  const useGitLab = !!(settingsStore.gitlabToken && settingsStore.gitlabProjectId);
+  if (!useGitLab) {
+    simulationBranches.value = [];
+    totalBranchesCount.value = 0;
+    branchesError.value = 'Credenciais do GitLab não configuradas! Informe-as clicando em "Configurar Ambientes".';
+    return;
+  }
+
+  branchesLoading.value = true;
+  if (!isBackgroundSearch) {
+    branchesError.value = '';
+  }
+  
   try {
     let apiBase = settingsStore.gitlabUrl || 'https://gitlab.com';
     if (!apiBase.includes('/api/v4')) {
@@ -103,8 +234,9 @@ const fetchBranches = async (target, query = '') => {
     const safeProjectId = encodeURIComponent(decodeURIComponent(settingsStore.gitlabProjectId));
     
     let url = `${apiBase}/projects/${safeProjectId}/repository/branches?per_page=100`;
-    if (query) {
-      url += `&search=${encodeURIComponent(query)}`;
+    // Se for busca em background, envia o filtro também para a API do GitLab (trazendo resultados fora das top 100 mais recentes)
+    if (searchQuery.value) {
+      url += `&search=${encodeURIComponent(searchQuery.value)}`;
     }
     
     const response = await fetch(url, {
@@ -130,8 +262,10 @@ const fetchBranches = async (target, query = '') => {
       settingsStore.branchMaster,
       settingsStore.branchHomologacao,
       settingsStore.branchDesenvolvimento,
-      'master-sistsocial', 'hml', 'dev-06', 'master', 'main', 'develop'
+      'master', 'main', 'develop'
     ];
+    
+    // Filtra para remover ramos base e releases padrão
     const filtered = data.filter(b => !baseBranches.includes(b.name) && !b.name.startsWith('release/'));
     
     simulationBranches.value = filtered.map(b => ({
@@ -139,17 +273,23 @@ const fetchBranches = async (target, query = '') => {
       mr: null,
       title: b.commit ? b.commit.title : 'Commit recente',
       status: 'waiting',
-      committedDate: b.commit && b.commit.committed_date ? b.commit.committed_date : ''
+      committedDate: b.commit && b.commit.committed_date ? b.commit.committed_date : '',
+      authorName: b.commit ? b.commit.author_name : ''
     }));
 
     const xTotal = response.headers.get('X-Total');
     if (xTotal) {
-      totalBranchesCount.value = Math.max(filtered.length, parseInt(xTotal, 10) - (query ? 0 : baseBranches.length));
+      totalBranchesCount.value = Math.max(filtered.length, parseInt(xTotal, 10) - (searchQuery.value ? 0 : baseBranches.length));
     } else {
       totalBranchesCount.value = filtered.length;
     }
   } catch (err) {
     console.error(err);
+    if (!isBackgroundSearch) {
+      branchesError.value = `Erro ao carregar branches: ${err.message}`;
+      simulationBranches.value = [];
+      totalBranchesCount.value = 0;
+    }
   } finally {
     branchesLoading.value = false;
   }
@@ -160,35 +300,19 @@ const handleSearch = () => {
   if (searchTimeout) clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
     if (mergeTarget.value) {
-      fetchBranches(mergeTarget.value, searchQuery.value);
+      fetchBranches(mergeTarget.value, true);
     }
   }, 400);
 };
 
-// Computed property para filtrar e ordenar localmente
-const filteredBranches = computed(() => {
-  let list = [...simulationBranches.value];
-  
-  if (searchQuery.value) {
-    const q = searchQuery.value.toLowerCase().trim();
-    list = list.filter(b => 
-      b.name.toLowerCase().includes(q) || 
-      (b.title && b.title.toLowerCase().includes(q))
-    );
-  }
-  
-  list.sort((a, b) => {
-    const dateA = a.committedDate ? new Date(a.committedDate).getTime() : 0;
-    const dateB = b.committedDate ? new Date(b.committedDate).getTime() : 0;
-    if (branchesOrder.value === 'desc') {
-      return dateB - dateA;
-    } else {
-      return dateA - dateB;
-    }
-  });
-  
-  return list;
-});
+const selectMergeTarget = (target, type) => {
+  searchQuery.value = '';
+  branchesError.value = '';
+  selectedBranches.value = []; // Reseta a seleção de branches
+  mergeTarget.value = target;
+  mergeTargetType.value = type;
+  fetchBranches(target, false);
+};
 
 const formatDate = (dateString) => {
   if (!dateString) return '';
@@ -207,27 +331,236 @@ const formatDate = (dateString) => {
   }
 };
 
-const toggleBranchSelection = (branchName) => {
-  const index = selectedBranches.value.indexOf(branchName);
-  if (index > -1) {
-    selectedBranches.value.splice(index, 1);
-  } else {
-    selectedBranches.value.push(branchName);
+const runRebuildSimulation = async (type) => {
+  if (simulationActive.value) return;
+
+  const target = type === 'dev' ? settingsStore.branchDesenvolvimento : settingsStore.branchHomologacao;
+  
+  // Impede qualquer ação se tentar atuar sobre a master
+  if (target === settingsStore.branchMaster) {
+    alert("Operação bloqueada! A branch Master é totalmente protegida.");
+    return;
   }
-};
 
-const selectMergeTarget = (target, type) => {
+  const useGitLab = !!(settingsStore.gitlabToken && settingsStore.gitlabProjectId);
+  if (!useGitLab) {
+    simulationActive.value = true;
+    simulationTarget.value = type;
+    simulationStep.value = 1;
+    simulationLogs.value = [];
+    addSimLog("[Erro] Credenciais do GitLab não configuradas! Por favor, clique em 'Configurar Ambientes' no topo para registrar o ID do Projeto e Token de Acesso.", "error");
+    simulationActive.value = false;
+    return;
+  }
+
+  simulationActive.value = true;
+  simulationTarget.value = type;
+  simulationStep.value = 1;
+  simulationLogs.value = [];
+  simulationBranches.value = [];
+  totalBranchesCount.value = 0;
   searchQuery.value = '';
-  selectedBranches.value = [];
-  mergeTarget.value = target;
-  fetchBranches(target, '');
+
+  let apiBase = settingsStore.gitlabUrl || 'https://gitlab.com';
+  if (!apiBase.includes('/api/v4')) {
+    const urlObj = new URL(apiBase);
+    apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
+  }
+  const safeProjectId = encodeURIComponent(decodeURIComponent(settingsStore.gitlabProjectId));
+
+  addSimLog(`[Real] Iniciando pipeline de recriação do ambiente '${target}'...`, 'info');
+  
+  addSimLog(`[Real] Consultando GitLab para listar branches de feature ativas...`, 'info');
+  await fetchBranches(target);
+  
+  addSimLog(`[Real] Consulta concluída. Encontradas ${totalBranchesCount.value} branches ativas.`, 'success');
+  
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  // Passo 1: Preparação e Backup
+  simulationStep.value = 1;
+  const timestamp = new Date().toISOString().replace(/T/, '-').replace(/:/g, '').slice(0, 17);
+  const backupBranchName = `archive/${target}-${timestamp}`;
+
+  addSimLog(`[Real] [Fase 1: Backup] Criando branch de backup '${backupBranchName}' a partir de '${target}'...`, 'info');
+
+  try {
+    const backupUrl = `${apiBase}/projects/${safeProjectId}/repository/branches?branch=${encodeURIComponent(backupBranchName)}&ref=${encodeURIComponent(target)}`;
+    const backupRes = await fetch(backupUrl, {
+      method: 'POST',
+      headers: {
+        'PRIVATE-TOKEN': settingsStore.gitlabToken
+      }
+    });
+    if (backupRes.ok) {
+      addSimLog(`[Real] [Fase 1: Backup] Backup criado com sucesso como '${backupBranchName}'`, 'success');
+    } else {
+      const errorData = await backupRes.json().catch(() => ({}));
+      addSimLog(`[Real] [Fase 1: Backup] Não foi possível criar backup remoto (${errorData.message || backupRes.statusText}). Prosseguindo.`, 'warning');
+    }
+  } catch (e) {
+    addSimLog(`[Real] [Fase 1: Backup] Erro ao tentar criar backup: ${e.message}. Prosseguindo.`, 'warning');
+  }
+
+  // Passo 2: Destruição (Aguardando Confirmação)
+  waitingForDestruction.value = true;
+  addSimLog(`[Real] [Pausa] Aguardando autorização manual para excluir a branch '${target}'...`, 'warning');
+  await new Promise(resolve => {
+    resolveDestruction = resolve;
+  });
+
+  simulationStep.value = 2;
+
+  addSimLog(`[Real] [Fase 2: Destruição] Iniciando deleção da branch antiga '${target}'...`, 'info');
+  try {
+    const deleteUrl = `${apiBase}/projects/${safeProjectId}/repository/branches/${encodeURIComponent(target)}`;
+    const deleteRes = await fetch(deleteUrl, {
+      method: 'DELETE',
+      headers: {
+        'PRIVATE-TOKEN': settingsStore.gitlabToken
+      }
+    });
+
+    if (deleteRes.ok) {
+      addSimLog(`[Real] [Fase 2: Destruição] Branch antiga '${target}' deletada com sucesso.`, 'success');
+    } else if (deleteRes.status === 403) {
+      addSimLog(`[Real] [Fase 2: Destruição] ERRO (403 Forbidden): A branch '${target}' é PROTEGIDA no GitLab. Por favor desproteja-a temporariamente e tente novamente.`, 'error');
+      simulationActive.value = false;
+      return;
+    } else {
+      const errorData = await deleteRes.json().catch(() => ({}));
+      addSimLog(`[Real] [Fase 2: Destruição] Aviso ao deletar: ${errorData.message || deleteRes.statusText}. Prosseguindo para criação.`, 'warning');
+    }
+  } catch (err) {
+    addSimLog(`[Real] [Fase 2: Destruição] ERRO ao tentar deletar a branch: ${err.message}`, 'error');
+    simulationActive.value = false;
+    return;
+  }
+
+  // Passo 3: Recriação (da Master Protegida)
+  await new Promise(resolve => setTimeout(resolve, 1200));
+  simulationStep.value = 3;
+
+  const baseRef = settingsStore.branchMaster;
+
+  addSimLog(`[Real] [Fase 3: Recriação] Criando nova branch '${target}' a partir da master '${baseRef}'...`, 'info');
+  try {
+    const createUrl = `${apiBase}/projects/${safeProjectId}/repository/branches?branch=${encodeURIComponent(target)}&ref=${encodeURIComponent(baseRef)}`;
+    const createRes = await fetch(createUrl, {
+      method: 'POST',
+      headers: {
+        'PRIVATE-TOKEN': settingsStore.gitlabToken
+      }
+    });
+
+    if (createRes.ok) {
+      addSimLog(`[Real] [Fase 3: Recriação] Nova branch '${target}' recriada de forma limpa a partir da '${baseRef}'!`, 'success');
+    } else {
+      const errorData = await createRes.json().catch(() => ({}));
+      throw new Error(errorData.message || createRes.statusText);
+    }
+  } catch (err) {
+    addSimLog(`[Real] [Fase 3: Recriação] ERRO ao recriar branch: ${err.message}`, 'error');
+    simulationActive.value = false;
+    return;
+  }
+
+  // Passo 4: Conclusão
+  await new Promise(resolve => setTimeout(resolve, 1200));
+  simulationStep.value = 4;
+  addSimLog(`[Real] === PIPELINE DE RECONSTRUÇÃO CONCLUÍDO ===`, 'success');
+  addSimLog(`[Real] Ambiente '${target}' reconstruído e limpo a partir de '${baseRef}'!`, 'success');
+  simulationActive.value = false;
 };
 
+const runIndividualMerge = async (branchName) => {
+  if (mergeLoadingMap.value[branchName]) return;
+  const target = mergeTarget.value;
+  if (!target) return;
+
+  // Garante proteção se de alguma forma tentar mesclar para master
+  if (target === settingsStore.branchMaster) {
+    alert("Operação bloqueada! A branch Master é protegida.");
+    return;
+  }
+
+  const useGitLab = !!(settingsStore.gitlabToken && settingsStore.gitlabProjectId);
+  if (!useGitLab) {
+    addMergeLog("[Erro] Credenciais não configuradas. Cadastre seu token e ID do projeto nas configurações.", "error");
+    return;
+  }
+
+  mergeLoadingMap.value[branchName] = true;
+  mergeStatusMap.value[branchName] = null;
+
+  const prefix = `[Merge: ${branchName} ➔ ${target}]`;
+  addMergeLog(`Iniciando mesclagem de '${branchName}' no ambiente '${target}'...`, 'info');
+
+  try {
+    let apiBase = settingsStore.gitlabUrl || 'https://gitlab.com';
+    if (!apiBase.includes('/api/v4')) {
+      const urlObj = new URL(apiBase);
+      apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
+    }
+    const safeProjectId = encodeURIComponent(decodeURIComponent(settingsStore.gitlabProjectId));
+
+    addMergeLog(`${prefix} Criando Merge Request no GitLab...`, 'info');
+    const mrUrl = `${apiBase}/projects/${safeProjectId}/merge_requests`;
+    const mrRes = await fetch(mrUrl, {
+      method: 'POST',
+      headers: {
+        'PRIVATE-TOKEN': settingsStore.gitlabToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        source_branch: branchName,
+        target_branch: target,
+        title: `Breathe Merge: ${branchName} em ${target} (${new Date().toLocaleDateString('pt-BR')})`,
+        remove_source_branch: false
+      })
+    });
+
+    if (!mrRes.ok) {
+      const errorData = await mrRes.json().catch(() => ({}));
+      throw new Error(errorData.message || mrRes.statusText);
+    }
+
+    const mrData = await mrRes.json();
+    const mrIid = mrData.iid;
+    addMergeLog(`${prefix} Merge Request #${mrIid} criado. Aceitando e executando mesclagem...`, 'info');
+
+    const acceptUrl = `${apiBase}/projects/${safeProjectId}/merge_requests/${mrIid}/merge`;
+    const acceptRes = await fetch(acceptUrl, {
+      method: 'PUT',
+      headers: {
+        'PRIVATE-TOKEN': settingsStore.gitlabToken,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (acceptRes.ok) {
+      addMergeLog(`${prefix} Branch '${branchName}' integrada com SUCESSO no GitLab!`, 'success');
+      mergeStatusMap.value[branchName] = 'success';
+    } else if (acceptRes.status === 406 || acceptRes.status === 409) {
+      addMergeLog(`${prefix} CONFLITO DE MESCLAGEM DETECTADO! É necessária resolução manual.`, 'error');
+      mergeStatusMap.value[branchName] = 'conflict';
+    } else {
+      const errorData = await acceptRes.json().catch(() => ({}));
+      throw new Error(errorData.message || acceptRes.statusText);
+    }
+  } catch (err) {
+    addMergeLog(`${prefix} ERRO no merge: ${err.message}`, 'error');
+    mergeStatusMap.value[branchName] = 'error';
+  }
+
+  mergeLoadingMap.value[branchName] = false;
+};
+
+// --- FLUXO DE DELEÇÃO COM CONFIRMAÇÃO ---
 const requestDeleteBranch = (branchName) => {
   const useGitLab = !!(settingsStore.gitlabToken && settingsStore.gitlabProjectId);
   if (!useGitLab) {
-    simulationBranches.value = simulationBranches.value.filter(b => b.name !== branchName);
-    addMergeLog(`[Simulado] Branch '${branchName}' excluída com sucesso da visualização local.`, 'success');
+    alert("Credenciais não configuradas. Cadastre seu token e ID do projeto nas configurações.");
     return;
   }
   branchToDelete.value = branchName;
@@ -238,10 +571,8 @@ const executeDeleteBranch = async () => {
   const branchName = branchToDelete.value;
   if (!branchName) return;
 
-  const protectedBranches = [
-    settingsStore.branchMaster, settingsStore.branchHomologacao, settingsStore.branchDesenvolvimento, 
-    'master-sistsocial', 'hml', 'dev-06', 'master', 'main', 'develop'
-  ];
+  // Garante que não é possível deletar branches principais
+  const protectedBranches = [settingsStore.branchMaster, settingsStore.branchHomologacao, settingsStore.branchDesenvolvimento];
   if (protectedBranches.includes(branchName)) {
     alert("Não é possível deletar uma branch de ambiente principal!");
     showDeleteConfirmModal.value = false;
@@ -269,6 +600,7 @@ const executeDeleteBranch = async () => {
 
     if (res.ok) {
       addMergeLog(`[Deleção] Branch '${branchName}' DELETADA do GitLab com sucesso!`, 'success');
+      // Remove da lista exibida
       simulationBranches.value = simulationBranches.value.filter(b => b.name !== branchName);
     } else {
       const errorData = await res.json().catch(() => ({}));
@@ -283,6 +615,7 @@ const executeDeleteBranch = async () => {
   branchToDelete.value = null;
 };
 
+// --- LÓGICA DE EXCLUSÃO EM LOTE (BULK DELETE) ---
 const requestBulkDelete = () => {
   if (selectedBranches.value.length === 0) return;
   showBulkDeleteModal.value = true;
@@ -291,25 +624,13 @@ const requestBulkDelete = () => {
 const executeBulkDelete = async () => {
   showBulkDeleteModal.value = false;
   const branchesToExclude = [...selectedBranches.value];
-  selectedBranches.value = [];
+  selectedBranches.value = []; // Limpa a seleção
   
   addMergeLog(`Iniciando exclusão em lote de ${branchesToExclude.length} branches...`, 'warning');
-  const useGitLab = !!(settingsStore.gitlabToken && settingsStore.gitlabProjectId);
-  
-  if (!useGitLab) {
-    for (const name of branchesToExclude) {
-      simulationBranches.value = simulationBranches.value.filter(b => b.name !== name);
-      addMergeLog(`[Lote - Simulado] Branch '${name}' removida com sucesso.`, 'success');
-    }
-    addMergeLog(`Processo de exclusão em lote concluído (Simulado).`, 'success');
-    return;
-  }
   
   for (const branchName of branchesToExclude) {
-    const protectedBranches = [
-      settingsStore.branchMaster, settingsStore.branchHomologacao, settingsStore.branchDesenvolvimento, 
-      'master-sistsocial', 'hml', 'dev-06', 'master', 'main', 'develop'
-    ];
+    // Garante que não é possível deletar branches principais
+    const protectedBranches = [settingsStore.branchMaster, settingsStore.branchHomologacao, settingsStore.branchDesenvolvimento];
     if (protectedBranches.includes(branchName)) {
       addMergeLog(`[Lote] Ação abortada para '${branchName}' (branch protegida).`, 'error');
       continue;
@@ -347,275 +668,14 @@ const executeBulkDelete = async () => {
   addMergeLog(`Processo de exclusão em lote concluído.`, 'success');
 };
 
-const decreaseFontSize = () => {
-  if (settingsStore.consoleFontSize > 10) {
-    settingsStore.consoleFontSize--;
-    settingsStore.saveSetting('consoleFontSize', settingsStore.consoleFontSize);
+const toggleBranchSelection = (branchName) => {
+  const index = selectedBranches.value.indexOf(branchName);
+  if (index > -1) {
+    selectedBranches.value.splice(index, 1);
+  } else {
+    selectedBranches.value.push(branchName);
   }
 };
-
-const increaseFontSize = () => {
-  if (settingsStore.consoleFontSize < 18) {
-    settingsStore.consoleFontSize++;
-    settingsStore.saveSetting('consoleFontSize', settingsStore.consoleFontSize);
-  }
-};
-
-const runRebuildSimulation = async (target) => {
-  if (simulationActive.value) return;
-  
-  simulationActive.value = true;
-  simulationTarget.value = target;
-  simulationStep.value = 1;
-  simulationLogs.value = [];
-  simulationBranches.value = [];
-  totalBranchesCount.value = 0;
-  searchQuery.value = '';
-
-  const useGitLab = !!(settingsStore.gitlabToken && settingsStore.gitlabProjectId);
-  const prefix = useGitLab ? '[Real]' : '[Simulado]';
-
-  let apiBase = '';
-  let safeProjectId = '';
-  if (useGitLab) {
-    apiBase = settingsStore.gitlabUrl || 'https://gitlab.com';
-    if (!apiBase.includes('/api/v4')) {
-      const urlObj = new URL(apiBase);
-      apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
-    }
-    safeProjectId = encodeURIComponent(decodeURIComponent(settingsStore.gitlabProjectId));
-  }
-
-  addSimLog(`${prefix} Iniciando pipeline de recriação do ambiente '${target}'...`, 'info');
-  
-  // 1. Consulta branches de feature ativas para exibição de monitoramento
-  addSimLog(`${prefix} Consultando API do GitLab para listar ramificações (branches) remotas do projeto...`, 'info');
-  
-  await fetchBranches(target);
-  
-  if (useGitLab) {
-    addSimLog(`[Real] Consulta concluída. Encontradas ${totalBranchesCount.value} ramificações ativas no GitLab para merge individual futuro.`, 'success');
-  }
-  
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  // Passo 1: Preparação e Backup (Real no GitLab ou Simulado)
-  simulationStep.value = 1;
-  const timestamp = new Date().toISOString().replace(/T/, '-').replace(/:/g, '').slice(0, 17);
-  const backupBranchName = `archive/${target}-${timestamp}`;
-
-  addSimLog(`${prefix} [Fase 1: Backup] Criando branch de backup '${backupBranchName}' a partir de '${target}'...`, 'info');
-
-  if (useGitLab) {
-    try {
-      const backupUrl = `${apiBase}/projects/${safeProjectId}/repository/branches?branch=${encodeURIComponent(backupBranchName)}&ref=${encodeURIComponent(target)}`;
-      const backupRes = await fetch(backupUrl, {
-        method: 'POST',
-        headers: {
-          'PRIVATE-TOKEN': settingsStore.gitlabToken
-        }
-      });
-      if (backupRes.ok) {
-        addSimLog(`[Real] [Fase 1: Backup] Backup da antiga '${target}' criado com sucesso no GitLab como '${backupBranchName}'`, 'success');
-      } else {
-        const errorData = await backupRes.json().catch(() => ({}));
-        addSimLog(`[Real] [Fase 1: Backup] Não foi possível criar backup remoto (${errorData.message || backupRes.statusText}). Se a branch '${target}' ainda não existia, isso é normal. Prosseguindo.`, 'warning');
-      }
-    } catch (e) {
-      addSimLog(`[Real] [Fase 1: Backup] Erro de rede ao tentar criar backup: ${e.message}. Prosseguindo com precaução.`, 'warning');
-    }
-  } else {
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    addSimLog(`[Simulado] [Fase 1: Backup] Executando: git branch -m ${target} ${backupBranchName}`, 'info');
-    addSimLog(`[Simulado] [Fase 1: Backup] Backup do ambiente antigo criado com sucesso: ${backupBranchName}`, 'success');
-  }
-
-  // Passo 2: Destruição (Aguardando Confirmação Manual)
-  waitingForDestruction.value = true;
-  addSimLog(`${prefix} [Pausa] Aguardando autorização manual para excluir a branch '${target}'...`, 'warning');
-  await new Promise(resolve => {
-    resolveDestruction = resolve;
-  });
-
-  simulationStep.value = 2;
-
-  if (useGitLab) {
-    addSimLog(`[Real] [Fase 2: Destruição] Iniciando deleção da branch antiga '${target}'...`, 'info');
-    try {
-      const deleteUrl = `${apiBase}/projects/${safeProjectId}/repository/branches/${encodeURIComponent(target)}`;
-      const deleteRes = await fetch(deleteUrl, {
-        method: 'DELETE',
-        headers: {
-          'PRIVATE-TOKEN': settingsStore.gitlabToken
-        }
-      });
-
-      if (deleteRes.ok) {
-        addSimLog(`[Real] [Fase 2: Destruição] Branch antiga '${target}' deletada com sucesso no GitLab.`, 'success');
-      } else if (deleteRes.status === 403) {
-        addSimLog(`[Real] [Fase 2: Destruição] ERRO (403 Forbidden): Não foi possível deletar a branch '${target}' porque ela está configurada como PROTEGIDA no GitLab. Por favor, desproteja temporariamente a branch '${target}' nas configurações do GitLab (Settings > Repository > Protected branches) e tente novamente.`, 'error');
-        simulationActive.value = false;
-        return;
-      } else {
-        const errorData = await deleteRes.json().catch(() => ({}));
-        addSimLog(`[Real] [Fase 2: Destruição] Aviso ao deletar: ${errorData.message || deleteRes.statusText}. Continuando para criação do novo ramo.`, 'warning');
-      }
-    } catch (err) {
-      addSimLog(`[Real] [Fase 2: Destruição] ERRO ao tentar deletar a branch no GitLab: ${err.message}`, 'error');
-      simulationActive.value = false;
-      return;
-    }
-  } else {
-    addSimLog(`[Simulado] [Fase 2: Destruição] Executando: git branch -D ${target}`, 'info');
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    addSimLog(`[Simulado] [Fase 2: Destruição] Branch antiga '${target}' destruída com sucesso localmente.`, 'success');
-  }
-
-  // Passo 3: Recriação (Real no GitLab ou Simulado)
-  await new Promise(resolve => setTimeout(resolve, 1200));
-  simulationStep.value = 3;
-
-  if (useGitLab) {
-    addSimLog(`[Real] [Fase 3: Recriação] Criando nova branch '${target}' a partir de 'master-sistsocial' no GitLab...`, 'info');
-    try {
-      const createUrl = `${apiBase}/projects/${safeProjectId}/repository/branches?branch=${encodeURIComponent(target)}&ref=master-sistsocial`;
-      const createRes = await fetch(createUrl, {
-        method: 'POST',
-        headers: {
-          'PRIVATE-TOKEN': settingsStore.gitlabToken
-        }
-      });
-
-      if (createRes.ok) {
-        addSimLog(`[Real] [Fase 3: Recriação] Nova branch '${target}' recriada e alinhada limpa com a 'master-sistsocial' com sucesso!`, 'success');
-      } else {
-        const errorData = await createRes.json().catch(() => ({}));
-        throw new Error(errorData.message || createRes.statusText);
-      }
-    } catch (err) {
-      addSimLog(`[Real] [Fase 3: Recriação] ERRO ao recriar branch no GitLab: ${err.message}`, 'error');
-      simulationActive.value = false;
-      return;
-    }
-  } else {
-    addSimLog(`[Simulado] [Fase 3: Recriação] Executando: git checkout master-sistsocial && git pull origin master-sistsocial`, 'info');
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    addSimLog(`[Simulado] [Fase 3: Recriação] Origem master-sistsocial atualizada e sincronizada com a produção.`, 'success');
-    addSimLog(`[Simulado] [Fase 3: Recriação] Executando: git checkout -b ${target}`, 'info');
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    addSimLog(`[Simulado] [Fase 3: Recriação] Novo ramo de integração '${target}' criado com sucesso a partir de 'master-sistsocial'.`, 'success');
-  }
-
-  // Passo 4: Conclusão
-  await new Promise(resolve => setTimeout(resolve, 1200));
-  simulationStep.value = 4;
-  addSimLog(`${prefix} === PIPELINE DE RECONSTRUÇÃO FINALIZADA ===`, 'success');
-  addSimLog(`${prefix} Ambiente '${target}' reconstruído e limpo com sucesso a partir da master-sistsocial!`, 'success');
-  addSimLog(`${prefix} As branches ativas estão prontas para serem mescladas individualmente de forma posterior.`, 'info');
-  simulationActive.value = false;
-};
-
-const runIndividualMerge = async (branchName) => {
-  if (mergeLoadingMap.value[branchName]) return;
-  const target = mergeTarget.value;
-  if (!target) return;
-
-  mergeLoadingMap.value[branchName] = true;
-  mergeStatusMap.value[branchName] = null;
-
-  const prefix = `[Merge: ${branchName} ➔ ${target}]`;
-  addMergeLog(`Iniciando processo de mesclagem para '${branchName}' no ambiente '${target}'...`, 'info');
-
-  const useGitLab = !!(settingsStore.gitlabToken && settingsStore.gitlabProjectId);
-  if (useGitLab) {
-    try {
-      let apiBase = settingsStore.gitlabUrl || 'https://gitlab.com';
-      if (!apiBase.includes('/api/v4')) {
-        const urlObj = new URL(apiBase);
-        apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
-      }
-      const safeProjectId = encodeURIComponent(decodeURIComponent(settingsStore.gitlabProjectId));
-
-      // 1. Criar um Merge Request temporário
-      addMergeLog(`${prefix} Criando Merge Request no GitLab...`, 'info');
-      const mrUrl = `${apiBase}/projects/${safeProjectId}/merge_requests`;
-      const mrRes = await fetch(mrUrl, {
-        method: 'POST',
-        headers: {
-          'PRIVATE-TOKEN': settingsStore.gitlabToken,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          source_branch: branchName,
-          target_branch: target,
-          title: `TASS Merge: ${branchName} em ${target} (${new Date().toLocaleDateString('pt-BR')})`,
-          remove_source_branch: false
-        })
-      });
-
-      if (!mrRes.ok) {
-        const errorData = await mrRes.json().catch(() => ({}));
-        throw new Error(errorData.message || mrRes.statusText);
-      }
-
-      const mrData = await mrRes.json();
-      const mrIid = mrData.iid;
-      addMergeLog(`${prefix} Merge Request #${mrIid} criado com sucesso. Aceitando e executando merge...`, 'info');
-
-      // 2. Aceitar/Executar o Merge
-      const acceptUrl = `${apiBase}/projects/${safeProjectId}/merge_requests/${mrIid}/merge`;
-      const acceptRes = await fetch(acceptUrl, {
-        method: 'PUT',
-        headers: {
-          'PRIVATE-TOKEN': settingsStore.gitlabToken,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (acceptRes.ok) {
-        addMergeLog(`${prefix} Branch '${branchName}' integrada com SUCESSO no ambiente '${target}' via GitLab!`, 'success');
-        mergeStatusMap.value[branchName] = 'success';
-      } else if (acceptRes.status === 406 || acceptRes.status === 409) {
-        addMergeLog(`${prefix} CONFLITO DE MESCLAGEM DETECTADO no GitLab! Não foi possível mesclar automaticamente.`, 'error');
-        mergeStatusMap.value[branchName] = 'conflict';
-      } else {
-        const errorData = await acceptRes.json().catch(() => ({}));
-        throw new Error(errorData.message || acceptRes.statusText);
-      }
-    } catch (err) {
-      addMergeLog(`${prefix} ERRO ao processar merge no GitLab: ${err.message}`, 'error');
-      mergeStatusMap.value[branchName] = 'error';
-    }
-  } else {
-    // Modo Simulado
-    try {
-      addMergeLog(`${prefix} Executando: git checkout ${target} && git merge ${branchName}`, 'info');
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const hasConflict = branchName.toLowerCase().includes('bugfix') || branchName.toLowerCase().includes('conflict') || branchName.toLowerCase().includes('fix');
-      if (hasConflict) {
-        addMergeLog(`${prefix} CONFLITO detectado no arquivo: src/components/GitRebuilderFullscreen.vue. Por favor resolva manualmente.`, 'error');
-        mergeStatusMap.value[branchName] = 'conflict';
-      } else {
-        addMergeLog(`${prefix} Branch '${branchName}' integrada com SUCESSO em '${target}'!`, 'success');
-        mergeStatusMap.value[branchName] = 'success';
-      }
-    } catch (err) {
-      addMergeLog(`${prefix} Erro desconhecido: ${err.message}`, 'error');
-      mergeStatusMap.value[branchName] = 'error';
-    }
-  }
-
-  mergeLoadingMap.value[branchName] = false;
-};
-
-onMounted(() => {
-  document.body.classList.add('overflow-hidden');
-});
-
-onUnmounted(() => {
-  document.body.classList.remove('overflow-hidden');
-});
 
 // --- ROLAGEM AUTOMÁTICA DOS CONSOLES ---
 const simConsoleEl = ref(null);
@@ -639,36 +699,42 @@ watch(mergeLogs, () => {
 
 const toggleTheme = () => {
   settingsStore.theme = settingsStore.theme === 'dark' ? 'light' : 'dark';
-  settingsStore.saveSetting('app-theme', settingsStore.theme);
 };
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 overflow-hidden bg-slate-100 dark:bg-[#0B0F19] text-slate-800 dark:text-slate-100 flex flex-col font-sans select-none animate-fadeIn transition-colors duration-300">
+  <div class="flex-1 flex flex-col font-sans select-none animate-fadeIn">
     <!-- Header -->
     <header class="h-20 border-b border-slate-200 dark:border-white/[0.06] px-8 md:px-12 flex items-center justify-between shrink-0 bg-white/40 dark:bg-slate-950/20 backdrop-blur-md">
       <div class="flex items-center gap-3">
-        <button 
-          @click="emit('close')"
-          class="p-2 hover:bg-white/5 dark:hover:bg-white/5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer group"
-          title="Voltar ao Kanban"
-        >
-          <ChevronLeft class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
-        </button>
+        <div class="p-2 bg-indigo-500/10 rounded-xl">
+          <GitBranch class="w-6 h-6 text-indigo-500" />
+        </div>
         <div>
           <h1 class="text-base font-black text-slate-800 dark:text-white flex items-center gap-2">
-            <GitBranch class="w-5 h-5 text-indigo-500" />
-            Reconstrutor de Ambientes Git
+            Breathe Git Rebuilder
           </h1>
-          <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Simulador de Limpeza e Re-alinhamento de Branches</p>
+          <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Isolador e Simulador de Integrações e Ambientes</p>
         </div>
       </div>
 
+      <!-- GitLab status info & Settings trigger -->
       <div class="flex items-center gap-4">
+        <!-- Diagnóstico Rápido -->
+        <div 
+          class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-wider"
+          :class="settingsStore.gitlabToken && settingsStore.gitlabProjectId 
+            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+            : 'bg-amber-500/10 border-amber-500/20 text-amber-400'"
+        >
+          <CloudLightning class="w-3.5 h-3.5" />
+          {{ settingsStore.gitlabToken && settingsStore.gitlabProjectId ? 'GitLab Ativo' : 'Modo Offline (Simulado)' }}
+        </div>
+
         <!-- Botão Alternar Tema (Claro/Escuro) -->
         <button 
           @click="toggleTheme"
-          class="p-2.5 bg-white/40 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 hover:text-slate-850 dark:text-slate-300 dark:hover:text-white rounded-xl transition-all cursor-pointer border border-slate-200 dark:border-white/[0.06] flex items-center justify-center shrink-0"
+          class="p-2.5 bg-white/5 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-white/10 text-slate-300 hover:text-white rounded-xl transition-all cursor-pointer border border-white/[0.06] flex items-center justify-center shrink-0"
           :title="settingsStore.theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'"
         >
           <Sun v-if="settingsStore.theme === 'dark'" class="w-4 h-4 text-amber-400" />
@@ -676,11 +742,11 @@ const toggleTheme = () => {
         </button>
 
         <button 
-          @click="emit('close')"
-          class="flex items-center gap-2 px-5 py-2.5 bg-white/45 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/[0.06] text-slate-655 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer shrink-0"
+          @click="openSettings"
+          class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-lg shadow-indigo-500/10 shrink-0"
         >
-          <X class="w-4 h-4" />
-          Voltar ao Kanban
+          <Settings class="w-4 h-4" />
+          Configurar Ambientes
         </button>
       </div>
     </header>
@@ -705,61 +771,71 @@ const toggleTheme = () => {
       >
         <span class="flex items-center gap-2">
           <GitBranch class="w-4 h-4" />
-          Mesclar Branches
+          Mesclar e Excluir Branches
         </span>
         <div v-if="activeTab === 'merges'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-t-full"></div>
       </button>
     </div>
 
     <!-- Main Container -->
-    <main class="flex-1 lg:overflow-hidden overflow-y-auto p-6 md:p-8 lg:py-6 lg:px-10 space-y-6 w-full max-w-full flex flex-col">
+    <main class="flex-1 md:overflow-hidden overflow-y-auto p-6 md:p-8 lg:py-6 lg:px-10 space-y-6 w-full max-w-full flex flex-col">
       
       <!-- ABA 1: LIMPEZA E RECRIAÇÃO -->
       <div v-if="activeTab === 'rebuilder'" class="space-y-8 animate-fadeIn">
         <!-- Top Cards: Branch Overview -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <!-- master -->
-          <div class="p-6 bg-white dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-emerald-500/20 flex flex-col justify-between shadow-md dark:shadow-none relative overflow-hidden">
+          <!-- MASTER (PROTEGIDA) -->
+          <div data-test="master-card" class="p-6 bg-white dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-emerald-500/20 flex flex-col justify-between shadow-md dark:shadow-none relative overflow-hidden">
+            <div class="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 text-emerald-400 text-[8px] font-black uppercase tracking-wider rounded-lg border border-emerald-500/20">
+              <Lock class="w-3 h-3" />
+              Protegida
+            </div>
             <div>
               <div class="flex items-center justify-between mb-4">
-                <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase tracking-wider rounded-lg border border-emerald-500/20">Estável</span>
+                <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase tracking-wider rounded-lg">Master / Produção</span>
                 <div class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
               </div>
-               <h3 class="text-xl font-black text-slate-800 dark:text-white font-mono text-emerald-500 dark:text-emerald-400">master-sistsocial</h3>
+              <h3 class="text-xl font-black text-slate-800 dark:text-white font-mono text-emerald-400 truncate pr-16" :title="settingsStore.branchMaster">
+                {{ settingsStore.branchMaster }}
+              </h3>
             </div>
             <div class="mt-6 pt-4 border-t border-slate-100 dark:border-white/[0.04]">
-              <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">Ramo de Produção Real</p>
-              <p class="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium">Origem estável de onde os ambientes são recriados.</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">Origem Estável</p>
+              <p class="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium">Nenhuma ação permitida. Serve como base de segurança e integridade.</p>
             </div>
           </div>
 
-          <!-- hml -->
+          <!-- HOMOLOGAÇÃO -->
           <div class="p-6 bg-white dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-indigo-500/10 flex flex-col justify-between shadow-md dark:shadow-none">
             <div>
               <div class="flex items-center justify-between mb-4">
                 <span class="px-2.5 py-1 bg-indigo-500/10 text-indigo-500 text-[8px] font-black uppercase tracking-wider rounded-lg">Homologação</span>
                 <div class="w-3 h-3 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.3)]"></div>
               </div>
-              <h3 class="text-xl font-black text-slate-800 dark:text-white font-mono">hml</h3>
+              <h3 class="text-xl font-black text-slate-800 dark:text-white font-mono truncate" :title="settingsStore.branchHomologacao">
+                {{ settingsStore.branchHomologacao }}
+              </h3>
             </div>
             <div class="mt-6 pt-4 border-t border-slate-100 dark:border-white/[0.04]">
-              <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">Fase de Testes Finais</p>
-              <p class="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5">Código validado e homologado antes do merge para produção.</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">Ambiente de Testes Finais</p>
+              <p class="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5">Código validado pronto para homologação.</p>
             </div>
           </div>
 
-          <!-- dev -->
+          <!-- DESENVOLVIMENTO -->
           <div class="p-6 bg-white dark:bg-slate-950/40 rounded-2xl border border-slate-200 dark:border-amber-500/10 flex flex-col justify-between shadow-md dark:shadow-none">
             <div>
               <div class="flex items-center justify-between mb-4">
                 <span class="px-2.5 py-1 bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase tracking-wider rounded-lg">Desenvolvimento</span>
                 <div class="w-3 h-3 bg-amber-500 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.3)]"></div>
               </div>
-              <h3 class="text-xl font-black text-slate-800 dark:text-white font-mono text-amber-500 dark:text-amber-400">dev-06</h3>
+              <h3 class="text-xl font-black text-slate-800 dark:text-white font-mono text-amber-400 truncate" :title="settingsStore.branchDesenvolvimento">
+                {{ settingsStore.branchDesenvolvimento }}
+              </h3>
             </div>
             <div class="mt-6 pt-4 border-t border-slate-100 dark:border-white/[0.04]">
-              <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">Ramo de Integração Real</p>
-              <p class="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium">Ambiente de desenvolvimento diário.</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">Ambiente de Integração Diária</p>
+              <p class="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5 font-medium">Reunião contínua de funcionalidades em desenvolvimento.</p>
             </div>
           </div>
         </div>
@@ -767,12 +843,12 @@ const toggleTheme = () => {
         <!-- Action Buttons -->
         <div class="flex flex-col sm:flex-row gap-6">
           <button 
-            @click="runRebuildSimulation('dev-06')"
+            @click="runRebuildSimulation('dev')"
             :disabled="simulationActive"
             class="flex-1 flex items-center justify-center gap-3 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-amber-500/10 disabled:opacity-50 cursor-pointer"
           >
-            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': simulationActive && simulationTarget === 'dev-06' }" />
-            Recriar dev-06 (da master-sistsocial)
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': simulationActive && simulationTarget === 'dev' }" />
+            Recriar {{ settingsStore.branchDesenvolvimento }}
           </button>
           
           <button 
@@ -781,7 +857,7 @@ const toggleTheme = () => {
             class="flex-1 flex items-center justify-center gap-3 py-4 bg-indigo-600 text-white hover:bg-indigo-700 rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-indigo-500/10 disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': simulationActive && simulationTarget === 'hml' }" />
-            Recriar hml (da master-sistsocial)
+            Recriar {{ settingsStore.branchHomologacao }}
           </button>
         </div>
 
@@ -812,12 +888,14 @@ const toggleTheme = () => {
 
           <!-- Botão de Confirmação de Destruição -->
           <div v-if="waitingForDestruction" class="p-6 bg-red-500/10 border border-red-500/20 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 animate-pulse">
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 text-left">
               <AlertTriangle class="w-8 h-8 text-red-500 shrink-0" />
               <div>
                 <h4 class="text-sm font-black text-white">Ação Destrutiva Pendente</h4>
-                <p class="text-[10px] text-slate-400 font-medium mt-1 mb-2">Você está prestes a excluir a branch atual permanentemente do GitLab. Confirme para prosseguir com a recriação limpa.</p>
-                <code class="px-2.5 py-1 bg-black/40 text-red-400 rounded text-[10px] font-mono border border-red-500/20 shadow-inner">Equivalente a: git push origin --delete {{ simulationTarget }}</code>
+                <p class="text-[10px] text-slate-400 font-medium mt-1 mb-2">Você está prestes a excluir a branch antiga do GitLab para alinhá-la limpa com a master.</p>
+                <code class="px-2.5 py-1 bg-black/40 text-red-400 rounded text-[10px] font-mono border border-red-500/20 shadow-inner">
+                  git push origin --delete {{ simulationTarget === 'dev' ? settingsStore.branchDesenvolvimento : settingsStore.branchHomologacao }}
+                </code>
               </div>
             </div>
             <button 
@@ -828,51 +906,87 @@ const toggleTheme = () => {
             </button>
           </div>
 
-          <!-- Console Git (Full width) -->
+          <!-- Console Git -->
           <div class="space-y-4 text-left">
-            <h4 class="text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <Terminal class="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-              Console de Logs Git (Feedback)
+            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <Terminal class="w-4 h-4 text-indigo-400" />
+              Console de Logs Git
             </h4>
-            <div ref="simConsoleEl" class="bg-black/95 border border-slate-200 dark:border-white/[0.06] rounded-2xl p-5 font-mono text-[10px] leading-relaxed text-slate-300 min-h-[300px] max-h-[300px] overflow-y-auto custom-scrollbar flex flex-col gap-2">
-              <div v-if="simulationLogs.length === 0" class="text-slate-600 italic">Aguardando início...</div>
+            <div class="border border-white/[0.06] rounded-2xl overflow-hidden bg-black/95 flex flex-col">
               <div 
-                v-for="(log, idx) in simulationLogs" 
-                :key="idx"
-                :class="{
-                  'text-slate-400': log.type === 'info',
-                  'text-emerald-400': log.type === 'success',
-                  'text-amber-400': log.type === 'warning',
-                  'text-red-400 font-bold': log.type === 'error'
-                }"
+                ref="simConsoleEl"
+                :style="{ fontSize: settingsStore.consoleFontSize + 'px' }" 
+                class="p-5 font-mono leading-relaxed text-slate-300 min-h-[300px] max-h-[300px] overflow-y-auto custom-scrollbar flex flex-col gap-2"
               >
-                <span class="text-slate-600">[{{ log.time }}]</span> {{ log.text }}
+                <div v-if="simulationLogs.length === 0" class="text-slate-600 italic">Aguardando início...</div>
+                <div 
+                  v-for="(log, idx) in simulationLogs" 
+                  :key="idx"
+                  :class="{
+                    'text-slate-400': log.type === 'info',
+                    'text-emerald-400': log.type === 'success',
+                    'text-amber-400': log.type === 'warning',
+                    'text-red-400 font-bold': log.type === 'error'
+                  }"
+                >
+                  <span class="text-slate-600">[{{ log.time }}]</span> {{ log.text }}
+                </div>
+              </div>
+            
+            <!-- Ajuste de Fonte na Base do Console -->
+            <div class="flex items-center justify-between px-5 py-2 bg-slate-950/80 border-t border-white/[0.06] text-[9px] font-black text-slate-400 uppercase tracking-wider select-none">
+              <div class="flex items-center gap-1.5">
+                <Terminal class="w-3.5 h-3.5 text-indigo-400" />
+                Console Rebuilder
+              </div>
+              <div class="flex items-center gap-2">
+                <span>Tamanho do Texto:</span>
+                <div class="flex items-center bg-black/40 border border-white/[0.05] rounded-lg p-0.5">
+                  <button 
+                    type="button"
+                    @click="decreaseFontSize"
+                    class="px-2 py-0.5 hover:bg-white/5 rounded text-xs transition-colors cursor-pointer text-slate-400 hover:text-white"
+                    title="Diminuir fonte"
+                  >
+                    -
+                  </button>
+                  <span class="px-1.5 text-[9px] font-mono text-indigo-400">{{ settingsStore.consoleFontSize }}px</span>
+                  <button 
+                    type="button"
+                    @click="increaseFontSize"
+                    class="px-2 py-0.5 hover:bg-white/5 rounded text-xs transition-colors cursor-pointer text-slate-400 hover:text-white"
+                    title="Aumentar fonte"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
       <!-- ABA 2: MESCLAR E EXCLUIR BRANCHES -->
-      <div v-else class="space-y-6 animate-fadeIn flex-1 flex flex-col min-h-0 overflow-hidden">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch w-full flex-1 min-h-0">
-          
+      <div v-else class="space-y-6 animate-fadeIn flex-1 flex flex-col min-h-0 lg:overflow-hidden overflow-y-auto">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch w-full flex-1 min-h-0">
+
           <!-- Coluna 1 (Lado Esquerdo): Branches Disponíveis (5 colunas) -->
-          <div class="lg:col-span-5 space-y-4 text-left flex flex-col h-full min-h-0">
+          <div class="md:col-span-5 space-y-4 text-left flex flex-col lg:h-full min-h-0 min-w-0">
             <div class="flex items-center justify-between h-6 shrink-0">
               <h4 class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
                 <History class="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-                Branches Disponíveis
+                Branches Disponíveis [CONTAINER ESQUERDO]
               </h4>
               <span v-if="mergeTarget && totalBranchesCount > 0" class="px-2.5 py-1 bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 text-[8px] font-black uppercase tracking-wider rounded-lg border border-indigo-500/20">
                 Total: {{ totalBranchesCount }}
               </span>
             </div>
-            
+
             <!-- Campo de Busca e Ordenação -->
             <div class="flex gap-2.5 items-center h-10 shrink-0">
               <div class="relative flex-1 min-w-0 h-full">
-                <input 
+                <input
                   v-model="searchQuery"
                   type="text"
                   placeholder="Buscar branch..."
@@ -885,8 +999,8 @@ const toggleTheme = () => {
                   <Search v-else class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                 </div>
               </div>
-              
-              <button 
+
+              <button
                 type="button"
                 @click="branchesOrder = branchesOrder === 'desc' ? 'asc' : 'desc'"
                 :disabled="!mergeTarget"
@@ -898,17 +1012,21 @@ const toggleTheme = () => {
             </div>
 
             <!-- Listagem das branches com altura calculada para alinhar com os vizinhos -->
-            <div class="space-y-2 overflow-y-auto pr-2 custom-scrollbar lg:h-[calc(100vh-480px)] max-h-[350px] lg:max-h-none flex-1">
+            <div class="space-y-2 overflow-y-auto pr-2 custom-scrollbar max-h-[calc(100vh-320px)] flex-1 min-h-0">
               <div v-if="!mergeTarget" class="p-8 text-center text-xs text-slate-500 dark:text-slate-400 border border-dashed border-slate-250 dark:border-white/[0.06] rounded-2xl bg-slate-50/50 dark:bg-white/[0.01] flex flex-col items-center justify-center gap-2 h-full">
                 <GitBranch class="w-6 h-6 text-slate-400 dark:text-slate-655 animate-pulse" />
                 <span>Selecione um ambiente no painel central para listar as branches de feature.</span>
               </div>
+              <div v-else-if="branchesError" class="p-6 text-center text-xs text-red-400 border border-dashed border-red-500/20 rounded-2xl bg-red-500/5 flex flex-col items-center gap-2">
+                <AlertCircle class="w-5 h-5 text-red-500 animate-pulse" />
+                <span>{{ branchesError }}</span>
+              </div>
               <div v-else-if="filteredBranches.length === 0" class="p-8 text-center text-xs text-slate-500 dark:text-slate-400 border border-dashed border-slate-200 dark:border-white/[0.06] rounded-2xl flex flex-col items-center justify-center gap-2 h-full">
                 <span>Nenhuma branch ativa encontrada.</span>
               </div>
-              <div 
+              <div
                 v-else
-                v-for="branch in filteredBranches" 
+                v-for="branch in filteredBranches"
                 :key="branch.name"
                 @click="toggleBranchSelection(branch.name)"
                 class="flex items-center justify-between p-3 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/[0.04] rounded-xl hover:border-indigo-500/20 dark:hover:border-white/10 transition-colors cursor-pointer"
@@ -916,18 +1034,18 @@ const toggleTheme = () => {
                 <!-- Checkbox de Seleção Individual Premium Encorpado -->
                 <div class="flex items-center shrink-0 pr-3">
                   <div class="w-5 h-5 rounded-md border-2 transition-all duration-200 flex items-center justify-center"
-                       :class="selectedBranches.includes(branch.name) 
-                         ? 'border-indigo-500 bg-indigo-600 shadow-[0_0_10px_rgba(99,102,241,0.4)]' 
+                       :class="selectedBranches.includes(branch.name)
+                         ? 'border-indigo-500 bg-indigo-600 shadow-[0_0_10px_rgba(99,102,241,0.4)]'
                          : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950/80 group-hover:border-slate-400 dark:group-hover:border-slate-500'"
                   >
-                    <svg 
+                    <svg
                       class="w-3 h-3 text-white transition-transform duration-200"
                       :class="selectedBranches.includes(branch.name) ? 'scale-100' : 'scale-0'"
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      stroke-width="4.5" 
-                      stroke-linecap="round" 
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="4.5"
+                      stroke-linecap="round"
                       stroke-linejoin="round"
                     >
                       <polyline points="20 6 9 17 4 12"></polyline>
@@ -943,7 +1061,7 @@ const toggleTheme = () => {
                     {{ branch.title || 'Último commit ativo' }}
                   </p>
                 </div>
-                
+
                 <!-- Data de Interação Alinhada à Direita (fora do @click.stop) -->
                 <span v-if="branch.committedDate" class="text-[10px] font-bold bg-slate-100 dark:bg-slate-800/90 text-slate-655 dark:text-slate-350 px-3 py-1 rounded-lg border border-slate-200 dark:border-white/[0.06] tracking-wide whitespace-nowrap mr-2 shrink-0">
                   Interação: {{ formatDate(branch.committedDate) }}
@@ -961,7 +1079,7 @@ const toggleTheme = () => {
                   </span>
 
                   <!-- Mesclar Action -->
-                  <button 
+                  <button
                     v-if="!mergeStatusMap[branch.name] || mergeStatusMap[branch.name] === 'error'"
                     @click="runIndividualMerge(branch.name)"
                     :disabled="mergeLoadingMap[branch.name]"
@@ -972,7 +1090,7 @@ const toggleTheme = () => {
                   </button>
 
                   <!-- Excluir Action -->
-                  <button 
+                  <button
                     @click="requestDeleteBranch(branch.name)"
                     class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 rounded-lg border border-red-500/20 hover:border-red-500/30 transition-all font-black uppercase text-[9px] tracking-wider cursor-pointer"
                     title="Excluir branch"
@@ -985,16 +1103,16 @@ const toggleTheme = () => {
           </div>
 
           <!-- Coluna 2 (Centro): Painel de Controle de Ambiente e Lote (2 colunas) -->
-          <div class="lg:col-span-2 space-y-4 text-left flex flex-col h-full min-h-0">
+          <div class="md:col-span-3 space-y-4 text-left flex flex-col lg:h-full min-h-0 min-w-0">
             <div class="flex items-center justify-between h-6 shrink-0">
-              <h4 class="text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <h4 class="text-[10px] font-black text-slate-555 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
                 <Settings class="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
                 Painel
               </h4>
             </div>
-            
+
             <!-- Painel de Controle de Ambiente e Ações -->
-            <div class="border border-slate-200 dark:border-white/[0.06] rounded-2xl bg-white dark:bg-slate-900/40 p-4 flex flex-col justify-between gap-4 lg:h-[calc(100vh-428px)] max-h-[350px] lg:max-h-none flex-1">
+            <div class="border border-slate-200 dark:border-white/[0.06] rounded-2xl bg-white dark:bg-slate-900/40 p-4 flex flex-col justify-between gap-4 max-h-[calc(100vh-280px)] flex-1 min-h-0">
               <div class="text-left shrink-0">
                 <p class="text-[10px] text-slate-550 dark:text-slate-400 font-bold uppercase tracking-wider">Controle</p>
               </div>
@@ -1002,11 +1120,11 @@ const toggleTheme = () => {
               <!-- Botões de Ações Centralizados e Harmonizados em Tamanho -->
               <div class="flex-1 flex flex-col gap-3 justify-center">
                 <!-- Botão DEV -->
-                <button 
+                <button
                   @click="selectMergeTarget(settingsStore.branchDesenvolvimento || 'dev-06', 'dev')"
                   class="w-full py-4 px-2 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1 shrink-0"
-                  :class="mergeTarget === (settingsStore.branchDesenvolvimento || 'dev-06') 
-                    ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-400 shadow-md dark:shadow-none' 
+                  :class="mergeTarget === (settingsStore.branchDesenvolvimento || 'dev-06')
+                    ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-400 shadow-md dark:shadow-none'
                     : 'bg-slate-50 dark:bg-slate-950/20 border-slate-250 dark:border-white/[0.06] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'"
                 >
                   <span class="text-[11px] font-black uppercase tracking-wider">DEV</span>
@@ -1014,11 +1132,11 @@ const toggleTheme = () => {
                 </button>
 
                 <!-- Botão HML -->
-                <button 
+                <button
                   @click="selectMergeTarget(settingsStore.branchHomologacao || 'hml', 'hml')"
                   class="w-full py-4 px-2 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1 shrink-0"
-                  :class="mergeTarget === (settingsStore.branchHomologacao || 'hml') 
-                    ? 'bg-indigo-500/10 border-indigo-500 text-indigo-650 dark:text-indigo-450 shadow-md dark:shadow-none' 
+                  :class="mergeTarget === (settingsStore.branchHomologacao || 'hml')
+                    ? 'bg-indigo-500/10 border-indigo-500 text-indigo-650 dark:text-indigo-450 shadow-md dark:shadow-none'
                     : 'bg-slate-50 dark:bg-slate-950/20 border-slate-250 dark:border-white/[0.06] text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'"
                 >
                   <span class="text-[11px] font-black uppercase tracking-wider">HML</span>
@@ -1026,7 +1144,7 @@ const toggleTheme = () => {
                 </button>
 
                 <!-- Botão Excluir Selecionadas (Bulk Delete) -->
-                <button 
+                <button
                   @click="requestBulkDelete"
                   :disabled="selectedBranches.length === 0"
                   class="w-full py-4 px-2 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-1 shrink-0"
@@ -1042,29 +1160,29 @@ const toggleTheme = () => {
               </div>
 
               <div class="pt-2 border-t border-slate-150 dark:border-white/[0.04] text-center shrink-0">
-                <span class="text-[8px] font-black text-slate-450 dark:text-slate-550 uppercase tracking-widest">Git</span>
+                <span class="text-[8px] font-black text-slate-455 dark:text-slate-550 uppercase tracking-widest">Git</span>
               </div>
             </div>
           </div>
 
           <!-- Coluna 3 (Lado Direito): Console de Operações (5 colunas) -->
-          <div class="lg:col-span-5 space-y-4 text-left flex flex-col h-full min-h-0">
+          <div class="md:col-span-4 space-y-4 text-left flex flex-col lg:h-full min-h-0 min-w-0">
             <div class="flex items-center justify-between h-6 shrink-0">
               <h4 class="text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
                 <Terminal class="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-                Console de Operações
+                Console de Operações [TERMINAL DIREITO]
               </h4>
             </div>
-            
-            <div class="border border-slate-200 dark:border-white/[0.06] rounded-2xl overflow-hidden bg-black/95 flex flex-col shadow-xl lg:h-[calc(100vh-428px)] max-h-[350px] lg:max-h-none flex-1">
-              <div 
+
+            <div class="border border-slate-200 dark:border-white/[0.06] rounded-2xl overflow-hidden bg-black/95 flex flex-col shadow-xl max-h-[calc(100vh-280px)] flex-1 min-h-0">
+              <div
                 ref="mergeConsoleEl"
-                :style="{ fontSize: settingsStore.consoleFontSize + 'px' }" 
+                :style="{ fontSize: settingsStore.consoleFontSize + 'px' }"
                 class="p-5 font-mono leading-relaxed text-slate-350 overflow-y-auto custom-scrollbar flex flex-col gap-2 flex-1"
               >
                 <div v-if="mergeLogs.length === 0" class="text-slate-600 italic">Selecione DEV ou HML no centro para carregar as branches...</div>
-                <div 
-                  v-for="(log, idx) in mergeLogs" 
+                <div
+                  v-for="(log, idx) in mergeLogs"
                   :key="idx"
                   :class="{
                     'text-slate-400': log.type === 'info',
@@ -1085,7 +1203,7 @@ const toggleTheme = () => {
                 </div>
                 <div class="flex items-center gap-2">
                   <div class="flex items-center bg-black/40 border border-white/[0.05] rounded-lg p-0.5">
-                    <button 
+                    <button
                       type="button"
                       @click="decreaseFontSize"
                       class="px-2 py-0.5 hover:bg-white/5 rounded text-xs transition-colors cursor-pointer text-slate-400 hover:text-white"
@@ -1094,7 +1212,7 @@ const toggleTheme = () => {
                       -
                     </button>
                     <span class="px-1.5 text-[9px] font-mono text-indigo-400">{{ settingsStore.consoleFontSize }}px</span>
-                    <button 
+                    <button
                       type="button"
                       @click="increaseFontSize"
                       class="px-2 py-0.5 hover:bg-white/5 rounded text-xs transition-colors cursor-pointer text-slate-400 hover:text-white"
@@ -1112,6 +1230,114 @@ const toggleTheme = () => {
       </div>
 
     </main>
+
+    <!-- ========================================== -->
+    <!-- MODAL: CONFIGURAÇÕES DE AMBIENTE (BaseModal) -->
+    <!-- ========================================== -->
+    <BaseModal 
+      v-if="showSettingsModal"
+      title="Configurações do Breathe"
+      subtitle="Definição de Conexões do GitLab e Branches"
+      :icon="Settings"
+      okText="Salvar Configurações"
+      cancelText="Cancelar"
+      @close="showSettingsModal = false"
+      @cancel="showSettingsModal = false"
+      @ok="saveSettings"
+    >
+      <div class="space-y-5 text-left">
+        <!-- GitLab Config Section -->
+        <div class="space-y-4">
+          <h4 class="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1.5">
+            <CloudLightning class="w-3.5 h-3.5" />
+            Conexão com GitLab API
+          </h4>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-[9px] font-black text-app-muted uppercase tracking-widest mb-1.5 block">URL do GitLab</label>
+              <AppInput v-model="editGitlabUrl" placeholder="https://gitlab.com" />
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-app-muted uppercase tracking-widest mb-1.5 block">ID do Projeto</label>
+              <AppInput v-model="editGitlabProjectId" placeholder="ex: 12345" />
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[9px] font-black text-app-muted uppercase tracking-widest mb-1.5 block">Token de Acesso Pessoal (Private Token)</label>
+            <div class="relative">
+              <input 
+                v-model="editGitlabToken"
+                :type="showToken ? 'text' : 'password'"
+                placeholder="Insira seu private token..."
+                class="app-input w-full pr-10"
+              />
+              <button 
+                type="button"
+                @click="showToken = !showToken"
+                class="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+              >
+                <EyeOff v-if="showToken" class="w-4 h-4" />
+                <Eye v-else class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <!-- Diagnóstico de Conexão -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/[0.05] rounded-xl">
+            <div class="text-left">
+              <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Verificar Credenciais</span>
+              <p class="text-[9px] text-slate-450 dark:text-slate-500 mt-0.5">Testa a conexão com o GitLab sem salvar os dados ainda.</p>
+            </div>
+            <button 
+              type="button" 
+              @click="testConnection"
+              class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-colors border border-white/5"
+            >
+              Testar Conexão
+            </button>
+          </div>
+
+          <!-- Mensagem de diagnóstico -->
+          <div v-if="diagnosticStatus" class="p-3.5 rounded-xl text-[10px] font-bold flex items-center gap-2 border"
+            :class="{
+              'bg-indigo-500/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400': diagnosticStatus === 'checking',
+              'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400': diagnosticStatus === 'success',
+              'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400': diagnosticStatus === 'error'
+            }"
+          >
+            <Info class="w-4 h-4 shrink-0" />
+            <span>{{ diagnosticMessage }}</span>
+          </div>
+        </div>
+
+        <div class="w-full h-px bg-slate-200 dark:bg-white/[0.06] my-2"></div>
+
+        <!-- Branches Config Section -->
+        <div class="space-y-4">
+          <h4 class="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1.5">
+            <GitBranch class="w-3.5 h-3.5" />
+            Nomes Físicos das Ramificações (Branches)
+          </h4>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="text-[9px] font-black text-app-muted uppercase tracking-widest mb-1.5 block">Master (🔒 Protegida)</label>
+              <AppInput v-model="editBranchMaster" placeholder="master-sistsocial" />
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-app-muted uppercase tracking-widest mb-1.5 block">Homologação</label>
+              <AppInput v-model="editBranchHomologacao" placeholder="hml" />
+            </div>
+            <div>
+              <label class="text-[9px] font-black text-app-muted uppercase tracking-widest mb-1.5 block">Desenvolvimento</label>
+              <AppInput v-model="editBranchDesenvolvimento" placeholder="dev-06" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </BaseModal>
 
     <!-- ========================================== -->
     <!-- MODAL: CONFIRMAÇÃO DE DELEÇÃO DOUBLE-CHECK -->
@@ -1137,6 +1363,8 @@ const toggleTheme = () => {
             Você está prestes a excluir permanentemente a branch <span class="font-mono text-red-650 dark:text-red-400 font-bold bg-red-100 dark:bg-black/35 px-1.5 py-0.5 rounded">{{ branchToDelete }}</span> do repositório remoto GitLab. Esta ação não poderá ser desfeita.
           </div>
         </div>
+
+
       </div>
     </BaseModal>
 
@@ -1165,7 +1393,7 @@ const toggleTheme = () => {
         </div>
 
         <div class="space-y-2">
-          <label class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest block">
+          <label class="text-[9px] font-black text-slate-500 dark:text-app-muted uppercase tracking-widest block">
             Branches selecionadas para deleção:
           </label>
           <div class="bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/[0.06] rounded-xl p-3 max-h-[160px] overflow-y-auto custom-scrollbar font-mono text-[10px] text-slate-650 dark:text-slate-400 space-y-1">
@@ -1177,7 +1405,6 @@ const toggleTheme = () => {
         </div>
       </div>
     </BaseModal>
-
   </div>
 </template>
 
