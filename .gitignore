@@ -38,3 +38,7 @@ tass.db
 *.db
 *.sqlite
 *.sqlite3
+
+# Pastas legado/migração
+breathe/
+breathe2/

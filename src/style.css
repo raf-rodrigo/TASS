@@ -24,6 +24,16 @@
   --app-text-shadow: none;
   --app-border-opacity: 0.1;
   --app-input-radius: 8px;
+
+  /* Semantic UI Tokens - Modo Claro */
+  --app-btn-secondary-bg: rgba(0, 0, 0, 0.04);
+  --app-btn-secondary-hover: rgba(0, 0, 0, 0.08);
+  --app-btn-secondary-border: rgba(0, 0, 0, 0.1);
+  --app-btn-secondary-text: #475569;
+  --app-surface-panel-bg: #ffffff;
+  --app-surface-panel-border: rgba(0, 0, 0, 0.1);
+  --app-surface-item-bg: #ffffff;
+  --app-surface-item-border: rgba(0, 0, 0, 0.06);
 }
 
 .dark {
@@ -36,6 +46,16 @@
   --app-surface-muted: rgba(255, 255, 255, 0.03);
   --app-border-main: rgba(34, 32, 32, 0.1);
   --app-border-light: rgba(255, 255, 255, 0.05);
+
+  /* Semantic UI Tokens - Modo Escuro */
+  --app-btn-secondary-bg: rgba(255, 255, 255, 0.05);
+  --app-btn-secondary-hover: rgba(255, 255, 255, 0.1);
+  --app-btn-secondary-border: rgba(255, 255, 255, 0.06);
+  --app-btn-secondary-text: #cbd5e1;
+  --app-surface-panel-bg: rgba(15, 23, 42, 0.4);
+  --app-surface-panel-border: rgba(255, 255, 255, 0.06);
+  --app-surface-item-bg: rgba(15, 23, 42, 0.4);
+  --app-surface-item-border: rgba(255, 255, 255, 0.04);
 }
 
 @layer base {
@@ -69,6 +89,76 @@
     border-radius: var(--app-input-radius);
   }
   .btn-primary { @apply bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg; }
+  
+  .btn-secondary {
+    background-color: var(--app-btn-secondary-bg);
+    border: 1px solid var(--app-btn-secondary-border);
+    color: var(--app-btn-secondary-text);
+    border-radius: var(--app-input-radius);
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 text-xs font-black uppercase tracking-wider;
+  }
+  .btn-secondary:hover {
+    background-color: var(--app-btn-secondary-hover);
+    color: var(--app-text-main);
+  }
+
+  .btn-icon-secondary {
+    background-color: var(--app-btn-secondary-bg);
+    border: 1px solid var(--app-btn-secondary-border);
+    color: var(--app-btn-secondary-text);
+    border-radius: var(--app-input-radius);
+    @apply p-2.5 transition-all cursor-pointer flex items-center justify-center shrink-0 active:scale-95;
+  }
+  .btn-icon-secondary:hover {
+    background-color: var(--app-btn-secondary-hover);
+    color: var(--app-text-main);
+  }
+
+  .btn-gradient {
+    @apply bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md hover:shadow-indigo-500/25;
+  }
+  .btn-gradient:hover {
+    @apply filter brightness-110;
+  }
+
+  .btn-outline {
+    @apply border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 bg-transparent hover:bg-indigo-500/10 hover:border-indigo-500/50;
+  }
+
+  .btn-glass {
+    @apply bg-white/10 dark:bg-slate-900/30 border border-white/20 dark:border-slate-800/40 text-slate-800 dark:text-slate-200 backdrop-blur-md shadow-inner hover:bg-white/20 dark:hover:bg-slate-900/55;
+  }
+
+  .btn-danger {
+    @apply bg-[#EF5350] hover:bg-[#E53935] text-white shadow-md hover:shadow-[#EF5350]/20;
+  }
+
+  .btn-success {
+    @apply bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-emerald-500/20;
+  }
+
+  .btn-warning {
+    @apply bg-amber-500 hover:bg-amber-600 text-white shadow-md hover:shadow-amber-500/20;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-500/10 dark:hover:bg-white/5;
+  }
+
+  .app-card-panel {
+    background-color: var(--app-surface-panel-bg);
+    border: 1px solid var(--app-surface-panel-border);
+    border-radius: var(--app-card-radius);
+    padding: var(--app-card-padding);
+    @apply shadow-lg backdrop-blur-md;
+  }
+  
+  .app-card-item {
+    background-color: var(--app-surface-item-bg);
+    border: 1px solid var(--app-surface-item-border);
+    border-radius: var(--app-input-radius);
+    @apply transition-all duration-200 cursor-pointer;
+  }
   
   .app-input, input[type="text"], input[type="number"], select, textarea {
     @apply w-full px-4 py-2.5 text-sm bg-slate-100/50 dark:bg-white/5 border border-app-border-light text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all;
@@ -126,6 +216,14 @@
 .fade-slide-enter-active, .fade-slide-leave-active { transition: all 0.3s ease; }
 .fade-slide-enter-from { opacity: 0; transform: translateX(10px); }
 .fade-slide-leave-to { opacity: 0; transform: translateX(-10px); }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out forwards;
+}
 
 @keyframes pulse-border {
   0%, 100% { border-color: rgba(99, 102, 241, 0.2); box-shadow: 0 0 0px rgba(99, 102, 241, 0); }

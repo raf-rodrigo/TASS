@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
 import TaskCard from './components/TaskCard.vue';
-import TaskBoard from './components/TaskBoard.vue';
 import TaskModal from './components/TaskModal.vue';
 import TimeAdjustmentModal from './components/TimeAdjustmentModal.vue';
 import SettingsModal from './components/SettingsModal.vue';
@@ -15,7 +14,8 @@ import TaskContextMenu from './components/TaskContextMenu.vue';
 import GlobalDock from './components/GlobalDock.vue';
 import RadioPlayer from './components/RadioPlayer.vue';
 import WelcomeModal from './components/WelcomeModal.vue';
-import GitRebuilderFullscreen from './components/GitRebuilderFullscreen.vue';
+import GitRebuilder from './components/breathe/GitRebuilder.vue';
+import { useRouter, useRoute } from 'vue-router';
 
 // Composables
 import { useWellness } from './composables/useWellness.js';
@@ -38,23 +38,11 @@ import { db } from './db.js';
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
 
-// Board State Proxy (A Ponte de Dados)
-const boardColumns = ref([[], [], [], []]);
-
-const syncBoardWithStore = () => {
-  const newCols = [[], [], [], []];
-  for (let i = 1; i <= 4; i++) {
-    newCols[i-1] = taskStore.filteredTasks
-      .filter(t => t.columnId === i)
-      .sort((a, b) => a.position - b.position);
-  }
-  boardColumns.value = newCols;
-};
-
 // UI State
 const showWelcome = ref(false);
 const showModal = ref(false);
 const showSettings = ref(false);
+const showGitRebuilder = ref(false);
 const showSprints = ref(false);
 const showInterfaceMenu = ref(false);
 const showNotes = ref(false);
@@ -62,43 +50,13 @@ const showRadio = ref(false);
 const showTimeAdjustment = ref(false);
 const taskToEdit = ref(null);
 const taskForTimeAdjustment = ref(null);
-const showGitRebuilder = ref(false);
+const router = useRouter();
+const route = useRoute();
 
 // Modal initial states for Welcome Modal redirects
 const settingsInitialTab = ref(null);
 const interfaceInitialTab = ref(null);
 const sprintInitialShowAddForm = ref(false);
-
-// Sincroniza o board local quando as tarefas ou filtros mudam
-watch(
-  [() => taskStore.filteredTasks, () => taskStore.statusFilter, () => settings.activeSprintId], 
-  () => {
-    syncBoardWithStore();
-  }, 
-  { deep: true, immediate: true }
-);
-
-const handleBoardChange = async (evt, columnId) => {
-  // 1. Atualiza o columnId localmente se a tarefa foi adicionada a esta coluna
-  if (evt.added) {
-    evt.added.element.columnId = columnId;
-  }
-  
-  // 2. Coleta o estado visual atual de todas as colunas para persistir posições e colunas
-  const allOrderedTasks = [];
-  boardColumns.value.forEach((col, colIdx) => {
-    const targetColumnId = colIdx + 1;
-    col.forEach((task) => {
-      task.columnId = targetColumnId; // Sincronização local garantida
-      allOrderedTasks.push(task);
-    });
-  });
-
-  // 3. Persiste o estado completo no banco. 
-  // Nota: Não usamos mais taskStore.updateTask individual aqui para evitar gatilhos parciais de reatividade (flicker).
-  await taskStore.updateAllPositions(allOrderedTasks);
-};
-
 // Methods
 const openAddModal = () => {
   taskToEdit.value = null;
@@ -290,7 +248,6 @@ onMounted(async () => {
   applyTheme();
   await taskStore.loadTasks();
   await taskStore.loadSprints();
-  syncBoardWithStore();
 
   if (!settings.hideWelcomeModal) {
     showWelcome.value = true;
@@ -370,14 +327,11 @@ onMounted(async () => {
       <main class="w-full mt-2 flex-1">
         <NotesPanel :isOpen="showNotes" @toggle="showNotes = !showNotes" @close="showNotes = false" />
 
-        <!-- Quadro Kanban Principal -->
-        <TaskBoard 
-          :boardColumns="boardColumns"
+        <!-- Roteador Principal -->
+        <router-view 
           :isDraggingTask="isDraggingTask"
-          @update-board="handleBoardChange"
           @edit-task="openEditModal"
           @toggle-completion="toggleTaskCompletion"
-          @delete-task="deleteTask"
           @drag-start="handleDragStart"
           @drag-end="handleDragEnd"
           @open-time-adjustment="openTimeAdjustment"
@@ -417,7 +371,7 @@ onMounted(async () => {
         leave-to-class="translate-y-20 opacity-0 scale-95"
       >
         <GlobalDock 
-          v-if="!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating'"
+          v-if="(!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating') && route.meta.layout !== 'CleanLayout'"
           @add-task="openAddModal"
           @open-sprints="openSprintsFromDock"
           @open-notes="showNotes = !showNotes"
@@ -443,6 +397,11 @@ onMounted(async () => {
       :key="taskForTimeAdjustment?.id"
       :task="taskForTimeAdjustment"
       @close="showTimeAdjustment = false"
+    />
+
+    <GitRebuilder
+      v-if="showGitRebuilder"
+      @close="showGitRebuilder = false"
     />
 
     <SettingsModal
@@ -496,10 +455,6 @@ onMounted(async () => {
       @select-shortcut="handleWelcomeShortcut"
     />
 
-    <GitRebuilderFullscreen
-      v-if="showGitRebuilder"
-      @close="showGitRebuilder = false"
-    />
   </div>
   <div v-else class="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
     <div class="animate-pulse text-indigo-500 font-bold">Carregando TASS...</div>

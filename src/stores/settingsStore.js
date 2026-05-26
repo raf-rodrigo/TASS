@@ -23,6 +23,12 @@ export const useSettingsStore = defineStore('settings', () => {
   const backgroundImage = ref('');
   const keepWindowState = ref(localStorage.getItem('app-keep-window-state') === 'true');
   const hideWelcomeModal = ref(false);
+  
+  // Customizações dos nomes físicos das branches (Migrado do Breathe)
+  const branchMaster = ref('master-sistsocial');
+  const branchHomologacao = ref('hml');
+  const branchDesenvolvimento = ref('dev-06');
+  const consoleFontSize = ref(11);
 
   // Sincroniza mudança do keepWindowState com localStorage e limpa se necessário
   watch(keepWindowState, (val) => {
@@ -152,6 +158,11 @@ export const useSettingsStore = defineStore('settings', () => {
       keepWindowState.value = localStorage.getItem('app-keep-window-state') === 'true';
       if (settingsMap['app-hide-welcome'] !== undefined) hideWelcomeModal.value = settingsMap['app-hide-welcome'] === true;
 
+      if (settingsMap['app-branch-master'] !== undefined) branchMaster.value = settingsMap['app-branch-master'];
+      if (settingsMap['app-branch-hml'] !== undefined) branchHomologacao.value = settingsMap['app-branch-hml'];
+      if (settingsMap['app-branch-dev'] !== undefined) branchDesenvolvimento.value = settingsMap['app-branch-dev'];
+      if (settingsMap['app-console-font-size'] !== undefined) consoleFontSize.value = parseInt(settingsMap['app-console-font-size'], 10);
+
       isInitialized.value = true;
     } catch (error) {
       console.error("Failed to load settings from IndexedDB", error);
@@ -210,7 +221,11 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-context-menu-mode', value: contextMenuMode.value },
       { key: 'app-contrast-enhanced', value: contrastEnhanced.value },
       { key: 'app-darken-wallpaper', value: darkenWallpaper.value },
-      { key: 'app-hide-welcome', value: hideWelcomeModal.value }
+      { key: 'app-hide-welcome', value: hideWelcomeModal.value },
+      { key: 'app-branch-master', value: branchMaster.value },
+      { key: 'app-branch-hml', value: branchHomologacao.value },
+      { key: 'app-branch-dev', value: branchDesenvolvimento.value },
+      { key: 'app-console-font-size', value: consoleFontSize.value }
 
     ].map(item => ({
       key: item.key,
@@ -239,6 +254,7 @@ export const useSettingsStore = defineStore('settings', () => {
     cardBorderRadius, opacityTargets, customWallpapers, columnTitles,
     wellnessEnabled, wellnessInterval, contrastEnhanced, darkenWallpaper, keepWindowState,
     contextMenuStyle, contextMenuMode, hideWelcomeModal,
+    branchMaster, branchHomologacao, branchDesenvolvimento, consoleFontSize,
     isInitialized, loadSettings, saveSetting, saveAllSettings
 
   };
