@@ -2,14 +2,14 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { 
   Plus, Calendar, Clock, RotateCcw, X, 
-  Settings, Sun, Moon, Headphones, MoreHorizontal
+  Settings, Sun, Moon, Headphones, MoreHorizontal, CloudLightning
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
 import { useRadioStore } from '../stores/radioStore';
 
 const emit = defineEmits([
-  'add-task', 'open-settings', 'open-notes', 'open-interface', 'open-sprints', 'toggle-theme', 'open-radio'
+  'add-task', 'open-settings', 'open-notes', 'open-interface', 'open-sprints', 'toggle-theme', 'open-radio', 'open-git-rebuilder'
 ]);
 
 const settings = useSettingsStore();
@@ -145,6 +145,9 @@ const dockRadius = computed(() => {
           </button>
 
           <div class="flex items-center gap-1">
+            <button @click="emit('open-git-rebuilder')" class="util-btn group relative !text-emerald-500 hover:!bg-emerald-500/10 hover:!text-emerald-400" title="Breeze (Git Rebuilder)">
+              <CloudLightning class="w-4 h-4" />
+            </button>
             <button @click="emit('open-radio')" class="util-btn group relative">
               <Headphones class="w-4 h-4 text-amber-500" />
               <span v-if="radioStore.isPlaying" class="absolute top-0.5 right-0.5 w-2 h-2 bg-amber-500 rounded-full animate-ping opacity-75"></span>

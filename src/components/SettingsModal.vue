@@ -53,17 +53,13 @@ onMounted(() => {
 });
 
 watch(activeTab, (newVal) => {
-  if (newVal === 'git-rebuilder') {
-    emit('open-git-rebuilder');
-    activeTab.value = 'gitlab';
-  } else if (settings.keepWindowState) {
+  if (settings.keepWindowState) {
     localStorage.setItem('app-last-settings-tab', newVal);
   }
 });
 
 const tabs = [
   { id: 'gitlab', label: 'Integração GitLab', icon: Globe, color: 'text-indigo-500', desc: 'Conecte ao GitLab e automatize seu workflow.' },
-  { id: 'git-rebuilder', label: 'Reconstrutor Git', icon: RefreshCw, color: 'text-indigo-500', desc: 'Simulador de limpeza e reconstrução de ambientes de integração.' },
   { id: 'work', label: 'Jornada de Trabalho', icon: Briefcase, color: 'text-indigo-500', desc: 'Defina seu horário e dias de trabalho.' },
   { id: 'health', label: 'Saúde e Bem-estar', icon: Activity, color: 'text-indigo-500', desc: 'Lembretes inteligentes para manter sua saúde.' },
   { id: 'system', label: 'Sistema e Interface', icon: Monitor, color: 'text-indigo-500', desc: 'Configurações globais de comportamento.' },

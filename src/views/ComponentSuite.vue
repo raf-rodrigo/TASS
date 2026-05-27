@@ -30,7 +30,7 @@ const testBtnLoading = ref(false);
 const testBtnDisabled = ref(false);
 
 const selectOptions = [
-  { value: 'op1', label: 'Opção 1 - Breathe' },
+  { value: 'op1', label: 'Opção 1 - Breeze' },
   { value: 'op2', label: 'Opção 2 - GitLab Integration' },
   { value: 'op3', label: 'Opção 3 - Automatizado' }
 ];

@@ -19,12 +19,14 @@ export const useSettingsStore = defineStore('settings', () => {
   const taskNumberSize = ref(12);
   const taskDescriptionSize = ref(13);
   const taskTimerSize = ref(10);
+  const taskMinHeight = ref(40);
+  const taskMaxWidth = ref(0); // 0 significa 100% (auto)
   const notesSide = ref('right');
   const backgroundImage = ref('');
   const keepWindowState = ref(localStorage.getItem('app-keep-window-state') === 'true');
   const hideWelcomeModal = ref(false);
   
-  // Customizações dos nomes físicos das branches (Migrado do Breathe)
+  // Customizações dos nomes físicos das branches (Migrado do Breeze)
   const branchMaster = ref('master-sistsocial');
   const branchHomologacao = ref('hml');
   const branchDesenvolvimento = ref('dev-06');
@@ -63,7 +65,7 @@ export const useSettingsStore = defineStore('settings', () => {
     modalHeaderFooter: true,
     alerts: true
   });
-  const columnTitles = ref(['', '', '', '']);
+  const columnTitles = ref(['', '', '', '', '', '']);
   const contextMenuStyle = ref('floating'); // 'floating' (estilo OS) ou 'dock' (estilo clássico)
   const contextMenuMode = ref('stack'); // 'stack' (empilhado) ou 'replace' (substitui a dock)
   const contrastEnhanced = ref(true);
@@ -143,6 +145,8 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-task-number-size'] !== undefined) taskNumberSize.value = settingsMap['app-task-number-size'];
       if (settingsMap['app-task-desc-size'] !== undefined) taskDescriptionSize.value = settingsMap['app-task-desc-size'];
       if (settingsMap['app-task-timer-size'] !== undefined) taskTimerSize.value = settingsMap['app-task-timer-size'];
+      if (settingsMap['app-task-min-height'] !== undefined) taskMinHeight.value = settingsMap['app-task-min-height'];
+      if (settingsMap['app-task-max-width'] !== undefined) taskMaxWidth.value = settingsMap['app-task-max-width'];
       if (settingsMap['app-notes-side'] !== undefined) notesSide.value = settingsMap['app-notes-side'];
       if (settingsMap['app-notes-btn-top'] !== undefined) notesButtonTop.value = settingsMap['app-notes-btn-top'];
       if (settingsMap['app-notes-width'] !== undefined) notesWidth.value = settingsMap['app-notes-width'];
@@ -211,6 +215,8 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-task-number-size', value: taskNumberSize.value },
       { key: 'app-task-desc-size', value: taskDescriptionSize.value },
       { key: 'app-task-timer-size', value: taskTimerSize.value },
+      { key: 'app-task-min-height', value: taskMinHeight.value },
+      { key: 'app-task-max-width', value: taskMaxWidth.value },
       { key: 'app-notes-side', value: notesSide.value },
       { key: 'app-notes-btn-top', value: notesButtonTop.value },
       { key: 'app-notes-width', value: notesWidth.value },
@@ -247,7 +253,7 @@ export const useSettingsStore = defineStore('settings', () => {
     theme, columns, appWidth, gitlabUrl, gitlabIntegrationMode,
     gitlabProjectId, gitlabToken, gitlabBaseBranch,
     inactivityThreshold, activeSprintId, taskNumberSize,
-    taskDescriptionSize, taskTimerSize, notesSide, backgroundImage, backgroundBlur,
+    taskDescriptionSize, taskTimerSize, taskMinHeight, taskMaxWidth, notesSide, backgroundImage, backgroundBlur,
     notesButtonTop, notesWidth, cardPadding, fontFamily, trackInactivity,
 
     workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,

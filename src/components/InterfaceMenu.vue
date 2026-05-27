@@ -162,8 +162,8 @@ const handleColumnChange = (n) => {
                   <div class="space-y-8">
                     <div class="space-y-3">
                       <label class="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">Quantidade de Colunas</label>
-                      <div class="flex bg-app-surface p-1 rounded-2xl border border-app-border-light w-full">
-                        <button v-for="n in 4" :key="n" @click="handleColumnChange(n)"
+                      <div class="flex bg-app-surface p-1 rounded-2xl border border-app-border-light w-full overflow-x-auto custom-scrollbar">
+                        <button v-for="n in 6" :key="n" @click="handleColumnChange(n)"
                           class="flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300"
                           :class="settings.columns === n ? 'bg-indigo-500 text-white shadow-lg' : 'text-app-muted'">{{ n }} Colunas</button>
                       </div>
@@ -219,6 +219,24 @@ const handleColumnChange = (n) => {
                         <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskTimerSize }}px</span>
                       </div>
                       <input type="range" v-model="settings.taskTimerSize" min="8" max="24" step="1" class="w-full app-range" @change="settings.saveSetting('app-task-timer-size', settings.taskTimerSize)" />
+                    </div>
+
+                    <!-- Altura Mínima (Vertical) -->
+                    <div class="glass-section p-6 space-y-5">
+                      <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Altura da Tarefa (Vertical)</span>
+                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskMinHeight }}px</span>
+                      </div>
+                      <input type="range" v-model="settings.taskMinHeight" min="40" max="300" step="5" class="w-full app-range" @change="settings.saveSetting('app-task-min-height', settings.taskMinHeight)" />
+                    </div>
+
+                    <!-- Largura Máxima (Horizontal) -->
+                    <div class="glass-section p-6 space-y-5">
+                      <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Comprimento da Tarefa (Horizontal)</span>
+                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskMaxWidth === 0 ? 'Automático' : settings.taskMaxWidth + 'px' }}</span>
+                      </div>
+                      <input type="range" v-model="settings.taskMaxWidth" min="0" max="800" step="10" class="w-full app-range" @change="settings.saveSetting('app-task-max-width', settings.taskMaxWidth)" />
                     </div>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { 
   RefreshCw, ArrowRight, Terminal, ArrowLeft,
   GitBranch, AlertTriangle, Check,
@@ -16,6 +16,34 @@ import ActionPanel from './ActionPanel.vue';
 
 const settingsStore = useSettingsStore();
 const emit = defineEmits(['close']);
+
+// --- MANIPULAÇÃO DINÂMICA DE FAVICON ---
+let originalFavicon = null;
+let originalFaviconType = null;
+
+onMounted(() => {
+  const link = document.querySelector("link[rel~='icon']");
+  if (link) {
+    originalFavicon = link.href;
+    originalFaviconType = link.type;
+    link.href = '/breeze-favicon.png';
+    link.type = 'image/png';
+  } else {
+    const newLink = document.createElement('link');
+    newLink.rel = 'icon';
+    newLink.href = '/breeze-favicon.png';
+    newLink.type = 'image/png';
+    document.head.appendChild(newLink);
+  }
+});
+
+onUnmounted(() => {
+  const link = document.querySelector("link[rel~='icon']");
+  if (link && originalFavicon) {
+    link.href = originalFavicon;
+    if (originalFaviconType) link.type = originalFaviconType;
+  }
+});
 
 // --- ESTADOS DO PIPELINE DE RECONSTRUÇÃO ---
 const pipelineActive = ref(false);
@@ -86,6 +114,7 @@ const mergeConfirmSourceBranch = ref('');
 // Estados de Verificação de Merge (Pre-Check)
 const mergeCheckStatus = ref('idle'); // 'idle', 'checking', 'mergeable', 'conflict', 'no_changes', 'error'
 const mergeCheckMessage = ref('');
+const currentCheckMrIid = ref(null); // Armazena o ID do MR de teste para fechamento automático
 
 // Exclusão em lote (Bulk Delete)
 const selectedBranches = ref([]);
@@ -404,7 +433,7 @@ const performMergeCheck = async (source, target) => {
       body: JSON.stringify({
         source_branch: source,
         target_branch: target,
-        title: `Breathe Check: ${source} em ${target}`,
+        title: `Breeze Check: ${source} em ${target}`,
         remove_source_branch: false
       })
     });
@@ -427,6 +456,8 @@ const performMergeCheck = async (source, target) => {
     }
 
     if (!mrIid) throw new Error("Não foi possível validar o estado do Merge Request.");
+    
+    currentCheckMrIid.value = mrIid;
 
     // Polling rápido para pegar o detailed_merge_status
     let attempts = 0;
@@ -478,8 +509,38 @@ const runMergeToTarget = (targetBranch, targetType) => {
   performMergeCheck(branchName, targetBranch);
 };
 
+const cancelMergeCheck = async () => {
+  showMergeConfirmModal.value = false;
+  if (currentCheckMrIid.value) {
+    const iidToClose = currentCheckMrIid.value;
+    currentCheckMrIid.value = null; // Evita duplicação de chamadas
+
+    try {
+      let apiBase = settingsStore.gitlabUrl || 'https://gitlab.com';
+      if (!apiBase.includes('/api/v4')) {
+        const urlObj = new URL(apiBase);
+        apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
+      }
+      const safeProjectId = encodeURIComponent(decodeURIComponent(settingsStore.gitlabProjectId));
+      
+      await fetch(`${apiBase}/projects/${safeProjectId}/merge_requests/${iidToClose}`, {
+        method: 'PUT',
+        headers: {
+          'PRIVATE-TOKEN': settingsStore.gitlabToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ state_event: 'close' })
+      });
+      addMergeLog(`Merge Request de teste #${iidToClose} foi fechado e descartado (Cancelamento ou Conflito).`, 'info');
+    } catch (err) {
+      console.error("Falha ao fechar MR de teste:", err);
+    }
+  }
+};
+
 const executeMergeAfterConfirm = async () => {
   showMergeConfirmModal.value = false;
+  currentCheckMrIid.value = null; // Limpa para não ser fechado acidentalmente, pois será usado no merge
   
   const branchName = mergeConfirmSourceBranch.value;
   const targetBranch = mergeConfirmTargetBranch.value;
@@ -814,7 +875,7 @@ const runIndividualMerge = async (branchName) => {
       body: JSON.stringify({
         source_branch: branchName,
         target_branch: target,
-        title: `Breathe Merge: ${branchName} em ${target} (${new Date().toLocaleDateString('pt-BR')})`,
+        title: `Breeze Merge: ${branchName} em ${target} (${new Date().toLocaleDateString('pt-BR')})`,
         remove_source_branch: false
       })
     });
@@ -1006,7 +1067,7 @@ const toggleTheme = () => {
 <template>
   <BaseModal 
     layout="sidebar" 
-    title="Breathe Git Rebuilder" 
+    title="Breeze Git Rebuilder" 
     subtitle="Isolador e Simulador de Integrações e Ambientes" 
     :icon="GitBranch"
     maxWidth="max-w-[98vw] w-full"
@@ -1314,7 +1375,7 @@ const toggleTheme = () => {
     <!-- ========================================== -->
     <BaseModal 
       v-if="showSettingsModal"
-      title="Configurações do Breathe"
+      title="Configurações do Breeze"
       subtitle="Definição de Conexões do GitLab e Branches"
       :icon="Settings"
       okText="Salvar Configurações"
@@ -1472,8 +1533,8 @@ const toggleTheme = () => {
       okText="Confirmar Mesclagem"
       cancelText="Cancelar"
       :okDisabled="mergeCheckStatus !== 'mergeable'"
-      @close="showMergeConfirmModal = false"
-      @cancel="showMergeConfirmModal = false"
+      @close="cancelMergeCheck"
+      @cancel="cancelMergeCheck"
       @ok="executeMergeAfterConfirm"
     >
       <div class="space-y-4 text-left">

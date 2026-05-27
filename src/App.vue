@@ -14,7 +14,7 @@ import TaskContextMenu from './components/TaskContextMenu.vue';
 import GlobalDock from './components/GlobalDock.vue';
 import RadioPlayer from './components/RadioPlayer.vue';
 import WelcomeModal from './components/WelcomeModal.vue';
-import GitRebuilder from './components/breathe/GitRebuilder.vue';
+import GitRebuilder from './components/breeze/GitRebuilder.vue';
 import { useRouter, useRoute } from 'vue-router';
 
 // Composables
@@ -379,6 +379,7 @@ onMounted(async () => {
           @open-settings="openSettingsFromDock"
           @toggle-theme="toggleTheme"
           @open-radio="handleToggleRadio"
+          @open-git-rebuilder="handleOpenGitRebuilder"
         />
       </transition>
     </div>

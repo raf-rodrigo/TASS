@@ -39,7 +39,8 @@ const props = defineProps({
   // Centralização de Botões
   okText: { type: String, default: '' },
   cancelText: { type: String, default: '' },
-  okLoading: { type: Boolean, default: false }
+  okLoading: { type: Boolean, default: false },
+  okDisabled: { type: Boolean, default: false }
 });
 
 const emit = defineEmits(['close', 'ok', 'cancel']);
@@ -205,7 +206,7 @@ const { position, onMouseDown } = useModalDrag();
       >
         <slot name="footer">
           <button v-if="cancelText" type="button" @click="emit('cancel')" class="btn btn-secondary px-6 border-none shadow-none py-2 text-xs">{{ cancelText }}</button>
-          <button v-if="okText" type="submit" @click="emit('ok')" class="btn btn-primary px-6 border-none shadow-none py-2 text-xs" :disabled="okLoading">
+          <button v-if="okText" type="submit" @click="emit('ok')" class="btn btn-primary px-6 border-none shadow-none py-2 text-xs" :disabled="okLoading || okDisabled">
             <span v-if="okLoading" class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
             {{ okText }}
           </button>

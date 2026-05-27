@@ -25,6 +25,10 @@ const emit = defineEmits([
 
 const formattedTime = computed(() => formatMsToHMS(props.task.totalTimeSpent));
 
+const isSquareLayout = computed(() => {
+  return settings.taskMinHeight >= 80 || (settings.taskMaxWidth > 0 && settings.taskMaxWidth <= 280);
+});
+
 const handleAdjustTime = (event) => {
   if (event) {
     taskStore.contextMenuPosition = { 
@@ -78,7 +82,7 @@ const handleSelect = (event) => {
 
 <template>
   <div 
-    class="glass-panel cursor-pointer cursor-grab hover:-translate-y-0.5 group relative hover:z-[100]"
+    class="glass-panel cursor-pointer cursor-grab hover:-translate-y-0.5 group relative hover:z-[100] flex flex-col"
     :class="[
       task.isRunning ? 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : '',
       taskStore.selectedTask?.id === task.id ? 'ring-2 ring-indigo-500/50 border-indigo-500 z-[50]' : 'hover:border-indigo-400/40',
@@ -89,14 +93,27 @@ const handleSelect = (event) => {
     :style="{ 
       backgroundColor: taskStore.selectedTask?.id === task.id 
         ? (settings.cardOpacity > 0 ? 'rgba(99, 102, 241, 0.1)' : '') 
-        : '' 
+        : '',
+      minHeight: settings.taskMinHeight > 40 ? settings.taskMinHeight + 'px' : 'auto',
+      maxWidth: settings.taskMaxWidth > 0 ? settings.taskMaxWidth + 'px' : 'none',
+      width: settings.taskMaxWidth > 0 ? '100%' : 'auto',
+      margin: settings.taskMaxWidth > 0 ? '0 auto' : ''
     }"
     @click.stop="handleSelect($event)"
     @contextmenu.prevent="handleSelect($event)"
   >
 
-    <div :class="task.completed ? 'opacity-50' : ''" class="flex justify-between items-center gap-2 transition-opacity">
-      <div class="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
+    <div 
+      :class="[
+        task.completed ? 'opacity-50' : '',
+        isSquareLayout ? 'flex-col items-start h-full flex-1 w-full gap-3' : 'items-center gap-2 w-full'
+      ]" 
+      class="flex justify-between transition-opacity"
+    >
+      <div 
+        class="flex flex-1 min-w-0 overflow-hidden w-full"
+        :class="isSquareLayout ? 'flex-col items-start gap-2' : 'items-center gap-2'"
+      >
         <span 
           class="font-bold px-2 py-1 rounded-lg leading-tight flex-shrink-0 transition-all border flex items-center justify-center gap-2 mr-2 min-w-[85px] active:scale-95" 
           :style="{ 
@@ -116,8 +133,11 @@ const handleSelect = (event) => {
         </span>
           <span 
             v-if="task.description || task.isRunning" 
-            class="text-sm flex-1 min-w-0 line-clamp-1 py-0.5 leading-tight" 
-            :class="task.completed ? 'line-through text-app-muted' : 'text-app-sub'"
+            class="text-sm flex-1 min-w-0 py-0.5 leading-tight" 
+            :class="[
+              task.completed ? 'line-through text-app-muted' : 'text-app-sub',
+              isSquareLayout ? 'line-clamp-6 mt-1 whitespace-pre-wrap' : 'line-clamp-1'
+            ]"
             :style="{ fontSize: settings.taskDescriptionSize + 'px' }"
           :data-tip="task.isRunning ? `${task.title} - ${task.description}` : task.description"
         >
@@ -130,7 +150,10 @@ const handleSelect = (event) => {
           </template>
         </span>
       </div>
-      <div class="flex items-center gap-1.5 shrink-0 ml-auto flex-row-reverse">
+      <div 
+        class="flex items-center gap-1.5 shrink-0 flex-row-reverse"
+        :class="isSquareLayout ? 'w-full justify-between mt-auto pt-3 border-t border-slate-100 dark:border-white/5' : 'ml-auto'"
+      >
         <!-- 1. Play/Stop Task (Timer) -->
         <button 
           v-if="!task.completed"

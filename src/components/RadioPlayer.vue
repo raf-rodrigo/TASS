@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { 
   Play, Pause, SkipForward, SkipBack, 
   Volume2, VolumeX, Plus, Trash2, Headphones, Star,
-  ChevronDown, ChevronUp, X, Pencil
+  ChevronDown, ChevronUp, X, Pencil, Upload
 } from 'lucide-vue-next';
 import { useRadioStore } from '../stores/radioStore';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -40,6 +40,14 @@ const openEditModal = (radio) => {
 const handleCloseModal = () => {
   showAddModal.value = false;
   radioToEdit.value = null;
+};
+
+const handleImport = async (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    await radioStore.importRadios(file);
+    event.target.value = ''; // reseta o input
+  }
 };
 </script>
 
@@ -221,15 +229,25 @@ const handleCloseModal = () => {
         </div>
       </div>
       
-      <!-- Footer: Ação de Adicionar -->
-      <button 
-        v-if="showList"
-        @click="showAddModal = true" 
-        class="w-full py-4 mt-4 border-2 border-dashed border-amber-500/30 text-amber-600 dark:text-amber-400 font-black text-xs uppercase tracking-widest hover:bg-amber-500/5 hover:border-amber-500 transition-all flex items-center justify-center gap-2 active:scale-95"
-        :style="{ borderRadius: 'var(--app-card-radius)' }"
-      >
-        <Plus class="w-4 h-4" /> Adicionar Nova Rádio
-      </button>
+      <!-- Footer: Ações -->
+      <div v-if="showList" class="flex gap-2 w-full mt-4">
+        <button 
+          @click="showAddModal = true" 
+          class="flex-1 py-4 border-2 border-dashed border-amber-500/30 text-amber-600 dark:text-amber-400 font-black text-xs uppercase tracking-widest hover:bg-amber-500/5 hover:border-amber-500 transition-all flex items-center justify-center gap-2 active:scale-95"
+          :style="{ borderRadius: 'var(--app-card-radius)' }"
+        >
+          <Plus class="w-4 h-4" /> Nova Rádio
+        </button>
+
+        <label 
+          class="w-16 py-4 border-2 border-dashed border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/5 hover:border-amber-500 transition-all flex items-center justify-center cursor-pointer active:scale-95 shrink-0"
+          :style="{ borderRadius: 'var(--app-card-radius)' }"
+          title="Importar lista JSON"
+        >
+          <Upload class="w-5 h-5" />
+          <input type="file" accept=".json" class="hidden" @change="handleImport" />
+        </label>
+      </div>
     </div>
   </BaseModal>
 

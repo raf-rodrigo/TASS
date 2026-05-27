@@ -21,11 +21,11 @@ const taskStore = useTaskStore();
 const settings = useSettingsStore();
 
 // Board State Proxy
-const boardColumns = ref([[], [], [], []]);
+const boardColumns = ref([[], [], [], [], [], []]);
 
 const syncBoardWithStore = () => {
-  const newCols = [[], [], [], []];
-  for (let i = 1; i <= 4; i++) {
+  const newCols = [[], [], [], [], [], []];
+  for (let i = 1; i <= 6; i++) {
     newCols[i-1] = taskStore.filteredTasks
       .filter(t => t.columnId === i)
       .sort((a, b) => a.position - b.position);

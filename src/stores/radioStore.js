@@ -209,6 +209,34 @@ export const useRadioStore = defineStore('radio', () => {
     notificationService.toast('Rádio excluída.', 'success');
   };
 
+  const importRadios = async (file) => {
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (!Array.isArray(data)) throw new Error('Formato inválido: O arquivo deve conter uma lista (array) de rádios.');
+      
+      let added = 0;
+      for (const item of data) {
+        if (item.name && item.url) {
+          const newRadio = { name: item.name, url: item.url, stars: item.stars || 0 };
+          const id = await db.radios.add(newRadio);
+          radios.value.push({ ...newRadio, id });
+          added++;
+        }
+      }
+      
+      if (added > 0) {
+        radios.value.sort((a, b) => b.stars - a.stars);
+        notificationService.alert('Sucesso!', `${added} rádios foram importadas e salvas no banco.`, 'success');
+      } else {
+        notificationService.alert('Aviso', 'O arquivo foi lido, mas nenhuma rádio válida foi encontrada. Verifique se o JSON tem os campos "name" e "url".', 'warning');
+      }
+    } catch (err) {
+      console.error('Failed to import radios', err);
+      notificationService.alert('Erro fatal de Importação', err.message || String(err), 'error');
+    }
+  };
+
   return {
     radios,
     currentRadio,
@@ -227,6 +255,7 @@ export const useRadioStore = defineStore('radio', () => {
     addRadio,
     updateRadio,
     deleteRadio,
-    rateRadio
+    rateRadio,
+    importRadios
   };
 });
