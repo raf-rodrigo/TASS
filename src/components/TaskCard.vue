@@ -15,7 +15,20 @@ const props = defineProps({
   task: {
     type: Object,
     required: true
+  },
+  columnIndex: {
+    type: Number,
+    default: -1
   }
+});
+
+const activeStyle = computed(() => {
+  if (props.columnIndex >= 0 && settings.columnStyles && settings.columnStyles[props.columnIndex]) {
+    const profileId = settings.columnStyles[props.columnIndex];
+    const profile = settings.taskStyleProfiles?.find(p => p.id === profileId);
+    if (profile && profile.styles) return profile.styles;
+  }
+  return settings;
 });
 
 const emit = defineEmits([
@@ -26,7 +39,7 @@ const emit = defineEmits([
 const formattedTime = computed(() => formatMsToHMS(props.task.totalTimeSpent));
 
 const isSquareLayout = computed(() => {
-  return settings.taskMinHeight >= 80 || (settings.taskMaxWidth > 0 && settings.taskMaxWidth <= 280);
+  return activeStyle.value.taskMinHeight >= 80 || (activeStyle.value.taskMaxWidth > 0 && activeStyle.value.taskMaxWidth <= 280);
 });
 
 const handleAdjustTime = (event) => {
@@ -94,10 +107,11 @@ const handleSelect = (event) => {
       backgroundColor: taskStore.selectedTask?.id === task.id 
         ? (settings.cardOpacity > 0 ? 'rgba(99, 102, 241, 0.1)' : '') 
         : '',
-      minHeight: settings.taskMinHeight > 40 ? settings.taskMinHeight + 'px' : 'auto',
-      maxWidth: settings.taskMaxWidth > 0 ? settings.taskMaxWidth + 'px' : 'none',
-      width: settings.taskMaxWidth > 0 ? '100%' : 'auto',
-      margin: settings.taskMaxWidth > 0 ? '0 auto' : ''
+      minHeight: activeStyle.taskMinHeight > 40 ? activeStyle.taskMinHeight + 'px' : 'auto',
+      maxWidth: activeStyle.taskMaxWidth > 0 ? activeStyle.taskMaxWidth + 'px' : 'none',
+      width: activeStyle.taskMaxWidth > 0 ? '100%' : 'auto',
+      margin: activeStyle.taskMaxWidth > 0 ? '0 auto' : '',
+      padding: activeStyle.cardPadding ? activeStyle.cardPadding + 'px' : ''
     }"
     @click.stop="handleSelect($event)"
     @contextmenu.prevent="handleSelect($event)"
@@ -120,7 +134,7 @@ const handleSelect = (event) => {
             backgroundColor: (!task.isRunning && task.color) ? `${task.color}26` : '', 
             color: (!task.isRunning && task.color) ? task.color : '',
             borderColor: (!task.isRunning && task.color) ? `${task.color}40` : 'transparent',
-            fontSize: settings.taskNumberSize + 'px'
+            fontSize: activeStyle.taskNumberSize + 'px'
           }"
           :class="[
             (!task.color && !task.isRunning) ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 dark:bg-indigo-500/20 border-indigo-500/20' : '',
@@ -138,7 +152,7 @@ const handleSelect = (event) => {
               task.completed ? 'line-through text-app-muted' : 'text-app-sub',
               isSquareLayout ? 'line-clamp-6 mt-1 whitespace-pre-wrap' : 'line-clamp-1'
             ]"
-            :style="{ fontSize: settings.taskDescriptionSize + 'px' }"
+            :style="{ fontSize: activeStyle.taskDescriptionSize + 'px' }"
           :data-tip="task.isRunning ? `${task.title} - ${task.description}` : task.description"
         >
           <template v-if="task.isRunning">
@@ -183,7 +197,7 @@ const handleSelect = (event) => {
         <span 
           v-if="!task.isRunning" 
           class="hidden sm:inline font-bold text-app-sub leading-none mr-1 hover:text-indigo-500 cursor-pointer transition-colors"
-          :style="{ fontSize: settings.taskTimerSize + 'px' }"
+          :style="{ fontSize: activeStyle.taskTimerSize + 'px' }"
           data-tip="Clique para ajustar o tempo"
           @click.stop="handleAdjustTime"
         >

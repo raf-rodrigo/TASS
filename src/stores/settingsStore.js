@@ -66,10 +66,12 @@ export const useSettingsStore = defineStore('settings', () => {
     alerts: true
   });
   const columnTitles = ref(['', '', '', '', '', '']);
+  const columnStyles = ref(['', '', '', '', '', '']);
   const contextMenuStyle = ref('floating'); // 'floating' (estilo OS) ou 'dock' (estilo clássico)
   const contextMenuMode = ref('stack'); // 'stack' (empilhado) ou 'replace' (substitui a dock)
   const contrastEnhanced = ref(true);
   const darkenWallpaper = ref(true);
+  const taskStyleProfiles = ref([]);
 
 
   const customWallpapers = ref([
@@ -153,10 +155,12 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-card-padding'] !== undefined) cardPadding.value = settingsMap['app-card-padding'];
 
       if (settingsMap['app-column-titles'] !== undefined) columnTitles.value = settingsMap['app-column-titles'];
+      if (settingsMap['app-column-styles'] !== undefined) columnStyles.value = settingsMap['app-column-styles'];
       if (settingsMap['app-context-menu-style'] !== undefined) contextMenuStyle.value = settingsMap['app-context-menu-style'];
       if (settingsMap['app-context-menu-mode'] !== undefined) contextMenuMode.value = settingsMap['app-context-menu-mode'];
       if (settingsMap['app-contrast-enhanced'] !== undefined) contrastEnhanced.value = settingsMap['app-contrast-enhanced'] === true;
       if (settingsMap['app-darken-wallpaper'] !== undefined) darkenWallpaper.value = settingsMap['app-darken-wallpaper'] === true;
+      if (settingsMap['app-task-style-profiles'] !== undefined) taskStyleProfiles.value = settingsMap['app-task-style-profiles'];
       
       // Carrega configuração do localStorage
       keepWindowState.value = localStorage.getItem('app-keep-window-state') === 'true';
@@ -223,10 +227,12 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-card-padding', value: cardPadding.value },
 
       { key: 'app-column-titles', value: columnTitles.value },
+      { key: 'app-column-styles', value: columnStyles.value },
       { key: 'app-context-menu-style', value: contextMenuStyle.value },
       { key: 'app-context-menu-mode', value: contextMenuMode.value },
       { key: 'app-contrast-enhanced', value: contrastEnhanced.value },
       { key: 'app-darken-wallpaper', value: darkenWallpaper.value },
+      { key: 'app-task-style-profiles', value: taskStyleProfiles.value },
       { key: 'app-hide-welcome', value: hideWelcomeModal.value },
       { key: 'app-branch-master', value: branchMaster.value },
       { key: 'app-branch-hml', value: branchHomologacao.value },
@@ -257,10 +263,10 @@ export const useSettingsStore = defineStore('settings', () => {
     notesButtonTop, notesWidth, cardPadding, fontFamily, trackInactivity,
 
     workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,
-    cardBorderRadius, opacityTargets, customWallpapers, columnTitles,
+    cardBorderRadius, opacityTargets, customWallpapers, columnTitles, columnStyles,
     wellnessEnabled, wellnessInterval, contrastEnhanced, darkenWallpaper, keepWindowState,
     contextMenuStyle, contextMenuMode, hideWelcomeModal,
-    branchMaster, branchHomologacao, branchDesenvolvimento, consoleFontSize,
+    branchMaster, branchHomologacao, branchDesenvolvimento, consoleFontSize, taskStyleProfiles,
     isInitialized, loadSettings, saveSetting, saveAllSettings
 
   };

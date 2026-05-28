@@ -4,7 +4,8 @@ import {
   X, Palette, Trash2, Plus, Settings,
   Image as ImageIcon, Eraser, MousePointer2,
   LayoutGrid, Layers, Type as TypeIcon, Droplets,
-  Cloud, Loader2, ArrowLeft, RotateCcw
+  Cloud, Loader2, ArrowLeft, RotateCcw,
+  Save, CheckCircle2
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
@@ -60,6 +61,71 @@ watch(() => settings.cardBorderRadius, (newVal) => {
 
 const showAddWallpaper = ref(false);
 const newWallpaperUrl = ref('');
+
+const newProfileName = ref('');
+const isSavingProfile = ref(false);
+
+const saveTaskStyleProfile = async () => {
+  const name = newProfileName.value.trim();
+  if (!name) return;
+  
+  if (!settings.taskStyleProfiles) {
+    settings.taskStyleProfiles = [];
+  }
+  
+  const existingIndex = settings.taskStyleProfiles.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+  
+  if (existingIndex !== -1) {
+    const confirmed = await notificationService.confirm(
+      'Sobrescrever Perfil?',
+      `Já existe um perfil chamado "${name}". Deseja atualizá-lo com as configurações atuais?`,
+      'Sim, Sobrescrever',
+      'warning'
+    );
+    if (!confirmed) return;
+  }
+
+  const profile = {
+    id: existingIndex !== -1 ? settings.taskStyleProfiles[existingIndex].id : Date.now().toString(),
+    name: name,
+    styles: {
+      cardPadding: settings.cardPadding,
+      taskNumberSize: settings.taskNumberSize,
+      taskDescriptionSize: settings.taskDescriptionSize,
+      taskTimerSize: settings.taskTimerSize,
+      taskMinHeight: settings.taskMinHeight,
+      taskMaxWidth: settings.taskMaxWidth
+    }
+  };
+  
+  if (existingIndex !== -1) {
+    settings.taskStyleProfiles[existingIndex] = profile;
+  } else {
+    settings.taskStyleProfiles.push(profile);
+  }
+  
+  await settings.saveSetting('app-task-style-profiles', [...settings.taskStyleProfiles]);
+  newProfileName.value = '';
+  isSavingProfile.value = false;
+  notificationService.toast('Perfil de estilo salvo!');
+};
+
+const applyTaskStyleProfile = async (profile) => {
+  settings.cardPadding = profile.styles.cardPadding;
+  settings.taskNumberSize = profile.styles.taskNumberSize;
+  settings.taskDescriptionSize = profile.styles.taskDescriptionSize;
+  settings.taskTimerSize = profile.styles.taskTimerSize;
+  settings.taskMinHeight = profile.styles.taskMinHeight;
+  settings.taskMaxWidth = profile.styles.taskMaxWidth;
+  
+  await settings.saveAllSettings();
+  notificationService.toast(`Perfil "${profile.name}" aplicado!`);
+};
+
+const deleteTaskStyleProfile = async (index) => {
+  settings.taskStyleProfiles.splice(index, 1);
+  await settings.saveSetting('app-task-style-profiles', [...settings.taskStyleProfiles]);
+};
 
 const tabs = [
   { id: 'wallpapers', label: 'Papéis de Parede', icon: ImageIcon, color: 'text-indigo-500', desc: 'Troque o clima do seu workspace instantaneamente.' },
@@ -169,11 +235,24 @@ const handleColumnChange = (n) => {
                       </div>
                     </div>
                     <div class="space-y-4 animate-fadeIn">
-                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Nomes das Colunas (Opcional)</label>
+                      <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Nomes e Estilos das Colunas</label>
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div v-for="n in settings.columns" :key="n" class="space-y-1.5">
-                          <div class="flex items-center gap-2 mb-1"><div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div><span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Coluna {{ n }}</span></div>
-                          <input v-model="settings.columnTitles[n-1]" type="text" placeholder="Ex: Backlog..." class="app-input px-4 py-3 shadow-sm transition-all w-full" @input="settings.saveSetting('app-column-titles', [...settings.columnTitles])" />
+                        <div v-for="n in settings.columns" :key="n" class="space-y-2 p-3 bg-white dark:bg-white/5 border border-app-border-light rounded-2xl shadow-sm transition-all hover:border-indigo-500/30">
+                          <div class="flex items-center gap-2">
+                            <div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Coluna {{ n }}</span>
+                          </div>
+                          <input v-model="settings.columnTitles[n-1]" type="text" placeholder="Ex: Backlog..." class="app-input px-3 py-2 text-sm shadow-sm transition-all w-full bg-slate-50 dark:bg-slate-900 border-none" @input="settings.saveSetting('app-column-titles', [...settings.columnTitles])" />
+                          
+                          <div class="relative">
+                            <select v-model="settings.columnStyles[n-1]" @change="settings.saveSetting('app-column-styles', [...settings.columnStyles])" class="app-input px-3 py-2 text-xs w-full appearance-none cursor-pointer bg-slate-50 dark:bg-slate-900 border-none text-slate-600 dark:text-slate-300 font-medium">
+                              <option value="">🎨 Estilo: Global Padrão</option>
+                              <option v-for="profile in (settings.taskStyleProfiles || [])" :key="profile.id" :value="profile.id">✨ {{ profile.name }}</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-indigo-400/50">
+                              <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -188,6 +267,42 @@ const handleColumnChange = (n) => {
 
                 <!-- ABA: Estilo das Tarefas -->
                 <div v-else-if="activeTab === 'tasks'" :key="'tasks'" class="space-y-8">
+                  <!-- NOVA SEÇÃO: Perfis de Estilo -->
+                  <div class="glass-section p-6 space-y-4 border border-indigo-500/20 bg-indigo-500/5">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-3">
+                        <Layers class="w-5 h-5 text-indigo-500" />
+                        <div>
+                          <h3 class="text-sm font-black text-app-main uppercase tracking-tight">Perfis de Estilo (Presets)</h3>
+                          <p class="text-[10px] text-app-sub">Salve as configurações abaixo para aplicar rapidamente ou vincular a colunas futuramente.</p>
+                        </div>
+                      </div>
+                      <button v-if="!isSavingProfile" @click="isSavingProfile = true" class="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-indigo-600 transition-all">
+                        <Save class="w-3.5 h-3.5" /> Salvar Atual
+                      </button>
+                    </div>
+
+                    <div v-if="isSavingProfile" class="flex items-center gap-2 mt-4 animate-fadeIn">
+                      <input v-model="newProfileName" type="text" placeholder="Nome do Perfil (Ex: Compacto, Urgente...)" class="app-input px-4 py-2 flex-1 shadow-sm font-bold" @keyup.enter="saveTaskStyleProfile" />
+                      <button @click="saveTaskStyleProfile" class="p-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl shadow-md transition-all"><CheckCircle2 class="w-5 h-5" /></button>
+                      <button @click="isSavingProfile = false; newProfileName = ''" class="p-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-xl transition-all"><X class="w-5 h-5" /></button>
+                    </div>
+
+                    <div v-if="settings.taskStyleProfiles && settings.taskStyleProfiles.length > 0" class="flex flex-wrap gap-3 pt-4 mt-2 border-t border-indigo-500/10">
+                      <div v-for="(profile, idx) in settings.taskStyleProfiles" :key="profile.id" class="flex items-center bg-white dark:bg-slate-900 border border-indigo-500/20 rounded-xl overflow-hidden shadow-sm group transition-all hover:border-indigo-500/40 hover:shadow-md">
+                        <button @click="applyTaskStyleProfile(profile)" class="px-4 py-2 text-[11px] font-bold text-slate-700 dark:text-slate-200 hover:bg-indigo-500/10 transition-colors">
+                          {{ profile.name }}
+                        </button>
+                        <button @click="deleteTaskStyleProfile(idx)" class="px-3 py-2 text-red-400 hover:bg-red-500 hover:text-white transition-colors border-l border-indigo-500/10">
+                          <Trash2 class="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    <div v-else class="pt-2">
+                      <p class="text-[10px] text-slate-400 dark:text-slate-500 italic font-medium">Nenhum perfil salvo. Ajuste as opções abaixo e clique em "Salvar Atual".</p>
+                    </div>
+                  </div>
+
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="glass-section p-6 space-y-5">
                         <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Espessura (Padding)</span><span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.cardPadding }}px</span></div>

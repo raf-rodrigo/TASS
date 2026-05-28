@@ -55,7 +55,7 @@ const handleBoardChange = (evt, colIdx) => {
       <!-- Cabeçalho da Coluna -->
       <div 
         v-if="settings.columnTitles[colIdx-1]" 
-        class="flex items-center mb-1 px-1"
+        class="flex items-center justify-center mb-1 px-1"
       >
         <div 
           class="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)] mr-2"
@@ -107,6 +107,7 @@ const handleBoardChange = (evt, colIdx) => {
           <template #item="{ element: task }">
             <TaskCard 
               :task="task" 
+              :columnIndex="colIdx - 1"
               @toggle-completion="(t) => emit('toggle-completion', t)" 
               @delete-task="(id) => emit('delete-task', id)" 
               @edit-task="(t) => emit('edit-task', t)" 
