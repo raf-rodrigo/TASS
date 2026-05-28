@@ -7,7 +7,8 @@ vi.mock('../../src/db.js', () => ({
     tasks: { toArray: vi.fn(), bulkPut: vi.fn(), bulkAdd: vi.fn() },
     sprints: { toArray: vi.fn(), bulkPut: vi.fn() },
     settings: { toArray: vi.fn(), bulkPut: vi.fn() },
-    notes: { toArray: vi.fn(), bulkPut: vi.fn() }
+    notes: { toArray: vi.fn(), bulkPut: vi.fn() },
+    radios: { toArray: vi.fn(), bulkPut: vi.fn(), clear: vi.fn() }
   }
 }));
 
@@ -33,12 +34,14 @@ describe('backupService', () => {
       db.sprints.toArray.mockResolvedValue([{ id: 10 }]);
       db.settings.toArray.mockResolvedValue([{ key: 'theme', value: 'dark' }]);
       db.notes.toArray.mockResolvedValue([{ content: 'Nota 1' }]);
+      db.radios.toArray.mockResolvedValue([{ id: 1, name: 'Radio 1' }]);
 
       await backupService.exportSystem();
 
       expect(backupService.downloadJson).toHaveBeenCalledWith(
         expect.objectContaining({
           tasks: expect.arrayContaining([{ id: 1, title: 'Task 1' }]),
+          radios: expect.arrayContaining([{ id: 1, name: 'Radio 1' }]),
           version: '1.0'
         }),
         'tass_full_system_backup.json'
