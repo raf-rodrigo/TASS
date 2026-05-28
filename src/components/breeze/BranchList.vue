@@ -73,16 +73,9 @@ const formatDate = (dateString) => {
 </script>
 
 <template>
-  <div class="space-y-4 text-left flex flex-col lg:h-full min-h-0 min-w-0">
-    <div class="flex items-center justify-between h-6 shrink-0">
-      <h4 class="text-[10px] font-black text-app-muted uppercase tracking-widest flex items-center gap-2">
-        <History class="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-        Branches Disponíveis
-      </h4>
-    </div>
-
+  <div class="text-left flex flex-col lg:h-full min-h-0 min-w-0">
     <!-- Painel Principal de Branches com Estética Harmonizada -->
-    <div class="app-card-panel flex flex-col gap-4 max-h-[calc(100vh-280px)] flex-1 min-h-0">
+    <div class="glass-section flex flex-col gap-4 max-h-[calc(100vh-250px)] flex-1 min-h-0 !p-4">
       
       <!-- Campo de Busca e Ordenação -->
       <div class="flex gap-2.5 items-center h-10 shrink-0">
@@ -137,7 +130,7 @@ const formatDate = (dateString) => {
           v-for="branch in filteredBranches"
           :key="branch.name"
           @click="$emit('toggle-selection', branch.name)"
-          class="group flex items-center justify-between p-3 cursor-pointer rounded-[var(--app-card-radius)] bg-app-solid dark:bg-slate-900/40 border border-transparent hover:border-indigo-500/30 dark:hover:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+          class="group flex items-center justify-between p-3 cursor-pointer rounded-[var(--app-card-radius)] bg-app-surface/50 dark:bg-slate-900/40 border border-transparent hover:border-indigo-500/30 dark:hover:border-white/10 hover:bg-white/80 dark:hover:bg-slate-800/80 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
         >
           <!-- Checkbox de Seleção Individual Premium Encorpado -->
           <div class="flex items-center shrink-0 pr-3">

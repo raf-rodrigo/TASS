@@ -31,32 +31,32 @@ watch(() => props.logs, () => {
 </script>
 
 <template>
-  <div class="border border-slate-200 dark:border-white/[0.06] rounded-[var(--app-card-radius)] overflow-hidden bg-black/95 flex flex-col shadow-xl flex-1 min-h-0">
+  <div class="glass-section flex flex-col flex-1 min-h-0 relative overflow-hidden border-indigo-500/20 bg-slate-900/50 dark:bg-black/50">
     <!-- Console de Texto -->
     <div
       ref="consoleEl"
       :style="{ fontSize: consoleFontSize + 'px' }"
-      class="p-5 font-mono leading-relaxed text-slate-350 overflow-y-auto custom-scrollbar flex flex-col gap-2 flex-1 select-text"
+      class="p-5 font-mono leading-relaxed text-slate-300 overflow-y-auto custom-scrollbar flex flex-col gap-2 flex-1 select-text relative z-10"
     >
-      <div v-if="logs.length === 0" class="text-slate-600 italic">
+      <div v-if="logs.length === 0" class="text-slate-500 italic">
         {{ placeholder }}
       </div>
       <div
         v-for="(log, idx) in logs"
         :key="idx"
         :class="{
-          'text-slate-400': log.type === 'info',
+          'text-slate-300': log.type === 'info',
           'text-emerald-400': log.type === 'success',
           'text-amber-400': log.type === 'warning',
           'text-red-400 font-bold': log.type === 'error'
         }"
       >
-        <span class="text-slate-655">[{{ log.time }}]</span> {{ log.text }}
+        <span class="text-slate-500">[{{ log.time }}]</span> {{ log.text }}
       </div>
     </div>
 
     <!-- Ajuste de Fonte na Base do Console -->
-    <div class="flex items-center justify-between px-5 py-2 bg-slate-950/90 dark:bg-slate-950/80 border-t border-slate-900/60 dark:border-white/[0.06] text-[9px] font-black text-slate-400 uppercase tracking-wider select-none shrink-0">
+    <div class="relative z-10 flex items-center justify-between px-5 py-2 border-t border-white/[0.06] text-[9px] font-black text-slate-400 uppercase tracking-wider select-none shrink-0 bg-black/20">
       <div class="flex items-center gap-1.5">
         <Terminal class="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
         Console
@@ -67,7 +67,7 @@ watch(() => props.logs, () => {
           <button
             type="button"
             @click="$emit('decrease-font-size')"
-            class="px-2 py-0.5 hover:bg-white/5 rounded text-xs transition-colors cursor-pointer text-slate-400 hover:text-white"
+            class="px-2 py-0.5 hover:bg-white/10 rounded-[var(--app-input-radius)] text-xs transition-colors cursor-pointer text-slate-400 hover:text-white"
             title="Diminuir fonte"
           >
             -
@@ -76,7 +76,7 @@ watch(() => props.logs, () => {
           <button
             type="button"
             @click="$emit('increase-font-size')"
-            class="px-2 py-0.5 hover:bg-white/5 rounded text-xs transition-colors cursor-pointer text-slate-400 hover:text-white"
+            class="px-2 py-0.5 hover:bg-white/10 rounded-[var(--app-input-radius)] text-xs transition-colors cursor-pointer text-slate-400 hover:text-white"
             title="Aumentar fonte"
           >
             +

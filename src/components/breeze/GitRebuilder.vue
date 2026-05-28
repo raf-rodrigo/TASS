@@ -1072,6 +1072,8 @@ const toggleTheme = () => {
     :icon="GitBranch"
     maxWidth="max-w-[98vw] w-full"
     customClass="h-[calc(100vh-5rem)] mb-14"
+    allowMaximize
+    @maximized-change="isMaximized = $event"
     @close="emit('close')"
   >
     <!-- HEADER ACTIONS -->
@@ -1089,26 +1091,43 @@ const toggleTheme = () => {
 
     <!-- SIDEBAR -->
     <template #sidebar>
-      <nav class="space-y-2 p-2 w-full">
-        <button 
-          @click="activeTab = 'rebuilder'"
-          class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-black uppercase tracking-widest text-[10px]"
-          :class="activeTab === 'rebuilder' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent'"
-        >
-          <RefreshCw class="w-4 h-4 shrink-0" />
-          Limpar e Recriar
-        </button>
+      <nav class="space-y-2 p-2 w-full flex flex-col items-center">
         <button 
           @click="activeTab = 'merges'"
-          class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-black uppercase tracking-widest text-[10px]"
-          :class="activeTab === 'merges' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent'"
+          class="flex items-center gap-3 py-3 rounded-[var(--app-input-radius)] transition-all font-black uppercase tracking-widest text-[10px]"
+          :class="[
+            activeTab === 'merges' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent',
+            isMaximized ? 'w-auto px-4 justify-center' : 'w-full px-4'
+          ]"
+          :title="isMaximized ? 'Mesclar e Excluir' : ''"
         >
           <GitBranch class="w-4 h-4 shrink-0" />
-          Mesclar e Excluir
+          <span v-if="!isMaximized">Mesclar e Excluir</span>
+        </button>
+        <button 
+          @click="activeTab = 'rebuilder'"
+          class="flex items-center gap-3 py-3 rounded-[var(--app-input-radius)] transition-all font-black uppercase tracking-widest text-[10px]"
+          :class="[
+            activeTab === 'rebuilder' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent',
+            isMaximized ? 'w-auto px-4 justify-center' : 'w-full px-4'
+          ]"
+          :title="isMaximized ? 'Limpar e Recriar' : ''"
+        >
+          <RefreshCw class="w-4 h-4 shrink-0" />
+          <span v-if="!isMaximized">Limpar e Recriar</span>
+        </button>
+        <button 
+          @click="showSettingsModal = true"
+          class="flex items-center gap-3 py-3 rounded-[var(--app-input-radius)] transition-all font-black uppercase tracking-widest text-[10px] text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent"
+          :class="isMaximized ? 'w-auto px-4 justify-center' : 'w-full px-4'"
+          :title="isMaximized ? 'Configurações' : ''"
+        >
+          <Settings class="w-4 h-4 shrink-0" />
+          <span v-if="!isMaximized">Configurações</span>
         </button>
       </nav>
       
-      <div class="mt-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+      <div v-if="!isMaximized" class="mt-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-[var(--app-card-radius)]">
         <div class="flex items-start gap-3">
           <AlertTriangle class="w-5 h-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
           <div class="text-[10px] leading-relaxed text-amber-700 dark:text-amber-400 font-medium">
@@ -1134,11 +1153,10 @@ const toggleTheme = () => {
               </h4>
             </div>
 
-            <!-- Painel Unificado para Status das Branches (Similar ao BranchList) -->
-            <div class="app-card-panel flex flex-col gap-4 max-h-[calc(100vh-280px)] flex-1 min-h-0">
+            <div class="glass-section flex flex-col gap-4 max-h-[calc(100vh-280px)] flex-1 min-h-0 !p-4">
               <div class="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1 min-h-0">
                 <!-- MASTER (PROTEGIDA) -->
-                <div data-test="master-card" class="app-card-panel flex flex-col justify-between shadow-md relative overflow-hidden shrink-0 border-indigo-500/10">
+                <div data-test="master-card" class="glass-section flex flex-col justify-between shadow-md relative overflow-hidden shrink-0 border-indigo-500/10 !p-4">
                   <div class="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 text-[8px] font-black uppercase tracking-wider rounded-[var(--app-input-radius)] border border-emerald-500/20">
                     <Lock class="w-3 h-3" />
                     Protegida
@@ -1159,7 +1177,7 @@ const toggleTheme = () => {
                 </div>
 
                 <!-- HOMOLOGAÇÃO -->
-                <div class="app-card-panel flex flex-col justify-between shadow-md group shrink-0 border-indigo-500/10 hover:border-indigo-500/30 transition-all">
+                <div class="glass-section flex flex-col justify-between shadow-md group shrink-0 border-indigo-500/10 hover:border-indigo-500/30 transition-all !p-4">
                   <div>
                     <div class="flex items-center justify-between mb-4">
                       <span class="px-2.5 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-500 text-[8px] font-black uppercase tracking-wider rounded-[var(--app-input-radius)]">Homologação</span>
@@ -1186,7 +1204,7 @@ const toggleTheme = () => {
                 </div>
 
                 <!-- DESENVOLVIMENTO -->
-                <div class="app-card-panel flex flex-col justify-between shadow-md group shrink-0 border-indigo-500/10 hover:border-indigo-500/30 transition-all">
+                <div class="glass-section flex flex-col justify-between shadow-md group shrink-0 border-indigo-500/10 hover:border-indigo-500/30 transition-all !p-4">
                   <div>
                     <div class="flex items-center justify-between mb-4">
                       <span class="px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-500 text-[8px] font-black uppercase tracking-wider rounded-[var(--app-input-radius)]">Desenvolvimento</span>
@@ -1224,7 +1242,7 @@ const toggleTheme = () => {
               </h4>
             </div>
             
-            <div class="app-card-panel flex flex-col gap-6 max-h-[calc(100vh-280px)] flex-1 min-h-0 py-6">
+            <div class="glass-section flex flex-col gap-6 max-h-[calc(100vh-280px)] flex-1 min-h-0 py-6 !p-4">
               <!-- Stepper Vertical para melhor adequação -->
               <div class="flex flex-col gap-6 flex-1 justify-center px-2">
                 <div class="flex items-center gap-3" :class="pipelineStep >= 1 ? 'text-indigo-600 dark:text-indigo-400' : 'text-app-muted'">
@@ -1300,10 +1318,23 @@ const toggleTheme = () => {
       </div>
 
       <!-- ABA 2: MESCLAR E EXCLUIR BRANCHES -->
-      <div v-else-if="activeTab === 'merges'" class="space-y-6 animate-fadeIn flex-1 flex flex-col min-h-0 lg:overflow-hidden overflow-y-auto">
+      <div v-else-if="activeTab === 'merges'" class="space-y-4 animate-fadeIn flex-1 flex flex-col min-h-0 lg:overflow-hidden overflow-y-auto">
+        
+        <!-- BARRA DE CONTROLE NO TOPO -->
+        <ActionPanel
+          :selectedBranches="selectedBranches"
+          :branchesLoading="branchesLoading"
+          :branchDesenvolvimento="settingsStore.branchDesenvolvimento"
+          :branchHomologacao="settingsStore.branchHomologacao"
+          @list-all-branches="listAllBranches"
+          @merge-to-target="runMergeToTarget"
+          @bulk-delete="requestBulkDelete"
+          class="w-full shrink-0"
+        />
+
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch w-full flex-1 min-h-0">
 
-          <!-- Coluna 1 (Lado Esquerdo): Branches Disponíveis (5 colunas) -->
+          <!-- Coluna Esquerda: Branches Disponíveis -->
           <BranchList
             v-model:searchQuery="searchQuery"
             :branchesFetched="branchesFetched"
@@ -1318,54 +1349,23 @@ const toggleTheme = () => {
             @search="handleSearch"
             @toggle-order="toggleOrderAndRefetch"
             @toggle-selection="toggleBranchSelection"
-            class="md:col-span-5"
+            class="md:col-span-6"
           />
 
-          <!-- Coluna 2 (Centro): Painel de Controle de Ambiente e Lote (3 colunas) -->
-          <ActionPanel
-            :selectedBranches="selectedBranches"
-            :branchesLoading="branchesLoading"
-            :branchDesenvolvimento="settingsStore.branchDesenvolvimento"
-            :branchHomologacao="settingsStore.branchHomologacao"
-            @list-all-branches="listAllBranches"
-            @merge-to-target="runMergeToTarget"
-            @bulk-delete="requestBulkDelete"
-            class="md:col-span-3"
-          />
-
-          <!-- Coluna 3 (Lado Direito): Console de Operações (4 colunas) -->
-          <div class="md:col-span-4 space-y-4 text-left flex flex-col lg:h-full min-h-0 min-w-0">
-            <div class="flex items-center justify-between h-6 shrink-0">
-              <h4 class="text-[10px] font-black text-app-muted uppercase tracking-widest flex items-center gap-2">
-                <Terminal class="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-                Console de Operações [TERMINAL DIREITO]
-              </h4>
-            </div>
-
+          <!-- Coluna Direita: Console de Operações -->
+          <div class="md:col-span-6 flex flex-col lg:h-full min-h-0 min-w-0">
             <TerminalConsole
               :logs="mergeLogs"
               :consoleFontSize="settingsStore.consoleFontSize"
-              placeholder="Selecione DEV ou HML no centro para carregar as branches..."
+              placeholder="Selecione DEV ou HML acima para carregar as branches..."
               @increase-font-size="increaseFontSize"
               @decrease-font-size="decreaseFontSize"
-              class="max-h-[calc(100vh-280px)]"
+              class="max-h-[calc(100vh-250px)]"
             />
           </div>
 
         </div>
       </div>
-      </div>
-    </template>
-
-    <!-- FOOTER -->
-    <template #footer>
-      <div class="flex justify-between items-center w-full px-2">
-        <button @click="showSettingsModal = true" class="btn-icon-secondary" title="Configurações">
-          <Settings class="w-4 h-4 text-slate-500 dark:text-slate-400" />
-        </button>
-        <button @click="emit('close')" class="btn-secondary text-[10px] font-black uppercase px-6 py-2.5">
-          Fechar Reconstrutor
-        </button>
       </div>
     </template>
   </BaseModal>

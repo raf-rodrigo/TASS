@@ -1,5 +1,6 @@
 <script setup>
-import { X } from 'lucide-vue-next';
+import { X, Maximize, Minimize } from 'lucide-vue-next';
+import { ref } from 'vue';
 import { useModalDrag } from '../composables/useModalDrag';
 import { useSettingsStore } from '../stores/settingsStore';
 
@@ -40,10 +41,18 @@ const props = defineProps({
   okText: { type: String, default: '' },
   cancelText: { type: String, default: '' },
   okLoading: { type: Boolean, default: false },
-  okDisabled: { type: Boolean, default: false }
+  okDisabled: { type: Boolean, default: false },
+  allowMaximize: { type: Boolean, default: false }
 });
 
-const emit = defineEmits(['close', 'ok', 'cancel']);
+const emit = defineEmits(['close', 'ok', 'cancel', 'maximized-change']);
+
+const isMaximized = ref(false);
+
+const toggleMaximize = () => {
+  isMaximized.value = !isMaximized.value;
+  emit('maximized-change', isMaximized.value);
+};
 
 const handleOutsideClick = () => {
   if (props.closeOnClickOutside) {
@@ -51,22 +60,27 @@ const handleOutsideClick = () => {
   }
 };
 
-const { position, onMouseDown } = useModalDrag();
+const { position, isDragging, onMouseDown } = useModalDrag();
 </script>
 
 <template>
   <div 
-    class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-transparent" 
-    :class="{ 'pointer-events-none': isWindow }"
+    class="fixed inset-0 flex items-center justify-center p-4 bg-transparent transition-all" 
+    :class="[isMaximized ? 'z-[9999]' : 'z-[200]', { 'pointer-events-none': isWindow }]"
     @click.self="handleOutsideClick"
   >
     <section 
-      class="glass-panel !p-0 w-full flex flex-col shadow-2xl border-indigo-500/10 overflow-hidden pointer-events-auto"
-      :class="[maxWidth, customClass, { 'animate-scaleIn': animate }]"
+      class="glass-panel !p-0 flex flex-col shadow-2xl border-indigo-500/10 overflow-hidden pointer-events-auto"
+      :class="[
+        isMaximized ? 'fixed inset-0 z-[250] w-screen h-screen max-w-none !rounded-none m-0' : `w-full ${maxWidth}`, 
+        isMaximized ? '' : customClass, 
+        { 'animate-scaleIn': animate && !isMaximized },
+        { 'transition-all duration-300': !isDragging }
+      ]"
       :style="{ 
-        '--modal-x': `${position.x}px`,
-        '--modal-y': `${position.y}px`,
-        transform: `translate(var(--modal-x), var(--modal-y))`,
+        '--modal-x': isMaximized ? '0px' : `${position.x}px`,
+        '--modal-y': isMaximized ? '0px' : `${position.y}px`,
+        transform: isMaximized ? 'none' : `translate(var(--modal-x), var(--modal-y))`,
         backgroundColor: settings.opacityTargets.modals ? 'transparent' : 'rgba(var(--app-bg-raw), 1)',
         backdropFilter: settings.opacityTargets.modals ? 'blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))' : 'none',
         WebkitBackdropFilter: settings.opacityTargets.modals ? 'blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))' : 'none'
@@ -114,15 +128,22 @@ const { position, onMouseDown } = useModalDrag();
             </div>
           </slot>
           
-          <button v-if="showClose" type="button" @click="emit('close')" class="icon-btn -mr-2">
-            <X class="w-5 h-5" />
-          </button>
+          <div class="flex items-center gap-1">
+            <button v-if="allowMaximize" type="button" @click="toggleMaximize" class="icon-btn -mr-1 text-slate-400 hover:text-indigo-500">
+              <Minimize v-if="isMaximized" class="w-4 h-4" />
+              <Maximize v-else class="w-4 h-4" />
+            </button>
+            <button v-if="showClose" type="button" @click="emit('close')" class="icon-btn -mr-2">
+              <X class="w-5 h-5" />
+            </button>
+          </div>
         </header>
 
         <div class="flex flex-col md:flex-row flex-1 overflow-hidden relative">
           <!-- Sidebar -->
           <aside 
-            class="tass-layout-sidebar"
+            class="tass-layout-sidebar transition-all duration-300"
+            :class="{ '!w-[72px]': isMaximized }"
             :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-sidebar-opacity))` }"
           >
             <slot name="sidebar"></slot>
@@ -184,9 +205,15 @@ const { position, onMouseDown } = useModalDrag();
             </div>
           </slot>
           
-          <button v-if="showClose" @click="emit('close')" class="icon-btn">
-            <X class="w-5 h-5" />
-          </button>
+          <div class="flex items-center gap-1">
+            <button v-if="allowMaximize" type="button" @click="toggleMaximize" class="icon-btn text-slate-400 hover:text-indigo-500">
+              <Minimize v-if="isMaximized" class="w-4 h-4" />
+              <Maximize v-else class="w-4 h-4" />
+            </button>
+            <button v-if="showClose" @click="emit('close')" class="icon-btn">
+              <X class="w-5 h-5" />
+            </button>
+          </div>
         </header>
 
         <!-- Content Area -->

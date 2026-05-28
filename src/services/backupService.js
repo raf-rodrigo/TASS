@@ -25,6 +25,7 @@ export const backupService = {
       sprints: await db.sprints.toArray(),
       settings: await db.settings.toArray(),
       notes: await db.notes.toArray(),
+      radios: await db.radios.toArray(),
       version: '1.0',
       timestamp: new Date().toISOString()
     };
@@ -106,12 +107,23 @@ export const backupService = {
         await db.notes.clear();
         await db.notes.bulkPut(data.notes);
       }
+      if (data.radios) {
+        await db.radios.clear();
+        await db.radios.bulkPut(data.radios);
+      }
       
       await settingsStore.loadSettings();
       await taskStore.loadTasks();
       await taskStore.loadSprints();
       
-      notificationService.toast('Sistema restaurado com sucesso!', 'success');
+      notificationService.toast('Sistema restaurado! Recarregando...', 'success');
+      
+      // Força o recarregamento da página para garantir que todas as stores (Radio, Notes, etc.)
+      // inicializem com os dados novos do banco de dados perfeitamente.
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
       return true;
     } catch (error) {
       console.error("Failed to apply backup data:", error);
