@@ -45,14 +45,15 @@ Para evitar o retorno à "bagunça" técnica, as seguintes regras devem ser segu
 - [x] **Rebranding de Namespace:** Migração global de `tass-` para `app-`.
 - [x] **Localização Robusta:** Integração com `date-fns` e tradução profissional para PT-BR.
 - [x] **Simplificação de Modais:** Revisão de textos e labels para agilidade (Remoção do termo "Cadastrar").
+- [x] **Refatoração de Inputs (Concluído):** Criação dos componentes base `AppInput.vue` e `AppTextarea.vue` para padronizar bordas, ícones, validações e focus rings.
+- [x] **Customização de Texto (Concluído):** Inclusão de seleção dinâmica de cor de texto (Modo Claro vs Escuro) no `TaskModal` com suporte a paletas no `InterfaceMenu`.
 
 ## 🎯 Próximos Passos
 1.  **Internacionalização (i18n):**
     *   Instalar `vue-i18n@9`.
     *   Criar arquivos de tradução em `src/locales/` (pt.json, en.json).
     *   Migrar strings estáticas para chaves `$t('key')`.
-2.  **Refatoração de Inputs:** Criar componentes base para inputs (ex: `AppInput.vue`) para padronizar bordas e focus rings.
-3.  **Performance:** Monitorar o impacto das transições globais em dispositivos com menor poder de processamento.
+2.  **Performance:** Monitorar o impacto das transições globais em dispositivos com menor poder de processamento.
 
 ## 🎨 Padrões de Design
 - **Visual:** Glassmorphism 2.0 (Desfoque de 20px, bordas brancas com 10-20% de opacidade).

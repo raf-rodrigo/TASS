@@ -149,6 +149,14 @@ const handleImportPalettes = (event) => {
         settings.bodyPalette = normalizePalette(data.bodyPalette);
         settings.saveSetting('app-body-palette', settings.bodyPalette);
       }
+      if (data.textLightPalette && Array.isArray(data.textLightPalette)) {
+        settings.textLightPalette = normalizePalette(data.textLightPalette);
+        settings.saveSetting('app-text-light-palette', settings.textLightPalette);
+      }
+      if (data.textDarkPalette && Array.isArray(data.textDarkPalette)) {
+        settings.textDarkPalette = normalizePalette(data.textDarkPalette);
+        settings.saveSetting('app-text-dark-palette', settings.textDarkPalette);
+      }
       notificationService.toast('Paletas importadas com sucesso!');
     } catch (err) {
       notificationService.toast('Erro ao ler JSON', 'error');
@@ -448,14 +456,22 @@ const handleColumnChange = (n) => {
                       </div>
                       
                       <!-- Preview das Paletas Atuais -->
-                      <div class="space-y-4 pt-2">
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                         <div>
-                          <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Preview: Cor do Número</p>
+                          <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Cor do Número</p>
                           <AppColorPalette :colors="settings.titlePalette" :preview-only="true" />
                         </div>
                         <div>
-                          <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Preview: Cor do Fundo</p>
+                          <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Cor do Fundo</p>
                           <AppColorPalette :colors="settings.bodyPalette" :preview-only="true" />
+                        </div>
+                        <div>
+                          <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Texto (Claro)</p>
+                          <AppColorPalette :colors="settings.textLightPalette" :preview-only="true" />
+                        </div>
+                        <div>
+                          <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Texto (Escuro)</p>
+                          <AppColorPalette :colors="settings.textDarkPalette" :preview-only="true" />
                         </div>
                       </div>
                     </div>

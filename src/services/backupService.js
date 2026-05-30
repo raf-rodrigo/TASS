@@ -22,7 +22,9 @@ export const backupService = {
   exportPalettes(settings) {
     const data = {
       titlePalette: settings.titlePalette || [],
-      bodyPalette: settings.bodyPalette || []
+      bodyPalette: settings.bodyPalette || [],
+      textLightPalette: settings.textLightPalette || [],
+      textDarkPalette: settings.textDarkPalette || []
     };
     this.downloadJson(data, 'tass_palettes.json');
     notificationService.toast('Exemplo de paleta exportado!');

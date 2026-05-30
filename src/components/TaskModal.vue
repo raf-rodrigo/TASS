@@ -48,6 +48,8 @@ const moreInfo = ref(props.taskToEdit?.moreInfo || '');
 const sprintId = ref(props.taskToEdit?.sprintId || '');
 const color = ref(props.taskToEdit?.color || '#6366f1');
 const bgColor = ref(props.taskToEdit?.bgColor || '');
+const textLightColor = ref(props.taskToEdit?.textLightColor || '');
+const textDarkColor = ref(props.taskToEdit?.textDarkColor || '');
 
 const tabs = [
   { id: 'basic', label: 'Geral', icon: Layout, color: 'text-indigo-500', desc: 'Dados essenciais para identificação da tarefa.' },
@@ -165,7 +167,9 @@ const submitTask = () => {
     moreInfo: moreInfo.value.trim(),
     sprintId: sprintId.value ? parseInt(sprintId.value) : null,
     color: color.value,
-    bgColor: bgColor.value
+    bgColor: bgColor.value,
+    textLightColor: textLightColor.value,
+    textDarkColor: textDarkColor.value
   };
 
   if (props.taskToEdit) {
@@ -247,6 +251,17 @@ const submitTask = () => {
             <div>
               <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Cor do Fundo</label>
               <AppColorPalette v-model="bgColor" :colors="settings.bodyPalette" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Texto (Modo Claro)</label>
+              <AppColorPalette v-model="textLightColor" :colors="settings.textLightPalette" />
+            </div>
+            <div>
+              <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Texto (Modo Escuro)</label>
+              <AppColorPalette v-model="textDarkColor" :colors="settings.textDarkPalette" />
             </div>
           </div>
 

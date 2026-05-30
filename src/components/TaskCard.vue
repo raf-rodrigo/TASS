@@ -43,6 +43,13 @@ const isSquareLayout = computed(() => {
   return activeStyle.value.taskMinHeight >= 80 || (activeStyle.value.taskMaxWidth > 0 && activeStyle.value.taskMaxWidth <= 280);
 });
 
+const currentTextColor = computed(() => {
+  // Se não tiver cor definida, cai pro default vazio e o Tailwind reassume
+  if (settings.theme === 'dark' && props.task.textDarkColor) return props.task.textDarkColor;
+  if (settings.theme !== 'dark' && props.task.textLightColor) return props.task.textLightColor;
+  return 'var(--app-text-sub)'; // Cor padrão do texto (text-app-sub)
+});
+
 const handleAdjustTime = (event) => {
   if (event) {
     taskStore.contextMenuPosition = { 
@@ -149,10 +156,13 @@ const handleSelect = (event) => {
             v-if="task.description" 
             class="text-sm flex-1 min-w-0 py-0.5 leading-tight" 
             :class="[
-              task.completed ? 'line-through text-app-muted' : 'text-app-sub',
+              task.completed ? 'line-through opacity-60' : '',
               isSquareLayout ? 'line-clamp-6 mt-1 whitespace-pre-wrap' : 'line-clamp-1'
             ]"
-            :style="{ fontSize: activeStyle.taskDescriptionSize + 'px' }"
+            :style="{ 
+              fontSize: activeStyle.taskDescriptionSize + 'px', 
+              color: currentTextColor 
+            }"
             :data-tip="task.description"
           >
             {{ task.description }}
