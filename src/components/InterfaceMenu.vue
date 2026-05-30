@@ -5,7 +5,7 @@ import {
   Image as ImageIcon, Eraser, MousePointer2,
   LayoutGrid, Layers, Type as TypeIcon, Droplets,
   Cloud, Loader2, ArrowLeft, RotateCcw,
-  Save, CheckCircle2
+  Save, CheckCircle2, Pencil
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
@@ -58,9 +58,6 @@ watch(() => settings.cardBorderRadius, (newVal) => {
   });
   settings.saveSetting('app-card-radius', newVal);
 }, { immediate: true });
-
-const showAddWallpaper = ref(false);
-const newWallpaperUrl = ref('');
 
 const newProfileName = ref('');
 const isSavingProfile = ref(false);
@@ -149,17 +146,30 @@ const setWallpaper = (url) => {
   settings.saveSetting('app-bg-image', url);
 };
 
-const addCustomWallpaper = () => {
-  if (!newWallpaperUrl.value.trim()) return;
+const addCustomWallpaper = async () => {
   if (settings.customWallpapers.length >= 17) return;
   
-  settings.customWallpapers.push({
-    name: `Custom ${settings.customWallpapers.length + 1}`,
-    url: newWallpaperUrl.value.trim()
+  const newUrl = await notificationService.prompt({
+    title: 'Novo Papel de Parede',
+    message: 'Cole o link direto da imagem que deseja usar:',
+    placeholder: 'https://...',
+    confirmText: 'Adicionar'
   });
-  settings.saveSetting('app-custom-wallpapers', settings.customWallpapers);
-  newWallpaperUrl.value = '';
-  showAddWallpaper.value = false;
+  
+  if (newUrl !== null && newUrl.trim() !== '') {
+    const url = newUrl.trim();
+    if (url.includes('drive.google.com')) {
+      notificationService.toast('Links do Google Drive não são suportados para papel de parede. Use um link direto de imagem.', 'warning');
+      return;
+    }
+    
+    settings.customWallpapers = [...settings.customWallpapers, {
+      name: `Custom ${settings.customWallpapers.length + 1}`,
+      url: url
+    }];
+    await settings.saveSetting('app-custom-wallpapers', settings.customWallpapers);
+    notificationService.toast('Papel de parede adicionado com sucesso!', 'success');
+  }
 };
 
 const removeWallpaper = async (index) => {
@@ -169,6 +179,34 @@ const removeWallpaper = async (index) => {
     notificationService.toast('Papel de parede removido!');
   } catch (error) {
     console.error("Erro ao remover wallpaper:", error);
+  }
+};
+
+const editWallpaper = async (index) => {
+  const wp = settings.customWallpapers[index];
+  const newUrl = await notificationService.prompt({
+    title: 'Editar Link da Imagem',
+    message: 'Verifique ou altere o link direto da imagem:',
+    value: wp.url,
+    confirmText: 'Salvar'
+  });
+  
+  if (newUrl !== null && newUrl.trim() !== '') {
+    const url = newUrl.trim();
+    if (url.includes('drive.google.com')) {
+      notificationService.toast('Links do Google Drive não são suportados. A edição foi cancelada.', 'warning');
+      return;
+    }
+    
+    const oldUrl = wp.url;
+    settings.customWallpapers[index].url = url;
+    await settings.saveSetting('app-custom-wallpapers', [...settings.customWallpapers]);
+    
+    if (settings.backgroundImage === oldUrl) {
+      settings.backgroundImage = url;
+      await settings.saveSetting('app-bg-image', url);
+    }
+    notificationService.toast('Link atualizado!');
   }
 };
 
@@ -374,12 +412,14 @@ const handleColumnChange = (n) => {
                     <div class="flex items-center justify-between"><div class="flex items-center gap-3"><ImageIcon class="w-5 h-5 text-emerald-500" /><h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Papéis de Parede Premium</h3></div><span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">{{ settings.customWallpapers.length }} / 17 Slots</span></div>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       <button v-if="settings.customWallpapers.length > 0" @click="clearWallpaper" class="aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all group" :class="!settings.backgroundImage ? 'border-indigo-500 bg-indigo-500/5 text-indigo-500' : 'border-app-border-light text-slate-400 hover:text-red-500'"><Eraser class="w-6 h-6" /><span class="text-[10px] font-bold uppercase tracking-tighter">Limpar</span></button>
-                      <div v-for="(wp, index) in settings.customWallpapers" :key="index" v-tooltip="wp.name || 'Wallpaper'" @click="setWallpaper(wp.url)" class="relative group aspect-video rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-slate-200 dark:bg-white/10" :class="settings.backgroundImage === wp.url ? 'border-emerald-500 scale-95 shadow-lg' : 'border-transparent hover:border-slate-300'"><img :src="wp.url" class="w-full h-full object-cover" alt="Preview" loading="lazy" /><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2"><button @click.stop="removeWallpaper(index)" class="p-2 bg-red-500/80 hover:bg-red-500 text-white rounded-lg"><Trash2 class="w-4 h-4" /></button></div></div>
-                      <button v-if="settings.customWallpapers.length < 17" @click="showAddWallpaper = !showAddWallpaper" class="aspect-video rounded-xl border-2 border-dashed border-app-border-light hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-500"><Plus class="w-6 h-6" /><span class="text-[10px] font-bold uppercase tracking-tighter">Novo Link</span></button>
-                      
-                    </div>
-                    <div v-if="showAddWallpaper" class="animate-fadeIn p-4 bg-app-solid rounded-2xl border border-emerald-500/30 space-y-4">
-                      <div class="flex gap-2"><input v-model="newWallpaperUrl" type="text" placeholder="https://..." class="app-input px-4 py-3 shadow-sm transition-all w-full" /><button @click="addCustomWallpaper" class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-lg">Salvar</button></div>
+                      <div v-for="(wp, index) in settings.customWallpapers" :key="index" v-tooltip="wp.name || 'Wallpaper'" @click="setWallpaper(wp.url)" class="relative group aspect-video rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-slate-200 dark:bg-white/10" :class="settings.backgroundImage === wp.url ? 'border-emerald-500 scale-95 shadow-lg' : 'border-transparent hover:border-slate-300'">
+                        <img :src="wp.url" class="w-full h-full object-cover" alt="Preview" loading="lazy" />
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                          <button @click.stop="editWallpaper(index)" class="p-1.5 bg-blue-500/80 hover:bg-blue-500 text-white rounded-lg"><Pencil class="w-3.5 h-3.5" /></button>
+                          <button @click.stop="removeWallpaper(index)" class="p-1.5 bg-red-500/80 hover:bg-red-500 text-white rounded-lg"><Trash2 class="w-3.5 h-3.5" /></button>
+                        </div>
+                      </div>
+                      <button v-if="settings.customWallpapers.length < 17" @click="addCustomWallpaper" class="aspect-video rounded-xl border-2 border-dashed border-app-border-light hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-emerald-500"><Plus class="w-6 h-6" /><span class="text-[10px] font-bold uppercase tracking-tighter">Novo Link</span></button>
                     </div>
                   </div>
                 </div>

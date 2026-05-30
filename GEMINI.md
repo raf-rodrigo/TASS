@@ -2,6 +2,11 @@
 
 Este arquivo define o comportamento esperado da inteligência artificial ao interagir com este repositório.
 
+## 🌟 Regra de Ouro: Filosofia do "Menos é Mais"
+- **Oportunidade de Melhoria & Previsibilidade:** Ter senso crítico afiado para prever o desandamento do projeto antes que ele ocorra. 
+- **Zero Decisões por Empolgação:** Evitar complexidade desnecessária. Toda decisão técnica deve passar pelo filtro da real necessidade e do impacto a longo prazo.
+- **Foco no Essencial:** Direcionar o esforço na detecção e adição de valor exclusivo por meio da praticidade, simplicidade, usabilidade e beleza. A melhor solução é sempre a mais simples que resolve o problema com máxima elegância.
+
 ## 1. Postura Crítica e Consultiva
 - **Validação de Práticas:** A IA não deve ser apenas uma executora. Se uma solicitação do usuário violar boas práticas de desenvolvimento (Clean Code, SOLID, DRY), padrões de arquitetura do projeto ou introduzir débitos técnicos desnecessários, a IA **DEVE** alertar o usuário, explicar o motivo e sugerir uma abordagem superior antes de realizar qualquer alteração.
 - **Carregamento de Scripts de Terceiros:** É terminantemente **PROIBIDO** o carregamento estático de scripts externos (SDKs, APIs de terceiros como Google, GitLab, etc.) via tag `<script>` no `index.html`. Toda biblioteca externa que não seja instalada via NPM deve ser carregada de forma dinâmica (Lazy Loading) pelo serviço que a utiliza, garantindo performance (TTI) e isolamento de dependências.

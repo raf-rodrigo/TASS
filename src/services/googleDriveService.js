@@ -17,6 +17,16 @@ export const googleDriveService = {
   async init(onAuthChange) {
     authChangeCallback = onAuthChange;
     
+    // Immediate cache return to prevent UI blinking
+    const savedToken = localStorage.getItem('tass_google_access_token');
+    const expiry = localStorage.getItem('tass_google_token_expiry');
+    const cachedProfile = localStorage.getItem('tass_google_user_profile');
+    
+    if (savedToken && expiry && Date.now() < parseInt(expiry) && cachedProfile) {
+      if (!userProfile) userProfile = JSON.parse(cachedProfile);
+      onAuthChange(true, userProfile);
+    }
+
     await this._loadGoogleScript();
 
     return new Promise((resolve) => {
@@ -83,9 +93,24 @@ export const googleDriveService = {
       const isExpired = Date.now() > parseInt(expiry);
       if (!isExpired) {
         accessToken = savedToken;
-        this.getUserProfile().then(() => {
+        if (!userProfile) {
+          const cached = localStorage.getItem('tass_google_user_profile');
+          if (cached) userProfile = JSON.parse(cached);
+        }
+        
+        if (userProfile) {
           if (authChangeCallback) authChangeCallback(true, userProfile);
-        });
+          resolve(accessToken);
+          // Atualiza em background silenciosamente
+          this.getUserProfile().then(() => {
+            if (authChangeCallback) authChangeCallback(true, userProfile);
+          });
+        } else {
+          this.getUserProfile().then(() => {
+            if (authChangeCallback) authChangeCallback(true, userProfile);
+            resolve(accessToken);
+          });
+        }
       } else {
         this.clearSession();
       }
@@ -109,6 +134,7 @@ export const googleDriveService = {
       }
       if (!response.ok) throw new Error('Falha ao buscar perfil');
       userProfile = await response.json();
+      localStorage.setItem('tass_google_user_profile', JSON.stringify(userProfile));
       return userProfile;
     } catch (error) {
       console.error('Google UserInfo Error:', error);
@@ -131,6 +157,7 @@ export const googleDriveService = {
     cachedFolderId = null;
     localStorage.removeItem('tass_google_access_token');
     localStorage.removeItem('tass_google_token_expiry');
+    localStorage.removeItem('tass_google_user_profile');
     if (authChangeCallback) authChangeCallback(false, null);
   },
 

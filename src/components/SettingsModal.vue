@@ -33,7 +33,7 @@ const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'expo
 const activeTab = ref(props.initialTab || 'gitlab');
 const isGoogleLoading = ref(false);
 const isGoogleAuthenticated = ref(googleDriveService.isAuthenticated());
-const googleUser = ref(null);
+const googleUser = ref(googleDriveService.getProfile());
 const googleBackups = ref([]);
 const showGoogleRestoreList = ref(false);
 
