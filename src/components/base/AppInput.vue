@@ -23,8 +23,6 @@
  * />
  * =========================================================================
  */
-import { useAttrs } from 'vue';
-
 defineOptions({
   // Importante: Impede que as classes e atributos passados pelo pai
   // (ex: class="font-mono", placeholder="...") sejam aplicados na div wrapper.
@@ -64,9 +62,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 
-// O useAttrs nos permite pegar tudo que sobrou (classes, placeholders, disabled)
+// O $attrs no template nos permite pegar tudo que sobrou (classes, placeholders, disabled)
 // e jogar explicitamente dentro do elemento <input>.
-const attrs = useAttrs();
 </script>
 
 <template>
@@ -103,11 +100,11 @@ const attrs = useAttrs();
       :type="type"
       :value="modelValue"
       @input="emit('update:modelValue', $event.target.value)"
-      v-bind="attrs"
+      v-bind="$attrs"
       class="app-input px-4 py-3 shadow-sm transition-all"
       :class="[
         error ? 'border-red-500/50 ring-1 ring-red-500/20' : '',
-        attrs.class // Permite que o pai injete classes (ex: font-mono)
+        $attrs.class // Permite que o pai injete classes (ex: font-mono)
       ]"
     />
 

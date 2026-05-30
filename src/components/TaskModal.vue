@@ -11,6 +11,7 @@ import { useTaskStore } from '../stores/taskStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { isValidUrl, ensureProtocol } from '../utils/validation';
 import { formatMsToHMS } from '../utils/time';
+import { hexToRgba } from '../utils/colors.js';
 import { notificationService } from '../services/notificationService';
 import BaseModal from './BaseModal.vue';
 import AppInput from './base/AppInput.vue';
@@ -232,7 +233,10 @@ const submitTask = () => {
             @update:modelValue="clearError('title')"
             required
             class="font-mono font-bold"
-            :style="{ color: color }"
+            :style="{ 
+              color: color,
+              backgroundColor: bgColor ? hexToRgba(bgColor, settings.normalizedCardOpacity) : ''
+            }"
           />
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
