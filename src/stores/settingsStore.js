@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { db } from '../db.js';
 
 export const useSettingsStore = defineStore('settings', () => {
@@ -73,6 +73,13 @@ export const useSettingsStore = defineStore('settings', () => {
   const darkenWallpaper = ref(true);
   const taskStyleProfiles = ref([]);
 
+  const titlePalette = ref(['#264653', '#2A9D8F', '#E9C46A', '#F4A261', '#E76F51']);
+  const bodyPalette = ref(['#264653', '#2A9D8F', '#E9C46A', '#F4A261', '#E76F51']);
+
+  // Getters Universais
+  const normalizedCardOpacity = computed(() => {
+    return opacityTargets.value?.cards ? Math.max(0, (100 - cardOpacity.value) / 100) : 1.0;
+  });
 
   const customWallpapers = ref([
     { name: 'Dark Abstract', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop' },
@@ -94,6 +101,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
       if (settingsMap['app-theme'] !== undefined) theme.value = settingsMap['app-theme'];
       if (settingsMap['app-columns'] !== undefined) columns.value = settingsMap['app-columns'];
+      if (settingsMap['app-work-days'] !== undefined) workDays.value = settingsMap['app-work-days'];
       if (settingsMap['app-width'] !== undefined) {
         appWidth.value = settingsMap['app-width'];
         // Auto-upgrade: Se o usuário estiver no padrão antigo (1000px), sobe para o novo padrão (1400px)
@@ -115,7 +123,6 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-inactivity-threshold'] !== undefined) inactivityThreshold.value = settingsMap['app-inactivity-threshold'];
       if (settingsMap['app-work-start'] !== undefined) workStart.value = settingsMap['app-work-start'];
       if (settingsMap['app-work-end'] !== undefined) workEnd.value = settingsMap['app-work-end'];
-      if (settingsMap['app-work-days'] !== undefined) workDays.value = settingsMap['app-work-days'];
       if (settingsMap['app-auto-pause-work'] !== undefined) autoPauseOutsideWork.value = settingsMap['app-auto-pause-work'];
       if (settingsMap['app-bg-image'] !== undefined) {
         backgroundImage.value = settingsMap['app-bg-image'];
@@ -125,6 +132,8 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-card-radius'] !== undefined) cardBorderRadius.value = settingsMap['app-card-radius'];
       if (settingsMap['app-font-family'] !== undefined) fontFamily.value = settingsMap['app-font-family'];
       if (settingsMap['app-opacity-targets'] !== undefined) opacityTargets.value = settingsMap['app-opacity-targets'];
+      if (settingsMap['app-title-palette'] !== undefined) titlePalette.value = settingsMap['app-title-palette'];
+      if (settingsMap['app-body-palette'] !== undefined) bodyPalette.value = settingsMap['app-body-palette'];
       
       // Carrega wallpapers customizados salvos no banco
       if (settingsMap['app-custom-wallpapers'] !== undefined) {
@@ -232,6 +241,8 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-context-menu-mode', value: contextMenuMode.value },
       { key: 'app-contrast-enhanced', value: contrastEnhanced.value },
       { key: 'app-darken-wallpaper', value: darkenWallpaper.value },
+      { key: 'app-title-palette', value: JSON.parse(JSON.stringify(titlePalette.value)) },
+      { key: 'app-body-palette', value: JSON.parse(JSON.stringify(bodyPalette.value)) },
       { key: 'app-task-style-profiles', value: taskStyleProfiles.value },
       { key: 'app-hide-welcome', value: hideWelcomeModal.value },
       { key: 'app-branch-master', value: branchMaster.value },
@@ -267,7 +278,9 @@ export const useSettingsStore = defineStore('settings', () => {
     wellnessEnabled, wellnessInterval, contrastEnhanced, darkenWallpaper, keepWindowState,
     contextMenuStyle, contextMenuMode, hideWelcomeModal,
     branchMaster, branchHomologacao, branchDesenvolvimento, consoleFontSize, taskStyleProfiles,
-    isInitialized, loadSettings, saveSetting, saveAllSettings
+    titlePalette, bodyPalette,
+    isInitialized,
+    loadSettings, saveSetting, saveAllSettings, normalizedCardOpacity
 
   };
 });

@@ -5,13 +5,14 @@ import {
   Image as ImageIcon, Eraser, MousePointer2,
   LayoutGrid, Layers, Type as TypeIcon, Droplets,
   Cloud, Loader2, ArrowLeft, RotateCcw,
-  Save, CheckCircle2, Pencil
+  Save, CheckCircle2, Pencil, Upload, Download
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
-// Google Drive integration removed (wallpapers via link only)
 import { notificationService } from '../services/notificationService';
+import { backupService } from '../services/backupService';
 import BaseModal from './BaseModal.vue';
+import AppColorPalette from './AppColorPalette.vue';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -122,6 +123,39 @@ const applyTaskStyleProfile = async (profile) => {
 const deleteTaskStyleProfile = async (index) => {
   settings.taskStyleProfiles.splice(index, 1);
   await settings.saveSetting('app-task-style-profiles', [...settings.taskStyleProfiles]);
+};
+
+const handleImportPalettes = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const normalizePalette = (arr) => arr.map(c => {
+    const clr = String(c).trim();
+    if (/^[0-9A-Fa-f]{3,8}$/.test(clr)) {
+      return `#${clr}`;
+    }
+    return clr;
+  });
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.titlePalette && Array.isArray(data.titlePalette)) {
+        settings.titlePalette = normalizePalette(data.titlePalette);
+        settings.saveSetting('app-title-palette', settings.titlePalette);
+      }
+      if (data.bodyPalette && Array.isArray(data.bodyPalette)) {
+        settings.bodyPalette = normalizePalette(data.bodyPalette);
+        settings.saveSetting('app-body-palette', settings.bodyPalette);
+      }
+      notificationService.toast('Paletas importadas com sucesso!');
+    } catch (err) {
+      notificationService.toast('Erro ao ler JSON', 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
 };
 
 const tabs = [
@@ -390,6 +424,40 @@ const handleColumnChange = (n) => {
                         <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskMaxWidth === 0 ? 'Automático' : settings.taskMaxWidth + 'px' }}</span>
                       </div>
                       <input type="range" v-model="settings.taskMaxWidth" min="0" max="800" step="10" class="w-full app-range" @change="settings.saveSetting('app-task-max-width', settings.taskMaxWidth)" />
+                    </div>
+                  </div>
+                  
+                  <div class="glass-section p-6 space-y-4 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><Palette class="w-16 h-16" /></div>
+                    <div class="flex items-center gap-3 mb-2 relative z-10">
+                      <Palette class="w-5 h-5 text-amber-500" />
+                      <h4 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Paletas de Cores</h4>
+                    </div>
+                    <p class="text-[10px] text-slate-500 leading-relaxed mb-4 relative z-10">
+                      Importe um arquivo JSON consolidado contendo as cores hexadecimais para seus números e fundos.
+                    </p>
+                    <div class="flex flex-col relative z-10 space-y-4">
+                      <div class="flex flex-col md:flex-row gap-3">
+                        <label class="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-100 dark:bg-white/5 hover:bg-amber-500 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-app-border-light cursor-pointer text-center">
+                          <Upload class="w-4 h-4" /> Importar Arquivo (.json)
+                          <input type="file" accept=".json" class="hidden" @change="handleImportPalettes" />
+                        </label>
+                        <button @click="backupService.exportPalettes(settings)" class="flex-1 flex items-center justify-center gap-2 py-2 bg-amber-600/10 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-amber-600/20">
+                          <Download class="w-4 h-4" /> Exportar Exemplo
+                        </button>
+                      </div>
+                      
+                      <!-- Preview das Paletas Atuais -->
+                      <div class="space-y-4 pt-2">
+                        <div>
+                          <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Preview: Cor do Número</p>
+                          <AppColorPalette :colors="settings.titlePalette" :preview-only="true" />
+                        </div>
+                        <div>
+                          <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Preview: Cor do Fundo</p>
+                          <AppColorPalette :colors="settings.bodyPalette" :preview-only="true" />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

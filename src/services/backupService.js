@@ -17,6 +17,18 @@ export const backupService = {
   },
 
   /**
+   * Exporta as paletas de cores em JSON
+   */
+  exportPalettes(settings) {
+    const data = {
+      titlePalette: settings.titlePalette || [],
+      bodyPalette: settings.bodyPalette || []
+    };
+    this.downloadJson(data, 'tass_palettes.json');
+    notificationService.toast('Exemplo de paleta exportado!');
+  },
+
+  /**
    * Obtém todo o sistema (Tarefas, Sprints, Configs, Notas) em um objeto
    */
   async getFullBackupData() {

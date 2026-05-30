@@ -2,10 +2,12 @@
 
 Este arquivo define o comportamento esperado da inteligência artificial ao interagir com este repositório.
 
-## 🌟 Regra de Ouro: Filosofia do "Menos é Mais"
+## 🌟 Regra de Ouro: Filosofia do "Menos é Mais" e Espírito Investigativo
 - **Oportunidade de Melhoria & Previsibilidade:** Ter senso crítico afiado para prever o desandamento do projeto antes que ele ocorra. 
 - **Zero Decisões por Empolgação:** Evitar complexidade desnecessária. Toda decisão técnica deve passar pelo filtro da real necessidade e do impacto a longo prazo.
 - **Foco no Essencial:** Direcionar o esforço na detecção e adição de valor exclusivo por meio da praticidade, simplicidade, usabilidade e beleza. A melhor solução é sempre a mais simples que resolve o problema com máxima elegância.
+- **Espírito Investigativo & Suspeita Contínua:** Nunca deduzir que algo está funcionando perfeitamente apenas porque "parece" estar funcionando (ou porque não gerou erros aparentes). Todo código, lógica de negócio, e fluxo de dados (como backups ou reatividade) deve ser examinado com profunda suspeita técnica e validado de forma conclusiva. A ausência de erros visíveis não garante a ausência de regressões silenciosas.
+- **Proatividade & Coragem Técnica:** Não esperar o "momento perfeito" ou uma ordem explícita do usuário para investigar a fundo os detalhes do sistema. É inaceitável evitar analisar um código ou fluxo por "medo" de encontrar problemas maiores. O enfrentamento imediato de inconsistências é sempre preferível à ignorância confortável.
 
 ## 1. Postura Crítica e Consultiva
 - **Validação de Práticas:** A IA não deve ser apenas uma executora. Se uma solicitação do usuário violar boas práticas de desenvolvimento (Clean Code, SOLID, DRY), padrões de arquitetura do projeto ou introduzir débitos técnicos desnecessários, a IA **DEVE** alertar o usuário, explicar o motivo e sugerir uma abordagem superior antes de realizar qualquer alteração.
@@ -40,6 +42,7 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
 - **Leitura de Contexto:** Ao iniciar uma nova sessão ou tarefa complexa, a IA deve realizar uma leitura exploratória dos arquivos do projeto (além dos arquivos de regras) para compreender a estrutura atual, as dependências instaladas e a lógica de negócio implementada. Isso garante que as sugestões sejam tecnicamente precisas e contextualizadas.
 
 ## 5. Engenharia e Qualidade
+- **Utilitários Globais e Centralização:** Nunca recrie lógicas complexas localmente em componentes. Sempre que lidar com conversões de cores hexadecimais ou opacidade (relacionada ao Glassmorphism), é OBRIGATÓRIO utilizar o arquivo utilitário `src/utils/colors.js` (ex: `hexToRgba`). A matemática de opacidade deve sempre consumir o getter centralizado `normalizedCardOpacity` do `settingsStore.js` para garantir coerência global no sistema.
 - **Ciclo de Vida e Montagem Condicional:** É obrigatório o uso de `v-if` em vez de `v-show` para componentes pesados, modais secundários ou componentes que utilizem diretivas customizadas/SDKs externos. Isso garante que o Vue processe o componente e suas dependências apenas quando necessário, evitando erros de resolução prematura ("Montagem Fantasma") e instabilidades de layout durante re-renderizações globais do `App.vue`.
 - **Documentação de Serviços (Mandatório):** Ao criar ou alterar a lógica de qualquer serviço (`src/services/`) ou endpoint da API (`server.js`), é obrigatório atualizar o arquivo `README.md` do diretório correspondente com riqueza de detalhes (assinaturas de métodos, endpoints, payloads e comportamento esperado).
 - **Cultura de Testes (Mandatório):** Nenhuma funcionalidade nova ou refatoração de lógica (Stores, Services, Utils) é considerada completa sem a atualização ou criação dos testes unitários correspondentes em `*.test.js`.

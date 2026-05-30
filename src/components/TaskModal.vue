@@ -16,6 +16,7 @@ import BaseModal from './BaseModal.vue';
 import AppInput from './base/AppInput.vue';
 import AppTextarea from './base/AppTextarea.vue';
 import AppSelect from './base/AppSelect.vue';
+import AppColorPalette from './AppColorPalette.vue';
 
 const taskStore = useTaskStore();
 const settings = useSettingsStore();
@@ -45,6 +46,7 @@ const dbScripts = ref(props.taskToEdit?.dbScripts || '');
 const moreInfo = ref(props.taskToEdit?.moreInfo || '');
 const sprintId = ref(props.taskToEdit?.sprintId || '');
 const color = ref(props.taskToEdit?.color || '#6366f1');
+const bgColor = ref(props.taskToEdit?.bgColor || '');
 
 const tabs = [
   { id: 'basic', label: 'Geral', icon: Layout, color: 'text-indigo-500', desc: 'Dados essenciais para identificação da tarefa.' },
@@ -108,15 +110,7 @@ const clearError = (field) => {
   }
 };
 
-const colors = [
-  { name: 'Indigo', value: '#6366f1' },
-  { name: 'Rose', value: '#f43f5e' },
-  { name: 'Amber', value: '#f59e0b' },
-  { name: 'Emerald', value: '#10b981' },
-  { name: 'Sky', value: '#0ea5e9' },
-  { name: 'Violet', value: '#8b5cf6' },
-  { name: 'Slate', value: '#64748b' }
-];
+
 
 const sprintOptions = computed(() => {
   return [
@@ -169,7 +163,8 @@ const submitTask = () => {
     dbScripts: dbScripts.value.trim(),
     moreInfo: moreInfo.value.trim(),
     sprintId: sprintId.value ? parseInt(sprintId.value) : null,
-    color: color.value
+    color: color.value,
+    bgColor: bgColor.value
   };
 
   if (props.taskToEdit) {
@@ -229,28 +224,25 @@ const submitTask = () => {
       <transition name="fade-slide" mode="out-in">
         <!-- ABA 1: Cadastro Básico -->
         <div v-if="activeTab === 'basic'" :key="'basic'" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            <AppInput
-              v-model="title"
-              label="Número da Tarefa"
-              placeholder="Ex: TSK-1234"
-              :error="errors.title"
-              @update:modelValue="clearError('title')"
-              required
-              class="font-mono font-bold"
-              :style="{ color: color }"
-            />
+          <AppInput
+            v-model="title"
+            label="Número da Tarefa"
+            placeholder="Ex: TSK-1234"
+            :error="errors.title"
+            @update:modelValue="clearError('title')"
+            required
+            class="font-mono font-bold"
+            :style="{ color: color }"
+          />
 
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Cor da Categoria</label>
-              <div class="flex gap-2 flex-wrap p-2 bg-slate-100/50 dark:bg-slate-900/40 border border-app-border-light rounded-xl justify-between h-[50px] items-center">
-                <button v-for="c in colors" :key="c.value" type="button" @click="color = c.value"
-                  class="w-7 h-7 rounded-full border-2 transition-all hover:scale-110"
-                  :style="{ backgroundColor: c.value }"
-                  :class="color === c.value ? 'border-slate-800 dark:border-white scale-110 ring-4 ring-indigo-500/10' : 'border-transparent opacity-80'"
-                  :data-tip="c.name"
-                ></button>
-              </div>
+              <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Cor do Número</label>
+              <AppColorPalette v-model="color" :colors="settings.titlePalette" />
+            </div>
+            <div>
+              <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Cor do Fundo</label>
+              <AppColorPalette v-model="bgColor" :colors="settings.bodyPalette" />
             </div>
           </div>
 

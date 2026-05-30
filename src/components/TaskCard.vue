@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { Play, Square, MoreVertical } from 'lucide-vue-next';
 import { formatMsToHMS } from '../utils/time.js';
+import { hexToRgba } from '../utils/colors.js';
 
 // Stores
 import { useSettingsStore } from '../stores/settingsStore';
@@ -98,15 +99,15 @@ const handleSelect = (event) => {
     class="glass-panel cursor-pointer cursor-grab hover:-translate-y-0.5 group relative hover:z-[100] flex flex-col"
     :class="[
       task.isRunning ? 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : '',
-      taskStore.selectedTask?.id === task.id ? 'ring-2 ring-indigo-500/50 border-indigo-500 z-[50]' : 'hover:border-indigo-400/40',
+      taskStore.selectedTask?.id === task.id ? 'ring-2 ring-indigo-500/50 border-indigo-500 z-[50]' : '',
       settings.cardOpacity > 0 ? 'backdrop-blur-xl' : ''
     ]"
 
 
     :style="{ 
       backgroundColor: taskStore.selectedTask?.id === task.id 
-        ? (settings.cardOpacity > 0 ? 'rgba(99, 102, 241, 0.1)' : '') 
-        : '',
+        ? (settings.cardOpacity > 0 ? 'rgba(99, 102, 241, 0.15)' : '') 
+        : hexToRgba(task.bgColor, settings.normalizedCardOpacity),
       minHeight: activeStyle.taskMinHeight > 40 ? activeStyle.taskMinHeight + 'px' : 'auto',
       maxWidth: activeStyle.taskMaxWidth > 0 ? activeStyle.taskMaxWidth + 'px' : 'none',
       width: activeStyle.taskMaxWidth > 0 ? '100%' : 'auto',
@@ -131,38 +132,31 @@ const handleSelect = (event) => {
         <span 
           class="font-bold px-2 py-1 rounded-lg leading-tight flex-shrink-0 transition-all border flex items-center justify-center gap-2 mr-2 min-w-[85px] active:scale-95" 
           :style="{ 
-            backgroundColor: (!task.isRunning && task.color) ? `${task.color}26` : '', 
-            color: (!task.isRunning && task.color) ? task.color : '',
-            borderColor: (!task.isRunning && task.color) ? `${task.color}40` : 'transparent',
+            backgroundColor: task.color ? `${task.color}26` : '', 
+            color: task.color ? task.color : '',
+            borderColor: task.color ? `${task.color}40` : 'transparent',
             fontSize: activeStyle.taskNumberSize + 'px'
           }"
           :class="[
-            (!task.color && !task.isRunning) ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 dark:bg-indigo-500/20 border-indigo-500/20' : '',
-            task.isRunning ? 'bg-slate-100 dark:bg-slate-900/50 text-indigo-600 dark:text-indigo-400 border-indigo-500/40 font-mono text-[11px] shadow-sm shadow-indigo-500/10' : ''
+            !task.color ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 dark:bg-indigo-500/20 border-indigo-500/20' : ''
           ]"
-          :data-tip="task.isRunning ? 'Tempo Decorrido (Clique p/ ajustar tempo)' : `Copiar número: ${task.title}`"
-          @click.stop="task.isRunning ? handleAdjustTime($event) : copyTaskContent()"
+          :data-tip="`Copiar número: ${task.title}`"
+          @click.stop="copyTaskContent()"
         >
-          {{ task.isRunning ? formattedTime : task.title }}
+          {{ task.title }}
         </span>
           <span 
-            v-if="task.description || task.isRunning" 
+            v-if="task.description" 
             class="text-sm flex-1 min-w-0 py-0.5 leading-tight" 
             :class="[
               task.completed ? 'line-through text-app-muted' : 'text-app-sub',
               isSquareLayout ? 'line-clamp-6 mt-1 whitespace-pre-wrap' : 'line-clamp-1'
             ]"
             :style="{ fontSize: activeStyle.taskDescriptionSize + 'px' }"
-          :data-tip="task.isRunning ? `${task.title} - ${task.description}` : task.description"
-        >
-          <template v-if="task.isRunning">
-            <span class="font-bold mr-1" :style="{ color: task.color || 'var(--app-indigo-500)' }">{{ task.title }}</span>
-            <span v-if="task.description" class="opacity-60">- {{ task.description }}</span>
-          </template>
-          <template v-else>
+            :data-tip="task.description"
+          >
             {{ task.description }}
-          </template>
-        </span>
+          </span>
       </div>
       <div 
         class="flex items-center gap-1.5 shrink-0 flex-row-reverse"
@@ -171,17 +165,24 @@ const handleSelect = (event) => {
         <!-- 1. Play/Stop Task (Timer) -->
         <button 
           v-if="!task.completed"
-          class="transition-all flex items-center justify-center border w-[26px] h-[26px] rounded-xl" 
+          class="transition-all flex items-center justify-center border rounded-xl" 
           :class="[
-            task.isRunning 
-              ? 'bg-red-500/10 text-red-500 dark:text-red-400 border-red-500/20 hover:bg-red-500/20' 
-              : 'bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
-          ]" 
+            task.color 
+              ? 'hover:brightness-110' 
+              : (task.isRunning ? 'bg-red-500/10 text-red-500 dark:text-red-400 border-red-500/20 hover:bg-red-500/20' : 'bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20')
+          ]"
+          :style="{
+            width: (activeStyle.taskTimerSize * 1.8) + 'px',
+            height: (activeStyle.taskTimerSize * 1.8) + 'px',
+            backgroundColor: task.color ? `${task.color}1A` : '',
+            color: task.color ? task.color : '',
+            borderColor: task.color ? `${task.color}33` : ''
+          }"
           @click.stop="emit('toggle-timer', task)" 
           data-tip="Iniciar/Parar Cronômetro"
         >
-          <Square v-if="task.isRunning" class="w-3.5 h-3.5 animate-pulse" />
-          <Play v-else class="w-3.5 h-3.5" />
+          <Square v-if="task.isRunning" :size="activeStyle.taskTimerSize - 1" class="animate-pulse" />
+          <Play v-else :size="activeStyle.taskTimerSize - 1" />
         </button>
 
         <!-- 2. Menu Trigger Icon -->
@@ -193,11 +194,16 @@ const handleSelect = (event) => {
           <MoreVertical class="w-4 h-4" />
         </button>
 
-        <!-- Contador (Tempo) - Escondido quando rodando ou no mobile -->
+        <!-- Contador (Tempo) -->
         <span 
-          v-if="!task.isRunning" 
-          class="hidden sm:inline font-bold text-app-sub leading-none mr-1 hover:text-indigo-500 cursor-pointer transition-colors"
-          :style="{ fontSize: activeStyle.taskTimerSize + 'px' }"
+          class="hidden sm:inline font-bold leading-none mr-1 cursor-pointer transition-colors"
+          :class="[
+            task.isRunning ? 'animate-pulse' : 'text-app-sub hover:text-indigo-500'
+          ]"
+          :style="{ 
+            fontSize: activeStyle.taskTimerSize + 'px',
+            color: task.isRunning ? (task.color || '#ef4444') : ''
+          }"
           data-tip="Clique para ajustar o tempo"
           @click.stop="handleAdjustTime"
         >
