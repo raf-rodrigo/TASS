@@ -6,6 +6,7 @@ import TimeAdjustmentModal from './components/TimeAdjustmentModal.vue';
 import SettingsModal from './components/SettingsModal.vue';
 import SprintModal from './components/SprintModal.vue';
 import InterfaceMenu from './components/InterfaceMenu.vue';
+import TaskStyleBuilderModal from './components/TaskStyleBuilderModal.vue';
 import NotesPanel from './components/NotesPanel.vue';
 import WellnessToast from './components/WellnessToast.vue';
 import NotificationContainer from './components/NotificationContainer.vue';
@@ -34,9 +35,11 @@ import { useSettingsStore } from './stores/settingsStore';
 import { useTaskStore } from './stores/taskStore';
 import { backupService } from './services/backupService';
 import { db } from './db.js';
+import { useTaskStyleStore } from './stores/taskStyleStore';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
+const taskStyleStore = useTaskStyleStore();
 
 // UI State
 const showWelcome = ref(false);
@@ -45,6 +48,7 @@ const showSettings = ref(false);
 const showGitRebuilder = ref(false);
 const showSprints = ref(false);
 const showInterfaceMenu = ref(false);
+const showTaskStyleBuilder = ref(false);
 const showNotes = ref(false);
 const showRadio = ref(false);
 const showTimeAdjustment = ref(false);
@@ -84,6 +88,7 @@ useShortcuts({
       showInterfaceMenu.value = false;
       showModal.value = false;
       showSprints.value = false;
+      showTaskStyleBuilder.value = false;
       taskStore.selectedTask = null;
     } else {
       showNotes.value = !showNotes.value;
@@ -256,6 +261,7 @@ onMounted(async () => {
   }
 
   await settings.loadSettings();
+  await taskStyleStore.loadStyles();
   applyTheme();
   await taskStore.loadTasks();
   await taskStore.loadSprints();
@@ -274,9 +280,9 @@ onMounted(async () => {
   <template v-if="settings.backgroundImage">
     <!-- Camada 1: A Imagem (Limpa e com folga) -->
     <div 
-      class="fixed -top-[40px] -left-[40px] -right-[40px] -bottom-[40px] z-[-2] pointer-events-none"
+      class="fixed -top-[40px] -left-[40px] -right-[40px] -bottom-[40px] z-0 pointer-events-none"
       :style="{ 
-        backgroundImage: `url(${settings.backgroundImage})`,
+        backgroundImage: `url('${settings.backgroundImage}')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'
@@ -284,7 +290,7 @@ onMounted(async () => {
     ></div>
     <!-- Camada 2: O Vidro (Aplica o Blur e Brilho via Backdrop) -->
     <div 
-      class="fixed inset-0 z-[-1] pointer-events-none transition-all duration-700 ease-in-out"
+      class="fixed inset-0 z-0 pointer-events-none transition-all duration-700 ease-in-out"
       :style="{ 
         backdropFilter: `blur(${settings.backgroundBlur}px) brightness(${settings.theme === 'dark' ? (settings.darkenWallpaper ? 0.6 : 1.0) : 0.85})`,
         '-webkit-backdrop-filter': `blur(${settings.backgroundBlur}px) brightness(${settings.theme === 'dark' ? (settings.darkenWallpaper ? 0.6 : 1.0) : 0.85})`,
@@ -446,6 +452,12 @@ onMounted(async () => {
       :initialTab="interfaceInitialTab"
       @close="showInterfaceMenu = false"
       @open-settings="() => { showInterfaceMenu = false; showSettings = true; }"
+      @open-style-builder="() => { showTaskStyleBuilder = true; }"
+    />
+
+    <TaskStyleBuilderModal
+      v-if="showTaskStyleBuilder"
+      @close="showTaskStyleBuilder = false"
     />
 
     <RadioPlayer
@@ -468,7 +480,7 @@ onMounted(async () => {
     />
 
   </div>
-  <div v-else class="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+  <div v-else class="relative z-10 min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
     <div class="animate-pulse text-indigo-500 font-bold">Carregando TASS...</div>
   </div>
 </template>

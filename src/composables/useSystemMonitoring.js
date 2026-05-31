@@ -38,13 +38,28 @@ export function useSystemMonitoring(settings, taskStore) {
                            nowDate.getMinutes().toString().padStart(2, '0');
       
       const isWorkDay = settings.workDays.includes(currentDay);
-      const isWithinHours = currentTimeStr >= settings.workStart && currentTimeStr < settings.workEnd;
       
-      if (!isWorkDay || !isWithinHours) {
+      let isWithinHours = false;
+      if (settings.workStart <= settings.workEnd) {
+        // Horário comercial comum (ex: 08:00 às 18:00)
+        isWithinHours = currentTimeStr >= settings.workStart && currentTimeStr < settings.workEnd;
+      } else {
+        // Turno da noite (ex: 22:00 às 06:00)
+        isWithinHours = currentTimeStr >= settings.workStart || currentTimeStr < settings.workEnd;
+      }
+      
+      if (!isWorkDay) {
         taskStore.toggleTimer(taskStore.activeTask);
         notificationService.alert(
           'Expediente Encerrado', 
-          'Sua tarefa foi pausada automaticamente seguindo sua jornada de trabalho.', 
+          'Sua tarefa foi pausada porque hoje não é um dia útil configurado na sua jornada de trabalho.', 
+          'info'
+        );
+      } else if (!isWithinHours) {
+        taskStore.toggleTimer(taskStore.activeTask);
+        notificationService.alert(
+          'Expediente Encerrado', 
+          'Sua tarefa foi pausada automaticamente porque você está fora do horário da sua jornada.', 
           'info'
         );
       }

@@ -31,7 +31,7 @@ const emit = defineEmits([
       <div 
         class="fixed -top-[40px] -left-[40px] -right-[40px] -bottom-[40px] z-[-2] pointer-events-none"
         :style="{ 
-          backgroundImage: `url(${settings.backgroundImage})`,
+          backgroundImage: `url('${settings.backgroundImage}')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed'

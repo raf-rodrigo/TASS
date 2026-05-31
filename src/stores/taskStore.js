@@ -223,6 +223,30 @@ export const useTaskStore = defineStore('task', () => {
         lastStartTime: null 
       });
     } else {
+      const settings = useSettingsStore();
+      
+      const nowDate = new Date();
+      const currentDay = nowDate.getDay();
+      const currentTimeStr = nowDate.getHours().toString().padStart(2, '0') + ':' + 
+                             nowDate.getMinutes().toString().padStart(2, '0');
+      
+      const isWorkDay = settings.workDays.includes(currentDay);
+      let isWithinHours = false;
+      
+      if (settings.workStart <= settings.workEnd) {
+        isWithinHours = currentTimeStr >= settings.workStart && currentTimeStr < settings.workEnd;
+      } else {
+        isWithinHours = currentTimeStr >= settings.workStart || currentTimeStr < settings.workEnd;
+      }
+
+      if (!isWorkDay) {
+        notificationService.alert('Acesso Negado', 'Você não pode iniciar tarefas porque hoje não é um dia útil configurado na sua jornada.', 'warning');
+        return;
+      } else if (!isWithinHours) {
+        notificationService.alert('Acesso Negado', 'Você não pode iniciar tarefas fora do horário da sua jornada configurada.', 'warning');
+        return;
+      }
+
       for (const t of tasks.value) {
         if (t.isRunning && t.id !== task.id) {
           t.isRunning = false;

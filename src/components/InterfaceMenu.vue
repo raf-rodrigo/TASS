@@ -9,6 +9,7 @@ import {
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
+import { useTaskStyleStore } from '../stores/taskStyleStore';
 import { notificationService } from '../services/notificationService';
 import { backupService } from '../services/backupService';
 import BaseModal from './BaseModal.vue';
@@ -16,6 +17,7 @@ import AppColorPalette from './AppColorPalette.vue';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
+const taskStyleStore = useTaskStyleStore();
 
 const props = defineProps({
   isOpen: Boolean,
@@ -25,7 +27,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['close', 'test-wellness', 'open-settings']);
+const emit = defineEmits(['close', 'test-wellness', 'open-settings', 'open-style-builder']);
 
 const activeTab = ref(props.initialTab || 'wallpapers');
 // Google Drive picker state removed
@@ -60,70 +62,7 @@ watch(() => settings.cardBorderRadius, (newVal) => {
   settings.saveSetting('app-card-radius', newVal);
 }, { immediate: true });
 
-const newProfileName = ref('');
-const isSavingProfile = ref(false);
-
-const saveTaskStyleProfile = async () => {
-  const name = newProfileName.value.trim();
-  if (!name) return;
-  
-  if (!settings.taskStyleProfiles) {
-    settings.taskStyleProfiles = [];
-  }
-  
-  const existingIndex = settings.taskStyleProfiles.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
-  
-  if (existingIndex !== -1) {
-    const confirmed = await notificationService.confirm(
-      'Sobrescrever Perfil?',
-      `Já existe um perfil chamado "${name}". Deseja atualizá-lo com as configurações atuais?`,
-      'Sim, Sobrescrever',
-      'warning'
-    );
-    if (!confirmed) return;
-  }
-
-  const profile = {
-    id: existingIndex !== -1 ? settings.taskStyleProfiles[existingIndex].id : Date.now().toString(),
-    name: name,
-    styles: {
-      cardPadding: settings.cardPadding,
-      taskNumberSize: settings.taskNumberSize,
-      taskDescriptionSize: settings.taskDescriptionSize,
-      taskTimerSize: settings.taskTimerSize,
-      taskMinHeight: settings.taskMinHeight,
-      taskMaxWidth: settings.taskMaxWidth
-    }
-  };
-  
-  if (existingIndex !== -1) {
-    settings.taskStyleProfiles[existingIndex] = profile;
-  } else {
-    settings.taskStyleProfiles.push(profile);
-  }
-  
-  await settings.saveSetting('app-task-style-profiles', [...settings.taskStyleProfiles]);
-  newProfileName.value = '';
-  isSavingProfile.value = false;
-  notificationService.toast('Perfil de estilo salvo!');
-};
-
-const applyTaskStyleProfile = async (profile) => {
-  settings.cardPadding = profile.styles.cardPadding;
-  settings.taskNumberSize = profile.styles.taskNumberSize;
-  settings.taskDescriptionSize = profile.styles.taskDescriptionSize;
-  settings.taskTimerSize = profile.styles.taskTimerSize;
-  settings.taskMinHeight = profile.styles.taskMinHeight;
-  settings.taskMaxWidth = profile.styles.taskMaxWidth;
-  
-  await settings.saveAllSettings();
-  notificationService.toast(`Perfil "${profile.name}" aplicado!`);
-};
-
-const deleteTaskStyleProfile = async (index) => {
-  settings.taskStyleProfiles.splice(index, 1);
-  await settings.saveSetting('app-task-style-profiles', [...settings.taskStyleProfiles]);
-};
+// Removida a lógica de edição local de presets. Agora é gerenciada pelo TaskStyleBuilderModal.
 
 const handleImportPalettes = (event) => {
   const file = event.target.files[0];
@@ -169,7 +108,7 @@ const handleImportPalettes = (event) => {
 const tabs = [
   { id: 'wallpapers', label: 'Papéis de Parede', icon: ImageIcon, color: 'text-indigo-500', desc: 'Troque o clima do seu workspace instantaneamente.' },
   { id: 'board', label: 'Board & Layout', icon: LayoutGrid, color: 'text-indigo-500', desc: 'Configure a estrutura principal do seu quadro de tarefas.' },
-  { id: 'tasks', label: 'Estilo das Tarefas', icon: Layers, color: 'text-indigo-500', desc: 'Personalize a aparência visual dos seus cards.' },
+  { id: 'tasks', label: 'Construtor de Estilos', icon: Layers, color: 'text-indigo-500', desc: 'Crie e gerencie os Presets Visuais (WYSIWYG).' },
   { id: 'typography', label: 'Tipografia', icon: TypeIcon, color: 'text-indigo-500', desc: 'Escolha a fonte que melhor se adapta ao seu estilo.' },
   { id: 'effects', label: 'Efeitos e Vidro', icon: Droplets, color: 'text-indigo-500', desc: 'Ajuste o desfoque e as transparências do sistema.' },
 ];
@@ -327,7 +266,7 @@ const handleColumnChange = (n) => {
                           <div class="relative">
                             <select v-model="settings.columnStyles[n-1]" @change="settings.saveSetting('app-column-styles', [...settings.columnStyles])" class="app-input px-3 py-2 text-xs w-full appearance-none cursor-pointer bg-slate-50 dark:bg-slate-900 border-none text-slate-600 dark:text-slate-300 font-medium">
                               <option value="">🎨 Estilo: Global Padrão</option>
-                              <option v-for="profile in (settings.taskStyleProfiles || [])" :key="profile.id" :value="profile.id">✨ {{ profile.name }}</option>
+                              <option v-for="profile in taskStyleStore.sortedStyles" :key="profile.id" :value="profile.id">✨ {{ profile.name }}</option>
                             </select>
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-indigo-400/50">
                               <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
@@ -345,134 +284,44 @@ const handleColumnChange = (n) => {
                   </div>
                 </div>
 
-                <!-- ABA: Estilo das Tarefas -->
-                <div v-else-if="activeTab === 'tasks'" :key="'tasks'" class="space-y-8">
-                  <!-- NOVA SEÇÃO: Perfis de Estilo -->
-                  <div class="glass-section p-6 space-y-4 border border-indigo-500/20 bg-indigo-500/5">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-3">
-                        <Layers class="w-5 h-5 text-indigo-500" />
-                        <div>
-                          <h3 class="text-sm font-black text-app-main uppercase tracking-tight">Perfis de Estilo (Presets)</h3>
-                          <p class="text-[10px] text-app-sub">Salve as configurações abaixo para aplicar rapidamente ou vincular a colunas futuramente.</p>
-                        </div>
-                      </div>
-                      <button v-if="!isSavingProfile" @click="isSavingProfile = true" class="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-indigo-600 transition-all">
-                        <Save class="w-3.5 h-3.5" /> Salvar Atual
-                      </button>
+                <!-- ABA: Construtor de Estilos -->
+                <div v-else-if="activeTab === 'tasks'" :key="'tasks'" class="space-y-8 flex flex-col items-center justify-center h-full text-center">
+                  <div class="glass-section p-8 space-y-6 max-w-md w-full mx-auto border-indigo-500/20 bg-indigo-500/5">
+                    <div class="w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center mx-auto mb-4">
+                      <Palette class="w-8 h-8 text-indigo-500" />
                     </div>
-
-                    <div v-if="isSavingProfile" class="flex items-center gap-2 mt-4 animate-fadeIn">
-                      <input v-model="newProfileName" type="text" placeholder="Nome do Perfil (Ex: Compacto, Urgente...)" class="app-input px-4 py-2 flex-1 shadow-sm font-bold" @keyup.enter="saveTaskStyleProfile" />
-                      <button @click="saveTaskStyleProfile" class="p-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl shadow-md transition-all"><CheckCircle2 class="w-5 h-5" /></button>
-                      <button @click="isSavingProfile = false; newProfileName = ''" class="p-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-xl transition-all"><X class="w-5 h-5" /></button>
+                    <div>
+                      <h3 class="text-lg font-black text-app-main uppercase tracking-tight mb-2">Construtor Visual</h3>
+                      <p class="text-xs text-app-sub leading-relaxed">
+                        Acesse o estúdio dedicado (WYSIWYG) para visualizar suas alterações em tempo real sem afetar as configurações atuais.
+                      </p>
                     </div>
-
-                    <div v-if="settings.taskStyleProfiles && settings.taskStyleProfiles.length > 0" class="flex flex-wrap gap-3 pt-4 mt-2 border-t border-indigo-500/10">
-                      <div v-for="(profile, idx) in settings.taskStyleProfiles" :key="profile.id" class="flex items-center bg-white dark:bg-slate-900 border border-indigo-500/20 rounded-xl overflow-hidden shadow-sm group transition-all hover:border-indigo-500/40 hover:shadow-md">
-                        <button @click="applyTaskStyleProfile(profile)" class="px-4 py-2 text-[11px] font-bold text-slate-700 dark:text-slate-200 hover:bg-indigo-500/10 transition-colors">
-                          {{ profile.name }}
-                        </button>
-                        <button @click="deleteTaskStyleProfile(idx)" class="px-3 py-2 text-red-400 hover:bg-red-500 hover:text-white transition-colors border-l border-indigo-500/10">
-                          <Trash2 class="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                    <div v-else class="pt-2">
-                      <p class="text-[10px] text-slate-400 dark:text-slate-500 italic font-medium">Nenhum perfil salvo. Ajuste as opções abaixo e clique em "Salvar Atual".</p>
-                    </div>
-                  </div>
-
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="glass-section p-6 space-y-5">
-                        <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Espessura (Padding)</span><span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.cardPadding }}px</span></div>
-                        <input type="range" v-model="settings.cardPadding" min="8" max="40" step="2" class="w-full app-range" @change="settings.cardPadding = parseInt($event.target.value); settings.saveSetting('app-card-padding', settings.cardPadding)" />
-                    </div>
-
-                    <!-- Tamanho do Título -->
-                    <div class="glass-section p-6 space-y-5">
-                      <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho do Título</span>
-                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskNumberSize }}px</span>
-                      </div>
-                      <input type="range" v-model="settings.taskNumberSize" min="8" max="24" step="1" class="w-full app-range" @change="settings.saveSetting('app-task-number-size', settings.taskNumberSize)" />
-                    </div>
-
-                    <!-- Tamanho da Descrição -->
-                    <div class="glass-section p-6 space-y-5">
-                      <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho da Descrição</span>
-                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskDescriptionSize }}px</span>
-                      </div>
-                      <input type="range" v-model="settings.taskDescriptionSize" min="10" max="28" step="1" class="w-full app-range" @change="settings.saveSetting('app-task-desc-size', settings.taskDescriptionSize)" />
-                    </div>
-                    
-                    <!-- Tamanho do Cronômetro -->
-                    <div class="glass-section p-6 space-y-5">
-                      <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Tamanho do Cronômetro</span>
-                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskTimerSize }}px</span>
-                      </div>
-                      <input type="range" v-model="settings.taskTimerSize" min="8" max="24" step="1" class="w-full app-range" @change="settings.saveSetting('app-task-timer-size', settings.taskTimerSize)" />
-                    </div>
-
-                    <!-- Altura Mínima (Vertical) -->
-                    <div class="glass-section p-6 space-y-5">
-                      <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Altura da Tarefa (Vertical)</span>
-                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskMinHeight }}px</span>
-                      </div>
-                      <input type="range" v-model="settings.taskMinHeight" min="40" max="300" step="5" class="w-full app-range" @change="settings.saveSetting('app-task-min-height', settings.taskMinHeight)" />
-                    </div>
-
-                    <!-- Largura Máxima (Horizontal) -->
-                    <div class="glass-section p-6 space-y-5">
-                      <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Comprimento da Tarefa (Horizontal)</span>
-                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.taskMaxWidth === 0 ? 'Automático' : settings.taskMaxWidth + 'px' }}</span>
-                      </div>
-                      <input type="range" v-model="settings.taskMaxWidth" min="0" max="800" step="10" class="w-full app-range" @change="settings.saveSetting('app-task-max-width', settings.taskMaxWidth)" />
-                    </div>
+                    <button 
+                      type="button"
+                      @click.prevent.stop="$emit('open-style-builder')" 
+                      class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <Layers class="w-4 h-4" /> Abrir Construtor
+                    </button>
                   </div>
                   
-                  <div class="glass-section p-6 space-y-4 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><Palette class="w-16 h-16" /></div>
+                  <div class="glass-section p-6 space-y-4 max-w-md w-full mx-auto border-amber-500/20 bg-amber-500/5 mt-4 text-left">
                     <div class="flex items-center gap-3 mb-2 relative z-10">
                       <Palette class="w-5 h-5 text-amber-500" />
-                      <h4 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Paletas de Cores</h4>
+                      <h4 class="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-tight">Importação de Paletas Legadas</h4>
                     </div>
-                    <p class="text-[10px] text-slate-500 leading-relaxed mb-4 relative z-10">
-                      Importe um arquivo JSON consolidado contendo as cores hexadecimais para seus números e fundos.
+                    <p class="text-[10px] text-amber-600/80 leading-relaxed mb-4 relative z-10">
+                      Importe o arquivo JSON contendo as cores hexadecimais (usadas em tarefas mais antigas).
                     </p>
                     <div class="flex flex-col relative z-10 space-y-4">
                       <div class="flex flex-col md:flex-row gap-3">
-                        <label class="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-100 dark:bg-white/5 hover:bg-amber-500 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-app-border-light cursor-pointer text-center">
-                          <Upload class="w-4 h-4" /> Importar Arquivo (.json)
+                        <label class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-amber-500/20 cursor-pointer text-center">
+                          <Upload class="w-4 h-4" /> Importar (.json)
                           <input type="file" accept=".json" class="hidden" @change="handleImportPalettes" />
                         </label>
-                        <button @click="backupService.exportPalettes(settings)" class="flex-1 flex items-center justify-center gap-2 py-2 bg-amber-600/10 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-amber-600/20">
+                        <button @click="backupService.exportPalettes(settings)" class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-600/10 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-amber-600/20 cursor-pointer text-center">
                           <Download class="w-4 h-4" /> Exportar Exemplo
                         </button>
-                      </div>
-                      
-                      <!-- Preview das Paletas Atuais -->
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                        <div>
-                          <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Cor do Número</p>
-                          <AppColorPalette :colors="settings.titlePalette" :preview-only="true" />
-                        </div>
-                        <div>
-                          <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Cor do Fundo</p>
-                          <AppColorPalette :colors="settings.bodyPalette" :preview-only="true" />
-                        </div>
-                        <div>
-                          <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Texto (Claro)</p>
-                          <AppColorPalette :colors="settings.textLightPalette" :preview-only="true" />
-                        </div>
-                        <div>
-                          <p class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Texto (Escuro)</p>
-                          <AppColorPalette :colors="settings.textDarkPalette" :preview-only="true" />
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -498,7 +347,7 @@ const handleColumnChange = (n) => {
                       <button v-if="settings.customWallpapers.length > 0" @click="clearWallpaper" class="aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all group" :class="!settings.backgroundImage ? 'border-indigo-500 bg-indigo-500/5 text-indigo-500' : 'border-app-border-light text-slate-400 hover:text-red-500'"><Eraser class="w-6 h-6" /><span class="text-[10px] font-bold uppercase tracking-tighter">Limpar</span></button>
                       <div v-for="(wp, index) in settings.customWallpapers" :key="index" v-tooltip="wp.name || 'Wallpaper'" @click="setWallpaper(wp.url)" class="relative group aspect-video rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-slate-200 dark:bg-white/10" :class="settings.backgroundImage === wp.url ? 'border-emerald-500 scale-95 shadow-lg' : 'border-transparent hover:border-slate-300'">
                         <img :src="wp.url" class="w-full h-full object-cover" alt="Preview" loading="lazy" />
-                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5" @click.stop="setWallpaper(wp.url)">
                           <button @click.stop="editWallpaper(index)" class="p-1.5 bg-blue-500/80 hover:bg-blue-500 text-white rounded-lg"><Pencil class="w-3.5 h-3.5" /></button>
                           <button @click.stop="removeWallpaper(index)" class="p-1.5 bg-red-500/80 hover:bg-red-500 text-white rounded-lg"><Trash2 class="w-3.5 h-3.5" /></button>
                         </div>

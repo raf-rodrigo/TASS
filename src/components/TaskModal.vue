@@ -9,6 +9,7 @@ import {
 } from 'lucide-vue-next';
 import { useTaskStore } from '../stores/taskStore';
 import { useSettingsStore } from '../stores/settingsStore';
+import { useTaskStyleStore } from '../stores/taskStyleStore';
 import { isValidUrl, ensureProtocol } from '../utils/validation';
 import { formatMsToHMS } from '../utils/time';
 import { hexToRgba } from '../utils/colors.js';
@@ -21,6 +22,7 @@ import AppColorPalette from './AppColorPalette.vue';
 
 const taskStore = useTaskStore();
 const settings = useSettingsStore();
+const taskStyleStore = useTaskStyleStore();
 
 const props = defineProps({
   taskToEdit: {
@@ -46,10 +48,34 @@ const branchUrl = ref(props.taskToEdit?.branchUrl || '');
 const dbScripts = ref(props.taskToEdit?.dbScripts || '');
 const moreInfo = ref(props.taskToEdit?.moreInfo || '');
 const sprintId = ref(props.taskToEdit?.sprintId || '');
-const color = ref(props.taskToEdit?.color || '#6366f1');
-const bgColor = ref(props.taskToEdit?.bgColor || '');
-const textLightColor = ref(props.taskToEdit?.textLightColor || '');
-const textDarkColor = ref(props.taskToEdit?.textDarkColor || '');
+const styleId = ref(props.taskToEdit?.styleId || '');
+
+const hoveredStyleId = ref(null);
+const showStyleDropdown = ref(false);
+
+const getStyleLabel = (id) => {
+  if (!id) return '🎨 Estilo Padrão (Global)';
+  const style = taskStyleStore.getStyleById(id);
+  return style ? `✨ ${style.name}` : '🎨 Estilo Padrão (Global)';
+};
+
+const activePreviewStyleId = computed(() => hoveredStyleId.value !== null ? hoveredStyleId.value : styleId.value);
+
+const previewStyle = computed(() => {
+  if (activePreviewStyleId.value) {
+    const style = taskStyleStore.getStyleById(activePreviewStyleId.value);
+    if (style && style.colors) {
+      return {
+        color: style.colors.color || '#6366f1',
+        backgroundColor: style.colors.bgColor ? hexToRgba(style.colors.bgColor, settings.normalizedCardOpacity) : ''
+      };
+    }
+  }
+  return { 
+    color: '#6366f1',
+    backgroundColor: ''
+  };
+});
 
 const tabs = [
   { id: 'basic', label: 'Geral', icon: Layout, color: 'text-indigo-500', desc: 'Dados essenciais para identificação da tarefa.' },
@@ -166,10 +192,12 @@ const submitTask = () => {
     dbScripts: dbScripts.value.trim(),
     moreInfo: moreInfo.value.trim(),
     sprintId: sprintId.value ? parseInt(sprintId.value) : null,
-    color: color.value,
-    bgColor: bgColor.value,
-    textLightColor: textLightColor.value,
-    textDarkColor: textDarkColor.value
+    styleId: styleId.value || null,
+    // Limpar as propriedades legadas para evitar sobreposição de estilos
+    color: '',
+    bgColor: '',
+    textLightColor: '',
+    textDarkColor: ''
   };
 
   if (props.taskToEdit) {
@@ -237,31 +265,65 @@ const submitTask = () => {
             @update:modelValue="clearError('title')"
             required
             class="font-mono font-bold"
-            :style="{ 
-              color: color,
-              backgroundColor: bgColor ? hexToRgba(bgColor, settings.normalizedCardOpacity) : ''
-            }"
+            :style="previewStyle"
           />
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Cor do Número</label>
-              <AppColorPalette v-model="color" :colors="settings.titlePalette" />
-            </div>
-            <div>
-              <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Cor do Fundo</label>
-              <AppColorPalette v-model="bgColor" :colors="settings.bodyPalette" />
-            </div>
-          </div>
+            <div class="relative flex-1">
+              <label class="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">
+                <div class="flex items-center gap-1.5">
+                  <Sparkles class="w-3.5 h-3.5 text-indigo-500" />
+                  Estilo da Tarefa
+                </div>
+              </label>
+              
+              <div 
+                @click="showStyleDropdown = !showStyleDropdown"
+                class="app-input px-3 py-2 text-sm w-full cursor-pointer bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 font-medium flex justify-between items-center"
+              >
+                <span class="truncate">{{ getStyleLabel(styleId) }}</span>
+                <ChevronDown class="w-4 h-4 text-slate-400" />
+              </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Texto (Modo Claro)</label>
-              <AppColorPalette v-model="textLightColor" :colors="settings.textLightPalette" />
+              <!-- Overlay invisible to close on click outside -->
+              <div v-if="showStyleDropdown" @click="showStyleDropdown = false" class="fixed inset-0 z-40"></div>
+
+              <div 
+                v-if="showStyleDropdown"
+                class="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl shadow-xl overflow-hidden flex flex-col"
+                style="max-height: 240px;"
+              >
+                <div class="overflow-y-auto custom-scrollbar flex-1 py-1">
+                  <div
+                    @mouseenter="hoveredStyleId = ''"
+                    @mouseleave="hoveredStyleId = null"
+                    @click="styleId = ''; showStyleDropdown = false"
+                    class="px-3 py-2 text-sm cursor-pointer transition-colors"
+                    :class="styleId === '' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'"
+                  >
+                    🎨 Estilo Padrão (Global)
+                  </div>
+                  
+                  <div
+                    v-for="s in taskStyleStore.sortedStyles"
+                    :key="s.id"
+                    @mouseenter="hoveredStyleId = s.id"
+                    @mouseleave="hoveredStyleId = null"
+                    @click="styleId = s.id; showStyleDropdown = false"
+                    class="px-3 py-2 text-sm cursor-pointer transition-colors"
+                    :class="styleId === s.id ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'"
+                  >
+                    ✨ {{ s.name }}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <label class="block mb-2 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Texto (Modo Escuro)</label>
-              <AppColorPalette v-model="textDarkColor" :colors="settings.textDarkPalette" />
+            <div class="flex items-center gap-3 mt-4 md:mt-6 bg-app-surface p-3 rounded-2xl border border-app-border-light">
+               <div class="flex-1 flex gap-2">
+                 <div class="w-6 h-6 rounded-full shadow-sm border border-app-border-light" :style="{ backgroundColor: previewStyle.color }"></div>
+                 <div class="w-6 h-6 rounded-full shadow-sm border border-app-border-light" :style="{ backgroundColor: previewStyle.backgroundColor || (settings.theme === 'dark' ? '#1e293b' : '#ffffff') }"></div>
+               </div>
+               <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Prévia de Cores</span>
             </div>
           </div>
 

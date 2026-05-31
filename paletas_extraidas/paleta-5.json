@@ -1,0 +1,22 @@
+{
+  "titlePalette": [
+    "#F8F3E1", "#E3DBBB", "#AEB784", "#41431B",
+    "#E8F5BD", "#C7EABB", "#A2CB8B", "#84B179",
+    "#FFD786", "#FFAA00", "#519A66", "#237227"
+  ],
+  "bodyPalette": [
+    "#F8F3E1", "#E3DBBB", "#AEB784", "#41431B",
+    "#E8F5BD", "#C7EABB", "#A2CB8B", "#84B179",
+    "#FFD786", "#FFAA00", "#519A66", "#237227"
+  ],
+  "textLightPalette": [
+    "#F8F3E1", "#E3DBBB", "#AEB784", "#41431B",
+    "#E8F5BD", "#C7EABB", "#A2CB8B", "#84B179",
+    "#FFD786", "#FFAA00", "#519A66", "#237227"
+  ],
+  "textDarkPalette": [
+    "#F8F3E1", "#E3DBBB", "#AEB784", "#41431B",
+    "#E8F5BD", "#C7EABB", "#A2CB8B", "#84B179",
+    "#FFD786", "#FFAA00", "#519A66", "#237227"
+  ]
+}

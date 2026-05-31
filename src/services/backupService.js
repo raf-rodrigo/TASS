@@ -40,6 +40,7 @@ export const backupService = {
       settings: await db.settings.toArray(),
       notes: await db.notes.toArray(),
       radios: await db.radios.toArray(),
+      taskStyles: await db.taskStyles.toArray(),
       version: '1.0',
       timestamp: new Date().toISOString()
     };
@@ -124,6 +125,10 @@ export const backupService = {
       if (data.radios) {
         await db.radios.clear();
         await db.radios.bulkPut(data.radios);
+      }
+      if (data.taskStyles) {
+        await db.taskStyles.clear();
+        await db.taskStyles.bulkPut(data.taskStyles);
       }
       
       await settingsStore.loadSettings();

@@ -16,3 +16,8 @@ db.version(6).stores({
 db.version(7).stores({
   radios: '++id, name, url, stars'
 });
+
+db.version(8).stores({
+  tasks: '++id, title, position, sprintId, color, columnId, styleId',
+  taskStyles: 'id, name'
+});
