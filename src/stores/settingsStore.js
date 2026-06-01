@@ -44,6 +44,11 @@ export const useSettingsStore = defineStore('settings', () => {
   const backgroundBlur = ref(0);
   const notesButtonTop = ref(128);
   const notesWidth = ref(350);
+  
+  // Widget Radio
+  const radioPositionX = ref(window.innerWidth - 350);
+  const radioPositionY = ref(80);
+  
   const cardPadding = ref(16);
   const fontFamily = ref('Inter');
   const trackInactivity = ref(true);
@@ -139,6 +144,9 @@ export const useSettingsStore = defineStore('settings', () => {
         customWallpapers.value = settingsMap['app-custom-wallpapers'];
       }
 
+      if (settingsMap['app-radio-pos-x'] !== undefined) radioPositionX.value = settingsMap['app-radio-pos-x'];
+      if (settingsMap['app-radio-pos-y'] !== undefined) radioPositionY.value = settingsMap['app-radio-pos-y'];
+
       // Injeção Inteligente: Sugere os wallpapers de elite apenas se a galeria ainda estiver vazia
       if (customWallpapers.value.length === 0) {
         const eliteWallpapers = [
@@ -233,6 +241,8 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-notes-side', value: notesSide.value },
       { key: 'app-notes-btn-top', value: notesButtonTop.value },
       { key: 'app-notes-width', value: notesWidth.value },
+      { key: 'app-radio-pos-x', value: radioPositionX.value },
+      { key: 'app-radio-pos-y', value: radioPositionY.value },
       { key: 'app-card-padding', value: cardPadding.value },
 
       { key: 'app-column-titles', value: columnTitles.value },
@@ -269,7 +279,7 @@ export const useSettingsStore = defineStore('settings', () => {
     gitlabProjectId, gitlabToken, gitlabBaseBranch,
     inactivityThreshold, activeSprintId, taskNumberSize,
     taskDescriptionSize, taskTimerSize, taskMinHeight, taskMaxWidth, notesSide, backgroundImage, backgroundBlur,
-    notesButtonTop, notesWidth, cardPadding, fontFamily, trackInactivity,
+    notesButtonTop, notesWidth, radioPositionX, radioPositionY, cardPadding, fontFamily, trackInactivity,
 
     workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,
     cardBorderRadius, opacityTargets, customWallpapers, columnTitles, columnStyles,

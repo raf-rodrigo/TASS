@@ -5,6 +5,24 @@ O **TASS** é um ecossistema de suporte avançado projetado para desenvolvedores
 
 ---
 
+## 📸 Galeria (Preview)
+
+Aqui estão algumas capturas de tela mostrando a interface premium do TASS em ação:
+
+<div align="center">
+  <img src="./public/prints/Screenshot.png" width="800" alt="TASS - Tela Principal" style="border-radius: 10px; margin-bottom: 20px;" />
+  
+  <img src="./public/prints/Screenshot2.png" width="800" alt="TASS - Tema e Transparência" style="border-radius: 10px; margin-bottom: 20px;" />
+  
+  <img src="./public/prints/Screenshot3.png" width="800" alt="TASS - Customização Glassmorphism" style="border-radius: 10px; margin-bottom: 20px;" />
+  
+  <img src="./public/prints/Screenshot4.png" width="800" alt="TASS - Kanban e Tarefas" style="border-radius: 10px; margin-bottom: 20px;" />
+  
+  <img src="./public/prints/Screenshot5.png" width="800" alt="TASS - Design System e Modais" style="border-radius: 10px; margin-bottom: 20px;" />
+</div>
+
+---
+
 ## ✨ Diferenciais Premium
 
 ### 🎨 Design Engine: O Workspace é Seu
