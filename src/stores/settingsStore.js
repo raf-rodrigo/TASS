@@ -79,6 +79,11 @@ export const useSettingsStore = defineStore('settings', () => {
   const contrastEnhanced = ref(true);
   const darkenWallpaper = ref(true);
   const taskStyleProfiles = ref([]);
+  
+  const titlePalette = ref([]);
+  const bodyPalette = ref([]);
+  const textLightPalette = ref([]);
+  const textDarkPalette = ref([]);
 
 
   // Getters Universais
@@ -138,6 +143,11 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-font-family'] !== undefined) fontFamily.value = settingsMap['app-font-family'];
       if (settingsMap['app-opacity-targets'] !== undefined) opacityTargets.value = settingsMap['app-opacity-targets'];
       if (settingsMap['app-global-glass'] !== undefined) globalGlassEnabled.value = settingsMap['app-global-glass'];
+      
+      if (settingsMap['app-title-palette'] !== undefined) titlePalette.value = settingsMap['app-title-palette'];
+      if (settingsMap['app-body-palette'] !== undefined) bodyPalette.value = settingsMap['app-body-palette'];
+      if (settingsMap['app-text-light-palette'] !== undefined) textLightPalette.value = settingsMap['app-text-light-palette'];
+      if (settingsMap['app-text-dark-palette'] !== undefined) textDarkPalette.value = settingsMap['app-text-dark-palette'];
       
       // Carrega wallpapers customizados salvos no banco
       if (settingsMap['app-custom-wallpapers'] !== undefined) {
@@ -252,6 +262,10 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-contrast-enhanced', value: contrastEnhanced.value },
       { key: 'app-darken-wallpaper', value: darkenWallpaper.value },
       { key: 'app-task-style-profiles', value: taskStyleProfiles.value },
+      { key: 'app-title-palette', value: titlePalette.value },
+      { key: 'app-body-palette', value: bodyPalette.value },
+      { key: 'app-text-light-palette', value: textLightPalette.value },
+      { key: 'app-text-dark-palette', value: textDarkPalette.value },
       { key: 'app-hide-welcome', value: hideWelcomeModal.value },
       { key: 'app-branch-master', value: branchMaster.value },
       { key: 'app-branch-hml', value: branchHomologacao.value },
@@ -286,6 +300,7 @@ export const useSettingsStore = defineStore('settings', () => {
     wellnessEnabled, wellnessInterval, contrastEnhanced, darkenWallpaper, keepWindowState,
     contextMenuStyle, contextMenuMode, hideWelcomeModal,
     branchMaster, branchHomologacao, branchDesenvolvimento, consoleFontSize, taskStyleProfiles,
+    titlePalette, bodyPalette, textLightPalette, textDarkPalette,
     isInitialized, globalGlassEnabled,
     loadSettings, saveSetting, saveAllSettings, normalizedCardOpacity
 

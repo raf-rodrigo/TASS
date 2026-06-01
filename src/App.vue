@@ -241,6 +241,13 @@ watch(isDraggingTask, (val) => {
   else document.body.classList.remove('dragging-task');
 });
 
+// Sincroniza a fonte global no body para que elementos em arraste (ghosts) herdem a fonte correta
+watch(() => settings.fontFamily, (newFont) => {
+  if (newFont) {
+    document.body.style.fontFamily = newFont;
+  }
+}, { immediate: true });
+
 onMounted(async () => {
   // Limpa dados legados de água e papéis de parede inválidos (Google Drive) do banco
   try {

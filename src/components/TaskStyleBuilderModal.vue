@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { 
-  Palette, Layout, Save, Trash2, Plus, ArrowRight,
+  Palette, Layout, Save, Trash2, Plus, ArrowRight, Copy,
   Monitor, Layers, CircleDot, Play, MoreVertical, Sparkles, CheckCircle2, X, Coffee, Camera, Moon, Heart
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -141,6 +141,28 @@ const handleSave = async () => {
     console.error("Erro ao salvar:", error);
     notificationService.toast('Falha ao salvar as configurações.', 'error');
   }
+};
+
+const handleDuplicate = async () => {
+  if (!selectedTargetId.value || selectedTargetId.value === 'new') return;
+  
+  const baseName = editingData.value.name || 'Novo Preset';
+  const newName = (baseName === 'Padrão Global' ? 'Novo Preset' : baseName) + ' (Cópia)';
+  
+  const duplicatedStyle = {
+    id: crypto.randomUUID(),
+    name: newName,
+    colors: JSON.parse(JSON.stringify(editingData.value.colors)),
+    styles: JSON.parse(JSON.stringify(editingData.value.styles))
+  };
+  
+  await taskStyleStore.saveStyle(duplicatedStyle);
+  selectedTargetId.value = duplicatedStyle.id;
+  
+  isEditingName.value = true;
+  editingNameValue.value = duplicatedStyle.name;
+  
+  notificationService.toast('Preset duplicado com sucesso!', 'success');
 };
 
 const handleDelete = async () => {
@@ -401,8 +423,9 @@ const isSquareLayout = computed(() => {
     <!-- Área Principal -->
     <div class="flex flex-col h-full pb-6">
       
-      <!-- Topo: Live Preview Gigante -->
-      <div class="p-6 md:p-8 shrink-0 bg-slate-200/50 dark:bg-[#0f172a] rounded-3xl border border-slate-300 dark:border-slate-800/50 relative overflow-hidden flex flex-col items-center justify-center min-h-[220px]">
+      <template v-if="selectedTargetId">
+        <!-- Topo: Live Preview Gigante -->
+        <div class="p-6 md:p-8 shrink-0 bg-slate-200/50 dark:bg-[#0f172a] rounded-3xl border border-slate-300 dark:border-slate-800/50 relative overflow-hidden flex flex-col items-center justify-center min-h-[220px]">
         <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none"></div>
         <p class="absolute top-4 left-5 text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
           <CircleDot class="w-3 h-3 text-emerald-500 animate-pulse" /> Live Preview
@@ -454,30 +477,48 @@ const isSquareLayout = computed(() => {
                 </span>
               </div>
               <div 
-                class="flex items-center gap-1.5 shrink-0 flex-row-reverse"
+                class="flex items-center shrink-0 flex-row-reverse"
                 :class="isSquareLayout ? 'w-full justify-between mt-auto pt-3 border-t border-slate-500/10' : 'ml-auto'"
+                :style="!isSquareLayout ? { gap: (previewData.styles.taskTimerSize * 0.4) + 'px' } : {}"
               >
-                <button 
-                  class="flex items-center justify-center border rounded-xl" 
-                  :class="[
-                    previewData.colors.color ? 'hover:brightness-110' : 'bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border-indigo-500/20'
-                  ]"
-                  :style="{
-                    width: (previewData.styles.taskTimerSize * 1.8) + 'px',
-                    height: (previewData.styles.taskTimerSize * 1.8) + 'px',
-                    backgroundColor: previewData.colors.color ? `${previewData.colors.color}1A` : '',
-                    color: previewData.colors.color ? previewData.colors.color : '',
-                    borderColor: previewData.colors.color ? `${previewData.colors.color}33` : ''
-                  }"
+                <div 
+                  class="flex items-center flex-row-reverse"
+                  :style="{ gap: (previewData.styles.taskTimerSize * 0.4) + 'px' }"
                 >
-                  <Play :size="previewData.styles.taskTimerSize - 1" />
-                </button>
-                <button class="text-app-muted w-[26px] h-[26px] flex items-center justify-center">
-                  <MoreVertical class="w-4 h-4" />
-                </button>
+                  <button 
+                    class="flex items-center justify-center border" 
+                    :class="[
+                      previewData.colors.color ? 'hover:brightness-110' : 'bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border-indigo-500/20'
+                    ]"
+                    :style="{
+                      width: (previewData.styles.taskTimerSize * 1.8) + 'px',
+                      height: (previewData.styles.taskTimerSize * 1.8) + 'px',
+                      borderRadius: (previewData.styles.taskTimerSize * 0.4) + 'px',
+                      backgroundColor: previewData.colors.color ? `${previewData.colors.color}1A` : '',
+                      color: previewData.colors.color ? previewData.colors.color : '',
+                      borderColor: previewData.colors.color ? `${previewData.colors.color}33` : ''
+                    }"
+                  >
+                    <Play :size="previewData.styles.taskTimerSize - 1" />
+                  </button>
+                  <button 
+                    class="text-app-muted flex items-center justify-center hover:text-indigo-500 hover:bg-slate-500/10"
+                    :style="{
+                      width: (previewData.styles.taskTimerSize * 1.8) + 'px',
+                      height: (previewData.styles.taskTimerSize * 1.8) + 'px',
+                      borderRadius: (previewData.styles.taskTimerSize * 0.4) + 'px'
+                    }"
+                  >
+                    <MoreVertical :size="previewData.styles.taskTimerSize" />
+                  </button>
+                </div>
                 <span 
-                  class="hidden sm:inline font-bold leading-none mr-1 opacity-80"
-                  :style="{ fontSize: previewData.styles.taskTimerSize + 'px', color: mockTextColor }"
+                  class="hidden sm:inline font-bold leading-none opacity-80"
+                  :style="{ 
+                    fontSize: previewData.styles.taskTimerSize + 'px', 
+                    color: mockTextColor,
+                    marginRight: (previewData.styles.taskTimerSize * 0.2) + 'px'
+                  }"
                 >
                   02:45:00
                 </span>
@@ -562,7 +603,7 @@ const isSquareLayout = computed(() => {
 
             <div class="glass-section p-4 space-y-4 shadow-sm border border-slate-200 dark:border-white/5">
               <div class="flex justify-between items-center"><span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Tamanho da Descrição</span><span class="text-[10px] font-black text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded">{{ editingData.styles.taskDescriptionSize }}px</span></div>
-              <input type="range" v-model.number="editingData.styles.taskDescriptionSize" min="10" max="28" step="1" class="w-full app-range" />
+              <input type="range" v-model.number="editingData.styles.taskDescriptionSize" min="8" max="28" step="1" class="w-full app-range" />
             </div>
             
             <div class="glass-section p-4 space-y-4 shadow-sm border border-slate-200 dark:border-white/5">
@@ -584,6 +625,13 @@ const isSquareLayout = computed(() => {
 
         </transition>
       </div>
+      </template>
+
+      <div v-else class="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-500 opacity-70">
+        <Palette class="w-16 h-16 mb-4 opacity-50" />
+        <h3 class="text-lg font-black tracking-tight mb-2">Nenhum Estilo Selecionado</h3>
+        <p class="text-xs text-center max-w-xs">Selecione o Padrão Global, escolha um preset existente ou crie um novo estilo na lateral esquerda.</p>
+      </div>
 
     </div>
 
@@ -601,7 +649,17 @@ const isSquareLayout = computed(() => {
 
         <div class="flex items-center gap-3">
           <button type="button" @click="emit('close')" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Fechar</button>
-          <button type="button" @click="handleSave" class="btn btn-primary px-8 py-2 border-none shadow-md text-xs font-black uppercase tracking-widest flex items-center gap-2">
+          
+          <button 
+            v-if="selectedTargetId && selectedTargetId !== 'new'" 
+            type="button" 
+            @click="handleDuplicate" 
+            class="px-5 py-2 text-indigo-500 hover:bg-indigo-500/10 rounded-xl transition-all text-xs font-bold flex items-center gap-2"
+          >
+            <Copy class="w-4 h-4" /> Duplicar Preset
+          </button>
+
+          <button v-if="selectedTargetId" type="button" @click="handleSave" class="btn btn-primary px-8 py-2 border-none shadow-md text-xs font-black uppercase tracking-widest flex items-center gap-2">
             <Save class="w-4 h-4" /> Salvar Alterações
           </button>
         </div>

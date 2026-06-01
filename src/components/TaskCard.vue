@@ -201,7 +201,7 @@ const cardDynamicStyles = computed(() => {
     margin: activeStyle.value.taskMaxWidth > 0 ? '0 auto' : '',
     justifyContent: activeStyle.value.taskVerticalAlign === 'center' ? 'center' : 
                     activeStyle.value.taskVerticalAlign === 'bottom' ? 'flex-end' : 'flex-start',
-    padding: `${activeStyle.value.taskPaddingY}px ${activeStyle.value.taskPaddingX}px`
+    padding: `${activeStyle.value.cardPadding || 16}px`
   };
 });
 
@@ -282,21 +282,24 @@ const timerButtonClasses = computed(() => {
           </span>
       </div>
       
-      <div v-if="isSquareLayout" class="w-full h-px opacity-15 bg-current mt-auto mb-3"></div>
-      
       <div 
         class="flex items-center shrink-0 flex-row-reverse"
-        :class="isSquareLayout ? 'w-full justify-between' : 'ml-auto gap-1.5'"
+        :class="isSquareLayout ? 'w-full justify-between mt-auto pt-3 border-t border-slate-500/10' : 'ml-auto'"
+        :style="!isSquareLayout ? { gap: (activeStyle.taskTimerSize * 0.4) + 'px' } : {}"
       >
-        <div class="flex items-center gap-1.5 flex-row-reverse">
+        <div 
+          class="flex items-center flex-row-reverse"
+          :style="{ gap: (activeStyle.taskTimerSize * 0.4) + 'px' }"
+        >
           <!-- 1. Play/Stop Task (Timer) -->
           <button 
             v-if="!task.completed"
-            class="transition-all flex items-center justify-center border rounded-xl" 
+            class="transition-all flex items-center justify-center border" 
             :class="timerButtonClasses"
             :style="{
               width: (activeStyle.taskTimerSize * 1.8) + 'px',
               height: (activeStyle.taskTimerSize * 1.8) + 'px',
+              borderRadius: (activeStyle.taskTimerSize * 0.4) + 'px',
               backgroundColor: taskColors.color ? `${taskColors.color}1A` : '',
               color: taskColors.color ? taskColors.color : '',
               borderColor: taskColors.color ? `${taskColors.color}33` : ''
@@ -308,27 +311,31 @@ const timerButtonClasses = computed(() => {
             <Play v-else :size="activeStyle.taskTimerSize - 1" />
           </button>
 
-
-
           <!-- 2. Menu Trigger Icon -->
           <button 
-            class="transition-all flex items-center justify-center text-app-muted hover:text-indigo-500 w-[26px] h-[26px]"
+            class="transition-all flex items-center justify-center text-app-muted hover:text-indigo-500 hover:bg-slate-500/10"
+            :style="{
+              width: (activeStyle.taskTimerSize * 1.8) + 'px',
+              height: (activeStyle.taskTimerSize * 1.8) + 'px',
+              borderRadius: (activeStyle.taskTimerSize * 0.4) + 'px'
+            }"
             @click.stop="handleSelect($event)"
             data-tip="Opções da Tarefa"
           >
-            <MoreVertical class="w-4 h-4" />
+            <MoreVertical :size="activeStyle.taskTimerSize" />
           </button>
         </div>
 
         <!-- Contador (Tempo) -->
         <span 
-          class="hidden sm:inline font-bold leading-none mr-1 cursor-pointer transition-colors hover:opacity-80"
+          class="hidden sm:inline font-bold leading-none cursor-pointer transition-colors hover:opacity-80"
           :class="[
             task.isRunning ? 'animate-pulse' : ''
           ]"
           :style="{ 
             fontSize: activeStyle.taskTimerSize + 'px',
-            color: task.isRunning ? (taskColors.color || '#ef4444') : currentTextColor
+            color: task.isRunning ? (taskColors.color || '#ef4444') : currentTextColor,
+            marginRight: (activeStyle.taskTimerSize * 0.2) + 'px'
           }"
           data-tip="Clique para ajustar o tempo"
           @click.stop="handleAdjustTime"

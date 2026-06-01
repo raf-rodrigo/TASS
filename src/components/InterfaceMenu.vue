@@ -98,7 +98,7 @@ const handleImportPalettes = (event) => {
       }
       notificationService.toast('Paletas importadas com sucesso!');
     } catch (err) {
-      notificationService.toast('Erro ao ler JSON', 'error');
+      notificationService.alert('JSON Inválido', `Erro na estrutura do arquivo: ${err.message}`, 'error');
     }
   };
   reader.readAsText(file);
