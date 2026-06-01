@@ -132,7 +132,7 @@ onUnmounted(() => {
     <!-- DESIGN 1: FLUTUANTE (ELEGANTE/VERTICAL) -->
     <div 
       v-if="isFloating"
-      class="glass-panel !p-2 flex flex-col gap-2 shadow-2xl border-indigo-500/30 backdrop-blur-xl ring-1 ring-black/10 pointer-events-auto min-w-[200px] animate-scaleIn"
+      class="glass-panel !p-2 flex flex-col gap-2 shadow-2xl border-indigo-500/30 ring-1 ring-black/10 pointer-events-auto min-w-[200px] animate-scaleIn"
       @click.stop
       :style="{ 
         backgroundColor: settings.theme === 'dark' ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.92)',
@@ -210,7 +210,7 @@ onUnmounted(() => {
     <!-- DESIGN 2: DOCK (HORIZONTAL/CLÁSSICO) -->
     <div 
       v-else
-      class="glass-panel !p-1.5 flex flex-col md:flex-row items-center gap-2 md:gap-3 shadow-2xl border border-app-border-light backdrop-blur-xl ring-1 ring-black/5 pointer-events-auto transition-all duration-300 animate-scaleIn"
+      class="glass-panel !p-1.5 flex flex-col md:flex-row items-center gap-2 md:gap-3 shadow-2xl border border-app-border-light ring-1 ring-black/5 pointer-events-auto transition-all duration-300 animate-scaleIn"
       @click.stop
       :style="{ 
         backgroundColor: `rgba(var(--app-bg-raw), var(--app-bottom-opacity))`,

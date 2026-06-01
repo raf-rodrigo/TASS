@@ -5,14 +5,12 @@ const routes = [
   {
     path: '/',
     name: 'Workspace',
-    component: Workspace,
-    meta: { layout: 'MainLayout' }
+    component: Workspace
   },
   {
     path: '/components',
     name: 'ComponentSuite',
-    component: () => import('../views/ComponentSuite.vue'),
-    meta: { layout: 'CleanLayout' }
+    component: () => import('../views/ComponentSuite.vue')
   }
 ];
 

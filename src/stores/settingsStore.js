@@ -63,8 +63,10 @@ export const useSettingsStore = defineStore('settings', () => {
     modalSidebar: true,
     modalBody: true,
     modalHeaderFooter: true,
-    alerts: true
+    alerts: true,
+    notes: true
   });
+  const globalGlassEnabled = ref(true);
   const columnTitles = ref(['', '', '', '', '', '']);
   const columnStyles = ref(['', '', '', '', '', '']);
   const contextMenuStyle = ref('floating'); // 'floating' (estilo OS) ou 'dock' (estilo clássico)
@@ -73,14 +75,10 @@ export const useSettingsStore = defineStore('settings', () => {
   const darkenWallpaper = ref(true);
   const taskStyleProfiles = ref([]);
 
-  const titlePalette = ref(['#264653', '#2A9D8F', '#E9C46A', '#F4A261', '#E76F51']);
-  const bodyPalette = ref(['#264653', '#2A9D8F', '#E9C46A', '#F4A261', '#E76F51']);
-  const textLightPalette = ref(['#f8fafc', '#f1f5f9', '#e2e8f0', '#cbd5e1', '#94a3b8']);
-  const textDarkPalette = ref(['#0f172a', '#1e293b', '#334155', '#475569', '#64748b']);
 
   // Getters Universais
   const normalizedCardOpacity = computed(() => {
-    return opacityTargets.value?.cards ? Math.max(0, (100 - cardOpacity.value) / 100) : 1.0;
+    return (globalGlassEnabled.value && opacityTargets.value?.cards) ? Math.max(0, (100 - cardOpacity.value) / 100) : 1.0;
   });
 
   const customWallpapers = ref([
@@ -134,10 +132,7 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-card-radius'] !== undefined) cardBorderRadius.value = settingsMap['app-card-radius'];
       if (settingsMap['app-font-family'] !== undefined) fontFamily.value = settingsMap['app-font-family'];
       if (settingsMap['app-opacity-targets'] !== undefined) opacityTargets.value = settingsMap['app-opacity-targets'];
-      if (settingsMap['app-title-palette'] !== undefined) titlePalette.value = settingsMap['app-title-palette'];
-      if (settingsMap['app-body-palette'] !== undefined) bodyPalette.value = settingsMap['app-body-palette'];
-      if (settingsMap['app-text-light-palette'] !== undefined) textLightPalette.value = settingsMap['app-text-light-palette'];
-      if (settingsMap['app-text-dark-palette'] !== undefined) textDarkPalette.value = settingsMap['app-text-dark-palette'];
+      if (settingsMap['app-global-glass'] !== undefined) globalGlassEnabled.value = settingsMap['app-global-glass'];
       
       // Carrega wallpapers customizados salvos no banco
       if (settingsMap['app-custom-wallpapers'] !== undefined) {
@@ -228,6 +223,7 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-card-radius', value: cardBorderRadius.value },
       { key: 'app-font-family', value: fontFamily.value },
       { key: 'app-opacity-targets', value: opacityTargets.value },
+      { key: 'app-global-glass', value: globalGlassEnabled.value },
       { key: 'app-custom-wallpapers', value: customWallpapers.value },
       { key: 'app-task-number-size', value: taskNumberSize.value },
       { key: 'app-task-desc-size', value: taskDescriptionSize.value },
@@ -245,10 +241,6 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-context-menu-mode', value: contextMenuMode.value },
       { key: 'app-contrast-enhanced', value: contrastEnhanced.value },
       { key: 'app-darken-wallpaper', value: darkenWallpaper.value },
-      { key: 'app-title-palette', value: JSON.parse(JSON.stringify(titlePalette.value)) },
-      { key: 'app-body-palette', value: JSON.parse(JSON.stringify(bodyPalette.value)) },
-      { key: 'app-text-light-palette', value: JSON.parse(JSON.stringify(textLightPalette.value)) },
-      { key: 'app-text-dark-palette', value: JSON.parse(JSON.stringify(textDarkPalette.value)) },
       { key: 'app-task-style-profiles', value: taskStyleProfiles.value },
       { key: 'app-hide-welcome', value: hideWelcomeModal.value },
       { key: 'app-branch-master', value: branchMaster.value },
@@ -284,8 +276,7 @@ export const useSettingsStore = defineStore('settings', () => {
     wellnessEnabled, wellnessInterval, contrastEnhanced, darkenWallpaper, keepWindowState,
     contextMenuStyle, contextMenuMode, hideWelcomeModal,
     branchMaster, branchHomologacao, branchDesenvolvimento, consoleFontSize, taskStyleProfiles,
-    titlePalette, bodyPalette, textLightPalette, textDarkPalette,
-    isInitialized,
+    isInitialized, globalGlassEnabled,
     loadSettings, saveSetting, saveAllSettings, normalizedCardOpacity
 
   };

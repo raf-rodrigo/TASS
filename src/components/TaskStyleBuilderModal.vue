@@ -414,7 +414,6 @@ const isSquareLayout = computed(() => {
           <!-- Mock do TaskCard -->
           <div 
             class="glass-panel w-full relative flex flex-col shadow-xl transition-all duration-300 group"
-            :class="settings.cardOpacity > 0 ? 'backdrop-blur-xl' : ''"
             :style="{ 
               backgroundColor: hexToRgba(previewData.colors.bgColor, settings.normalizedCardOpacity),
               minHeight: previewData.styles.taskMinHeight > 40 ? previewData.styles.taskMinHeight + 'px' : 'auto',

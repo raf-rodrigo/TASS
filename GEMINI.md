@@ -37,6 +37,7 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
   - Usar `@apply` apenas para tokens e classes padrão (`@apply text-app-main p-4`).
   - **PROIBIDO** usar `@apply` com valores arbitrários complexos entre colchetes `[...]` que contenham espaços ou funções (ex: `shadow-[0_4px_rgba(0,0,0,0.1)]`).
   - **Motivo:** Formatadores de código (Prettier) inserem espaços que quebram a compilação do PostCSS/Tailwind. Nesses casos, use CSS puro ou configure um utilitário no `tailwind.config.js`.
+- **Arquitetura de Transparência (MANDATÓRIO):** O sistema TASS possui um motor inteligente próprio para o efeito de vidro. É ESTRITAMENTE PROIBIDO o uso de classes fixas do Tailwind para blur (como `backdrop-blur-xl`) ou injeção de CSS em templates sem o uso das variáveis corretas, pois isso destrói a reatividade da Chave Mestra controlada pelo usuário. **Para implementar qualquer transparência, você DEVE ler antes e seguir o padrão documentado em `GLASSMORPHISM.md`.**
 
 ## 4. Inicialização e Contextualização
 - **Leitura de Contexto:** Ao iniciar uma nova sessão ou tarefa complexa, a IA deve realizar uma leitura exploratória dos arquivos do projeto (além dos arquivos de regras) para compreender a estrutura atual, as dependências instaladas e a lógica de negócio implementada. Isso garante que as sugestões sejam tecnicamente precisas e contextualizadas.

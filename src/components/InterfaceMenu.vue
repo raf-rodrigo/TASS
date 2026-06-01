@@ -380,8 +380,26 @@ const handleColumnChange = (n) => {
                     <div class="pt-6 border-t border-app-border-light space-y-4">
                       <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Aplicar Efeito de Vidro em:</p>
                       
+                      <div class="mb-4">
+                        <label class="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-500/10 to-transparent dark:from-indigo-500/20 dark:to-transparent rounded-2xl cursor-pointer border border-indigo-500/30 group hover:border-indigo-500/60 transition-all shadow-sm">
+                          <div class="flex items-center gap-3">
+                            <div class="p-2 bg-indigo-500/20 rounded-xl text-indigo-600 dark:text-indigo-400">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-droplets"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7 2.99 7 2.99s-2.29 6.08-2.29 6.08c-1.14.93-1.71 2.03-1.71 3.19C3 14.47 4.8 16.3 7 16.3Z"/><path d="M20.3 10.4c-1.14.93-1.71 2.03-1.71 3.19 0 2.22 1.8 4.05 4 4.05s4-1.83 4-4.05c0-1.16-.57-2.26-1.71-3.19S20.3 4.3 20.3 4.3s-2.29 6.08-2.29 6.08Z"/><path d="M12 22c2.76 0 5-2.24 5-5s-5-9-5-9-5 6.24-5 9 2.24 5 5 5Z"/></svg>
+                            </div>
+                            <div class="flex flex-col">
+                              <span class="text-sm font-black text-slate-800 dark:text-slate-100">CHAVE MESTRA: EFEITO DE VIDRO</span>
+                              <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Habilita ou desabilita o desfoque em todo o sistema</span>
+                            </div>
+                          </div>
+                          <div class="relative inline-flex items-center">
+                            <input type="checkbox" v-model="settings.globalGlassEnabled" @change="settings.saveSetting('app-global-glass', settings.globalGlassEnabled)" class="sr-only peer" />
+                            <div class="w-12 h-6 bg-slate-300 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-md"></div>
+                          </div>
+                        </label>
+                      </div>
+
                       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <label class="flex items-center justify-between p-3.5 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all">
+                        <label class="flex items-center justify-between p-3.5 bg-transparent dark:bg-transparent rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 hover:bg-app-surface transition-all">
                           <div class="flex flex-col">
                             <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Cards de Tarefa</span>
                             <span class="text-[8px] text-slate-500 uppercase font-medium">Kanban Board</span>
@@ -392,10 +410,10 @@ const handleColumnChange = (n) => {
                           </div>
                         </label>
 
-                        <label class="flex items-center justify-between p-3.5 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all col-span-2">
+                        <label class="flex items-center justify-between p-3.5 bg-transparent dark:bg-transparent rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 hover:bg-app-surface transition-all">
                           <div class="flex flex-col">
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Efeito de Vidro (Blur)</span>
-                            <span class="text-[8px] text-slate-500 uppercase font-medium">Habilita o desfoque de fundo da janela</span>
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Modais Principais</span>
+                            <span class="text-[8px] text-slate-500 uppercase font-medium">Janelas flutuantes</span>
                           </div>
                           <div class="relative inline-flex items-center">
                             <input type="checkbox" v-model="settings.opacityTargets.modals" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
@@ -403,7 +421,7 @@ const handleColumnChange = (n) => {
                           </div>
                         </label>
 
-                        <label class="flex items-center justify-between p-3.5 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all col-span-2">
+                        <label class="flex items-center justify-between p-3.5 bg-transparent dark:bg-transparent rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 hover:bg-app-surface transition-all">
                           <div class="flex flex-col">
                             <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Cabeçalho e Rodapé</span>
                             <span class="text-[8px] text-slate-500 uppercase font-medium">Barras de Ação</span>
@@ -414,7 +432,7 @@ const handleColumnChange = (n) => {
                           </div>
                         </label>
 
-                        <label class="flex items-center justify-between p-3.5 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all">
+                        <label class="flex items-center justify-between p-3.5 bg-transparent dark:bg-transparent rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 hover:bg-app-surface transition-all">
                           <div class="flex flex-col">
                             <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Menu Lateral</span>
                             <span class="text-[8px] text-slate-500 uppercase font-medium">Navegação</span>
@@ -425,7 +443,7 @@ const handleColumnChange = (n) => {
                           </div>
                         </label>
 
-                        <label class="flex items-center justify-between p-3.5 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all">
+                        <label class="flex items-center justify-between p-3.5 bg-transparent dark:bg-transparent rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 hover:bg-app-surface transition-all">
                           <div class="flex flex-col">
                             <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Corpo do Conteúdo</span>
                             <span class="text-[8px] text-slate-500 uppercase font-medium">Área Central</span>
@@ -436,7 +454,7 @@ const handleColumnChange = (n) => {
                           </div>
                         </label>
 
-                        <label class="flex items-center justify-between p-3.5 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all">
+                        <label class="flex items-center justify-between p-3.5 bg-transparent dark:bg-transparent rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 hover:bg-app-surface transition-all">
                           <div class="flex flex-col">
                             <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Barra Inferior</span>
                             <span class="text-[8px] text-slate-500 uppercase font-medium">Ilha Dinâmica</span>
@@ -447,13 +465,24 @@ const handleColumnChange = (n) => {
                           </div>
                         </label>
 
-                        <label class="flex items-center justify-between p-3.5 bg-white dark:bg-white/5 rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all">
+                        <label class="flex items-center justify-between p-3.5 bg-transparent dark:bg-transparent rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 hover:bg-app-surface transition-all">
                           <div class="flex flex-col">
                             <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Menu de Contexto</span>
                             <span class="text-[8px] text-slate-500 uppercase font-medium">Ações Rápidas</span>
                           </div>
                           <div class="relative inline-flex items-center">
                             <input type="checkbox" v-model="settings.opacityTargets.contextMenu" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
+                            <div class="w-10 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all shadow-sm"></div>
+                          </div>
+                        </label>
+
+                        <label class="flex items-center justify-between p-3.5 bg-transparent dark:bg-transparent rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 hover:bg-app-surface transition-all">
+                          <div class="flex flex-col">
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Painel de Notas</span>
+                            <span class="text-[8px] text-slate-500 uppercase font-medium">Bloco Flutuante</span>
+                          </div>
+                          <div class="relative inline-flex items-center">
+                            <input type="checkbox" v-model="settings.opacityTargets.notes" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
                             <div class="w-10 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all shadow-sm"></div>
                           </div>
                         </label>

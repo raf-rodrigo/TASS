@@ -27,7 +27,7 @@ import { useSystemMonitoring } from './composables/useSystemMonitoring.js';
 import { useGlobalPulse } from './composables/useGlobalPulse.js';
 
 // Stores
-import { bridgeService } from './services/bridgeService';
+
 import { notificationService } from './services/notificationService';
 import { ClipboardList, Plus, Sun, Moon, Settings, Calendar, Maximize, RotateCcw, Pencil, CheckCircle, Trash2, X, Clock } from 'lucide-vue-next';
 
@@ -270,8 +270,6 @@ onMounted(async () => {
     showWelcome.value = true;
   }
   
-  // Inicia monitoramento do backend
-  bridgeService.startPolling();
 });
 </script>
 
@@ -299,19 +297,6 @@ onMounted(async () => {
     ></div>
   </template>
 
-  <!-- Bridge Status Indicator (Discreet) -->
-  <div 
-    class="fixed bottom-4 left-4 z-50 flex items-center gap-2 px-3 py-1 rounded-full glass-panel border border-app-border-light pointer-events-auto opacity-40 hover:opacity-100 transition-opacity cursor-help select-none"
-    v-tooltip="bridgeService.isServerOnline.value ? `Bridge Online v${bridgeService.serverVersion.value}` : 'Bridge Offline (Backend porta 5176)'"
-  >
-    <div 
-      class="w-1.5 h-1.5 rounded-full"
-      :class="bridgeService.isServerOnline.value ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-rose-500 animate-pulse'"
-    ></div>
-    <span class="text-[8px] font-black uppercase tracking-tighter text-app-muted">
-      Bridge
-    </span>
-  </div>
 
   <div 
     v-if="settings.isInitialized" 
@@ -388,7 +373,7 @@ onMounted(async () => {
         leave-to-class="translate-y-20 opacity-0 scale-95"
       >
         <GlobalDock 
-          v-if="(!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating') && route.meta.layout !== 'CleanLayout'"
+          v-if="(!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating') && route.name !== 'ComponentSuite'"
           @add-task="openAddModal"
           @open-sprints="openSprintsFromDock"
           @open-notes="showNotes = !showNotes"

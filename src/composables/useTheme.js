@@ -27,6 +27,7 @@ export function useTheme(settings) {
 
     // Variáveis reativas de Opacidade baseadas nos Alvos
     const getOpacity = (targetEnabled) => {
+      if (!settings.globalGlassEnabled) return 1.0;
       if (!targetEnabled) return 1.0;
       return (100 - settings.cardOpacity) / 100;
     };
@@ -40,6 +41,7 @@ export function useTheme(settings) {
     root.style.setProperty('--app-modal-body-opacity', getOpacity(settings.opacityTargets.modalBody));
     root.style.setProperty('--app-alert-opacity', getOpacity(settings.opacityTargets.modals));
     root.style.setProperty('--app-menu-opacity', getOpacity(settings.opacityTargets.contextMenu));
+    root.style.setProperty('--app-notes-opacity', getOpacity(settings.opacityTargets.notes));
     
     // Outras medidas
     root.style.setProperty('--app-card-radius', settings.cardBorderRadius + 'px');
@@ -51,7 +53,7 @@ export function useTheme(settings) {
     const isDark = settings.theme === 'dark';
 
     // 1. Desfoque (Blur) - Glassmorphism 2.0 padrão 20px
-    root.style.setProperty('--app-glass-blur', settings.cardOpacity > 0 ? '20px' : '0px');
+    root.style.setProperty('--app-glass-blur', (settings.globalGlassEnabled && settings.cardOpacity > 0) ? '20px' : '0px');
 
     // 2. Brilho (Brightness) - Realça o fundo para destacar o texto
     let brightness = '1';
@@ -89,6 +91,7 @@ export function useTheme(settings) {
     settings.cardPadding, 
     settings.theme,
     settings.opacityTargets,
+    settings.globalGlassEnabled,
     settings.contrastEnhanced,
     settings.backgroundImage
   ], applyStyles, { deep: true });

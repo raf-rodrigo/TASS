@@ -57,12 +57,12 @@ const taskColors = computed(() => {
     if (profile && profile.colors && profile.colors.color) return profile.colors;
   }
   
-  // Prioridade 3: Padrão Global (ou fallback de legado)
+  // Prioridade 3: Padrão Global
   return {
-    color: props.task.color || null,
-    bgColor: props.task.bgColor || '',
-    textLightColor: props.task.textLightColor || '',
-    textDarkColor: props.task.textDarkColor || ''
+    color: null,
+    bgColor: '',
+    textLightColor: '',
+    textDarkColor: ''
   };
 });
 
@@ -150,14 +150,13 @@ const handleSelect = (event) => {
     class="glass-panel cursor-pointer cursor-grab hover:-translate-y-0.5 group relative hover:z-[100] flex flex-col"
     :class="[
       task.isRunning && !taskColors.color ? 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : '',
-      taskStore.selectedTask?.id === task.id ? `z-[50] ${!taskColors.color ? 'ring-2 ring-indigo-500/50 border-indigo-500' : ''}` : '',
-      settings.cardOpacity > 0 ? 'backdrop-blur-xl' : ''
+      taskStore.selectedTask?.id === task.id ? `z-[50] ${!taskColors.color ? 'ring-2 ring-indigo-500/50 border-indigo-500' : ''}` : ''
     ]"
 
 
     :style="{ 
       backgroundColor: taskStore.selectedTask?.id === task.id 
-        ? (settings.cardOpacity > 0 ? (taskColors.color ? hexToRgba(taskColors.color, 0.15) : 'rgba(99, 102, 241, 0.15)') : hexToRgba(taskColors.bgColor, settings.normalizedCardOpacity)) 
+        ? (settings.normalizedCardOpacity < 1.0 ? (taskColors.color ? hexToRgba(taskColors.color, 0.15) : 'rgba(99, 102, 241, 0.15)') : hexToRgba(taskColors.bgColor, settings.normalizedCardOpacity)) 
         : hexToRgba(taskColors.bgColor, settings.normalizedCardOpacity),
       borderColor: taskStore.selectedTask?.id === task.id && taskColors.color 
         ? taskColors.color 

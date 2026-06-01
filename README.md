@@ -14,8 +14,8 @@ O TASS não é apenas uma ferramenta; é um **Ambiente de Trabalho Imersivo** qu
 | :--- | :--- |
 | **Radius Harmony** | Geometria inteligente com ajuste unificado de arredondamento de cantos. Mantém a harmonia matemática entre cards, inputs e modais em tempo real. |
 | **Opacidade Granular** | Controle absoluto da transparência. Ajuste níveis de opacidade de forma independente para Cards, Menus, Barra Superior e Dock Inferior. |
-| **Galeria Premium** | **17 slots** curados para wallpapers de alta definição, permitindo transformar o clima do seu ambiente com um único clique. |
-| **Tipografia de Elite** | Uma seleção de **12 fontes modernas** e sofisticadas, escolhidas a dedo para garantir legibilidade máxima e estilo incomparável. |
+| **Task Styles Profiles** | Construção avançada de **Perfis de Tarefas**. Customize o padding, dimensões, fontes, contornos e cores das tarefas. Aplique os perfis individualmente a cada card ou force-os em colunas inteiras do seu Kanban. |
+| **Galeria Premium** | Slots curados para wallpapers de alta definição, permitindo transformar o clima do seu ambiente com um único clique. |
 | **Ajuste Dinâmico** | Altere o brilho, contraste e desfoque do workspace para se adaptar ao seu momento, seja para foco total ou inspiração criativa. |
 
 *O conceito de **Glassmorphism Aprimorado** do TASS entrega efeitos de desfoque e camadas que mantêm a profundidade e a clareza, proporcionando uma interface "viva" e sofisticada.*
@@ -33,7 +33,7 @@ O TASS redefine a agilidade com um sistema que se molda ao seu ritmo, e não o c
 ### ☁️ Sincronização Google Drive Cloud
 Seus dados estão sempre seguros e acessíveis através da integração nativa com o ecossistema Google.
 - **Sync Automático:** Backup transparente em segundo plano, garantindo que você nunca perca seu progresso.
-- **Restauração de Versões:** Sistema de snapshots que permite recuperar estados anteriores das suas tarefas.
+- **Restauração de Versões:** Sistema de snapshots que permite recuperar estados anteriores das suas tarefas em formato JSON.
 - **Perfil Integrado:** Visualização direta da sua conta Google (nome e foto) na interface, proporcionando um toque pessoal e profissional.
 
 ### 🦊 Workflow GitLab de Alta Performance
@@ -50,26 +50,28 @@ Mantenha o estado de *flow* com a trilha sonora ideal sem sair do ambiente de tr
 Produtividade sustentável através de inteligência de suporte.
 - **Sussurros de Bem-estar:** Lembretes inteligentes e sutis de postura e hidratação, garantindo que sua saúde acompanhe seu desempenho técnico.
 
-### 📝 Notes Panel (Terminal de Notas Rápidas)
-Um terminal minimalista e focado, projetado para capturar insights e trechos de código sem distrações.
-- **Estética Terminal:** Interface inspirada em consoles clássicos (`tass_notes.sh`) com efeitos de *scanline*, numeração de linhas e temas customizáveis (Classic Emerald, Vintage Amber e Red Alert).
+### 📝 Notes Panel (Painel de Notas Rápidas)
+Um painel lateral minimalista e focado, projetado para capturar insights e anotações ricas sem distrações.
+- **Rich Text Inteligente:** Área livre e limpa para registro de notas rápidas contendo quebras de linha nativas.
 - **Persistência Total:** Gravação automática em tempo real via **Dexie.js**, garantindo que suas notas estejam seguras mesmo após fechar o navegador.
-- **Versatilidade Adaptativa:** Painel lateral flutuante que pode ser fixado à esquerda ou direita, com suporte a redimensionamento dinâmico.
-- **Acesso Ultra-rápido:** Projetado para o teclado — utilize o atalho `N` para abrir/fechar instantaneamente e capturar ideias em segundos.
+- **Versatilidade Adaptativa:** Painel flutuante de vidro que pode ser fixado à esquerda ou direita, com suporte a redimensionamento dinâmico.
+- **Acesso Ultra-rápido:** Projetado para o teclado — utilize o atalho de mouse ou clique simples para abrir/fechar instantaneamente.
 
 ### 🛡️ Integridade de Dados & Merge Seguro
-Segurança de dados de nível empresarial.
-- **Merge Seguro:** Algoritmo avançado de importação que preserva dados locais recentes, limpa referências órfãs e garante a integridade estrutural do banco de dados.
-- **Offline-First:** Funcionamento resiliente via **Dexie.js (IndexedDB)**, garantindo que o sistema funcione perfeitamente mesmo sem conexão.
+Segurança de dados de nível empresarial, de ponta a ponta.
+- **Merge Seguro:** Algoritmo avançado de importação que preserva dados locais recentes, limpa referências órfãs e garante a integridade estrutural do banco de dados (Dexie migrations nativas).
+- **Offline-First:** Funcionamento resiliente via **Dexie.js (IndexedDB)**, garantindo que o sistema funcione perfeitamente sem nenhuma conexão de internet.
 
 ---
 
-## ⚙️ Arquitetura Técnica
+## ⚙️ Arquitetura Técnica (100% Serverless)
 
-O TASS foi construído com foco em precisão e performance:
-- **Web Workers (Virtual Hardware Precision):** O cronômetro de tarefas opera em uma thread isolada via Web Worker, garantindo que a contagem de tempo seja imune a travamentos da interface ou alta carga de CPU.
-- **Modularidade Avançada:** Arquitetura baseada em serviços desacoplados e stores do Pinia para máxima escalabilidade.
-- **Estilização Semântica:** Uso rigoroso de Tailwind CSS com tokens customizados, evitando *hardcoding* e facilitando a manutenção temática.
+O TASS foi construído com foco em precisão, leveza e performance extremas. **A aplicação não necessita de banco de dados SQL ou servidor backend ativo (Node.js/Express) para funcionar**. Todo o motor roda do lado do cliente (Frontend-only):
+
+- **Arquitetura Client-Side:** Baixo consumo de memória e total isolamento (sandbox) local. Não há polling de rede invisível consumindo sua bateria.
+- **Web Workers (Virtual Hardware Precision):** O cronômetro das tarefas opera em uma thread isolada via Web Worker nativo, garantindo que a contagem de tempo seja imune a restrições de economia de bateria aplicadas pelo navegador em abas de segundo plano.
+- **Modularidade Avançada:** Arquitetura baseada em serviços desacoplados (`src/services/`) e stores reativas do Pinia (`src/stores/`) para máxima escalabilidade.
+- **Estilização Semântica:** Uso rigoroso de Tailwind CSS e variáveis de CSS puro, garantindo zero hardcoding em estilos e permitindo customização infinita.
 
 ---
 
@@ -94,7 +96,7 @@ O TASS foi construído com foco em precisão e performance:
    ```bash
    npm install
    ```
-2. Inicie o servidor de desenvolvimento:
+2. Inicie o servidor local de desenvolvimento do Vite:
    ```bash
    npm run dev
    ```
@@ -105,7 +107,7 @@ O TASS foi construído com foco em precisão e performance:
 # Executar testes unitários
 npm test
 
-# Gerar build de produção
+# Gerar build final de produção (SPA)
 npm run build
 ```
 

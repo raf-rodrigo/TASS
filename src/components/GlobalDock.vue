@@ -42,12 +42,13 @@ const dockRadius = computed(() => {
 <template>
   <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[250] w-full max-w-fit px-4 pointer-events-none">
     <div 
-      class="dynamic-island flex flex-col md:flex-row items-center shadow-2xl border border-app-border-light backdrop-blur-xl ring-1 ring-black/5 pointer-events-auto transition-all duration-300 ease-out overflow-hidden"
+      class="dynamic-island flex flex-col md:flex-row items-center shadow-2xl border border-app-border-light ring-1 ring-black/5 pointer-events-auto transition-all duration-300 ease-out overflow-hidden"
       :class="[
         isMobile && isExpanded ? 'w-[90vw] gap-3 p-4' : 'p-1.5 gap-2'
       ]"
       :style="{ 
         backgroundColor: `rgba(var(--app-bg-raw), var(--app-bottom-opacity))`,
+        backdropFilter: `blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))`,
         borderRadius: dockRadius
       }"
     >
