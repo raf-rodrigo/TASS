@@ -9,17 +9,35 @@ O **TASS** é um ecossistema de suporte avançado projetado para desenvolvedores
 
 Aqui estão algumas capturas de tela mostrando a interface premium do TASS em ação:
 
-<div align="center">
-  <img src="./public/prints/Screenshot.png" width="800" alt="TASS - Tela Principal" style="border-radius: 10px; margin-bottom: 20px;" />
-  
-  <img src="./public/prints/Screenshot2.png" width="800" alt="TASS - Tema e Transparência" style="border-radius: 10px; margin-bottom: 20px;" />
-  
-  <img src="./public/prints/Screenshot3.png" width="800" alt="TASS - Customização Glassmorphism" style="border-radius: 10px; margin-bottom: 20px;" />
-  
-  <img src="./public/prints/Screenshot4.png" width="800" alt="TASS - Kanban e Tarefas" style="border-radius: 10px; margin-bottom: 20px;" />
-  
-  <img src="./public/prints/Screenshot5.png" width="800" alt="TASS - Design System e Modais" style="border-radius: 10px; margin-bottom: 20px;" />
-</div>
+<details>
+  <summary>🖼️ <b>Clique para expandir e ver as capturas de tela</b></summary>
+  <br>
+  <div align="center">
+    <a href="./public/prints/Screenshot1.png" target="_blank">
+      <img src="./public/prints/Screenshot1.png" width="800" alt="TASS - Tela Principal" style="border-radius: 10px; margin-bottom: 20px;" />
+    </a>
+    <br>
+    <a href="./public/prints/Screenshot2.png" target="_blank">
+      <img src="./public/prints/Screenshot2.png" width="800" alt="TASS - Tema e Transparência" style="border-radius: 10px; margin-bottom: 20px;" />
+    </a>
+    <br>
+    <a href="./public/prints/Screenshot3.png" target="_blank">
+      <img src="./public/prints/Screenshot3.png" width="800" alt="TASS - Customização Glassmorphism" style="border-radius: 10px; margin-bottom: 20px;" />
+    </a>
+    <br>
+    <a href="./public/prints/Screenshot4.png" target="_blank">
+      <img src="./public/prints/Screenshot4.png" width="800" alt="TASS - Kanban e Tarefas" style="border-radius: 10px; margin-bottom: 20px;" />
+    </a>
+    <br>
+    <a href="./public/prints/Screenshot5.png" target="_blank">
+      <img src="./public/prints/Screenshot5.png" width="800" alt="TASS - Design System e Modais" style="border-radius: 10px; margin-bottom: 20px;" />
+    </a>
+    <br>
+    <a href="./public/prints/Screenshot6.png" target="_blank">
+      <img src="./public/prints/Screenshot6.png" width="800" alt="TASS - Extras" style="border-radius: 10px; margin-bottom: 20px;" />
+    </a>
+  </div>
+</details>
 
 ---
 
