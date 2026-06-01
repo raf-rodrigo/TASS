@@ -138,11 +138,90 @@ const handleSelect = (event) => {
     };
     
     // Pequeno delay para garantir que o componente de menu seja remontado na nova posição
+    // Pequeno delay para garantir que o componente de menu seja remontado na nova posição
     setTimeout(() => {
       taskStore.selectedTask = props.task;
     }, 10);
   }
 };
+
+// =========================================================================
+// COMPUTED PROPERTIES SEMÂNTICAS (Evitando Síndrome do Gênio)
+// =========================================================================
+
+/**
+ * Calcula os estilos dinâmicos do cartão (Cor de fundo, Borda e Sombra)
+ * Levando em conta se a tarefa está selecionada, se está rodando ou se tem cor customizada.
+ */
+const cardDynamicStyles = computed(() => {
+  const isSelected = taskStore.selectedTask?.id === props.task.id;
+  const isRunning = props.task.isRunning;
+  const hasCustomColor = !!taskColors.value.color;
+  const customColor = taskColors.value.color;
+  const baseBgColor = taskColors.value.bgColor;
+  const opacity = settings.normalizedCardOpacity;
+  const isGlassActive = opacity < 1.0;
+
+  // 1. Calculando o Background
+  let bgColor = hexToRgba(baseBgColor, opacity); // Fundo padrão
+
+  if (isSelected) {
+    if (isGlassActive) {
+      // Quando o vidro está ativo, a seleção fica translúcida
+      bgColor = hasCustomColor ? hexToRgba(customColor, 0.15) : 'rgba(99, 102, 241, 0.15)';
+    } else {
+      // Quando vidro está desligado, seleção mantém a cor sólida
+      bgColor = hexToRgba(baseBgColor, opacity);
+    }
+  }
+
+  // 2. Calculando a Borda
+  let borderColor = '';
+  if (isSelected && hasCustomColor) {
+    borderColor = customColor;
+  } else if (isRunning && hasCustomColor) {
+    borderColor = customColor;
+  }
+
+  // 3. Calculando a Sombra
+  let boxShadow = '';
+  if (isSelected && hasCustomColor) {
+    boxShadow = `0 0 0 2px ${customColor}80`;
+  } else if (isRunning && hasCustomColor) {
+    boxShadow = `0 0 15px ${customColor}33`;
+  }
+
+  return {
+    backgroundColor: bgColor,
+    borderColor: borderColor,
+    boxShadow: boxShadow,
+    minHeight: activeStyle.value.taskMinHeight > 40 ? activeStyle.value.taskMinHeight + 'px' : 'auto',
+    maxWidth: activeStyle.value.taskMaxWidth > 0 ? activeStyle.value.taskMaxWidth + 'px' : 'none',
+    width: activeStyle.value.taskMaxWidth > 0 ? '100%' : 'auto',
+    margin: activeStyle.value.taskMaxWidth > 0 ? '0 auto' : '',
+    justifyContent: activeStyle.value.taskVerticalAlign === 'center' ? 'center' : 
+                    activeStyle.value.taskVerticalAlign === 'bottom' ? 'flex-end' : 'flex-start',
+    padding: `${activeStyle.value.taskPaddingY}px ${activeStyle.value.taskPaddingX}px`
+  };
+});
+
+/**
+ * Classes descritivas para o botão de Play/Stop
+ */
+const timerButtonClasses = computed(() => {
+  if (taskColors.value.color) {
+    // Se a tarefa tem uma cor customizada, apenas aplicamos o brilho no hover
+    return 'hover:brightness-110';
+  }
+  
+  if (props.task.isRunning) {
+    // Estado ativo rodando (Vermelho alerta)
+    return 'bg-red-500/10 text-red-500 dark:text-red-400 border-red-500/20 hover:bg-red-500/20';
+  }
+  
+  // Estado padrão parado (Azul/Índigo calmante)
+  return 'bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20';
+});
 </script>
 
 <template>
@@ -154,22 +233,7 @@ const handleSelect = (event) => {
     ]"
 
 
-    :style="{ 
-      backgroundColor: taskStore.selectedTask?.id === task.id 
-        ? (settings.normalizedCardOpacity < 1.0 ? (taskColors.color ? hexToRgba(taskColors.color, 0.15) : 'rgba(99, 102, 241, 0.15)') : hexToRgba(taskColors.bgColor, settings.normalizedCardOpacity)) 
-        : hexToRgba(taskColors.bgColor, settings.normalizedCardOpacity),
-      borderColor: taskStore.selectedTask?.id === task.id && taskColors.color 
-        ? taskColors.color 
-        : (task.isRunning && taskColors.color ? taskColors.color : ''),
-      boxShadow: taskStore.selectedTask?.id === task.id && taskColors.color 
-        ? `0 0 0 2px ${taskColors.color}80` 
-        : (task.isRunning && taskColors.color ? `0 0 15px ${taskColors.color}33` : ''),
-      minHeight: activeStyle.taskMinHeight > 40 ? activeStyle.taskMinHeight + 'px' : 'auto',
-      maxWidth: activeStyle.taskMaxWidth > 0 ? activeStyle.taskMaxWidth + 'px' : 'none',
-      width: activeStyle.taskMaxWidth > 0 ? '100%' : 'auto',
-      margin: activeStyle.taskMaxWidth > 0 ? '0 auto' : '',
-      padding: activeStyle.cardPadding ? activeStyle.cardPadding + 'px' : ''
-    }"
+    :style="cardDynamicStyles"
     @click.stop="handleSelect($event)"
     @contextmenu.prevent="handleSelect($event)"
   >
@@ -229,11 +293,7 @@ const handleSelect = (event) => {
           <button 
             v-if="!task.completed"
             class="transition-all flex items-center justify-center border rounded-xl" 
-            :class="[
-              taskColors.color 
-                ? 'hover:brightness-110' 
-                : (task.isRunning ? 'bg-red-500/10 text-red-500 dark:text-red-400 border-red-500/20 hover:bg-red-500/20' : 'bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20')
-            ]"
+            :class="timerButtonClasses"
             :style="{
               width: (activeStyle.taskTimerSize * 1.8) + 'px',
               height: (activeStyle.taskTimerSize * 1.8) + 'px',
@@ -248,18 +308,7 @@ const handleSelect = (event) => {
             <Play v-else :size="activeStyle.taskTimerSize - 1" />
           </button>
 
-          <!-- NEW: Priority Icon -->
-          <div 
-            class="flex items-center justify-center rounded-lg border transition-all"
-            :class="priorityConfig.class"
-            :style="{
-              width: (activeStyle.taskTimerSize * 1.4) + 'px',
-              height: (activeStyle.taskTimerSize * 1.4) + 'px'
-            }"
-            :data-tip="`Prioridade ${task.priority || 'Normal'}`"
-          >
-            <component :is="priorityConfig.icon" :size="activeStyle.taskTimerSize - 3" />
-          </div>
+
 
           <!-- 2. Menu Trigger Icon -->
           <button 

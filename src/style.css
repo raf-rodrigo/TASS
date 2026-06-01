@@ -194,7 +194,7 @@
 
   /* --- ARQUITETURA SINGLETON: TOOLTIP GLOBAL --- */
   .tass-global-tooltip {
-    @apply pointer-events-none fixed opacity-0 transition-opacity duration-200 z-[99999] px-3 py-1.5 bg-slate-900/95 dark:bg-slate-800/95 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider rounded-xl border border-white/10 shadow-2xl whitespace-nowrap;
+    @apply pointer-events-none fixed opacity-0 transition-opacity duration-300 z-[99999] px-3 py-2 bg-slate-900 dark:bg-slate-700 text-white text-sm font-medium rounded-lg shadow-sm max-w-[300px] whitespace-pre-wrap text-left;
     transform: translate(-50%, -100%);
     will-change: transform, opacity;
   }
@@ -206,7 +206,17 @@
   /* Setinha da Singleton */
   .tass-global-tooltip::after {
     content: '';
-    @apply absolute left-1/2 -translate-x-1/2 top-full border-[6px] border-transparent border-t-slate-900/95 dark:border-t-slate-800/95;
+    @apply absolute left-1/2 -translate-x-1/2 top-full border-[6px] border-transparent border-t-slate-900 dark:border-t-slate-700;
+  }
+
+  /* Modificador para quando o tooltip não couber em cima e precisar descer */
+  .tass-global-tooltip.tooltip-bottom {
+    transform: translate(-50%, 0);
+  }
+  .tass-global-tooltip.tooltip-bottom::after {
+    top: auto;
+    bottom: 100%;
+    @apply border-t-transparent dark:border-t-transparent border-b-slate-900 dark:border-b-slate-700;
   }
 
   .terminal-text { font-family: 'JetBrains Mono', monospace; }

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch, toRef, nextTick } from 'vue';
+import { ref, onMounted, watch, toRef, nextTick, computed } from 'vue';
 import { X } from 'lucide-vue-next';
 import { useNoteStore } from '../stores/noteStore';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -81,10 +81,21 @@ const close = () => {
 };
 
 const handleHandleClick = () => {
-  if (!notesMoved.value) {
+  if (!isResizingLocal.value) {
     emit('toggle');
   }
 };
+
+/**
+ * Define se o painel está oculto (translate) ou visível,
+ * baseado no lado em que o painel está fixado (esquerda ou direita).
+ */
+const panelSlideClass = computed(() => {
+  if (props.isOpen) {
+    return 'translate-x-0';
+  }
+  return settings.notesSide === 'right' ? 'translate-x-full' : '-translate-x-full';
+});
 </script>
 
 <template>
@@ -110,7 +121,7 @@ const handleHandleClick = () => {
     :class="[
       isResizingLocal ? '' : 'transition-all duration-500 ease-in-out',
       settings.notesSide === 'right' ? 'right-0' : 'left-0',
-      isOpen ? 'translate-x-0' : (settings.notesSide === 'right' ? 'translate-x-full' : '-translate-x-full')
+      panelSlideClass
     ]"
     :style="{ 
       width: settings.notesWidth + 'px',

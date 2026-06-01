@@ -29,6 +29,20 @@ const menuRef = ref(null);
 
 const isFloating = computed(() => settings.contextMenuStyle === 'floating');
 
+/**
+ * Classes descritivas de posicionamento do menu de contexto.
+ * Depende de ser flutuante ou estilo Dock (e se a Dock empilha ou substitui a barra inferior).
+ */
+const contextMenuPositionClasses = computed(() => {
+  if (isFloating.value) {
+    return ['max-w-fit'];
+  }
+  
+  // Modo Dock Clássico
+  const bottomPosition = settings.contextMenuMode === 'stack' ? 'bottom-24' : 'bottom-6';
+  return [bottomPosition, 'left-1/2', '-translate-x-1/2', 'max-w-[95%]', 'md:max-w-fit'];
+});
+
 const handleResetTime = async () => {
   const confirmed = await notificationService.confirm(
     'Zerar Tempo',
@@ -124,9 +138,7 @@ onUnmounted(() => {
   <div 
     ref="menuRef"
     class="fixed z-[1000] w-full px-2 pointer-events-none transition-all duration-300"
-    :class="[
-      isFloating ? 'max-w-fit' : (settings.contextMenuMode === 'stack' ? 'bottom-24' : 'bottom-6') + ' left-1/2 -translate-x-1/2 max-w-[95%] md:max-w-fit'
-    ]"
+    :class="contextMenuPositionClasses"
     :style="isFloating ? menuStyle : {}"
   >
     <!-- DESIGN 1: FLUTUANTE (ELEGANTE/VERTICAL) -->
