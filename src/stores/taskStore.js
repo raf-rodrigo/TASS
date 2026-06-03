@@ -171,9 +171,14 @@ export const useTaskStore = defineStore('task', () => {
         }
       });
       await Promise.all(updates);
-      delete taskToRestore.id;
-      const id = await db.tasks.add(taskToRestore);
-      taskToRestore.id = id;
+      
+      // Sanitiza a tarefa para remover Proxies do Vue antes de salvar no IndexedDB
+      const cleanTask = JSON.parse(JSON.stringify(taskToRestore));
+      delete cleanTask.id;
+      
+      const newId = await db.tasks.add(cleanTask);
+      taskToRestore.id = newId;
+      
       tasks.value.push(taskToRestore);
       tasks.value.sort((a, b) => a.position - b.position);
       lastDeletedTask.value = null;

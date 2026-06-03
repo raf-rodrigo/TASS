@@ -3,7 +3,7 @@ import { ref, watch, onMounted, computed } from 'vue';
 import { 
   Download, Upload, Globe, Palette, Cloud, Loader2, LogOut, LogIn, Trash2,
   ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles, Bug, MousePointer2, Layout, Layers, Maximize,
-  RefreshCw, Play, CheckCircle2, AlertTriangle, Terminal, ArrowRight, History
+  RefreshCw, Play, CheckCircle2, AlertTriangle, Terminal, ArrowRight, History, Info, Github, MessageCircle, Code2, Coffee, Copy
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
@@ -19,6 +19,7 @@ import '@vuepic/vue-datepicker/dist/main.css';
 import AppInput from './base/AppInput.vue';
 import AppSelect from './base/AppSelect.vue';
 import AppRadio from './base/AppRadio.vue';
+import QrcodeVue from 'qrcode.vue';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -38,6 +39,18 @@ const isGoogleAuthenticated = ref(googleDriveService.isAuthenticated());
 const googleUser = ref(googleDriveService.getProfile());
 const googleBackups = ref([]);
 const showGoogleRestoreList = ref(false);
+
+const showPix = ref(false);
+const pixKey = '8990fa68-8d2b-45e9-a588-531c620845d0';
+
+const copyPixKey = async () => {
+  try {
+    await navigator.clipboard.writeText(pixKey);
+    notificationService.toast('Chave PIX copiada!', 'success');
+  } catch (err) {
+    notificationService.toast('Erro ao copiar chave PIX.', 'error');
+  }
+};
 
 onMounted(() => {
   // Inicializa o serviço do Google com um callback para atualizar o estado de autenticação
@@ -66,6 +79,7 @@ const tabs = [
   { id: 'health', label: 'Saúde e Bem-estar', icon: Activity, color: 'text-indigo-500', desc: 'Lembretes inteligentes para manter sua saúde.' },
   { id: 'system', label: 'Sistema e Interface', icon: Monitor, color: 'text-indigo-500', desc: 'Configurações globais de comportamento.' },
   { id: 'security', label: 'Dados e Segurança', icon: ShieldCheck, color: 'text-indigo-500', desc: 'Gerencie backups e o banco de dados local.' },
+  { id: 'about', label: 'Sobre o TASS', icon: Info, color: 'text-indigo-500', desc: 'Informações, desenvolvedor e links.' },
 ];
 
 const activeTabObj = computed(() => tabs.find(t => t.id === activeTab.value) || tabs[0]);
@@ -552,6 +566,62 @@ const handleResetSystem = async () => {
                 </div>
                 <div class="glass-section p-6 bg-red-500/5 dark:bg-red-500/10 border-red-500/20 space-y-4"><div class="flex items-center gap-3 mb-2"><Activity class="w-5 h-5 text-red-500" /><h4 class="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-tight">Zona de Perigo</h4></div><p class="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4">Deseja limpar tudo e começar do zero? Esta ação removerá todas as tarefas e sprints do seu banco de dados local.</p><button @click="handleResetSystem" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 active:scale-95">Zerar Banco de Dados</button></div>
               </div>
+              
+              <div v-else-if="activeTab === 'about'" :key="'about'" class="space-y-8">
+                <div class="glass-section p-8 space-y-8 text-center flex flex-col items-center justify-center relative overflow-hidden">
+                  <div class="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                    <Code2 class="w-32 h-32 text-indigo-500" />
+                  </div>
+                  
+                  <div class="relative z-10 space-y-4">
+                    <h1 class="text-4xl leading-none bg-gradient-to-r from-[#00C4CC] to-[#7D2AE8] bg-clip-text text-transparent pb-2" style="font-family: 'Satisfy', cursive;">
+                      Tass
+                    </h1>
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-[0.2em]">Task & Agile System Setup</p>
+                    <div class="flex items-center justify-center gap-2 mt-2">
+                      <span class="px-2 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-md text-[10px] font-black uppercase tracking-widest border border-indigo-500/20">Versão 1.0.0</span>
+                    </div>
+                  </div>
+
+                  <div class="relative z-10 max-w-md mx-auto space-y-6 pt-6 border-t border-app-border-light">
+                    <div class="space-y-2">
+                      <p class="text-sm font-bold text-slate-600 dark:text-slate-300">Desenvolvido por</p>
+                      <p class="text-lg font-black text-indigo-600 dark:text-indigo-400">Sérgio Moreira</p>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                      <a href="https://github.com/ssergio100/TASS" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light shadow-sm">
+                        <Github class="w-4 h-4" />
+                        GitHub
+                      </a>
+                      
+                      <button @click="showPix = true" class="flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-500 text-white hover:bg-amber-600 rounded-xl text-xs font-bold transition-all shadow-lg shadow-amber-500/20">
+                        <Coffee class="w-4 h-4" />
+                        Buy me a coffee
+                      </button>
+
+                      <a href="https://wa.me/5511991386328?text=Olá!%20Gostaria%20de%20falar%20com%20você%20sobre%20o%20projeto%20TASS." target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-emerald-500/20 shadow-sm">
+                        <MessageCircle class="w-4 h-4" />
+                        WhatsApp
+                      </a>
+                    </div>
+
+
+                  </div>
+                  
+                  <div class="relative z-10 pt-8 mt-4 border-t border-app-border-light w-full">
+                    <p class="text-[10px] text-slate-500 leading-relaxed font-medium">
+                      O TASS é um sistema open-source de gestão de tarefas e produtividade.<br>
+                      De desenvolvedor para desenvolvedor. Para ajudar e não microgerenciar.<br>
+                      Distribuído sob a licença MIT. Copyright &copy; 2026.
+                    </p>
+                    <div class="flex justify-center gap-4 mt-3">
+                      <router-link to="/privacy" @click="uiStore.showSettings = false" class="text-[10px] text-indigo-500 hover:underline font-bold transition-colors">Política de Privacidade</router-link>
+                      <router-link to="/terms" @click="uiStore.showSettings = false" class="text-[10px] text-indigo-500 hover:underline font-bold transition-colors">Termos de Uso</router-link>
+                    </div>
+                  </div>
+                </div>
+              </div>
       </transition>
 
     <template #footer>
@@ -559,6 +629,32 @@ const handleResetSystem = async () => {
       <button type="button" @click="handleSave" class="btn btn-primary px-8 py-2 border-none shadow-none text-xs font-black uppercase tracking-widest">Salvar</button>
     </template>
   </BaseModal>
+
+  <teleport to="body">
+    <BaseModal 
+      v-if="showPix"
+      title="Apoiar o Projeto"
+      subtitle="Escaneie o QR Code ou copie a chave PIX"
+      :icon="Coffee"
+      iconBgColor="#f59e0b"
+      maxWidth="max-w-md"
+      :showClose="true"
+      @close="showPix = false"
+    >
+      <div class="flex flex-col items-center gap-4 py-2">
+        <div class="p-4 bg-white rounded-2xl shadow-sm border border-slate-200">
+          <QrcodeVue :value="pixKey" :size="180" level="M" />
+        </div>
+        <div class="text-center w-full mt-2">
+          <p class="text-[11px] text-slate-500 font-mono bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 px-4 py-3 rounded-xl select-all break-all">{{ pixKey }}</p>
+        </div>
+        <button @click="copyPixKey" class="flex items-center justify-center gap-2 px-6 py-3 bg-amber-500 text-white hover:bg-amber-600 rounded-xl text-xs font-bold transition-all shadow-lg shadow-amber-500/20 w-full mt-2">
+          <Copy class="w-4 h-4" />
+          Copiar Chave PIX
+        </button>
+      </div>
+    </BaseModal>
+  </teleport>
 </template>
 
 <style scoped>

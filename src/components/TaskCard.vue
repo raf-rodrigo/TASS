@@ -270,8 +270,7 @@ const timerButtonClasses = computed(() => {
 
 
     :style="cardDynamicStyles"
-    @click.stop="handleSelect($event)"
-    @contextmenu.prevent="handleSelect($event)"
+    @contextmenu.prevent.stop="handleSelect($event)"
   >
 
     <div 

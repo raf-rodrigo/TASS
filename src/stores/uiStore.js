@@ -20,6 +20,11 @@ export const useUIStore = defineStore('ui', () => {
   const settingsInitialTab = ref(null);
   const interfaceInitialTab = ref(null);
   const sprintInitialShowAddForm = ref(false);
+  const showGlobalDock = ref(true);
+  
+  // Workspace Context Menu
+  const showWorkspaceContextMenu = ref(false);
+  const workspaceContextMenuPosition = ref({ x: 0, y: 0 });
 
   // Actions
   const openTaskModal = (task = null) => {
@@ -77,7 +82,8 @@ export const useUIStore = defineStore('ui', () => {
   return {
     showWelcome, showTaskModal, showSettings, showGitRebuilder,
     showSprints, showInterfaceMenu, showTaskStyleBuilder, showNotes,
-    showRadio, showTimeAdjustment,
+    showRadio, showTimeAdjustment, showGlobalDock,
+    showWorkspaceContextMenu, workspaceContextMenuPosition,
     taskToEdit, taskForTimeAdjustment, settingsInitialTab,
     interfaceInitialTab, sprintInitialShowAddForm,
     openTaskModal, closeTaskModal,

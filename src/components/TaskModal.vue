@@ -268,6 +268,13 @@ const submitTask = () => {
             :style="previewStyle"
           />
 
+          <AppInput
+            v-model="description"
+            label="Descrição"
+            placeholder="O que você precisa fazer?"
+            class="font-medium"
+          />
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="relative flex-1">
               <label class="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">
@@ -326,13 +333,6 @@ const submitTask = () => {
                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Prévia de Cores</span>
             </div>
           </div>
-
-          <AppInput
-            v-model="description"
-            label="Descrição"
-            placeholder="O que você precisa fazer?"
-            class="font-medium"
-          />
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>

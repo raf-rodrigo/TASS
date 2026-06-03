@@ -15,7 +15,7 @@ export const useNotificationStore = defineStore('notification', () => {
       title: notification.title || 'Notificação',
       message: notification.message || '',
       type: notification.type || 'success', // success, error, warning, info
-      duration: notification.duration || 4000
+      duration: notification.duration || 500
     };
 
     notifications.value.push(newNotification);

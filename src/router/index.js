@@ -11,6 +11,16 @@ const routes = [
     path: '/components',
     name: 'ComponentSuite',
     component: () => import('../views/ComponentSuite.vue')
+  },
+  {
+    path: '/privacy',
+    name: 'Privacy',
+    component: () => import('../views/Privacy.vue')
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: () => import('../views/Terms.vue')
   }
 ];
 

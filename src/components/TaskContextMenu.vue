@@ -137,80 +137,104 @@ onUnmounted(() => {
     :class="contextMenuPositionClasses"
     :style="isFloating ? menuStyle : {}"
   >
-    <!-- DESIGN 1: FLUTUANTE (ELEGANTE/VERTICAL) -->
+    <!-- DESIGN 1: FLUTUANTE (ESTILO WINDOWS/LISTA) -->
     <div 
       v-if="isFloating"
-      class="glass-panel !p-2 flex flex-col gap-2 shadow-2xl border-indigo-500/30 ring-1 ring-black/10 pointer-events-auto min-w-[200px] animate-scaleIn"
+      class="glass-panel !py-2 !px-1.5 flex flex-col shadow-2xl border-indigo-500/30 ring-1 ring-black/10 pointer-events-auto min-w-[240px] animate-scaleIn"
       @click.stop
       :style="{ 
-        backgroundColor: settings.theme === 'dark' ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.92)',
+        backgroundColor: `rgba(var(--app-bg-raw), var(--app-menu-opacity))`,
         borderRadius: 'var(--app-card-radius)'
       }"
     >
-      <!-- Linha 1: Git, Merge, Observações e Link -->
-      <div class="grid grid-cols-5 gap-1.5 p-1">
-        <button @click="handleGitlabAction" :disabled="isCreatingBranch" class="floating-btn" :class="{ 'btn-active-purple': task.branchUrl }" data-tip="GitLab Branch">
-          <GitBranch v-if="!isCreatingBranch" class="w-4 h-4" />
-          <div v-else class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
+      <div class="flex flex-col gap-0.5">
+        <button @click="uiStore.openTaskModal(task); emit('close')" class="context-menu-item text-indigo-500">
+          <Pencil class="w-4 h-4" /> 
+          <span>Editar Tarefa</span>
         </button>
-        <button @click="handleCloneAction" class="floating-btn" data-tip="Clonar">
-          <Copy class="w-4 h-4" />
+        <button @click="taskStore.toggleTaskCompletion(task); emit('close')" class="context-menu-item" :class="task.completed ? 'text-blue-500' : 'text-emerald-500'">
+          <RotateCcw v-if="task.completed" class="w-4 h-4" />
+          <CheckCircle v-else class="w-4 h-4" />
+          <span>{{ task.completed ? 'Reabrir Tarefa' : 'Concluir Tarefa' }}</span>
         </button>
+      </div>
+
+      <hr class="border-t border-app-border-light my-1.5 mx-1" />
+
+      <div class="flex flex-col gap-0.5">
         <button 
           @click="handleAction('moreInfo', 'Observações', 'text')" 
           @contextmenu.prevent="handleEditAction('moreInfo', 'Observações', 'text')"
-          class="floating-btn" :class="{ 'btn-active-amber': task.moreInfo }" 
-          data-tip="Observações (Dir. para editar)"
+          class="context-menu-item" :class="{ 'active-item-amber': task.moreInfo }"
         >
           <MessageSquare class="w-4 h-4" />
+          <span>Observações</span>
         </button>
         <button 
           @click="handleAction('dbScripts', 'Scripts SQL', 'text')" 
           @contextmenu.prevent="handleEditAction('dbScripts', 'Scripts SQL', 'text')"
-          class="floating-btn" :class="{ 'btn-active-purple': task.dbScripts }" 
-          data-tip="Scripts SQL (Dir. para editar)"
+          class="context-menu-item" :class="{ 'active-item-purple': task.dbScripts }"
         >
           <Database class="w-4 h-4" />
+          <span>Scripts SQL</span>
         </button>
         <button 
           @click="handleAction('taskUrl', 'Link', 'url')" 
           @contextmenu.prevent="handleEditAction('taskUrl', 'Link da Tarefa', 'url')"
-          class="floating-btn" :class="{ 'btn-active-indigo': task.taskUrl }" 
-          data-tip="Link (Dir. para editar)"
+          class="context-menu-item" :class="{ 'active-item-indigo': task.taskUrl }"
         >
           <ExternalLink class="w-4 h-4" />
+          <span>Link da Tarefa</span>
         </button>
       </div>
 
-      <!-- Linha 2: Ambientes -->
-      <div class="flex items-center gap-1.5 px-1 py-1.5 border-y border-app-border-light">
-        <button 
-          @click="handleAction('prodUrl', 'PRD', 'url')" 
-          @contextmenu.prevent="handleEditAction('prodUrl', 'PRD', 'url')"
-          class="env-tag-floating flex-1" :class="{ 'env-active-prd': task.prodUrl }"
-        >PRD</button>
-        <button 
-          @click="handleAction('homologUrl', 'HML', 'url')" 
-          @contextmenu.prevent="handleEditAction('homologUrl', 'HML', 'url')"
-          class="env-tag-floating flex-1" :class="{ 'env-active-hml': task.homologUrl }"
-        >HML</button>
-        <button 
-          @click="handleAction('devUrl', 'DEV', 'url')" 
-          @contextmenu.prevent="handleEditAction('devUrl', 'DEV', 'url')"
-          class="env-tag-floating flex-1" :class="{ 'env-active-dev': task.devUrl }"
-        >DEV</button>
+      <hr class="border-t border-app-border-light my-1.5 mx-1" />
+
+      <div class="flex flex-col gap-0.5">
+        <div class="px-2 py-1 flex items-center justify-between">
+          <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Ambientes</span>
+          <div class="flex items-center gap-1">
+            <button @click="handleAction('prodUrl', 'PRD', 'url')" @contextmenu.prevent="handleEditAction('prodUrl', 'PRD', 'url')" class="env-tag-sm" :class="{ 'env-active-prd': task.prodUrl }">PRD</button>
+            <button @click="handleAction('homologUrl', 'HML', 'url')" @contextmenu.prevent="handleEditAction('homologUrl', 'HML', 'url')" class="env-tag-sm" :class="{ 'env-active-hml': task.homologUrl }">HML</button>
+            <button @click="handleAction('devUrl', 'DEV', 'url')" @contextmenu.prevent="handleEditAction('devUrl', 'DEV', 'url')" class="env-tag-sm" :class="{ 'env-active-dev': task.devUrl }">DEV</button>
+          </div>
+        </div>
       </div>
 
-      <!-- Linha 3: Gestão -->
-      <div class="grid grid-cols-5 gap-1.5 p-1">
-        <button @click="uiStore.openTimeAdjustment(task); emit('close')" class="floating-btn text-blue-500 hover:bg-blue-500/10" data-tip="Ajustar Tempo"><Clock class="w-4 h-4" /></button>
-        <button @click="handleResetTime" class="floating-btn text-amber-500 hover:bg-amber-500/10" data-tip="Zerar"><TimerReset class="w-4 h-4" /></button>
-        <button @click="uiStore.openTaskModal(task); emit('close')" class="floating-btn text-indigo-500 hover:bg-indigo-500/10" data-tip="Editar"><Pencil class="w-4 h-4" /></button>
-        <button @click="taskStore.toggleTaskCompletion(task); emit('close')" class="floating-btn" :class="task.completed ? 'text-blue-500 hover:bg-blue-500/10' : 'text-emerald-500 hover:bg-emerald-500/10'" data-tip="Concluir">
-          <RotateCcw v-if="task.completed" class="w-4 h-4" />
-          <CheckCircle v-else class="w-4 h-4" />
+      <hr class="border-t border-app-border-light my-1.5 mx-1" />
+
+      <div class="flex flex-col gap-0.5">
+        <button @click="handleGitlabAction" :disabled="isCreatingBranch" class="context-menu-item" :class="{ 'active-item-purple': task.branchUrl }">
+          <GitBranch v-if="!isCreatingBranch" class="w-4 h-4" />
+          <div v-else class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
+          <span>{{ task.branchUrl ? 'Ver Branch GitLab' : 'Criar Branch Automática' }}</span>
         </button>
-        <button @click="taskStore.deleteTask(task.id); emit('close')" class="floating-btn text-red-500 hover:bg-red-500/10" data-tip="Excluir"><Trash2 class="w-4 h-4" /></button>
+        <button @click="handleCloneAction" class="context-menu-item text-slate-500">
+          <Copy class="w-4 h-4" />
+          <span>Clonar Tarefa</span>
+        </button>
+      </div>
+
+      <hr class="border-t border-app-border-light my-1.5 mx-1" />
+
+      <div class="flex flex-col gap-0.5">
+        <button @click="uiStore.openTimeAdjustment(task); emit('close')" class="context-menu-item text-blue-500">
+          <Clock class="w-4 h-4" />
+          <span>Ajustar Tempo</span>
+        </button>
+        <button @click="handleResetTime" class="context-menu-item text-amber-500">
+          <TimerReset class="w-4 h-4" />
+          <span>Zerar Tempo</span>
+        </button>
+      </div>
+
+      <hr class="border-t border-app-border-light my-1.5 mx-1" />
+
+      <div class="flex flex-col gap-0.5">
+        <button @click="taskStore.deleteTask(task.id); emit('close')" class="context-menu-item text-red-500 hover:!bg-red-500/10">
+          <Trash2 class="w-4 h-4" />
+          <span>Excluir Permanentemente</span>
+        </button>
       </div>
     </div>
 
@@ -282,6 +306,18 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.context-menu-item {
+  @apply w-full px-3 py-2 flex items-center gap-3 text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors rounded-[8px] active:scale-[0.98] cursor-pointer;
+}
+
+.env-tag-sm {
+  @apply px-1.5 py-0.5 text-[9px] font-black tracking-tighter transition-all active:scale-95 bg-slate-100 dark:bg-white/5 text-slate-400 rounded border border-transparent text-center cursor-pointer hover:bg-slate-200 dark:hover:bg-white/10;
+}
+
+.active-item-purple { @apply text-purple-600 dark:text-purple-400 bg-purple-500/10 hover:bg-purple-500/20 !important; }
+.active-item-amber { @apply text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 !important; }
+.active-item-indigo { @apply text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 !important; }
+
 .floating-btn {
   @apply w-9 h-9 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-all active:scale-90 rounded-xl border border-transparent;
 }

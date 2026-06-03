@@ -12,6 +12,7 @@ import WellnessToast from './components/WellnessToast.vue';
 import NotificationContainer from './components/NotificationContainer.vue';
 import GlobalModal from './components/GlobalModal.vue';
 import TaskContextMenu from './components/TaskContextMenu.vue';
+import WorkspaceContextMenu from './components/WorkspaceContextMenu.vue';
 import GlobalDock from './components/GlobalDock.vue';
 import RadioPlayer from './components/RadioPlayer.vue';
 import WelcomeModal from './components/WelcomeModal.vue';
@@ -50,7 +51,6 @@ const router = useRouter();
 const route = useRoute();
 
 // Modal initial states for Welcome Modal redirects
-const settingsInitialTab = ref(null);
 const interfaceInitialTab = ref(null);
 const sprintInitialShowAddForm = ref(false);
 // Methods
@@ -94,8 +94,7 @@ const handleToggleRadio = () => {
 
 // Dock openers that reset welcome modal initial selections
 const openSettingsFromDock = () => {
-  settingsInitialTab.value = null;
-  uiStore.showSettings = true;
+  uiStore.openSettings(null);
 };
 
 const openInterfaceFromDock = () => {
@@ -122,8 +121,7 @@ const handleWelcomeShortcut = async (action) => {
   } else if (action === 'radio') {
     uiStore.showRadio = true;
   } else if (action === 'gitlab') {
-    settingsInitialTab.value = 'gitlab';
-    uiStore.showSettings = true;
+    uiStore.openSettings('gitlab');
   } else if (action === 'example-cards') {
     const laserLemon = taskStyleStore.styles.find(s => s.name === 'Laser Lemon' || s.id === 'style_laser_lemon' || s.id === 'neon-4');
     const matrixGreen = taskStyleStore.styles.find(s => s.name === 'Matrix Green' || s.id === 'neon-2');
@@ -170,6 +168,8 @@ const handleWelcomeShortcut = async (action) => {
     uiStore.showInterfaceMenu = true;
   } else if (action === 'breeze') {
     handleOpenGitRebuilder();
+  } else if (action === 'about') {
+    uiStore.openSettings('about');
   }
 };
 
@@ -239,6 +239,19 @@ const handleDragStart = () => {
 
 const handleDragEnd = () => {
   isDraggingTask.value = false;
+};
+
+const handleWorkspaceContextMenu = (event) => {
+  // Capture click position
+  uiStore.workspaceContextMenuPosition = { x: event.clientX, y: event.clientY };
+  
+  // Fechar menu de task ativo, se houver
+  if (taskStore.selectedTask) taskStore.selectedTask = null;
+  
+  // Pequeno delay para remontagem limpa
+  setTimeout(() => {
+    uiStore.showWorkspaceContextMenu = true;
+  }, 10);
 };
 
 // Sincroniza estado de arraste com o body para evitar seleção de texto
@@ -317,6 +330,7 @@ onMounted(async () => {
     class="relative z-10 mx-auto w-full min-h-screen flex flex-col items-center overflow-x-hidden transition-all duration-300"
     :class="{ 'select-none': isDraggingTask }"
     :style="{ fontFamily: settings.fontFamily }"
+    @contextmenu.prevent="handleWorkspaceContextMenu"
   >
     <div 
       class="w-full flex flex-col items-center px-4 md:px-6 pt-2 pb-32"
@@ -336,6 +350,10 @@ onMounted(async () => {
             Tass
           </h1>
           <div class="w-1 h-6 md:h-8 bg-gradient-to-b from-[#00C4CC] to-[#7D2AE8] rounded-full shadow-[0_0_10px_rgba(0,196,204,0.2)]"></div>
+          <div class="flex flex-col text-right justify-center">
+            <span class="text-[8px] md:text-[9px] font-black text-slate-500/70 dark:text-slate-400/70 uppercase tracking-[0.2em] leading-none">Copyright &copy; 2026</span>
+            <span class="text-[9px] md:text-[10px] font-medium text-slate-600 dark:text-slate-300 italic mt-1 leading-none">Feito com ❤️</span>
+          </div>
         </div>
       </div>
 
@@ -372,6 +390,21 @@ onMounted(async () => {
         />
       </transition>
 
+      <!-- Menu de Contexto do Workspace -->
+      <transition 
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="opacity-0 scale-95"
+        enter-to-class="opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 scale-100"
+        leave-to-class="opacity-0 scale-95"
+      >
+        <WorkspaceContextMenu 
+          v-if="uiStore.showWorkspaceContextMenu"
+          @close="uiStore.showWorkspaceContextMenu = false"
+        />
+      </transition>
+
       <!-- Global Dock -->
       <transition 
         enter-active-class="transition duration-500 ease-out"
@@ -382,7 +415,7 @@ onMounted(async () => {
         leave-to-class="translate-y-20 opacity-0 scale-95"
       >
         <GlobalDock 
-          v-if="(!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating') && route.name !== 'ComponentSuite'"
+          v-if="uiStore.showGlobalDock && (!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating') && route.name !== 'ComponentSuite'"
           @add-task="uiStore.openTaskModal"
           @open-sprints="openSprintsFromDock"
           @open-notes="uiStore.showNotes = !uiStore.showNotes"
@@ -413,7 +446,7 @@ onMounted(async () => {
 
     <SettingsModal
       v-if="uiStore.showSettings"
-      :initialTab="settingsInitialTab"
+      :initialTab="uiStore.settingsInitialTab"
       @close="uiStore.showSettings = false"
       @open-interface="() => { uiStore.showSettings = false; openInterfaceFromDock(); }"
       @test-wellness="() => triggerWellness(true)"
@@ -457,7 +490,7 @@ onMounted(async () => {
     />
 
     <WelcomeModal
-      v-if="uiStore.showWelcome"
+      v-if="uiStore.showWelcome && route.name === 'Workspace'"
       @close="uiStore.showWelcome = false"
       @select-shortcut="handleWelcomeShortcut"
     />
