@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 export const useUIStore = defineStore('ui', () => {
   // Modal Visibility States
@@ -20,7 +20,12 @@ export const useUIStore = defineStore('ui', () => {
   const settingsInitialTab = ref(null);
   const interfaceInitialTab = ref(null);
   const sprintInitialShowAddForm = ref(false);
-  const showGlobalDock = ref(true);
+  const savedDockState = localStorage.getItem('tass_show_dock');
+  const showGlobalDock = ref(savedDockState !== null ? savedDockState === 'true' : true);
+  
+  watch(showGlobalDock, (val) => {
+    localStorage.setItem('tass_show_dock', val.toString());
+  });
   
   // Workspace Context Menu
   const showWorkspaceContextMenu = ref(false);

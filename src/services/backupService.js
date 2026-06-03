@@ -113,8 +113,13 @@ export const backupService = {
 
       // Importação sequencial e limpa
       if (data.tasks) {
+        const stoppedTasks = data.tasks.map(task => ({
+          ...task,
+          isRunning: false,
+          lastStartTime: null
+        }));
         await db.tasks.clear();
-        await db.tasks.bulkPut(data.tasks);
+        await db.tasks.bulkPut(stoppedTasks);
       }
       if (data.sprints) {
         await db.sprints.clear();

@@ -154,7 +154,7 @@ const handleClose = async () => {
       </div>
 
       <!-- Footer check and action -->
-      <div class="flex flex-col border-t border-white/5 pt-4 mt-2 gap-4">
+      <div class="flex flex-col border-t border-slate-200 dark:border-white/5 pt-4 mt-2 gap-4">
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
           <label class="flex items-center gap-3 cursor-pointer group select-none">
             <div class="relative inline-flex items-center">
@@ -163,9 +163,9 @@ const handleClose = async () => {
                 v-model="dontShowAgain" 
                 class="sr-only peer"
               />
-              <div class="w-11 h-6 bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-500 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+              <div class="w-11 h-6 bg-slate-300 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-500 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
             </div>
-            <span class="text-xs font-bold text-app-muted group-hover:text-white transition-colors">
+            <span class="text-xs font-bold text-app-muted group-hover:text-slate-700 dark:group-hover:text-white transition-colors">
               Não mostrar este guia ao iniciar o sistema
             </span>
           </label>
@@ -179,10 +179,10 @@ const handleClose = async () => {
           </button>
         </div>
         
-        <div class="flex items-center justify-center gap-4 pt-2 border-t border-white/5 w-full">
-          <router-link to="/privacy" @click="handleClose" class="text-[10px] text-white/40 hover:text-white hover:underline font-bold transition-colors">Política de Privacidade</router-link>
-          <span class="text-white/20 text-[10px]">•</span>
-          <router-link to="/terms" @click="handleClose" class="text-[10px] text-white/40 hover:text-white hover:underline font-bold transition-colors">Termos de Uso</router-link>
+        <div class="flex items-center justify-center gap-4 pt-2 border-t border-slate-200 dark:border-white/5 w-full">
+          <router-link to="/privacy" @click="handleClose" class="text-[10px] text-slate-400 dark:text-white/40 hover:text-indigo-500 dark:hover:text-white hover:underline font-bold transition-colors">Política de Privacidade</router-link>
+          <span class="text-slate-300 dark:text-white/20 text-[10px]">•</span>
+          <router-link to="/terms" @click="handleClose" class="text-[10px] text-slate-400 dark:text-white/40 hover:text-indigo-500 dark:hover:text-white hover:underline font-bold transition-colors">Termos de Uso</router-link>
         </div>
       </div>
     </div>
