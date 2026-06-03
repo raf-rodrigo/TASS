@@ -3,15 +3,16 @@ import { ref, computed } from 'vue';
 import { db } from '../db.js';
 import { notificationService } from '../services/notificationService';
 import { useSettingsStore } from './settingsStore';
-import { formatMsToHMS } from '../utils/time.js';
+import { useSprintStore } from './sprintStore';
+import { useTimerStore } from './timerStore';
 
 export const useTaskStore = defineStore('task', () => {
   const tasks = ref([]);
-  const sprints = ref([]);
   const statusFilter = ref('all');
   const isLoading = ref(false);
   const selectedTask = ref(null);
   const contextMenuPosition = ref({ x: 0, y: 0 });
+  const lastDeletedTask = ref(null);
 
   const filteredTasks = computed(() => {
     const settings = useSettingsStore();
@@ -47,31 +48,6 @@ export const useTaskStore = defineStore('task', () => {
     set: () => {}
   });
 
-  const activeTask = computed(() => tasks.value.find(t => t.isRunning));
-
-  const activeTaskTimeFormatted = computed(() => {
-    return activeTask.value ? formatMsToHMS(activeTask.value.totalTimeSpent) : '00:00:00';
-  });
-
-  const activeSprintName = computed(() => {
-    const settings = useSettingsStore();
-    if (settings.activeSprintId === 'all') return 'Todas as Sprints';
-    const sprint = sprints.value.find(s => s.id === parseInt(settings.activeSprintId));
-    if (!sprint) return 'Sprint...';
-    return `Sprint ${new Date(sprint.endDate).toLocaleDateString('pt-BR')}`;
-  });
-
-  const activeSprintTotalTime = computed(() => {
-    const settings = useSettingsStore();
-    let filtered = tasks.value;
-    if (settings.activeSprintId !== 'all') {
-      const id = parseInt(settings.activeSprintId);
-      filtered = filtered.filter(t => t.sprintId === id);
-    }
-    const totalMs = filtered.reduce((acc, t) => acc + (t.totalWorked || t.totalTimeSpent || 0), 0);
-    return formatMsToHMS(totalMs, true);
-  });
-
   const loadTasks = async () => {
     isLoading.value = true;
     try {
@@ -79,10 +55,6 @@ export const useTaskStore = defineStore('task', () => {
       
       const runningTask = dbTasks.find(t => t.isRunning);
       if (runningTask) {
-        // Se a tarefa estava rodando, ela continua rodando ao iniciar o sistema.
-        // No entanto, resetamos o lastStartTime para 'agora'.
-        // Isso garante que o tempo em que o PC esteve desligado NÃO seja somado,
-        // mas a tarefa retome sua contagem automaticamente a partir do momento atual.
         runningTask.lastStartTime = Date.now();
         await db.tasks.update(runningTask.id, { lastStartTime: runningTask.lastStartTime });
       }
@@ -93,14 +65,6 @@ export const useTaskStore = defineStore('task', () => {
       console.error("Failed to load tasks:", error);
     } finally {
       isLoading.value = false;
-    }
-  };
-
-  const loadSprints = async () => {
-    try {
-      sprints.value = await db.sprints.toArray();
-    } catch (error) {
-      console.error("Failed to load sprints:", error);
     }
   };
 
@@ -137,16 +101,28 @@ export const useTaskStore = defineStore('task', () => {
     }
   };
 
+  const toggleTaskCompletion = async (task) => {
+    try {
+      const newStatus = !task.completed;
+      if (newStatus && task.isRunning) {
+        const timerStore = useTimerStore();
+        await timerStore.toggleTimer(task);
+      }
+      await updateTask(task.id, { completed: newStatus });
+      notificationService.toast(newStatus ? 'Tarefa concluída!' : 'Tarefa reaberta!');
+    } catch (error) {
+      console.error("Failed to update task completion:", error);
+    }
+  };
+
   const updateTask = async (id, updates) => {
     try {
       await db.tasks.update(id, updates);
       const index = tasks.value.findIndex(t => t.id === id);
       if (index !== -1) {
-        // Substituímos o objeto inteiro para garantir reatividade total
         const updatedTask = { ...tasks.value[index], ...updates };
         tasks.value[index] = updatedTask;
         
-        // Sincroniza a tarefa selecionada se for a mesma que foi editada
         if (selectedTask.value && selectedTask.value.id === id) {
           selectedTask.value = updatedTask;
         }
@@ -156,8 +132,6 @@ export const useTaskStore = defineStore('task', () => {
       throw error;
     }
   };
-
-  const lastDeletedTask = ref(null);
 
   const deleteTask = async (id) => {
     try {
@@ -205,105 +179,18 @@ export const useTaskStore = defineStore('task', () => {
     }
   };
 
-  const toggleTimer = async (task) => {
-    if (task.completed) return;
-    const now = Date.now();
-    if (task.isRunning) {
-      task.isRunning = false;
-      if (task.lastStartTime) {
-        const diff = now - task.lastStartTime;
-        task.totalTimeSpent += diff;
-        task.totalWorked = (task.totalWorked || 0) + diff;
-      }
-      task.lastStartTime = null;
-      await updateTask(task.id, { 
-        isRunning: false, 
-        totalTimeSpent: task.totalTimeSpent, 
-        totalWorked: task.totalWorked,
-        lastStartTime: null 
-      });
-    } else {
-      const settings = useSettingsStore();
-      
-      const nowDate = new Date();
-      const currentDay = nowDate.getDay();
-      const currentTimeStr = nowDate.getHours().toString().padStart(2, '0') + ':' + 
-                             nowDate.getMinutes().toString().padStart(2, '0');
-      
-      const isWorkDay = settings.workDays.includes(currentDay);
-      let isWithinHours = false;
-      
-      if (settings.workStart <= settings.workEnd) {
-        isWithinHours = currentTimeStr >= settings.workStart && currentTimeStr < settings.workEnd;
-      } else {
-        isWithinHours = currentTimeStr >= settings.workStart || currentTimeStr < settings.workEnd;
-      }
-
-      if (!isWorkDay) {
-        notificationService.alert('Acesso Negado', 'Você não pode iniciar tarefas porque hoje não é um dia útil configurado na sua jornada.', 'warning');
-        return;
-      } else if (!isWithinHours) {
-        notificationService.alert('Acesso Negado', 'Você não pode iniciar tarefas fora do horário da sua jornada configurada.', 'warning');
-        return;
-      }
-
-      for (const t of tasks.value) {
-        if (t.isRunning && t.id !== task.id) {
-          t.isRunning = false;
-          if (t.lastStartTime) {
-            const diff = now - t.lastStartTime;
-            t.totalTimeSpent += diff;
-            t.totalWorked = (t.totalWorked || 0) + diff;
-          }
-          t.lastStartTime = null;
-          await db.tasks.update(t.id, { 
-            isRunning: false, 
-            totalTimeSpent: t.totalTimeSpent, 
-            totalWorked: t.totalWorked,
-            lastStartTime: null 
-          });
-        }
-      }
-      task.isRunning = true;
-      task.lastStartTime = now;
-      await updateTask(task.id, { isRunning: true, lastStartTime: now });
-    }
-  };
-
-  const resetTaskTime = async (id) => {
+  const cloneTask = async (taskToClone) => {
     try {
-      await updateTask(id, { 
-        totalTimeSpent: 0, 
-        lastStartTime: null,
-        isRunning: false 
-      });
-      notificationService.toast('Cronômetro da tarefa zerado!');
+      const { id, branchUrl, ...rest } = taskToClone;
+      const newTaskData = {
+        ...rest,
+        title: `${taskToClone.title} (Cópia)`
+      };
+      await addTask(newTaskData);
     } catch (error) {
-      console.error("Failed to reset task time:", error);
+      console.error("Failed to clone task:", error);
+      notificationService.toast('Erro ao clonar tarefa', 'error');
     }
-  };
-
-  const updateRunningTasks = () => {
-    const now = Date.now();
-    tasks.value.forEach(task => {
-      if (task.isRunning && task.lastStartTime) {
-        const diff = now - task.lastStartTime;
-        task.totalTimeSpent += diff;
-        task.totalWorked = (task.totalWorked || 0) + diff;
-        task.lastStartTime = now;
-      }
-    });
-  };
-
-  const autoSaveRunningTasks = async () => {
-    const promises = tasks.value
-      .filter(t => t.isRunning)
-      .map(t => db.tasks.update(t.id, { 
-        totalTimeSpent: t.totalTimeSpent, 
-        totalWorked: t.totalWorked,
-        lastStartTime: t.lastStartTime 
-      }));
-    await Promise.all(promises);
   };
 
   const migrateOrphanTasks = async (maxColumns) => {
@@ -323,9 +210,7 @@ export const useTaskStore = defineStore('task', () => {
     try {
       const updates = allTasksOrdered.map((task, index) => {
         const newPos = index + 1;
-        // Atualiza o objeto local sincronamente
         task.position = newPos;
-        // Retorna a promise de update do banco
         return db.tasks.update(task.id, { 
           position: newPos, 
           columnId: task.columnId 
@@ -347,9 +232,11 @@ export const useTaskStore = defineStore('task', () => {
       await db.notes.clear();
       
       tasks.value = [];
-      sprints.value = [];
       lastDeletedTask.value = null;
       selectedTask.value = null;
+      
+      const sprintStore = useSprintStore();
+      sprintStore.sprints = [];
       
       return true;
     } catch (error) {
@@ -358,34 +245,10 @@ export const useTaskStore = defineStore('task', () => {
     }
   };
 
-  const adjustTaskTime = async (taskId, newMs, field = 'totalTimeSpent') => {
-    try {
-      const task = tasks.value.find(t => t.id === taskId);
-      if (!task) return;
-
-      const updates = { [field]: newMs };
-      
-      // Se estivermos ajustando a sessão atual (totalTimeSpent), 
-      // também atualizamos proporcionalmente o total trabalhado (totalWorked)
-      if (field === 'totalTimeSpent') {
-        const diff = newMs - task.totalTimeSpent;
-        updates.totalWorked = (task.totalWorked || 0) + diff;
-      }
-
-      await updateTask(taskId, updates);
-      notificationService.toast('Tempo da tarefa ajustado!', 'success');
-    } catch (error) {
-      console.error("Failed to adjust task time:", error);
-      notificationService.toast('Erro ao ajustar tempo', 'error');
-    }
-  };
-
   return {
-    tasks, sprints, isLoading, selectedTask, activeTask,
-    statusFilter, filteredTasks, boardColumns,
-    loadTasks, loadSprints, addTask, updateTask, deleteTask, restoreTask, resetTaskTime,
-    lastDeletedTask, toggleTimer, updateRunningTasks, autoSaveRunningTasks,
-    migrateOrphanTasks, updateAllPositions, resetSystem, adjustTaskTime,
-    activeTaskTimeFormatted, activeSprintName, activeSprintTotalTime
+    tasks, isLoading, selectedTask, contextMenuPosition,
+    statusFilter, filteredTasks, boardColumns, lastDeletedTask,
+    loadTasks, addTask, updateTask, deleteTask, restoreTask, cloneTask,
+    toggleTaskCompletion, migrateOrphanTasks, updateAllPositions, resetSystem
   };
 });

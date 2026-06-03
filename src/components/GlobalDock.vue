@@ -6,6 +6,8 @@ import {
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
+import { useSprintStore } from '../stores/sprintStore';
+import { useTimerStore } from '../stores/timerStore';
 import { useRadioStore } from '../stores/radioStore';
 
 const emit = defineEmits([
@@ -14,6 +16,8 @@ const emit = defineEmits([
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
+const sprintStore = useSprintStore();
+const timerStore = useTimerStore();
 const radioStore = useRadioStore();
 
 const isExpanded = ref(false);
@@ -68,9 +72,9 @@ const dockRadius = computed(() => {
           <div 
             class="dock-item !bg-indigo-500/5 !border-indigo-500/20 px-3 py-2 flex items-center gap-2"
           >
-            <Clock class="w-4 h-4 text-indigo-600 dark:text-indigo-400" :class="{ 'animate-pulse': taskStore.activeTask }" />
+            <Clock class="w-4 h-4 text-indigo-600 dark:text-indigo-400" :class="{ 'animate-pulse': timerStore.activeTask }" />
             <span class="text-xs font-black font-mono text-indigo-600 dark:text-indigo-400">
-              {{ taskStore.activeSprintTotalTime }}
+              {{ sprintStore.activeSprintTotalTime }}
             </span>
           </div>
 

@@ -13,10 +13,21 @@ vi.mock('../../src/stores/settingsStore', () => ({
 
 vi.mock('../../src/stores/taskStore', () => ({
   useTaskStore: vi.fn(() => ({
-    activeTask: null,
-    activeSprintTotalTime: '10h 30m',
     lastDeletedTask: null,
-    statusFilter: 'all'
+    statusFilter: 'all',
+    tasks: []
+  }))
+}));
+
+vi.mock('../../src/stores/timerStore', () => ({
+  useTimerStore: vi.fn(() => ({
+    activeTask: null
+  }))
+}));
+
+vi.mock('../../src/stores/sprintStore', () => ({
+  useSprintStore: vi.fn(() => ({
+    activeSprintTotalTime: '10h 30m'
   }))
 }));
 

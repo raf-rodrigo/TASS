@@ -33,27 +33,19 @@ import { ClipboardList, Plus, Sun, Moon, Settings, Calendar, Maximize, RotateCcw
 
 import { useSettingsStore } from './stores/settingsStore';
 import { useTaskStore } from './stores/taskStore';
+import { useSprintStore } from './stores/sprintStore';
+import { useTimerStore } from './stores/timerStore';
 import { backupService } from './services/backupService';
 import { db } from './db.js';
 import { useTaskStyleStore } from './stores/taskStyleStore';
+import { useUIStore } from './stores/uiStore';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
+const sprintStore = useSprintStore();
+const timerStore = useTimerStore();
 const taskStyleStore = useTaskStyleStore();
-
-// UI State
-const showWelcome = ref(false);
-const showModal = ref(false);
-const showSettings = ref(false);
-const showGitRebuilder = ref(false);
-const showSprints = ref(false);
-const showInterfaceMenu = ref(false);
-const showTaskStyleBuilder = ref(false);
-const showNotes = ref(false);
-const showRadio = ref(false);
-const showTimeAdjustment = ref(false);
-const taskToEdit = ref(null);
-const taskForTimeAdjustment = ref(null);
+const uiStore = useUIStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -62,114 +54,82 @@ const settingsInitialTab = ref(null);
 const interfaceInitialTab = ref(null);
 const sprintInitialShowAddForm = ref(false);
 // Methods
-const openAddModal = () => {
-  taskToEdit.value = null;
-  showModal.value = true;
-};
-
-const openEditModal = (task) => {
-  taskToEdit.value = { ...task };
-  showModal.value = true;
-  taskStore.selectedTask = null;
-};
-
-const openTimeAdjustment = (task) => {
-  taskForTimeAdjustment.value = task;
-  showTimeAdjustment.value = true;
-};
 
 const { currentMessage, showMessage, triggerWellness } = useWellness(settings);
 
 useShortcuts({
   onToggleNotes: (val) => {
     if (val === false) {
-      showNotes.value = false;
-      showSettings.value = false;
-      showInterfaceMenu.value = false;
-      showModal.value = false;
-      showSprints.value = false;
-      showTaskStyleBuilder.value = false;
+      uiStore.showNotes = false;
+      uiStore.showSettings = false;
+      uiStore.showInterfaceMenu = false;
+      uiStore.showTaskModal = false;
+      uiStore.showSprints = false;
+      uiStore.showTaskStyleBuilder = false;
       taskStore.selectedTask = null;
     } else {
-      showNotes.value = !showNotes.value;
+      uiStore.showNotes = !uiStore.showNotes;
     }
   },
-  onOpenAddModal: openAddModal,
-  onOpenSettings: () => showSettings.value = true,
+  onOpenAddModal: () => uiStore.openTaskModal(),
+  onOpenSettings: () => uiStore.showSettings = true,
   onWellnessTest: () => triggerWellness(true),
-  isNotesOpen: () => showNotes.value
+  isNotesOpen: () => uiStore.showNotes
 });
 
-const { onMouseDown: handleNotesDrag, isDragging: isNotesDragging } = useNotesDrag(settings, showNotes, 'vertical');
+const { onMouseDown: handleNotesDrag, isDragging: isNotesDragging } = useNotesDrag(settings, computed(() => uiStore.showNotes), 'vertical');
 const { toggleTheme, applyTheme } = useTheme(settings);
-const { checkMonitoring } = useSystemMonitoring(settings, taskStore);
-useGlobalPulse(taskStore, checkMonitoring);
+const { checkMonitoring } = useSystemMonitoring(settings, timerStore);
+useGlobalPulse(timerStore, checkMonitoring);
 
 const handleToggleNotes = () => {
-  showNotes.value = !showNotes.value;
+  uiStore.showNotes = !uiStore.showNotes;
 };
 
-const handleSaveTask = async (taskData) => {
-  try {
-    await taskStore.updateTask(taskData.id, taskData);
-    showModal.value = false;
-    notificationService.toast('Tarefa atualizada!', 'success');
-  } catch (error) {
-    console.error("Failed to update task:", error);
-  }
-};
 
-const handleAddTask = async (taskData) => {
-  try {
-    await taskStore.addTask(taskData);
-    showModal.value = false;
-  } catch (error) {
-    console.error("Failed to add task:", error);
-  }
-};
 
 const handleToggleRadio = () => {
-  showRadio.value = !showRadio.value;
+  uiStore.showRadio = !uiStore.showRadio;
 };
 
 // Dock openers that reset welcome modal initial selections
 const openSettingsFromDock = () => {
   settingsInitialTab.value = null;
-  showSettings.value = true;
+  uiStore.showSettings = true;
 };
 
 const openInterfaceFromDock = () => {
   interfaceInitialTab.value = null;
-  showInterfaceMenu.value = true;
+  uiStore.showInterfaceMenu = true;
 };
 
 const openSprintsFromDock = () => {
   sprintInitialShowAddForm.value = false;
-  showSprints.value = true;
+  uiStore.showSprints = true;
 };
 
 // Handle welcome modal shortcut selection
 const handleWelcomeShortcut = (action) => {
-  showWelcome.value = false;
+  uiStore.showWelcome = false;
   if (action === 'wallpaper') {
     interfaceInitialTab.value = 'wallpapers';
-    showInterfaceMenu.value = true;
+    uiStore.showInterfaceMenu = true;
   } else if (action === 'task') {
-    openAddModal();
+    uiStore.openTaskModal();
   } else if (action === 'sprint') {
     sprintInitialShowAddForm.value = true;
-    showSprints.value = true;
+    uiStore.showSprints = true;
   } else if (action === 'radio') {
-    showRadio.value = true;
+    uiStore.showRadio = true;
   } else if (action === 'gitlab') {
     settingsInitialTab.value = 'gitlab';
-    showSettings.value = true;
+    uiStore.showSettings = true;
   }
 };
 
 const handleOpenGitRebuilder = () => {
-  showSettings.value = false;
-  showGitRebuilder.value = true;
+  uiStore.showSettings = false;
+  uiStore.showGitRebuilder = true;
 };
 
 const handleTestModal = async (type) => {
@@ -191,7 +151,7 @@ const toggleTaskCompletion = async (task) => {
   try {
     const newStatus = !task.completed;
     if (newStatus && task.isRunning) {
-      await taskStore.toggleTimer(task);
+      await timerStore.toggleTimer(task);
     }
     await taskStore.updateTask(task.id, { completed: newStatus });
     notificationService.toast(newStatus ? 'Tarefa concluída!' : 'Tarefa reaberta!');
@@ -271,7 +231,7 @@ onMounted(async () => {
   await taskStyleStore.loadStyles();
   applyTheme();
   await taskStore.loadTasks();
-  await taskStore.loadSprints();
+  await sprintStore.loadSprints();
 
   if (!settings.hideWelcomeModal) {
     showWelcome.value = true;
@@ -339,11 +299,11 @@ onMounted(async () => {
         <!-- Roteador Principal -->
         <router-view 
           :isDraggingTask="isDraggingTask"
-          @edit-task="openEditModal"
+          @edit-task="uiStore.openTaskModal"
           @toggle-completion="toggleTaskCompletion"
           @drag-start="handleDragStart"
           @drag-end="handleDragEnd"
-          @open-time-adjustment="openTimeAdjustment"
+          @open-time-adjustment="uiStore.openTimeAdjustment"
         />
       </main>
     </div>
@@ -363,10 +323,6 @@ onMounted(async () => {
           v-if="taskStore.selectedTask"
           :task="taskStore.selectedTask"
           @close="taskStore.selectedTask = null"
-          @edit="openEditModal(taskStore.selectedTask)"
-          @toggle-completion="() => { toggleTaskCompletion(taskStore.selectedTask); taskStore.selectedTask = null; }"
-          @delete="() => { taskStore.deleteTask(taskStore.selectedTask.id); taskStore.selectedTask = null; }"
-          @adjust-time="() => { openTimeAdjustment(taskStore.selectedTask); taskStore.selectedTask = null; }"
         />
       </transition>
 
@@ -381,9 +337,9 @@ onMounted(async () => {
       >
         <GlobalDock 
           v-if="(!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating') && route.name !== 'ComponentSuite'"
-          @add-task="openAddModal"
+          @add-task="uiStore.openTaskModal"
           @open-sprints="openSprintsFromDock"
-          @open-notes="showNotes = !showNotes"
+          @open-notes="uiStore.showNotes = !uiStore.showNotes"
           @open-interface="openInterfaceFromDock"
           @open-settings="openSettingsFromDock"
           @toggle-theme="toggleTheme"
@@ -395,66 +351,51 @@ onMounted(async () => {
 
     <!-- 4. Modal Layer -->
     <TaskModal 
-      v-if="showModal" 
-      :taskToEdit="taskToEdit"
-      @close="showModal = false" 
-      @add-task="handleAddTask" 
-      @save-task="handleSaveTask"
+      v-if="uiStore.showTaskModal" 
     />
 
     <TimeAdjustmentModal
-      v-if="showTimeAdjustment"
-      :key="taskForTimeAdjustment?.id"
-      :task="taskForTimeAdjustment"
-      @close="showTimeAdjustment = false"
+      v-if="uiStore.showTimeAdjustment"
+      :key="uiStore.taskForTimeAdjustment?.id"
+      :task="uiStore.taskForTimeAdjustment"
     />
 
     <GitRebuilder
-      v-if="showGitRebuilder"
-      @close="showGitRebuilder = false"
+      v-if="uiStore.showGitRebuilder"
+      @close="uiStore.showGitRebuilder = false"
     />
 
     <SettingsModal
-      v-if="showSettings"
+      v-if="uiStore.showSettings"
       :initialTab="settingsInitialTab"
-      @close="showSettings = false"
-      @open-interface="() => { showSettings = false; showInterfaceMenu = true; }"
-      @save="() => {}"
-      @test-wellness="triggerWellness(true)"
-      @test-modal="handleTestModal"
-      @export-tasks="handleExportTasks"
-      @import-tasks="handleImportTasks"
-      @export-system="handleExportSystem"
-      @import-system="handleImportSystem"
-      @open-git-rebuilder="handleOpenGitRebuilder"
     />
 
     <SprintModal
-      v-if="showSprints"
+      v-if="uiStore.showSprints"
       :activeSprintId="settings.activeSprintId"
       :initialShowAddForm="sprintInitialShowAddForm"
-      @close="showSprints = false"
+      @close="uiStore.showSprints = false"
       @select-sprint="(id) => settings.activeSprintId = id"
-      @updated="taskStore.loadSprints"
+      @updated="sprintStore.loadSprints"
     />
 
     <InterfaceMenu
-      v-if="showInterfaceMenu"
-      :isOpen="showInterfaceMenu"
+      v-if="uiStore.showInterfaceMenu"
+      :isOpen="uiStore.showInterfaceMenu"
       :initialTab="interfaceInitialTab"
-      @close="showInterfaceMenu = false"
-      @open-settings="() => { showInterfaceMenu = false; showSettings = true; }"
-      @open-style-builder="() => { showTaskStyleBuilder = true; }"
+      @close="uiStore.showInterfaceMenu = false"
+      @open-settings="() => { uiStore.showInterfaceMenu = false; uiStore.showSettings = true; }"
+      @open-style-builder="() => { uiStore.showTaskStyleBuilder = true; }"
     />
 
     <TaskStyleBuilderModal
-      v-if="showTaskStyleBuilder"
-      @close="showTaskStyleBuilder = false"
+      v-if="uiStore.showTaskStyleBuilder"
+      @close="uiStore.showTaskStyleBuilder = false"
     />
 
     <RadioPlayer
-      :isOpen="showRadio"
-      @close="showRadio = false"
+      :isOpen="uiStore.showRadio"
+      @close="uiStore.showRadio = false"
     />
 
     <NotificationContainer />
@@ -466,8 +407,8 @@ onMounted(async () => {
     />
 
     <WelcomeModal
-      v-if="showWelcome"
-      @close="showWelcome = false"
+      v-if="uiStore.showWelcome"
+      @close="uiStore.showWelcome = false"
       @select-shortcut="handleWelcomeShortcut"
     />
 

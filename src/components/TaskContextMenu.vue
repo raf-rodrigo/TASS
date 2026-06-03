@@ -3,11 +3,13 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { 
   Pencil, CheckCircle, RotateCcw, Trash2, X, 
   GitBranch, MessageSquare, ExternalLink, 
-  Play, Square, Globe, GitPullRequest, TimerReset,
+  Play, Square, Globe, Copy, TimerReset,
   Database, Clock
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
+import { useTimerStore } from '../stores/timerStore';
+import { useUIStore } from '../stores/uiStore';
 import { taskActionService } from '../services/taskActionService';
 import { gitlabService } from '../services/gitlab';
 import { notificationService } from '../services/notificationService';
@@ -19,12 +21,13 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['close', 'edit', 'toggle-completion', 'delete', 'adjust-time']);
+const emit = defineEmits(['close']);
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
+const timerStore = useTimerStore();
+const uiStore = useUIStore();
 const isCreatingBranch = ref(false);
-const isMerging = ref(false);
 const menuRef = ref(null);
 
 const isFloating = computed(() => settings.contextMenuStyle === 'floating');
@@ -46,13 +49,13 @@ const contextMenuPositionClasses = computed(() => {
 const handleResetTime = async () => {
   const confirmed = await notificationService.confirm(
     'Zerar Tempo',
-    'Tem certeza que deseja zerar o tempo desta tarefa? Esta ação não pode ser desfeita.',
+    'Tem certeza que deseja zerar o tempo desta tarefa? Esta ação não pode ser defelta.',
     'Zerar Agora',
     'warning'
   );
   
   if (confirmed) {
-    await taskStore.resetTaskTime(props.task.id);
+    await timerStore.resetTaskTime(props.task.id);
   }
 };
 
@@ -81,16 +84,9 @@ const handleGitlabAction = async () => {
   }
 };
 
-const handleMergeAction = async () => {
-  isMerging.value = true;
-  try {
-    await gitlabService.analyzeAndMerge(props.task, settings);
-  } catch (error) {
-    console.error("GitLab Merge failed:", error);
-    notificationService.toast('Falha na análise/merge do GitLab', 'error');
-  } finally {
-    isMerging.value = false;
-  }
+const handleCloneAction = async () => {
+  await taskStore.cloneTask(props.task);
+  emit('close');
 };
 
 const openLink = (url) => {
@@ -153,13 +149,12 @@ onUnmounted(() => {
     >
       <!-- Linha 1: Git, Merge, Observações e Link -->
       <div class="grid grid-cols-5 gap-1.5 p-1">
-        <button @click="handleGitlabAction" :disabled="isCreatingBranch || isMerging" class="floating-btn" :class="{ 'btn-active-purple': task.branchUrl }" data-tip="GitLab Branch">
+        <button @click="handleGitlabAction" :disabled="isCreatingBranch" class="floating-btn" :class="{ 'btn-active-purple': task.branchUrl }" data-tip="GitLab Branch">
           <GitBranch v-if="!isCreatingBranch" class="w-4 h-4" />
           <div v-else class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
         </button>
-        <button @click="handleMergeAction" :disabled="isCreatingBranch || isMerging" class="floating-btn" data-tip="GitLab Merge">
-          <GitPullRequest v-if="!isMerging" class="w-4 h-4" />
-          <div v-else class="w-4 h-4 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div>
+        <button @click="handleCloneAction" class="floating-btn" data-tip="Clonar">
+          <Copy class="w-4 h-4" />
         </button>
         <button 
           @click="handleAction('moreInfo', 'Observações', 'text')" 
@@ -208,14 +203,14 @@ onUnmounted(() => {
 
       <!-- Linha 3: Gestão -->
       <div class="grid grid-cols-5 gap-1.5 p-1">
-        <button @click="emit('adjust-time')" class="floating-btn text-blue-500 hover:bg-blue-500/10" data-tip="Ajustar Tempo"><Clock class="w-4 h-4" /></button>
+        <button @click="uiStore.openTimeAdjustment(task); emit('close')" class="floating-btn text-blue-500 hover:bg-blue-500/10" data-tip="Ajustar Tempo"><Clock class="w-4 h-4" /></button>
         <button @click="handleResetTime" class="floating-btn text-amber-500 hover:bg-amber-500/10" data-tip="Zerar"><TimerReset class="w-4 h-4" /></button>
-        <button @click="emit('edit')" class="floating-btn text-indigo-500 hover:bg-indigo-500/10" data-tip="Editar"><Pencil class="w-4 h-4" /></button>
-        <button @click="emit('toggle-completion')" class="floating-btn" :class="task.completed ? 'text-blue-500 hover:bg-blue-500/10' : 'text-emerald-500 hover:bg-emerald-500/10'" data-tip="Concluir">
+        <button @click="uiStore.openTaskModal(task); emit('close')" class="floating-btn text-indigo-500 hover:bg-indigo-500/10" data-tip="Editar"><Pencil class="w-4 h-4" /></button>
+        <button @click="taskStore.toggleTaskCompletion(task); emit('close')" class="floating-btn" :class="task.completed ? 'text-blue-500 hover:bg-blue-500/10' : 'text-emerald-500 hover:bg-emerald-500/10'" data-tip="Concluir">
           <RotateCcw v-if="task.completed" class="w-4 h-4" />
           <CheckCircle v-else class="w-4 h-4" />
         </button>
-        <button @click="emit('delete')" class="floating-btn text-red-500 hover:bg-red-500/10" data-tip="Excluir"><Trash2 class="w-4 h-4" /></button>
+        <button @click="taskStore.deleteTask(task.id); emit('close')" class="floating-btn text-red-500 hover:bg-red-500/10" data-tip="Excluir"><Trash2 class="w-4 h-4" /></button>
       </div>
     </div>
 
@@ -236,18 +231,18 @@ onUnmounted(() => {
             {{ task.description || task.title }}
           </h4>
         </div>
-        <button @click="taskStore.toggleTimer(task)" class="p-2 rounded-xl transition-all active:scale-90 shrink-0" :class="task.isRunning ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'">
+        <button @click="timerStore.toggleTimer(task)" class="p-2 rounded-xl transition-all active:scale-90 shrink-0" :class="task.isRunning ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'">
           <Square v-if="task.isRunning" class="w-4 h-4" />
           <Play v-else class="w-4 h-4" />
         </button>
       </div>
 
       <div class="flex items-center gap-1.5 px-2">
-        <button @click="handleGitlabAction" :disabled="isCreatingBranch || isMerging" class="icon-btn-large group" :class="{ 'active-action': task.branchUrl }">
+        <button @click="handleGitlabAction" :disabled="isCreatingBranch" class="icon-btn-large group" :class="{ 'active-action': task.branchUrl }">
           <GitBranch v-if="!isCreatingBranch" class="w-4 h-4" />
           <div v-else class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
         </button>
-        <button @click="handleMergeAction" :disabled="isCreatingBranch || isMerging" class="icon-btn-large group"><GitPullRequest v-if="!isMerging" class="w-4 h-4" /><div v-else class="w-4 h-4 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin"></div></button>
+        <button @click="handleCloneAction" class="icon-btn-large group" data-tip="Clonar"><Copy class="w-4 h-4" /></button>
         <button 
           @click="handleAction('moreInfo', 'Observações', 'text')" 
           @contextmenu.prevent="handleEditAction('moreInfo', 'Observações', 'text')"
@@ -271,14 +266,14 @@ onUnmounted(() => {
       </div>
 
       <div class="flex items-center gap-1.5 pl-2 md:pl-4 border-t md:border-t-0 md:border-l border-app-border-light w-full md:w-auto justify-center">
-        <button @click="emit('adjust-time')" class="icon-btn-large text-blue-500 hover:bg-blue-500/10"><Clock class="w-5 h-5" /></button>
+        <button @click="uiStore.openTimeAdjustment(task); emit('close')" class="icon-btn-large text-blue-500 hover:bg-blue-500/10"><Clock class="w-5 h-5" /></button>
         <button @click="handleResetTime" class="icon-btn-large text-amber-500 hover:bg-amber-500/10"><TimerReset class="w-5 h-5" /></button>
-        <button @click="emit('edit')" class="icon-btn-large text-indigo-500 hover:bg-indigo-500/10"><Pencil class="w-5 h-5" /></button>
-        <button @click="emit('toggle-completion')" class="icon-btn-large" :class="task.completed ? 'text-blue-500 hover:bg-blue-500/10' : 'text-emerald-500 hover:bg-emerald-500/10'">
+        <button @click="uiStore.openTaskModal(task); emit('close')" class="icon-btn-large text-indigo-500 hover:bg-indigo-500/10"><Pencil class="w-5 h-5" /></button>
+        <button @click="taskStore.toggleTaskCompletion(task); emit('close')" class="icon-btn-large" :class="task.completed ? 'text-blue-500 hover:bg-blue-500/10' : 'text-emerald-500 hover:bg-emerald-500/10'">
           <RotateCcw v-if="task.completed" class="w-5 h-5" />
           <CheckCircle v-else class="w-5 h-5" />
         </button>
-        <button @click="emit('delete')" class="icon-btn-large text-red-500 hover:bg-red-500/10"><Trash2 class="w-5 h-5" /></button>
+        <button @click="taskStore.deleteTask(task.id); emit('close')" class="icon-btn-large text-red-500 hover:bg-red-500/10"><Trash2 class="w-5 h-5" /></button>
         <div class="w-px h-6 bg-app-border-light mx-1 hidden md:block"></div>
         <button @click="emit('close')" class="icon-btn-large text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X class="w-5 h-5" /></button>
       </div>

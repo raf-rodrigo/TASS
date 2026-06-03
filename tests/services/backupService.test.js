@@ -8,7 +8,8 @@ vi.mock('../../src/db.js', () => ({
     sprints: { toArray: vi.fn(), bulkPut: vi.fn() },
     settings: { toArray: vi.fn(), bulkPut: vi.fn() },
     notes: { toArray: vi.fn(), bulkPut: vi.fn() },
-    radios: { toArray: vi.fn(), bulkPut: vi.fn(), clear: vi.fn() }
+    radios: { toArray: vi.fn(), bulkPut: vi.fn(), clear: vi.fn() },
+    taskStyles: { toArray: vi.fn(), bulkPut: vi.fn(), clear: vi.fn() }
   }
 }));
 
@@ -35,6 +36,7 @@ describe('backupService', () => {
       db.settings.toArray.mockResolvedValue([{ key: 'theme', value: 'dark' }]);
       db.notes.toArray.mockResolvedValue([{ content: 'Nota 1' }]);
       db.radios.toArray.mockResolvedValue([{ id: 1, name: 'Radio 1' }]);
+      db.taskStyles.toArray.mockResolvedValue([{ id: 1, name: 'Style 1' }]);
 
       await backupService.exportSystem();
 

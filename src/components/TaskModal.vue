@@ -8,8 +8,10 @@ import {
   Sparkles, Bug, Zap, RefreshCcw, ArrowDown, ArrowRight, ArrowUp, AlertOctagon
 } from 'lucide-vue-next';
 import { useTaskStore } from '../stores/taskStore';
+import { useSprintStore } from '../stores/sprintStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStyleStore } from '../stores/taskStyleStore';
+import { useUIStore } from '../stores/uiStore';
 import { isValidUrl, ensureProtocol } from '../utils/validation';
 import { formatMsToHMS } from '../utils/time';
 import { hexToRgba } from '../utils/colors.js';
@@ -21,34 +23,29 @@ import AppSelect from './base/AppSelect.vue';
 import AppColorPalette from './AppColorPalette.vue';
 
 const taskStore = useTaskStore();
+const sprintStore = useSprintStore();
 const settings = useSettingsStore();
 const taskStyleStore = useTaskStyleStore();
+const uiStore = useUIStore();
 
-const props = defineProps({
-  taskToEdit: {
-    type: Object,
-    default: null
-  }
-});
-
-const emit = defineEmits(['close', 'add-task', 'save-task']);
+const taskToEdit = uiStore.taskToEdit;
 
 const activeTab = ref('basic');
-const title = ref(props.taskToEdit ? props.taskToEdit.title : '');
-const description = ref(props.taskToEdit ? props.taskToEdit.description : '');
+const title = ref(taskToEdit ? taskToEdit.title : '');
+const description = ref(taskToEdit ? taskToEdit.description : '');
 
 // Advanced properties
-const priority = ref(props.taskToEdit?.priority || 'Normal');
-const devUrl = ref(props.taskToEdit?.devUrl || '');
-const homologUrl = ref(props.taskToEdit?.homologUrl || '');
-const prodUrl = ref(props.taskToEdit?.prodUrl || '');
-const taskUrl = ref(props.taskToEdit?.taskUrl || '');
-const branchName = ref(props.taskToEdit?.branchName || '');
-const branchUrl = ref(props.taskToEdit?.branchUrl || '');
-const dbScripts = ref(props.taskToEdit?.dbScripts || '');
-const moreInfo = ref(props.taskToEdit?.moreInfo || '');
-const sprintId = ref(props.taskToEdit?.sprintId || '');
-const styleId = ref(props.taskToEdit?.styleId || '');
+const priority = ref(taskToEdit?.priority || 'Normal');
+const devUrl = ref(taskToEdit?.devUrl || '');
+const homologUrl = ref(taskToEdit?.homologUrl || '');
+const prodUrl = ref(taskToEdit?.prodUrl || '');
+const taskUrl = ref(taskToEdit?.taskUrl || '');
+const branchName = ref(taskToEdit?.branchName || '');
+const branchUrl = ref(taskToEdit?.branchUrl || '');
+const dbScripts = ref(taskToEdit?.dbScripts || '');
+const moreInfo = ref(taskToEdit?.moreInfo || '');
+const sprintId = ref(taskToEdit?.sprintId || '');
+const styleId = ref(taskToEdit?.styleId || '');
 
 const hoveredStyleId = ref(null);
 const showStyleDropdown = ref(false);
@@ -92,7 +89,7 @@ const parseEstimatedHours = (timeStr) => {
   return h ? parseInt(h[1]) : (parseInt(timeStr) || 0);
 };
 
-const estimatedHours = ref(parseEstimatedHours(props.taskToEdit?.estimatedTime));
+const estimatedHours = ref(parseEstimatedHours(taskToEdit?.estimatedTime));
 const errors = ref({});
 
 const validateFields = () => {
@@ -144,7 +141,7 @@ const clearError = (field) => {
 const sprintOptions = computed(() => {
   return [
     { label: 'Nenhuma Sprint', value: '' },
-    ...taskStore.sprints.map(sprint => ({
+    ...sprintStore.sprints.map(sprint => ({
       label: `Ciclo de ${new Date(sprint.endDate).toLocaleDateString('pt-BR')}`,
       value: sprint.id
     }))
@@ -159,8 +156,8 @@ const priorityOptions = [
 ];
 
 onMounted(() => {
-  if (!props.taskToEdit && taskStore.sprints.length > 0) {
-    const latestSprint = [...taskStore.sprints].sort((a, b) => new Date(b.endDate) - new Date(a.endDate))[0];
+  if (!taskToEdit && sprintStore.sprints.length > 0) {
+    const latestSprint = [...sprintStore.sprints].sort((a, b) => new Date(b.endDate) - new Date(a.endDate))[0];
     if (latestSprint) {
       sprintId.value = latestSprint.id;
     }
@@ -200,20 +197,22 @@ const submitTask = () => {
     textDarkColor: ''
   };
 
-  if (props.taskToEdit) {
-    emit('save-task', { id: props.taskToEdit.id, ...payload });
+  if (taskToEdit) {
+    taskStore.updateTask(taskToEdit.id, payload).then(() => {
+      notificationService.toast('Tarefa atualizada!', 'success');
+    });
   } else {
-    emit('add-task', payload);
+    taskStore.addTask(payload);
   }
   
-  emit('close');
+  uiStore.closeTaskModal();
 };
 </script>
 
 <template>
   <BaseModal 
     maxWidth="max-w-4xl" 
-    @close="emit('close')" 
+    @close="uiStore.closeTaskModal()" 
     layout="sidebar" 
     customClass="h-[90vh] md:h-[600px]"
     :title="activeTabObj.label"
@@ -433,9 +432,8 @@ const submitTask = () => {
       </transition>
     </form>
 
-    <!-- Footer Global -->
     <template #footer>
-      <button type="button" @click="emit('close')" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Cancelar</button>
+      <button type="button" @click="uiStore.closeTaskModal()" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Cancelar</button>
       <button type="submit" form="taskForm" class="btn btn-primary px-6 py-2 border-none shadow-none text-xs">
         {{ taskToEdit ? 'Salvar Alterações' : 'Criar Tarefa' }}
       </button>

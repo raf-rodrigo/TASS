@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Play, Square, MoreVertical, ArrowDown, ArrowRight, ArrowUp, AlertOctagon } from 'lucide-vue-next';
+import { Play, Square, MoreVertical, ArrowDown, ArrowRight, ArrowUp, AlertOctagon, GitBranch, MessageSquare, Database, ExternalLink } from 'lucide-vue-next';
 import { formatMsToHMS } from '../utils/time.js';
 import { hexToRgba } from '../utils/colors.js';
 
@@ -9,6 +9,8 @@ import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
 import { useTaskStyleStore } from '../stores/taskStyleStore';
 import { notificationService } from '../services/notificationService';
+import { taskActionService } from '../services/taskActionService';
+import { gitlabService } from '../services/gitlab';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -83,6 +85,30 @@ const currentTextColor = computed(() => {
   if (settings.theme !== 'dark' && taskColors.value.textLightColor) return taskColors.value.textLightColor;
   return 'var(--app-text-sub)'; // Cor padrão do texto (text-app-sub)
 });
+
+const isCreatingBranch = ref(false);
+
+const handleGitlabAction = async () => {
+  isCreatingBranch.value = true;
+  try {
+    await gitlabService.handleGitlabFlow(props.task, settings);
+  } catch (error) {
+    console.error("GitLab Action failed:", error);
+    notificationService.toast('Falha na ação do GitLab', 'error');
+  } finally {
+    isCreatingBranch.value = false;
+  }
+};
+
+const handleAction = async (field, label, type = 'url') => {
+  const currentValue = props.task[field];
+  if (currentValue && type === 'url') {
+    const finalUrl = currentValue.startsWith('http') ? currentValue : `https://${currentValue}`;
+    window.open(finalUrl, '_blank');
+  } else {
+    await taskActionService.promptQuickUpdate(props.task, taskStore, field, label, type);
+  }
+};
 
 const handleAdjustTime = (event) => {
   if (event) {
@@ -249,22 +275,24 @@ const timerButtonClasses = computed(() => {
         class="flex flex-1 min-w-0 overflow-hidden w-full"
         :class="isSquareLayout ? 'flex-col items-start gap-2' : 'items-center gap-2'"
       >
-        <span 
-          class="font-bold px-2 py-1 rounded-lg leading-tight flex-shrink-0 transition-all border flex items-center justify-center gap-2 mr-2 min-w-[85px] active:scale-95" 
-          :style="{ 
-            backgroundColor: taskColors.color ? `${taskColors.color}26` : '', 
-            color: taskColors.color ? taskColors.color : '',
-            borderColor: taskColors.color ? `${taskColors.color}40` : 'transparent',
-            fontSize: activeStyle.taskNumberSize + 'px'
-          }"
-          :class="[
-            !taskColors.color ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 dark:bg-indigo-500/20 border-indigo-500/20' : ''
-          ]"
-          :data-tip="`Copiar número: ${task.title}`"
-          @click.stop="copyTaskContent()"
-        >
-          {{ task.title }}
-        </span>
+        <div class="flex items-center gap-2 shrink-0">
+          <span 
+            class="font-bold px-2 py-1 rounded-lg leading-tight flex-shrink-0 transition-all border flex items-center justify-center min-w-[85px] active:scale-95" 
+            :style="{ 
+              backgroundColor: taskColors.color ? `${taskColors.color}26` : '', 
+              color: taskColors.color ? taskColors.color : '',
+              borderColor: taskColors.color ? `${taskColors.color}40` : 'transparent',
+              fontSize: activeStyle.taskNumberSize + 'px'
+            }"
+            :class="[
+              !taskColors.color ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 dark:bg-indigo-500/20 border-indigo-500/20' : ''
+            ]"
+            :data-tip="`Copiar número: ${task.title}`"
+            @click.stop="copyTaskContent()"
+          >
+            {{ task.title }}
+          </span>
+        </div>
           <span 
             v-if="task.description" 
             class="text-sm flex-1 min-w-0 py-0.5 leading-tight text-justify" 
@@ -324,6 +352,75 @@ const timerButtonClasses = computed(() => {
           >
             <MoreVertical :size="activeStyle.taskTimerSize" />
           </button>
+
+          <!-- 3. Indicadores -->
+          <div v-if="task.branchUrl || task.moreInfo || task.dbScripts || task.taskUrl" class="flex items-center flex-row-reverse" :style="{ gap: (activeStyle.taskTimerSize * 0.4) + 'px' }">
+            
+            <div v-if="task.branchUrl" 
+              class="transition-all flex items-center justify-center border cursor-pointer hover:brightness-110 active:scale-95" 
+              :class="timerButtonClasses"
+              :style="{
+                width: (activeStyle.taskTimerSize * 1.8) + 'px',
+                height: (activeStyle.taskTimerSize * 1.8) + 'px',
+                borderRadius: (activeStyle.taskTimerSize * 0.4) + 'px',
+                backgroundColor: taskColors.color ? `${taskColors.color}1A` : '',
+                color: taskColors.color ? taskColors.color : '',
+                borderColor: taskColors.color ? `${taskColors.color}33` : ''
+              }"
+              @click.stop="handleGitlabAction"
+              data-tip="Possui Branch (Clique p/ abrir ou ver)">
+              <GitBranch v-if="!isCreatingBranch" :size="activeStyle.taskTimerSize - 1" />
+              <div v-else class="rounded-full border border-purple-500 border-t-transparent animate-spin" :style="{ width: (activeStyle.taskTimerSize - 4) + 'px', height: (activeStyle.taskTimerSize - 4) + 'px' }"></div>
+            </div>
+            
+            <div v-if="task.moreInfo" 
+              class="transition-all flex items-center justify-center border cursor-pointer hover:brightness-110 active:scale-95" 
+              :class="timerButtonClasses"
+              :style="{
+                width: (activeStyle.taskTimerSize * 1.8) + 'px',
+                height: (activeStyle.taskTimerSize * 1.8) + 'px',
+                borderRadius: (activeStyle.taskTimerSize * 0.4) + 'px',
+                backgroundColor: taskColors.color ? `${taskColors.color}1A` : '',
+                color: taskColors.color ? taskColors.color : '',
+                borderColor: taskColors.color ? `${taskColors.color}33` : ''
+              }"
+              @click.stop="handleAction('moreInfo', 'Observações', 'text')"
+              data-tip="Observações (Clique p/ ler ou editar)">
+              <MessageSquare :size="activeStyle.taskTimerSize - 1" />
+            </div>
+            
+            <div v-if="task.dbScripts" 
+              class="transition-all flex items-center justify-center border cursor-pointer hover:brightness-110 active:scale-95" 
+              :class="timerButtonClasses"
+              :style="{
+                width: (activeStyle.taskTimerSize * 1.8) + 'px',
+                height: (activeStyle.taskTimerSize * 1.8) + 'px',
+                borderRadius: (activeStyle.taskTimerSize * 0.4) + 'px',
+                backgroundColor: taskColors.color ? `${taskColors.color}1A` : '',
+                color: taskColors.color ? taskColors.color : '',
+                borderColor: taskColors.color ? `${taskColors.color}33` : ''
+              }"
+              @click.stop="handleAction('dbScripts', 'Scripts SQL', 'text')"
+              data-tip="Scripts SQL (Clique p/ ler ou editar)">
+              <Database :size="activeStyle.taskTimerSize - 1" />
+            </div>
+
+            <div v-if="task.taskUrl" 
+              class="transition-all flex items-center justify-center border cursor-pointer hover:brightness-110 active:scale-95" 
+              :class="timerButtonClasses"
+              :style="{
+                width: (activeStyle.taskTimerSize * 1.8) + 'px',
+                height: (activeStyle.taskTimerSize * 1.8) + 'px',
+                borderRadius: (activeStyle.taskTimerSize * 0.4) + 'px',
+                backgroundColor: taskColors.color ? `${taskColors.color}1A` : '',
+                color: taskColors.color ? taskColors.color : '',
+                borderColor: taskColors.color ? `${taskColors.color}33` : ''
+              }"
+              @click.stop="handleAction('taskUrl', 'Link da Tarefa', 'url')"
+              data-tip="Link (Clique p/ abrir no navegador)">
+              <ExternalLink :size="activeStyle.taskTimerSize - 1" />
+            </div>
+          </div>
         </div>
 
         <!-- Contador (Tempo) -->

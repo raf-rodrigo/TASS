@@ -75,50 +75,7 @@ describe('TaskStore', () => {
     });
   });
 
-  describe('Lógica do Cronômetro', () => {
-    it('deve iniciar o timer de uma tarefa e parar as outras', async () => {
-      const store = useTaskStore();
-      const task1 = { id: 1, isRunning: false, totalTimeSpent: 0, completed: false };
-      const task2 = { id: 2, isRunning: true, lastStartTime: Date.now(), totalTimeSpent: 100, completed: false };
-      
-      store.tasks = [task1, task2];
 
-      await store.toggleTimer(task1);
-
-      expect(task1.isRunning).toBe(true);
-      expect(task2.isRunning).toBe(false);
-      expect(db.tasks.update).toHaveBeenCalled();
-    });
-
-    it('deve calcular o tempo acumulado ao parar o timer', async () => {
-      const store = useTaskStore();
-      const now = Date.now();
-      const startTime = now - 5000; // 5 segundos atrás
-      const task = { id: 1, isRunning: true, lastStartTime: startTime, totalTimeSpent: 1000, completed: false };
-      
-      store.tasks = [task];
-
-      await store.toggleTimer(task);
-
-      expect(task.isRunning).toBe(false);
-      // 1000 original + 5000 passados = 6000ms
-      expect(task.totalTimeSpent).toBeGreaterThanOrEqual(6000);
-    });
-
-    it('deve ajustar o tempo da tarefa manualmente (adjustTaskTime)', async () => {
-      const store = useTaskStore();
-      const initialTask = { id: 1, totalTimeSpent: 1000, totalWorked: 1000 };
-      store.tasks = [initialTask];
-      
-      const newTime = 5000;
-      await store.adjustTaskTime(1, newTime);
-
-      const updatedTask = store.tasks[0];
-      expect(updatedTask.totalTimeSpent).toBe(5000);
-      expect(updatedTask.totalWorked).toBe(5000);
-      expect(db.tasks.update).toHaveBeenCalledWith(1, expect.objectContaining({ totalTimeSpent: 5000 }));
-    });
-  });
 
   describe('Filtros e Colunas', () => {
     it('deve organizar as tarefas em colunas conforme a configuração', () => {

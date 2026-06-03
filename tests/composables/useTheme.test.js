@@ -34,8 +34,13 @@ describe('useTheme', () => {
         bottomBar: true,
         modals: true,
         contextMenu: true,
-        actionBar: true
+        actionBar: true,
+        modalHeaderFooter: true,
+        modalSidebar: true,
+        modalBody: true,
+        notes: true
       },
+      globalGlassEnabled: true,
       saveSetting: vi.fn()
     };
   });

@@ -5,9 +5,14 @@ import TaskCard from './TaskCard.vue';
 import { Plus } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
+import { useTimerStore } from '../stores/timerStore';
+import { useUIStore } from '../stores/uiStore';
+import { useTaskStyleStore } from '../stores/taskStyleStore';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
+const timerStore = useTimerStore();
+const uiStore = useUIStore();
 
 const props = defineProps({
   boardColumns: {
@@ -22,12 +27,8 @@ const props = defineProps({
 
 const emit = defineEmits([
   'update-board',
-  'edit-task',
-  'toggle-completion',
-  'delete-task',
   'drag-start',
-  'drag-end',
-  'open-time-adjustment'
+  'drag-end'
 ]);
 
 const handleBoardChange = (evt, colIdx) => {
@@ -118,11 +119,11 @@ const placeholderStyles = computed(() => {
             <TaskCard 
               :task="task" 
               :columnIndex="colIdx - 1"
-              @toggle-completion="(t) => emit('toggle-completion', t)" 
-              @delete-task="(id) => emit('delete-task', id)" 
-              @edit-task="(t) => emit('edit-task', t)" 
-              @toggle-timer="taskStore.toggleTimer" 
-              @open-time-adjustment="(t) => emit('open-time-adjustment', t)"
+              @toggle-completion="taskStore.toggleTaskCompletion" 
+              @delete-task="taskStore.deleteTask" 
+              @edit-task="uiStore.openTaskModal" 
+              @toggle-timer="timerStore.toggleTimer" 
+              @open-time-adjustment="uiStore.openTimeAdjustment"
             />
           </template>
         </draggable>

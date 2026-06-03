@@ -42,6 +42,7 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
 
 ## 4. Inicialização e Contextualização
 - **Leitura de Contexto:** Ao iniciar uma nova sessão ou tarefa complexa, a IA deve realizar uma leitura exploratória dos arquivos do projeto (além dos arquivos de regras) para compreender a estrutura atual, as dependências instaladas e a lógica de negócio implementada. Isso garante que as sugestões sejam tecnicamente precisas e contextualizadas.
+- **Documentação Interna (MANDATÓRIO):** É **OBRIGATÓRIA** a leitura prévia e atenta dos arquivos `README.md` presentes nas pastas `src/stores/` e `src/services/` antes de propor ou executar qualquer modificação na lógica de negócio destas camadas. Eles contêm as definições arquiteturais, responsabilidades estritas de cada arquivo e regras de limites de escopo que não devem ser violadas.
 
 ## 5. Engenharia e Qualidade
 - **Utilitários Globais e Centralização:** Nunca recrie lógicas complexas localmente em componentes. Sempre que lidar com conversões de cores hexadecimais ou opacidade (relacionada ao Glassmorphism), é OBRIGATÓRIO utilizar o arquivo utilitário `src/utils/colors.js` (ex: `hexToRgba`). A matemática de opacidade deve sempre consumir o getter centralizado `normalizedCardOpacity` do `settingsStore.js` para garantir coerência global no sistema.

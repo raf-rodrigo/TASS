@@ -2,17 +2,17 @@ import { onMounted, onUnmounted } from 'vue';
 
 /**
  * Orquestra os timers globais do sistema (1s e 10s)
- * @param {Object} taskStore - Store de tarefas
+ * @param {Object} timerStore - Store de timers
  * @param {Function} checkMonitoringCallback - Função de monitoramento de sistema
  */
-export function useGlobalPulse(taskStore, checkMonitoringCallback) {
+export function useGlobalPulse(timerStore, checkMonitoringCallback) {
   let timerInterval = null;
   let autoSaveInterval = null;
 
   const startPulse = () => {
     // Timer de 1 segundo (Interface e Monitoramento)
     timerInterval = setInterval(() => {
-      taskStore.updateRunningTasks();
+      timerStore.updateRunningTasks();
       if (checkMonitoringCallback) {
         checkMonitoringCallback();
       }
@@ -20,7 +20,7 @@ export function useGlobalPulse(taskStore, checkMonitoringCallback) {
 
     // Timer de 10 segundos (Persistência no Banco)
     autoSaveInterval = setInterval(() => {
-      taskStore.autoSaveRunningTasks();
+      timerStore.autoSaveRunningTasks();
     }, 10000);
   };
 
