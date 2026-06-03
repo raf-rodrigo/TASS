@@ -49,6 +49,87 @@ export const useTaskStyleStore = defineStore('taskStyle', () => {
     }
   };
 
+  const restoreDefaultStyles = async (silent = false) => {
+    try {
+      const preloadStyles = [
+        {
+          id: 'style_laser_lemon',
+          name: 'Laser Lemon',
+          styles: {
+            cardPadding: 16,
+            taskNumberSize: 12,
+            taskDescriptionSize: 14,
+            taskTimerSize: 14,
+            taskMinHeight: 100,
+            taskMaxWidth: 0,
+            taskVerticalAlign: 'center'
+          },
+          colors: {
+            color: '#EAF85A',
+            bgColor: '#1B1C15',
+            textLightColor: '#FFFFFF',
+            textDarkColor: '#EAF85A'
+          }
+        },
+        {
+          id: 'style_radioactive',
+          name: 'Radioactive',
+          styles: {
+            cardPadding: 16,
+            taskNumberSize: 12,
+            taskDescriptionSize: 14,
+            taskTimerSize: 14,
+            taskMinHeight: 100,
+            taskMaxWidth: 0,
+            taskVerticalAlign: 'center'
+          },
+          colors: {
+            color: '#1FF064',
+            bgColor: '#151F17',
+            textLightColor: '#FFFFFF',
+            textDarkColor: '#1FF064'
+          }
+        }
+      ];
+      
+      // Encontrar os que não existem para adicionar
+      const existingIds = styles.value.map(s => s.id);
+      const newStyles = preloadStyles.filter(s => !existingIds.includes(s.id));
+      
+      // Encontrar presets existentes que estão com 'styles' vazio para atualizar (correção de bug)
+      const emptyStyles = preloadStyles.filter(p => {
+        const existing = styles.value.find(s => s.id === p.id);
+        return existing && Object.keys(existing.styles || {}).length === 0;
+      });
+      
+      let modified = false;
+
+      if (newStyles.length > 0) {
+        await db.taskStyles.bulkAdd(newStyles);
+        styles.value.push(...newStyles);
+        modified = true;
+      }
+      
+      if (emptyStyles.length > 0) {
+        for (const empty of emptyStyles) {
+          await db.taskStyles.update(empty.id, empty);
+          const index = styles.value.findIndex(s => s.id === empty.id);
+          if (index !== -1) styles.value[index] = empty;
+        }
+        modified = true;
+      }
+
+      if (modified) {
+        if (!silent) notificationService.toast('Presets restaurados com sucesso!', 'success');
+      } else {
+        if (!silent) notificationService.toast('Os presets padrões já existem e estão completos.', 'info');
+      }
+    } catch (error) {
+      console.error("Failed to restore default styles:", error);
+      if (!silent) notificationService.toast('Erro ao restaurar presets', 'error');
+    }
+  };
+
   const saveStyle = async (styleData) => {
     try {
       const isExisting = styles.value.some(s => s.id === styleData.id);
@@ -96,6 +177,7 @@ export const useTaskStyleStore = defineStore('taskStyle', () => {
     loadStyles,
     saveStyle,
     deleteStyle,
-    getStyleById
+    getStyleById,
+    restoreDefaultStyles
   };
 });

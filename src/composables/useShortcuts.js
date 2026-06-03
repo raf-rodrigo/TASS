@@ -35,6 +35,10 @@ export function useShortcuts({ onToggleNotes, onOpenAddModal, onOpenSettings, on
         e.preventDefault();
         onToggleNotes();
         break;
+      case 'w':
+        e.preventDefault();
+        if (onWellnessTest) onWellnessTest();
+        break;
     }
   };
 

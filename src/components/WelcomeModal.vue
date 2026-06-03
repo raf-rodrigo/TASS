@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useSettingsStore } from '../stores/settingsStore';
 import { 
-  Sparkles, Palette, PlusCircle, Calendar, Radio, Globe
+  Sparkles, Palette, PlusCircle, Calendar, Radio, Globe, Terminal, Layers, Wand2
 } from 'lucide-vue-next';
 import BaseModal from './BaseModal.vue';
 
@@ -43,6 +43,18 @@ const handleClose = async () => {
       <!-- Action Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-6 gap-4">
         
+        <!-- Criar cards de exemplo -->
+        <button 
+          @click="handleAction('example-cards')"
+          class="flex flex-col items-center justify-center p-5 bg-white/[0.03] dark:bg-white/[0.02] rounded-2xl border border-white/10 dark:border-white/5 hover:border-yellow-500/40 hover:bg-white/[0.08] dark:hover:bg-white/[0.05] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 text-center group cursor-pointer sm:col-span-3 md:col-span-2 min-h-[160px] select-none"
+        >
+          <div class="p-3.5 bg-yellow-500/10 rounded-2xl text-yellow-400 group-hover:scale-110 group-hover:bg-yellow-500/20 transition-all duration-300 mb-3">
+            <Wand2 class="w-7 h-7" />
+          </div>
+          <span class="text-xs font-black text-white uppercase tracking-wider">Cards de Exemplo</span>
+          <span class="text-[10px] text-app-muted mt-1 font-bold">Criar 2 presets visuais para testar</span>
+        </button>
+
         <!-- Papel de Parede e + -->
         <button 
           @click="handleAction('wallpaper')"
@@ -82,7 +94,7 @@ const handleClose = async () => {
         <!-- Ouvir rádio -->
         <button 
           @click="handleAction('radio')"
-          class="flex flex-col items-center justify-center p-5 bg-white/[0.03] dark:bg-white/[0.02] rounded-2xl border border-white/10 dark:border-white/5 hover:border-rose-500/40 hover:bg-white/[0.08] dark:hover:bg-white/[0.05] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 text-center group cursor-pointer sm:col-span-3 md:col-span-3 min-h-[160px] select-none"
+          class="flex flex-col items-center justify-center p-5 bg-white/[0.03] dark:bg-white/[0.02] rounded-2xl border border-white/10 dark:border-white/5 hover:border-rose-500/40 hover:bg-white/[0.08] dark:hover:bg-white/[0.05] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 text-center group cursor-pointer sm:col-span-3 md:col-span-2 min-h-[160px] select-none"
         >
           <div class="p-3.5 bg-rose-500/10 rounded-2xl text-rose-400 group-hover:scale-110 group-hover:bg-rose-500/20 transition-all duration-300 mb-3">
             <Radio class="w-7 h-7" />
@@ -94,13 +106,37 @@ const handleClose = async () => {
         <!-- Integrar com o gitlab -->
         <button 
           @click="handleAction('gitlab')"
-          class="flex flex-col items-center justify-center p-5 bg-white/[0.03] dark:bg-white/[0.02] rounded-2xl border border-white/10 dark:border-white/5 hover:border-orange-500/40 hover:bg-white/[0.08] dark:hover:bg-white/[0.05] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 text-center group cursor-pointer sm:col-span-6 md:col-span-3 min-h-[160px] select-none"
+          class="flex flex-col items-center justify-center p-5 bg-white/[0.03] dark:bg-white/[0.02] rounded-2xl border border-white/10 dark:border-white/5 hover:border-orange-500/40 hover:bg-white/[0.08] dark:hover:bg-white/[0.05] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 text-center group cursor-pointer sm:col-span-3 md:col-span-2 min-h-[160px] select-none"
         >
           <div class="p-3.5 bg-orange-500/10 rounded-2xl text-orange-400 group-hover:scale-110 group-hover:bg-orange-500/20 transition-all duration-300 mb-3">
             <Globe class="w-7 h-7" />
           </div>
           <span class="text-xs font-black text-white uppercase tracking-wider">Integrar GitLab</span>
           <span class="text-[10px] text-app-muted mt-1 font-bold">Conecte seus MRs e branches</span>
+        </button>
+
+        <!-- Breeze GitRebuilder -->
+        <button 
+          @click="handleAction('breeze')"
+          class="flex flex-col items-center justify-center p-5 bg-white/[0.03] dark:bg-white/[0.02] rounded-2xl border border-white/10 dark:border-white/5 hover:border-sky-500/40 hover:bg-white/[0.08] dark:hover:bg-white/[0.05] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 text-center group cursor-pointer sm:col-span-3 md:col-span-2 min-h-[160px] select-none"
+        >
+          <div class="p-3.5 bg-sky-500/10 rounded-2xl text-sky-400 group-hover:scale-110 group-hover:bg-sky-500/20 transition-all duration-300 mb-3">
+            <Terminal class="w-7 h-7" />
+          </div>
+          <span class="text-xs font-black text-white uppercase tracking-wider">Breeze Rebuilder</span>
+          <span class="text-[10px] text-app-muted mt-1 font-bold">Rebuilds e Merges automatizados</span>
+        </button>
+
+        <!-- Construtor Visual -->
+        <button 
+          @click="handleAction('task-styles')"
+          class="flex flex-col items-center justify-center p-5 bg-white/[0.03] dark:bg-white/[0.02] rounded-2xl border border-white/10 dark:border-white/5 hover:border-fuchsia-500/40 hover:bg-white/[0.08] dark:hover:bg-white/[0.05] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 text-center group cursor-pointer sm:col-span-3 md:col-span-2 min-h-[160px] select-none"
+        >
+          <div class="p-3.5 bg-fuchsia-500/10 rounded-2xl text-fuchsia-400 group-hover:scale-110 group-hover:bg-fuchsia-500/20 transition-all duration-300 mb-3">
+            <Layers class="w-7 h-7" />
+          </div>
+          <span class="text-xs font-black text-white uppercase tracking-wider">Construtor Visual</span>
+          <span class="text-[10px] text-app-muted mt-1 font-bold">Crie Presets Visuais para os cards</span>
         </button>
 
       </div>

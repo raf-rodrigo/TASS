@@ -78,6 +78,7 @@ const tabs = [
   { id: 'basic', label: 'Geral', icon: Layout, color: 'text-indigo-500', desc: 'Dados essenciais para identificação da tarefa.' },
   { id: 'links', label: 'Conectividade', icon: Globe, color: 'text-emerald-500', desc: 'Gerenciamento de repositórios e links.' },
   { id: 'data', label: 'Documentação', icon: FileText, color: 'text-amber-500', desc: 'Queries, observações e detalhes técnicos.' },
+  { id: 'timesheet', label: 'Jornada', icon: Clock, color: 'text-sky-500', desc: 'Registro diário de horas trabalhadas.' }
 ];
 
 const activeTabObj = computed(() => tabs.find(t => t.id === activeTab.value) || tabs[0]);
@@ -211,10 +212,10 @@ const submitTask = () => {
 
 <template>
   <BaseModal 
-    maxWidth="max-w-4xl" 
+    maxWidth="max-w-5xl" 
     @close="uiStore.closeTaskModal()" 
     layout="sidebar" 
-    customClass="h-[90vh] md:h-[600px]"
+    customClass="h-[90vh] md:h-[700px]"
     :title="activeTabObj.label"
     :subtitle="activeTabObj.desc"
     :icon="activeTabObj.icon"
@@ -428,6 +429,43 @@ const submitTask = () => {
         <div v-else-if="activeTab === 'data'" :key="'data'" class="space-y-6">
           <AppTextarea v-model="dbScripts" label="Scripts de Banco (SQL)" :icon="Database" icon-color="text-indigo-500" placeholder="SELECT * FROM..." rows="4" class="font-mono" />
           <AppTextarea v-model="moreInfo" label="Observações Adicionais" :icon="FileText" icon-color="text-amber-500" placeholder="Ponto de atenção..." rows="4" />
+        </div>
+
+        <!-- ABA 4: Jornada -->
+        <div v-else-if="activeTab === 'timesheet'" :key="'timesheet'" class="space-y-6 h-full flex flex-col">
+          <div class="flex-1 p-6 bg-slate-500/5 rounded-3xl border border-app-border-light flex flex-col min-h-0">
+            <div class="flex items-center gap-3 mb-6 flex-shrink-0">
+              <Clock class="w-4 h-4 text-sky-500" />
+              <h4 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.2em]">Apontamento de Horas</h4>
+            </div>
+
+            <div v-if="!taskToEdit || !taskToEdit.dailyLogs || Object.keys(taskToEdit.dailyLogs).length === 0" class="flex flex-col items-center justify-center py-10 text-center flex-1">
+              <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                <Clock class="w-6 h-6 text-slate-400" />
+              </div>
+              <p class="text-sm font-bold text-slate-600 dark:text-slate-300">Nenhum registro ainda</p>
+              <p class="text-xs text-slate-500 mt-1 max-w-xs">Ligue o cronômetro para começar a registrar sua jornada nesta tarefa.</p>
+            </div>
+
+            <div v-else class="flex flex-col min-h-0">
+              <div class="grid grid-cols-2 text-[10px] font-black text-slate-400 uppercase tracking-widest px-4 pb-2 border-b border-app-border-light flex-shrink-0">
+                <span>Data</span>
+                <span class="text-right">Horas Trabalhadas</span>
+              </div>
+              
+              <div class="space-y-1 overflow-y-auto no-scrollbar py-2 flex-1 min-h-[150px]">
+                <div v-for="(ms, date) in taskToEdit.dailyLogs" :key="date" class="grid grid-cols-2 items-center px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/5 transition-all hover:border-sky-500/30">
+                  <span class="text-xs font-bold text-slate-600 dark:text-slate-300">{{ date.split('-').reverse().join('/') }}</span>
+                  <span class="text-xs font-mono text-right text-sky-600 dark:text-sky-400">{{ formatMsToHMS(ms) }}</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 items-center px-4 pt-4 mt-2 border-t border-app-border-light flex-shrink-0">
+                <span class="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest">Total</span>
+                <span class="text-sm font-mono font-bold text-right text-indigo-600 dark:text-indigo-400">{{ formatMsToHMS(taskToEdit.totalTimeSpent) }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </transition>
     </form>

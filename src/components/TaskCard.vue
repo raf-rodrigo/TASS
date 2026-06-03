@@ -28,21 +28,31 @@ const props = defineProps({
 });
 
 const activeStyle = computed(() => {
+  let customStyles = {};
+
   // Prioridade 1: Estilo imposto temporariamente pela Coluna (Sobreposição)
   if (props.columnIndex >= 0 && settings.columnStyles && settings.columnStyles[props.columnIndex]) {
     const profileId = settings.columnStyles[props.columnIndex];
     const profile = taskStyleStore.getStyleById(profileId);
-    if (profile && profile.styles) return profile.styles;
+    if (profile && profile.styles && Object.keys(profile.styles).length > 0) customStyles = profile.styles;
   }
 
   // Prioridade 2: Estilo próprio da Tarefa
-  if (props.task.styleId) {
+  if (Object.keys(customStyles).length === 0 && props.task.styleId) {
     const profile = taskStyleStore.getStyleById(props.task.styleId);
-    if (profile && profile.styles) return profile.styles;
+    if (profile && profile.styles && Object.keys(profile.styles).length > 0) customStyles = profile.styles;
   }
   
-  // Prioridade 3: Padrão Global
-  return settings;
+  // Mescla o que existir no perfil com o padrão global (settings)
+  return {
+    cardPadding: customStyles.cardPadding ?? settings.cardPadding,
+    taskNumberSize: customStyles.taskNumberSize ?? settings.taskNumberSize,
+    taskDescriptionSize: customStyles.taskDescriptionSize ?? settings.taskDescriptionSize,
+    taskTimerSize: customStyles.taskTimerSize ?? settings.taskTimerSize,
+    taskMinHeight: customStyles.taskMinHeight ?? settings.taskMinHeight,
+    taskMaxWidth: customStyles.taskMaxWidth ?? settings.taskMaxWidth,
+    taskVerticalAlign: customStyles.taskVerticalAlign ?? settings.taskVerticalAlign
+  };
 });
 
 const taskColors = computed(() => {

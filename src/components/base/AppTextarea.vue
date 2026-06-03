@@ -83,7 +83,7 @@ const emit = defineEmits(['update:modelValue']);
       @input="emit('update:modelValue', $event.target.value)"
       :rows="rows"
       v-bind="$attrs"
-      class="app-input px-4 py-3 shadow-sm transition-all resize-none"
+      class="app-input px-4 py-3 shadow-sm transition-all resize-y min-h-[120px]"
       :class="[
         error ? 'border-red-500/50 ring-1 ring-red-500/20' : '',
         $attrs.class

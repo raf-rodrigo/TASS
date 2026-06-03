@@ -105,7 +105,8 @@ const localSettings = ref({
   darkenWallpaper: settings.darkenWallpaper,
   notesSide: settings.notesSide,
   contextMenuStyle: settings.contextMenuStyle,
-  contextMenuMode: settings.contextMenuMode
+  contextMenuMode: settings.contextMenuMode,
+  hideWelcomeModal: settings.hideWelcomeModal
 });
 
 
@@ -143,6 +144,7 @@ const handleSave = async () => {
   settings.notesSide = localSettings.value.notesSide;
   settings.contextMenuStyle = localSettings.value.contextMenuStyle;
   settings.contextMenuMode = localSettings.value.contextMenuMode;
+  settings.hideWelcomeModal = localSettings.value.hideWelcomeModal;
 
   await settings.saveAllSettings();
   notificationService.toast('Configurações Salvas!');
@@ -489,6 +491,13 @@ const handleResetSystem = async () => {
                         <div class="text-right"><p class="text-[10px] text-slate-500 font-bold uppercase">Total</p><p class="text-lg font-black text-indigo-600 dark:text-indigo-400">{{ (localSettings.inactivityThreshold.hours * 60) + localSettings.inactivityThreshold.minutes }} min</p></div>
                       </div>
                     </div>
+                  </div>
+
+                  <div class="glass-section p-4 space-y-4">
+                    <label class="flex items-center justify-between cursor-pointer">
+                      <div><p class="text-sm font-bold text-slate-700 dark:text-slate-200">Ocultar Guia Inicial</p><p class="text-[10px] text-slate-500">Não exibir o modal de atalhos e dicas ao carregar o sistema.</p></div>
+                      <div class="relative inline-flex items-center"><input type="checkbox" class="sr-only peer" v-model="localSettings.hideWelcomeModal"><div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div></div>
+                    </label>
                   </div>
 
                   <div class="glass-section p-4 space-y-4">

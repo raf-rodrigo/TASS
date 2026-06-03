@@ -84,6 +84,7 @@ export const useTaskStore = defineStore('task', () => {
       completed: false,
       totalTimeSpent: 0,
       totalWorked: 0,
+      dailyLogs: {},
       isRunning: false,
       lastStartTime: null,
       createdAt: Date.now()
@@ -117,7 +118,10 @@ export const useTaskStore = defineStore('task', () => {
 
   const updateTask = async (id, updates) => {
     try {
-      await db.tasks.update(id, updates);
+      // Remover os Proxies do Vue para evitar DataCloneError no IndexedDB
+      const cleanUpdates = JSON.parse(JSON.stringify(updates));
+      await db.tasks.update(id, cleanUpdates);
+      
       const index = tasks.value.findIndex(t => t.id === id);
       if (index !== -1) {
         const updatedTask = { ...tasks.value[index], ...updates };

@@ -10,6 +10,11 @@ export const useTimerStore = defineStore('timer', () => {
   const taskStore = useTaskStore();
   const settings = useSettingsStore();
 
+  const getTodayDateString = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
   const activeTask = computed(() => taskStore.tasks.find(t => t.isRunning));
 
   const activeTaskTimeFormatted = computed(() => {
@@ -26,12 +31,18 @@ export const useTimerStore = defineStore('timer', () => {
         const diff = now - task.lastStartTime;
         task.totalTimeSpent += diff;
         task.totalWorked = (task.totalWorked || 0) + diff;
+        
+        // Registro diário
+        const today = getTodayDateString();
+        task.dailyLogs = task.dailyLogs || {};
+        task.dailyLogs[today] = (task.dailyLogs[today] || 0) + diff;
       }
       task.lastStartTime = null;
       await taskStore.updateTask(task.id, { 
         isRunning: false, 
         totalTimeSpent: task.totalTimeSpent, 
         totalWorked: task.totalWorked,
+        dailyLogs: task.dailyLogs,
         lastStartTime: null 
       });
     } else {
@@ -65,14 +76,19 @@ export const useTimerStore = defineStore('timer', () => {
             const diff = now - t.lastStartTime;
             t.totalTimeSpent += diff;
             t.totalWorked = (t.totalWorked || 0) + diff;
+            
+            const today = getTodayDateString();
+            t.dailyLogs = t.dailyLogs || {};
+            t.dailyLogs[today] = (t.dailyLogs[today] || 0) + diff;
           }
           t.lastStartTime = null;
-          await db.tasks.update(t.id, { 
+          await db.tasks.update(t.id, JSON.parse(JSON.stringify({ 
             isRunning: false, 
             totalTimeSpent: t.totalTimeSpent, 
             totalWorked: t.totalWorked,
+            dailyLogs: t.dailyLogs,
             lastStartTime: null 
-          });
+          })));
         }
       }
       task.isRunning = true;
@@ -86,6 +102,7 @@ export const useTimerStore = defineStore('timer', () => {
       await taskStore.updateTask(id, { 
         totalTimeSpent: 0, 
         lastStartTime: null,
+        dailyLogs: {},
         isRunning: false 
       });
       notificationService.toast('Cronômetro da tarefa zerado!');
@@ -101,6 +118,11 @@ export const useTimerStore = defineStore('timer', () => {
         const diff = now - task.lastStartTime;
         task.totalTimeSpent += diff;
         task.totalWorked = (task.totalWorked || 0) + diff;
+        
+        const today = getTodayDateString();
+        task.dailyLogs = task.dailyLogs || {};
+        task.dailyLogs[today] = (task.dailyLogs[today] || 0) + diff;
+        
         task.lastStartTime = now;
       }
     });
@@ -109,11 +131,12 @@ export const useTimerStore = defineStore('timer', () => {
   const autoSaveRunningTasks = async () => {
     const promises = taskStore.tasks
       .filter(t => t.isRunning)
-      .map(t => db.tasks.update(t.id, { 
+      .map(t => db.tasks.update(t.id, JSON.parse(JSON.stringify({ 
         totalTimeSpent: t.totalTimeSpent, 
         totalWorked: t.totalWorked,
+        dailyLogs: t.dailyLogs,
         lastStartTime: t.lastStartTime 
-      }));
+      }))));
     await Promise.all(promises);
   };
 
@@ -127,6 +150,12 @@ export const useTimerStore = defineStore('timer', () => {
       if (field === 'totalTimeSpent') {
         const diff = newMs - task.totalTimeSpent;
         updates.totalWorked = (task.totalWorked || 0) + diff;
+        
+        // Ajuste manual: alocar a diferença no dia de hoje para não dessincronizar relatórios diários
+        const today = getTodayDateString();
+        const currentLogs = task.dailyLogs || {};
+        currentLogs[today] = (currentLogs[today] || 0) + diff;
+        updates.dailyLogs = currentLogs;
       }
 
       await taskStore.updateTask(taskId, updates);

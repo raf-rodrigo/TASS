@@ -298,7 +298,7 @@ const handleColumnChange = (n) => {
                     </div>
                     <button 
                       type="button"
-                      @click.prevent.stop="$emit('open-style-builder')" 
+                      @click.prevent.stop="emit('open-style-builder')" 
                       class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-2"
                     >
                       <Layers class="w-4 h-4" /> Abrir Construtor

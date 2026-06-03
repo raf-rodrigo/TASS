@@ -139,7 +139,6 @@ export const backupService = {
       
       await settingsStore.loadSettings();
       await taskStore.loadTasks();
-      await taskStore.loadSprints();
       
       notificationService.toast('Sistema restaurado! Recarregando...', 'success');
       

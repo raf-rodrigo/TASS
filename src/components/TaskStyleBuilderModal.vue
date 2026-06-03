@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { 
   Palette, Layout, Save, Trash2, Plus, ArrowRight, Copy,
-  Monitor, Layers, CircleDot, Play, MoreVertical, Sparkles, CheckCircle2, X, Coffee, Camera, Moon, Heart
+  Monitor, Layers, CircleDot, Play, MoreVertical, Sparkles, CheckCircle2, X, Coffee, Camera, Moon, Heart, Zap
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStyleStore } from '../stores/taskStyleStore';
@@ -319,6 +319,35 @@ const injectPopularStyles = async () => {
   }
 };
 
+const injectNeonStyles = async () => {
+  const neonStyles = [
+    { id: 'neon-1', name: 'Cyber Pink', styles: { cardPadding: 16, taskNumberSize: 16, taskDescriptionSize: 14, taskTimerSize: 14, taskMinHeight: 110, taskMaxWidth: 0 }, colors: { color: '#FF2A7A', bgColor: '#1A0B16', textLightColor: '#FF94B8', textDarkColor: '#FF94B8' } },
+    { id: 'neon-2', name: 'Matrix Green', styles: { cardPadding: 16, taskNumberSize: 16, taskDescriptionSize: 14, taskTimerSize: 14, taskMinHeight: 110, taskMaxWidth: 0 }, colors: { color: '#00FF41', bgColor: '#0D1A12', textLightColor: '#8CFFAC', textDarkColor: '#8CFFAC' } },
+    { id: 'neon-3', name: 'Synthwave Blue', styles: { cardPadding: 16, taskNumberSize: 16, taskDescriptionSize: 14, taskTimerSize: 14, taskMinHeight: 110, taskMaxWidth: 0 }, colors: { color: '#00F0FF', bgColor: '#0B161A', textLightColor: '#99F8FF', textDarkColor: '#99F8FF' } },
+    { id: 'neon-4', name: 'Laser Lemon', styles: { cardPadding: 16, taskNumberSize: 16, taskDescriptionSize: 14, taskTimerSize: 14, taskMinHeight: 110, taskMaxWidth: 0 }, colors: { color: '#FFFF00', bgColor: '#1A1A00', textLightColor: '#FFFF99', textDarkColor: '#FFFF99' } },
+    { id: 'neon-5', name: 'Neon Purple', styles: { cardPadding: 16, taskNumberSize: 16, taskDescriptionSize: 14, taskTimerSize: 14, taskMinHeight: 110, taskMaxWidth: 0 }, colors: { color: '#B026FF', bgColor: '#120B1A', textLightColor: '#DDA3FF', textDarkColor: '#DDA3FF' } },
+    { id: 'neon-6', name: 'Electric Orange', styles: { cardPadding: 16, taskNumberSize: 16, taskDescriptionSize: 14, taskTimerSize: 14, taskMinHeight: 110, taskMaxWidth: 0 }, colors: { color: '#FF5E00', bgColor: '#1A0E0B', textLightColor: '#FFAD80', textDarkColor: '#FFAD80' } },
+    { id: 'neon-7', name: 'Radioactive', styles: { cardPadding: 16, taskNumberSize: 16, taskDescriptionSize: 14, taskTimerSize: 14, taskMinHeight: 110, taskMaxWidth: 0 }, colors: { color: '#CCFF00', bgColor: '#141A00', textLightColor: '#E5FF80', textDarkColor: '#E5FF80' } },
+    { id: 'neon-8', name: 'Hot Magenta', styles: { cardPadding: 16, taskNumberSize: 16, taskDescriptionSize: 14, taskTimerSize: 14, taskMinHeight: 110, taskMaxWidth: 0 }, colors: { color: '#FF0090', bgColor: '#1A000F', textLightColor: '#FF80C8', textDarkColor: '#FF80C8' } },
+    { id: 'neon-9', name: 'Tron Cyan', styles: { cardPadding: 16, taskNumberSize: 16, taskDescriptionSize: 14, taskTimerSize: 14, taskMinHeight: 110, taskMaxWidth: 0 }, colors: { color: '#7DF9FF', bgColor: '#071A1A', textLightColor: '#BFFFFF', textDarkColor: '#BFFFFF' } },
+    { id: 'neon-10', name: 'Plasma Red', styles: { cardPadding: 16, taskNumberSize: 16, taskDescriptionSize: 14, taskTimerSize: 14, taskMinHeight: 110, taskMaxWidth: 0 }, colors: { color: '#FF003C', bgColor: '#1A0006', textLightColor: '#FF809D', textDarkColor: '#FF809D' } }
+  ];
+
+  let added = 0;
+  for (const style of neonStyles) {
+    if (!taskStyleStore.styles.some(s => s.id === style.id)) {
+      await taskStyleStore.saveStyle(style);
+      added++;
+    }
+  }
+  
+  if (added > 0) {
+    notificationService.toast(`${added} Estilos Neon importados!`, 'success');
+  } else {
+    notificationService.toast('Os estilos neon já existem.', 'info');
+  }
+};
+
 // Mock Properties for Preview
 const hoveredTargetId = ref(null);
 
@@ -372,6 +401,9 @@ const isSquareLayout = computed(() => {
             <div class="flex items-center gap-1">
               <button @click="injectPopularStyles" class="p-1 text-pink-500 hover:bg-pink-500/10 rounded-lg transition-all" data-tip="Gerar 10 Estilos Populares">
                 <Heart class="w-4 h-4" />
+              </button>
+              <button @click="injectNeonStyles" class="p-1 text-cyan-400 hover:bg-cyan-400/10 rounded-lg transition-all" data-tip="Gerar 10 Estilos Neon">
+                <Zap class="w-4 h-4" />
               </button>
               <button @click="injectNightStyles" class="p-1 text-indigo-400 hover:bg-indigo-400/10 rounded-lg transition-all" data-tip="Gerar 10 Estilos Night">
                 <Moon class="w-4 h-4" />

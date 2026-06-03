@@ -109,7 +109,7 @@ const openSprintsFromDock = () => {
 };
 
 // Handle welcome modal shortcut selection
-const handleWelcomeShortcut = (action) => {
+const handleWelcomeShortcut = async (action) => {
   uiStore.showWelcome = false;
   if (action === 'wallpaper') {
     interfaceInitialTab.value = 'wallpapers';
@@ -124,6 +124,52 @@ const handleWelcomeShortcut = (action) => {
   } else if (action === 'gitlab') {
     settingsInitialTab.value = 'gitlab';
     uiStore.showSettings = true;
+  } else if (action === 'example-cards') {
+    const laserLemon = taskStyleStore.styles.find(s => s.name === 'Laser Lemon' || s.id === 'style_laser_lemon' || s.id === 'neon-4');
+    const matrixGreen = taskStyleStore.styles.find(s => s.name === 'Matrix Green' || s.id === 'neon-2');
+    
+    if (!laserLemon || !matrixGreen) {
+      notificationService.toast('Os presets "Laser Lemon" e "Matrix Green" não estão presentes no sistema.', 'warning');
+      return;
+    }
+
+    const basePayload = {
+      estimatedTime: '',
+      priority: 'Normal',
+      devUrl: '',
+      homologUrl: '',
+      prodUrl: '',
+      taskUrl: '',
+      branchName: '',
+      branchUrl: '',
+      dbScripts: '',
+      moreInfo: '',
+      sprintId: null,
+      color: '',
+      bgColor: '',
+      textLightColor: '',
+      textDarkColor: ''
+    };
+    
+    await taskStore.addTask({
+      ...basePayload,
+      title: 'X0001',
+      description: 'Exemplo de card utilizando o preset Laser Lemon.',
+      styleId: laserLemon.id
+    });
+    
+    await taskStore.addTask({
+      ...basePayload,
+      title: 'X0002',
+      description: 'Exemplo de card utilizando o preset Matrix Green.',
+      styleId: matrixGreen.id
+    });
+    
+  } else if (action === 'task-styles') {
+    interfaceInitialTab.value = 'tasks';
+    uiStore.showInterfaceMenu = true;
+  } else if (action === 'breeze') {
+    handleOpenGitRebuilder();
   }
 };
 
@@ -234,7 +280,7 @@ onMounted(async () => {
   await sprintStore.loadSprints();
 
   if (!settings.hideWelcomeModal) {
-    showWelcome.value = true;
+    uiStore.showWelcome = true;
   }
   
 });
@@ -294,7 +340,7 @@ onMounted(async () => {
       </div>
 
       <main class="w-full mt-2 flex-1">
-        <NotesPanel :isOpen="showNotes" @toggle="showNotes = !showNotes" @close="showNotes = false" />
+        <NotesPanel :isOpen="uiStore.showNotes" @toggle="uiStore.showNotes = !uiStore.showNotes" @close="uiStore.showNotes = false" />
 
         <!-- Roteador Principal -->
         <router-view 
@@ -368,6 +414,9 @@ onMounted(async () => {
     <SettingsModal
       v-if="uiStore.showSettings"
       :initialTab="settingsInitialTab"
+      @close="uiStore.showSettings = false"
+      @open-interface="() => { uiStore.showSettings = false; openInterfaceFromDock(); }"
+      @test-wellness="() => triggerWellness(true)"
     />
 
     <SprintModal
@@ -386,6 +435,7 @@ onMounted(async () => {
       @close="uiStore.showInterfaceMenu = false"
       @open-settings="() => { uiStore.showInterfaceMenu = false; uiStore.showSettings = true; }"
       @open-style-builder="() => { uiStore.showTaskStyleBuilder = true; }"
+      @test-wellness="() => triggerWellness(true)"
     />
 
     <TaskStyleBuilderModal

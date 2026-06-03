@@ -1,12 +1,11 @@
 <script setup>
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { 
-  RefreshCw, ArrowRight, Terminal, ArrowLeft,
+  RefreshCw, Terminal,
   GitBranch, AlertTriangle, Check,
-  Trash2, Eye, EyeOff, Lock, Settings, Info, CloudLightning,
-  Sun, Moon
+  Trash2, Eye, EyeOff, Lock, Settings, Info, CloudLightning
 } from 'lucide-vue-next';
-import { useRouter } from 'vue-router';
+
 import { useSettingsStore } from '../../stores/settingsStore';
 import BaseModal from '../BaseModal.vue';
 import AppInput from '../base/AppInput.vue';
@@ -67,7 +66,7 @@ const confirmDestruction = () => {
 };
 
 // --- ESTADOS DAS ABAS, MESCLAGEM E DELEÇÃO ---
-const activeTab = ref('rebuilder'); // 'rebuilder' ou 'merges'
+const activeTab = ref('merges'); // 'rebuilder' ou 'merges'
 const mergeTarget = ref(null);      // Nome físico da branch selecionada (dev ou hml)
 const mergeTargetType = ref(null);    // 'dev' ou 'hml'
 const mergeLogs = ref([]);          // Logs da aba de mesclagem
@@ -225,19 +224,21 @@ const testConnection = async () => {
   }
 };
 
-const addPipelineLog = (text, type = 'info') => {
+const addPipelineLog = (text, type = 'info', link = null) => {
   pipelineLogs.value.push({
     time: new Date().toLocaleTimeString('pt-BR', { hour12: false }),
     text,
-    type
+    type,
+    link
   });
 };
 
-const addMergeLog = (text, type = 'info') => {
+const addMergeLog = (text, type = 'info', link = null) => {
   mergeLogs.value.push({
     time: new Date().toLocaleTimeString('pt-BR', { hour12: false }),
     text,
-    type
+    type,
+    link
   });
 };
 
@@ -807,7 +808,8 @@ const acceptMergeRequest = async (mrIid, branchName, target, apiBase, safeProjec
   });
 
   if (acceptRes.ok) {
-    addMergeLog(`${prefix} Branch '${branchName}' integrada com SUCESSO no GitLab!`, 'success');
+    const mrData = await acceptRes.json();
+    addMergeLog(`${prefix} Branch '${branchName}' integrada com SUCESSO no GitLab!`, 'success', mrData.web_url);
     mergeStatusMap.value[branchName] = 'success';
   } else {
     const errorData = await acceptRes.json().catch(() => ({}));
