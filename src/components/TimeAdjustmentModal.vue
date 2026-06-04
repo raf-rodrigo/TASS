@@ -4,6 +4,8 @@ import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
+import { useTimerStore } from '../stores/timerStore';
+import { useUIStore } from '../stores/uiStore';
 import { getHMFromMs, hmsToMs } from '../utils/time';
 import { ptBR } from 'date-fns/locale';
 import { Clock, Check } from 'lucide-vue-next';
@@ -15,10 +17,10 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['close']);
-
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
+const timerStore = useTimerStore();
+const uiStore = useUIStore();
 
 const timeValue = ref(getHMFromMs(props.task.totalTimeSpent));
 const modalRef = ref(null);
@@ -81,15 +83,15 @@ onUnmounted(() => {
 const handleClickOutside = (e) => {
   // Only close if clicking outside the modal wrapper (ignores clicks inside datepicker)
   if (modalRef.value && !modalRef.value.contains(e.target)) {
-    emit('close');
+    uiStore.closeTimeAdjustment();
   }
 };
 
 const handleSave = async () => {
   if (!timeValue.value) return;
   const newMs = hmsToMs(timeValue.value.hours, timeValue.value.minutes);
-  await taskStore.adjustTaskTime(props.task.id, newMs);
-  emit('close');
+  await timerStore.adjustTaskTime(props.task.id, newMs);
+  uiStore.closeTimeAdjustment();
 };
 
 const isDark = computed(() => settings.theme === 'dark');

@@ -6,6 +6,8 @@ import {
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
+import { useSprintStore } from '../stores/sprintStore';
+import { useTimerStore } from '../stores/timerStore';
 import { useRadioStore } from '../stores/radioStore';
 
 const emit = defineEmits([
@@ -14,6 +16,8 @@ const emit = defineEmits([
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
+const sprintStore = useSprintStore();
+const timerStore = useTimerStore();
 const radioStore = useRadioStore();
 
 const isExpanded = ref(false);
@@ -42,12 +46,13 @@ const dockRadius = computed(() => {
 <template>
   <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[250] w-full max-w-fit px-4 pointer-events-none">
     <div 
-      class="dynamic-island flex flex-col md:flex-row items-center shadow-2xl border border-app-border-light backdrop-blur-xl ring-1 ring-black/5 pointer-events-auto transition-all duration-300 ease-out overflow-hidden"
+      class="dynamic-island flex flex-col md:flex-row items-center shadow-2xl border border-app-border-light ring-1 ring-black/5 pointer-events-auto transition-all duration-300 ease-out overflow-hidden"
       :class="[
         isMobile && isExpanded ? 'w-[90vw] gap-3 p-4' : 'p-1.5 gap-2'
       ]"
       :style="{ 
         backgroundColor: `rgba(var(--app-bg-raw), var(--app-bottom-opacity))`,
+        backdropFilter: `blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))`,
         borderRadius: dockRadius
       }"
     >
@@ -67,9 +72,9 @@ const dockRadius = computed(() => {
           <div 
             class="dock-item !bg-indigo-500/5 !border-indigo-500/20 px-3 py-2 flex items-center gap-2"
           >
-            <Clock class="w-4 h-4 text-indigo-600 dark:text-indigo-400" :class="{ 'animate-pulse': taskStore.activeTask }" />
+            <Clock class="w-4 h-4 text-indigo-600 dark:text-indigo-400" :class="{ 'animate-pulse': timerStore.activeTask }" />
             <span class="text-xs font-black font-mono text-indigo-600 dark:text-indigo-400">
-              {{ taskStore.activeSprintTotalTime }}
+              {{ sprintStore.activeSprintTotalTime }}
             </span>
           </div>
 

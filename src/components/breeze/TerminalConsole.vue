@@ -31,7 +31,13 @@ watch(() => props.logs, () => {
 </script>
 
 <template>
-  <div class="glass-section flex flex-col flex-1 min-h-0 relative overflow-hidden border-indigo-500/20 bg-slate-900/50 dark:bg-black/50">
+  <div class="flex flex-col flex-1 min-h-0 relative overflow-hidden border-indigo-500/20 rounded-2xl" 
+       :style="{ 
+         backgroundColor: 'rgba(2, 6, 23, var(--app-modal-body-opacity))',
+         backdropFilter: 'blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))',
+         '-webkit-backdrop-filter': 'blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))',
+         border: '1px solid rgba(99, 102, 241, 0.2)'
+       }">
     <!-- Console de Texto -->
     <div
       ref="consoleEl"
@@ -52,6 +58,10 @@ watch(() => props.logs, () => {
         }"
       >
         <span class="text-slate-500">[{{ log.time }}]</span> {{ log.text }}
+        <a v-if="log.link" :href="log.link" target="_blank" class="ml-2 text-indigo-400 hover:text-indigo-300 underline font-bold tracking-wider inline-flex items-center gap-1">
+          Abrir Merge Request
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </a>
       </div>
     </div>
 

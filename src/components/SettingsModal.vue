@@ -3,7 +3,7 @@ import { ref, watch, onMounted, computed } from 'vue';
 import { 
   Download, Upload, Globe, Palette, Cloud, Loader2, LogOut, LogIn, Trash2,
   ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles, Bug, MousePointer2, Layout, Layers, Maximize,
-  RefreshCw, Play, CheckCircle2, AlertTriangle, Terminal, ArrowRight, History
+  RefreshCw, Play, CheckCircle2, AlertTriangle, Terminal, ArrowRight, History, Info, Github, MessageCircle, Code2, Coffee, Copy
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
@@ -13,14 +13,17 @@ import { db } from '../db.js';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import BaseModal from './BaseModal.vue';
 import { useTaskStore } from '../stores/taskStore';
+import { useUIStore } from '../stores/uiStore';
 import { ptBR } from 'date-fns/locale';
 import '@vuepic/vue-datepicker/dist/main.css';
 import AppInput from './base/AppInput.vue';
 import AppSelect from './base/AppSelect.vue';
 import AppRadio from './base/AppRadio.vue';
+import QrcodeVue from 'qrcode.vue';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
+const uiStore = useUIStore();
 const props = defineProps({
   initialTab: {
     type: String,
@@ -28,7 +31,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['close', 'save', 'export-tasks', 'import-tasks', 'export-system', 'import-system', 'test-wellness', 'open-interface', 'test-modal', 'open-git-rebuilder']);
+const emit = defineEmits(['save', 'test-wellness']);
 
 const activeTab = ref(props.initialTab || 'gitlab');
 const isGoogleLoading = ref(false);
@@ -36,6 +39,18 @@ const isGoogleAuthenticated = ref(googleDriveService.isAuthenticated());
 const googleUser = ref(googleDriveService.getProfile());
 const googleBackups = ref([]);
 const showGoogleRestoreList = ref(false);
+
+const showPix = ref(false);
+const pixKey = '8990fa68-8d2b-45e9-a588-531c620845d0';
+
+const copyPixKey = async () => {
+  try {
+    await navigator.clipboard.writeText(pixKey);
+    notificationService.toast('Chave PIX copiada!', 'success');
+  } catch (err) {
+    notificationService.toast('Erro ao copiar chave PIX.', 'error');
+  }
+};
 
 onMounted(() => {
   // Inicializa o serviço do Google com um callback para atualizar o estado de autenticação
@@ -64,6 +79,7 @@ const tabs = [
   { id: 'health', label: 'Saúde e Bem-estar', icon: Activity, color: 'text-indigo-500', desc: 'Lembretes inteligentes para manter sua saúde.' },
   { id: 'system', label: 'Sistema e Interface', icon: Monitor, color: 'text-indigo-500', desc: 'Configurações globais de comportamento.' },
   { id: 'security', label: 'Dados e Segurança', icon: ShieldCheck, color: 'text-indigo-500', desc: 'Gerencie backups e o banco de dados local.' },
+  { id: 'about', label: 'Sobre o TASS', icon: Info, color: 'text-indigo-500', desc: 'Informações, desenvolvedor e links.' },
 ];
 
 const activeTabObj = computed(() => tabs.find(t => t.id === activeTab.value) || tabs[0]);
@@ -103,7 +119,8 @@ const localSettings = ref({
   darkenWallpaper: settings.darkenWallpaper,
   notesSide: settings.notesSide,
   contextMenuStyle: settings.contextMenuStyle,
-  contextMenuMode: settings.contextMenuMode
+  contextMenuMode: settings.contextMenuMode,
+  hideWelcomeModal: settings.hideWelcomeModal
 });
 
 
@@ -141,14 +158,33 @@ const handleSave = async () => {
   settings.notesSide = localSettings.value.notesSide;
   settings.contextMenuStyle = localSettings.value.contextMenuStyle;
   settings.contextMenuMode = localSettings.value.contextMenuMode;
+  settings.hideWelcomeModal = localSettings.value.hideWelcomeModal;
 
   await settings.saveAllSettings();
   notificationService.toast('Configurações Salvas!');
   emit('save');
 };
 
-const handleImportTasks = (event) => emit('import-tasks', event);
-const handleImportSystem = (event) => emit('import-system', event);
+const handleExportTasks = () => backupService.exportTasks();
+const handleExportSystem = () => backupService.exportSystem();
+
+const handleImportTasks = async (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    await backupService.importTasks(file, taskStore);
+    event.target.value = '';
+  }
+};
+
+const handleImportSystem = async (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    await backupService.importSystem(file, settings, taskStore);
+    // Reload logic for theme can be handled by reactivity or emitting an event if really needed.
+    // For now, it will load settings and reactivity will pick up.
+    event.target.value = '';
+  }
+};
 
 // --- GOOGLE DRIVE HANDLERS ---
 const handleGoogleLogin = () => googleDriveService.login();
@@ -203,7 +239,7 @@ const handleRestoreFromGoogle = async (file) => {
       const success = await backupService.applyBackupData(data, settings, taskStore);
       if (success) {
         showGoogleRestoreList.value = false;
-        emit('close');
+        uiStore.showSettings = false;
       }
     }
   } catch (error) {
@@ -473,6 +509,13 @@ const handleResetSystem = async () => {
 
                   <div class="glass-section p-4 space-y-4">
                     <label class="flex items-center justify-between cursor-pointer">
+                      <div><p class="text-sm font-bold text-slate-700 dark:text-slate-200">Ocultar Guia Inicial</p><p class="text-[10px] text-slate-500">Não exibir o modal de atalhos e dicas ao carregar o sistema.</p></div>
+                      <div class="relative inline-flex items-center"><input type="checkbox" class="sr-only peer" v-model="localSettings.hideWelcomeModal"><div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div></div>
+                    </label>
+                  </div>
+
+                  <div class="glass-section p-4 space-y-4">
+                    <label class="flex items-center justify-between cursor-pointer">
                       <div><p class="text-sm font-bold text-slate-700 dark:text-slate-200">Realce de Contraste</p><p class="text-[10px] text-slate-500">Otimiza a legibilidade do texto em interfaces transparentes.</p></div>
                       <div class="relative inline-flex items-center"><input type="checkbox" class="sr-only peer" v-model="localSettings.contrastEnhanced"><div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div></div>
                     </label>
@@ -490,16 +533,6 @@ const handleResetSystem = async () => {
                       <div class="flex-1 pr-4"><p class="text-sm font-bold text-slate-700 dark:text-slate-200">Manter o estado das janelas</p><p class="text-[10px] text-slate-500 leading-relaxed">Memoriza a última aba aberta nas configurações e ajustes gráficos. <span class="text-indigo-500 font-bold block mt-1 italic">* Esta preferência é salva apenas no seu navegador (Local Storage).</span></p></div>
                       <div class="relative inline-flex items-center shrink-0"><input type="checkbox" class="sr-only peer" v-model="settings.keepWindowState"><div class="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div></div>
                     </label>
-                  </div>
-
-                  <div class="glass-section p-4 space-y-4 border-t-2 border-app-border-light">
-                    <div class="flex items-center gap-2 mb-2"><Bug class="w-4 h-4 text-indigo-500" /><div><p class="text-sm font-bold text-slate-700 dark:text-slate-200">Modo Desenvolvedor (Debug)</p><p class="text-[10px] text-slate-500">Teste as chamadas de API internas do sistema TASS.</p></div></div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      <button @click="$emit('test-modal', 'success')" class="py-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">Success</button>
-                      <button @click="$emit('test-modal', 'error')" class="py-2 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">Error</button>
-                      <button @click="$emit('test-modal', 'warning')" class="py-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">Warning</button>
-                      <button @click="$emit('test-modal', 'prompt')" class="py-2 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500 hover:text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">Prompt</button>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -528,19 +561,100 @@ const handleResetSystem = async () => {
                   </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="glass-section p-6 space-y-4 relative overflow-hidden"><div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><Server class="w-16 h-16" /></div><div class="flex items-center gap-3 mb-2 relative z-10"><ShieldCheck class="w-5 h-5 text-emerald-500" /><h4 class="text-sm font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">Sistema Completo</h4></div><p class="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4 relative z-10">Exporta <b>absolutamente tudo</b>: tarefas, sprints, notas rápidas e todas as configurações de interface.</p><div class="flex flex-col xl:flex-row gap-3 relative z-10"><button @click="emit('export-system')" class="flex-1 flex items-center justify-center gap-2 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20"><Download class="w-4 h-4" /> Exportar</button><label class="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer text-center"><Upload class="w-4 h-4" /> Restaurar<input type="file" accept=".json" class="hidden" @change="handleImportSystem" /></label></div></div>
-                  <div class="glass-section p-6 space-y-4 relative overflow-hidden flex-1"><div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><FileJson class="w-16 h-16" /></div><div class="flex items-center gap-3 mb-2 relative z-10"><FileJson class="w-5 h-5 text-indigo-500" /><h4 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Apenas Tarefas</h4></div><p class="text-[10px] text-slate-500 leading-relaxed mb-4 relative z-10">Lista de tarefas atual. Ideal para transferências rápidas ou backups frequentes.</p><div class="flex flex-col xl:flex-row gap-3 relative z-10"><button @click="emit('export-tasks')" class="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-100 dark:bg-white/5 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light"><Download class="w-4 h-4" /> Exportar</button><label class="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-slate-100 dark:bg-white/5 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light cursor-pointer text-center"><Upload class="w-4 h-4" /> Importar<input type="file" accept=".json" class="hidden" @change="handleImportTasks" /></label></div></div>
+                  <div class="glass-section p-6 space-y-4 relative overflow-hidden"><div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><Server class="w-16 h-16" /></div><div class="flex items-center gap-3 mb-2 relative z-10"><ShieldCheck class="w-5 h-5 text-emerald-500" /><h4 class="text-sm font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">Sistema Completo</h4></div><p class="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4 relative z-10">Exporta <b>absolutamente tudo</b>: tarefas, sprints, notas rápidas e todas as configurações de interface.</p><div class="flex flex-col xl:flex-row gap-3 relative z-10"><button @click="handleExportSystem" class="flex-1 flex items-center justify-center gap-2 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20"><Download class="w-4 h-4" /> Exportar</button><label class="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer text-center"><Upload class="w-4 h-4" /> Restaurar<input type="file" accept=".json" class="hidden" @change="handleImportSystem" /></label></div></div>
+                  <div class="glass-section p-6 space-y-4 relative overflow-hidden flex-1"><div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><FileJson class="w-16 h-16" /></div><div class="flex items-center gap-3 mb-2 relative z-10"><FileJson class="w-5 h-5 text-indigo-500" /><h4 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Apenas Tarefas</h4></div><p class="text-[10px] text-slate-500 leading-relaxed mb-4 relative z-10">Lista de tarefas atual. Ideal para transferências rápidas ou backups frequentes.</p><div class="flex flex-col xl:flex-row gap-3 relative z-10"><button @click="handleExportTasks" class="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-100 dark:bg-white/5 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light"><Download class="w-4 h-4" /> Exportar</button><label class="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-slate-100 dark:bg-white/5 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light cursor-pointer text-center"><Upload class="w-4 h-4" /> Importar<input type="file" accept=".json" class="hidden" @change="handleImportTasks" /></label></div></div>
                 </div>
                 <div class="glass-section p-6 bg-red-500/5 dark:bg-red-500/10 border-red-500/20 space-y-4"><div class="flex items-center gap-3 mb-2"><Activity class="w-5 h-5 text-red-500" /><h4 class="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-tight">Zona de Perigo</h4></div><p class="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4">Deseja limpar tudo e começar do zero? Esta ação removerá todas as tarefas e sprints do seu banco de dados local.</p><button @click="handleResetSystem" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 active:scale-95">Zerar Banco de Dados</button></div>
               </div>
+              
+              <div v-else-if="activeTab === 'about'" :key="'about'" class="space-y-8">
+                <div class="glass-section p-8 space-y-8 text-center flex flex-col items-center justify-center relative overflow-hidden">
+                  <div class="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                    <Code2 class="w-32 h-32 text-indigo-500" />
+                  </div>
+                  
+                  <div class="relative z-10 space-y-4">
+                    <h1 class="text-4xl leading-none bg-gradient-to-r from-[#00C4CC] to-[#7D2AE8] bg-clip-text text-transparent pb-2" style="font-family: 'Satisfy', cursive;">
+                      Tass
+                    </h1>
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-[0.2em]">Task & Agile System Setup</p>
+                    <div class="flex items-center justify-center gap-2 mt-2">
+                      <span class="px-2 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-md text-[10px] font-black uppercase tracking-widest border border-indigo-500/20">Versão 1.0.0</span>
+                    </div>
+                  </div>
+
+                  <div class="relative z-10 max-w-md mx-auto space-y-6 pt-6 border-t border-app-border-light">
+                    <div class="space-y-2">
+                      <p class="text-sm font-bold text-slate-600 dark:text-slate-300">Desenvolvido por</p>
+                      <p class="text-lg font-black text-indigo-600 dark:text-indigo-400">Sérgio Moreira</p>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                      <a href="https://github.com/ssergio100/TASS" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light shadow-sm">
+                        <Github class="w-4 h-4" />
+                        GitHub
+                      </a>
+                      
+                      <button @click="showPix = true" class="flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-500 text-white hover:bg-amber-600 rounded-xl text-xs font-bold transition-all shadow-lg shadow-amber-500/20">
+                        <Coffee class="w-4 h-4" />
+                        Buy me a coffee
+                      </button>
+
+                      <a href="https://wa.me/5511991386328?text=Olá!%20Gostaria%20de%20falar%20com%20você%20sobre%20o%20projeto%20TASS." target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-emerald-500/20 shadow-sm">
+                        <MessageCircle class="w-4 h-4" />
+                        WhatsApp
+                      </a>
+                    </div>
+
+
+                  </div>
+                  
+                  <div class="relative z-10 pt-8 mt-4 border-t border-app-border-light w-full">
+                    <p class="text-[10px] text-slate-500 leading-relaxed font-medium">
+                      O TASS é um sistema open-source de gestão de tarefas e produtividade.<br>
+                      De desenvolvedor para desenvolvedor. Para ajudar e não microgerenciar.<br>
+                      Distribuído sob a licença MIT. Copyright &copy; 2026.
+                    </p>
+                    <div class="flex justify-center gap-4 mt-3">
+                      <router-link to="/privacy" @click="uiStore.showSettings = false" class="text-[10px] text-indigo-500 hover:underline font-bold transition-colors">Política de Privacidade</router-link>
+                      <router-link to="/terms" @click="uiStore.showSettings = false" class="text-[10px] text-indigo-500 hover:underline font-bold transition-colors">Termos de Uso</router-link>
+                    </div>
+                  </div>
+                </div>
+              </div>
       </transition>
 
-    <!-- Footer -->
     <template #footer>
-      <button type="button" @click="emit('close')" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Cancelar</button>
+      <button type="button" @click="uiStore.showSettings = false" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Fechar</button>
       <button type="button" @click="handleSave" class="btn btn-primary px-8 py-2 border-none shadow-none text-xs font-black uppercase tracking-widest">Salvar</button>
     </template>
   </BaseModal>
+
+  <teleport to="body">
+    <BaseModal 
+      v-if="showPix"
+      title="Apoiar o Projeto"
+      subtitle="Escaneie o QR Code ou copie a chave PIX"
+      :icon="Coffee"
+      iconBgColor="#f59e0b"
+      maxWidth="max-w-md"
+      :showClose="true"
+      @close="showPix = false"
+    >
+      <div class="flex flex-col items-center gap-4 py-2">
+        <div class="p-4 bg-white rounded-2xl shadow-sm border border-slate-200">
+          <QrcodeVue :value="pixKey" :size="180" level="M" />
+        </div>
+        <div class="text-center w-full mt-2">
+          <p class="text-[11px] text-slate-500 font-mono bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 px-4 py-3 rounded-xl select-all break-all">{{ pixKey }}</p>
+        </div>
+        <button @click="copyPixKey" class="flex items-center justify-center gap-2 px-6 py-3 bg-amber-500 text-white hover:bg-amber-600 rounded-xl text-xs font-bold transition-all shadow-lg shadow-amber-500/20 w-full mt-2">
+          <Copy class="w-4 h-4" />
+          Copiar Chave PIX
+        </button>
+      </div>
+    </BaseModal>
+  </teleport>
 </template>
 
 <style scoped>

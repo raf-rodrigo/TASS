@@ -25,8 +25,20 @@ const showTooltip = (target, text) => {
   tooltip.textContent = text;
   
   const rect = target.getBoundingClientRect();
+  
+  // Medimos o tooltip antes de posicionar para saber sua altura real
+  const tooltipRect = tooltip.getBoundingClientRect();
+  
   const x = rect.left + (rect.width / 2);
-  const y = rect.top - 8;
+  let y = rect.top - 8;
+
+  // Se não houver espaço em cima (top), invertemos para baixo
+  if (rect.top - tooltipRect.height - 8 < 10) {
+    y = rect.bottom + 8;
+    tooltip.classList.add('tooltip-bottom');
+  } else {
+    tooltip.classList.remove('tooltip-bottom');
+  }
 
   tooltip.style.left = `${x}px`;
   tooltip.style.top = `${y}px`;

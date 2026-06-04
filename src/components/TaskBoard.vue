@@ -1,13 +1,18 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import draggable from 'vuedraggable';
 import TaskCard from './TaskCard.vue';
 import { Plus } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
+import { useTimerStore } from '../stores/timerStore';
+import { useUIStore } from '../stores/uiStore';
+import { useTaskStyleStore } from '../stores/taskStyleStore';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
+const timerStore = useTimerStore();
+const uiStore = useUIStore();
 
 const props = defineProps({
   boardColumns: {
@@ -22,17 +27,27 @@ const props = defineProps({
 
 const emit = defineEmits([
   'update-board',
-  'edit-task',
-  'toggle-completion',
-  'delete-task',
   'drag-start',
-  'drag-end',
-  'open-time-adjustment'
+  'drag-end'
 ]);
 
 const handleBoardChange = (evt, colIdx) => {
   emit('update-board', evt, colIdx);
 };
+
+/**
+ * Estilos dinâmicos do placeholder de coluna vazia.
+ * Respeita a opacidade do painel e a Chave Mestra global do efeito de vidro.
+ */
+const placeholderStyles = computed(() => {
+  const isGlassActive = settings.normalizedCardOpacity < 1.0;
+  
+  return {
+    borderColor: `rgba(var(--app-bg-raw), 0.1)`,
+    backgroundColor: isGlassActive ? `rgba(var(--app-bg-raw), 0.05)` : 'transparent',
+    backdropFilter: isGlassActive ? 'blur(var(--app-glass-blur))' : 'none'
+  };
+});
 </script>
 
 <template>
@@ -76,11 +91,7 @@ const handleBoardChange = (evt, colIdx) => {
         >
           <div 
             class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-2xl text-app-muted/30 transition-all"
-            :style="{ 
-              borderColor: `rgba(var(--app-bg-raw), 0.1)`,
-              backgroundColor: settings.cardOpacity > 0 ? `rgba(var(--app-bg-raw), 0.05)` : 'transparent',
-              backdropFilter: settings.cardOpacity > 0 ? 'blur(4px)' : 'none'
-            }"
+            :style="placeholderStyles"
           >
             <Plus class="w-10 h-10 mb-4 opacity-20" />
             <span class="text-[10px] font-black uppercase tracking-[0.3em] opacity-30 text-center px-8">
@@ -108,11 +119,11 @@ const handleBoardChange = (evt, colIdx) => {
             <TaskCard 
               :task="task" 
               :columnIndex="colIdx - 1"
-              @toggle-completion="(t) => emit('toggle-completion', t)" 
-              @delete-task="(id) => emit('delete-task', id)" 
-              @edit-task="(t) => emit('edit-task', t)" 
-              @toggle-timer="taskStore.toggleTimer" 
-              @open-time-adjustment="(t) => emit('open-time-adjustment', t)"
+              @toggle-completion="taskStore.toggleTaskCompletion" 
+              @delete-task="taskStore.deleteTask" 
+              @edit-task="uiStore.openTaskModal" 
+              @toggle-timer="timerStore.toggleTimer" 
+              @open-time-adjustment="uiStore.openTimeAdjustment"
             />
           </template>
         </draggable>

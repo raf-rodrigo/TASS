@@ -156,7 +156,7 @@ const selectedLabel = computed(() => {
       >
         <div 
           v-if="isOpen"
-          class="app-select-dropdown fixed z-[99999] bg-white dark:bg-slate-900 border border-app-border-light shadow-2xl overflow-hidden py-1 max-h-60 overflow-y-auto custom-scrollbar ring-1 ring-black/10 backdrop-blur-xl"
+          class="app-select-dropdown fixed z-[99999] bg-white dark:bg-slate-900 border border-app-border-light shadow-2xl overflow-hidden py-1 max-h-60 overflow-y-auto custom-scrollbar ring-1 ring-black/10"
           :style="{ 
             borderRadius: 'var(--app-card-radius)',
             top: dropdownStyle.top,

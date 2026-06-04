@@ -5,19 +5,27 @@ const routes = [
   {
     path: '/',
     name: 'Workspace',
-    component: Workspace,
-    meta: { layout: 'MainLayout' }
+    component: Workspace
   },
   {
     path: '/components',
     name: 'ComponentSuite',
-    component: () => import('../views/ComponentSuite.vue'),
-    meta: { layout: 'CleanLayout' }
+    component: () => import('../views/ComponentSuite.vue')
+  },
+  {
+    path: '/privacy',
+    name: 'Privacy',
+    component: () => import('../views/Privacy.vue')
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: () => import('../views/Terms.vue')
   }
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes
 });
 
