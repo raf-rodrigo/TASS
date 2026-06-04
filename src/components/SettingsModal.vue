@@ -33,7 +33,7 @@ const props = defineProps({
 
 const emit = defineEmits(['save', 'test-wellness']);
 
-const activeTab = ref(props.initialTab || 'gitlab');
+const activeTab = ref(props.initialTab || 'git');
 const isGoogleLoading = ref(false);
 const isGoogleAuthenticated = ref(googleDriveService.isAuthenticated());
 const googleUser = ref(googleDriveService.getProfile());
@@ -74,7 +74,7 @@ watch(activeTab, (newVal) => {
 });
 
 const tabs = [
-  { id: 'gitlab', label: 'Integração GitLab', icon: Globe, color: 'text-indigo-500', desc: 'Conecte ao GitLab e automatize seu workflow.' },
+  { id: 'git', label: 'Integração Remota', icon: Globe, color: 'text-indigo-500', desc: 'Conecte ao GitHub ou GitLab.' },
   { id: 'work', label: 'Jornada de Trabalho', icon: Briefcase, color: 'text-indigo-500', desc: 'Defina seu horário e dias de trabalho.' },
   { id: 'health', label: 'Saúde e Bem-estar', icon: Activity, color: 'text-indigo-500', desc: 'Lembretes inteligentes para manter sua saúde.' },
   { id: 'system', label: 'Sistema e Interface', icon: Monitor, color: 'text-indigo-500', desc: 'Configurações globais de comportamento.' },
@@ -99,11 +99,28 @@ const timeObjToString = (obj) => {
 
 // Local state for transactional editing
 const localSettings = ref({
+  gitProvider: settings.gitProvider,
+  githubOwner: settings.githubOwner,
+  githubRepo: settings.githubRepo,
+  githubToken: settings.githubToken,
   gitlabUrl: settings.gitlabUrl,
   gitlabIntegrationMode: settings.gitlabIntegrationMode,
   gitlabProjectId: settings.gitlabProjectId,
   gitlabToken: settings.gitlabToken,
-  gitlabBaseBranch: settings.gitlabBaseBranch,
+  gitlabBranchMaster: settings.gitlabBranchMaster,
+  gitlabAliasMaster: settings.gitlabAliasMaster,
+  gitlabBranchHml: settings.gitlabBranchHml,
+  gitlabAliasHml: settings.gitlabAliasHml,
+  gitlabBranchDev: settings.gitlabBranchDev,
+  gitlabAliasDev: settings.gitlabAliasDev,
+  gitlabBaseTarget: settings.gitlabBaseTarget,
+  githubBranchMaster: settings.githubBranchMaster,
+  githubAliasMaster: settings.githubAliasMaster,
+  githubBranchHml: settings.githubBranchHml,
+  githubAliasHml: settings.githubAliasHml,
+  githubBranchDev: settings.githubBranchDev,
+  githubAliasDev: settings.githubAliasDev,
+  githubBaseTarget: settings.githubBaseTarget,
   trackInactivity: settings.trackInactivity,
   workStart: stringToTimeObj(settings.workStart),
   workEnd: stringToTimeObj(settings.workEnd),
@@ -139,12 +156,117 @@ const toggleDay = (dayId) => {
   }
 };
 
+const testGitStatus = ref(null);
+const testGitMessage = ref('');
+
+const testGitConnection = async () => {
+  testGitStatus.value = 'checking';
+  testGitMessage.value = 'Testando conexão...';
+  
+  if (localSettings.value.gitProvider === 'gitlab') {
+    const token = localSettings.value.gitlabToken;
+    const projectId = localSettings.value.gitlabProjectId;
+    let apiBase = localSettings.value.gitlabUrl || 'https://gitlab.com';
+    
+    if (localSettings.value.gitlabIntegrationMode === 'link') {
+      testGitStatus.value = 'warning';
+      testGitMessage.value = 'Modo Link Mágico ativado. Não é possível testar conexão via API.';
+      return;
+    }
+    
+    if (!token || !projectId) {
+      testGitStatus.value = 'error';
+      testGitMessage.value = 'Token e ID do Projeto são obrigatórios para o GitLab.';
+      return;
+    }
+    
+    try {
+      if (!apiBase.includes('/api/v4')) {
+        const urlObj = new URL(apiBase);
+        apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
+      }
+      const safeProjectId = encodeURIComponent(decodeURIComponent(projectId));
+      const url = `${apiBase}/projects/${safeProjectId}`;
+
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'PRIVATE-TOKEN': token
+        }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        testGitStatus.value = 'success';
+        testGitMessage.value = `Conectado! Projeto: "${data.name_with_namespace}"`;
+      } else {
+        testGitStatus.value = 'error';
+        testGitMessage.value = `GitLab respondeu com erro HTTP ${res.status}: ${res.statusText}`;
+      }
+    } catch (err) {
+      testGitStatus.value = 'error';
+      testGitMessage.value = `Erro de rede/resolução: ${err.message}`;
+    }
+  } else if (localSettings.value.gitProvider === 'github') {
+    const owner = localSettings.value.githubOwner;
+    const repo = localSettings.value.githubRepo;
+    const token = localSettings.value.githubToken;
+    
+    if (!owner || !repo || !token) {
+      testGitStatus.value = 'error';
+      testGitMessage.value = 'Dono, Repositório e Token são obrigatórios para o GitHub.';
+      return;
+    }
+    
+    try {
+      const url = `https://api.github.com/repos/${owner}/${repo}`;
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'X-GitHub-Api-Version': '2022-11-28'
+        }
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        testGitStatus.value = 'success';
+        testGitMessage.value = `Conectado! Repositório: "${data.full_name}"`;
+      } else {
+        testGitStatus.value = 'error';
+        testGitMessage.value = `GitHub respondeu com erro HTTP ${res.status}: ${res.statusText}`;
+      }
+    } catch (err) {
+      testGitStatus.value = 'error';
+      testGitMessage.value = `Erro de rede/resolução: ${err.message}`;
+    }
+  }
+};
+
 const handleSave = async () => {
+  settings.gitProvider = localSettings.value.gitProvider;
+  settings.githubOwner = localSettings.value.githubOwner;
+  settings.githubRepo = localSettings.value.githubRepo;
+  settings.githubToken = localSettings.value.githubToken;
   settings.gitlabUrl = localSettings.value.gitlabUrl;
   settings.gitlabIntegrationMode = localSettings.value.gitlabIntegrationMode;
   settings.gitlabProjectId = localSettings.value.gitlabProjectId;
   settings.gitlabToken = localSettings.value.gitlabToken;
-  settings.gitlabBaseBranch = localSettings.value.gitlabBaseBranch;
+  settings.gitlabBranchMaster = localSettings.value.gitlabBranchMaster;
+  settings.gitlabAliasMaster = localSettings.value.gitlabAliasMaster;
+  settings.gitlabBranchHml = localSettings.value.gitlabBranchHml;
+  settings.gitlabAliasHml = localSettings.value.gitlabAliasHml;
+  settings.gitlabBranchDev = localSettings.value.gitlabBranchDev;
+  settings.gitlabAliasDev = localSettings.value.gitlabAliasDev;
+  settings.gitlabBaseTarget = localSettings.value.gitlabBaseTarget;
+  settings.githubBranchMaster = localSettings.value.githubBranchMaster;
+  settings.githubAliasMaster = localSettings.value.githubAliasMaster;
+  settings.githubBranchHml = localSettings.value.githubBranchHml;
+  settings.githubAliasHml = localSettings.value.githubAliasHml;
+  settings.githubBranchDev = localSettings.value.githubBranchDev;
+  settings.githubAliasDev = localSettings.value.githubAliasDev;
+  settings.githubBaseTarget = localSettings.value.githubBaseTarget;
   settings.trackInactivity = localSettings.value.trackInactivity;
   settings.workStart = timeObjToString(localSettings.value.workStart);
   settings.workEnd = timeObjToString(localSettings.value.workEnd);
@@ -340,37 +462,160 @@ const handleResetSystem = async () => {
 
     <!-- Conteúdo Principal -->
     <transition name="fade-slide" mode="out-in">
-                <div v-if="activeTab === 'gitlab'" :key="'gitlab'" class="space-y-8">
+                <div v-if="activeTab === 'git'" :key="'git'" class="space-y-8">
                 <div class="glass-section p-6 space-y-6">
-                  <div class="flex items-center justify-between mb-2">
+                  <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-2">
                     <div class="flex items-center gap-3">
                       <div class="p-2.5 bg-indigo-500/10 rounded-xl text-indigo-500">
                         <Globe class="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 class="text-sm font-black text-app-main uppercase tracking-tight">Configuração de Instância</h3>
-                        <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest">Modo: {{ localSettings.gitlabIntegrationMode === 'link' ? 'Manual' : 'Automatizado' }}</p>
+                        <h3 class="text-sm font-black text-app-main uppercase tracking-tight">Provedor Git</h3>
+                        <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest">Escolha a plataforma</p>
                       </div>
                     </div>
-                    <div class="flex bg-app-surface p-1 rounded-xl border border-app-border-light">
-                      <button @click="localSettings.gitlabIntegrationMode = 'link'" class="px-4 py-1.5 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'link' ? 'bg-indigo-500 text-white shadow-md' : 'text-app-muted hover:text-indigo-500'">Link Mágico</button>
-                      <button @click="localSettings.gitlabIntegrationMode = 'api'" class="px-4 py-1.5 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'api' ? 'bg-indigo-500 text-white shadow-md' : 'text-app-muted hover:text-indigo-500'">API Automática</button>
+                    <div class="flex bg-app-surface p-1 rounded-xl border border-app-border-light w-full md:w-auto overflow-x-auto">
+                      <button @click="localSettings.gitProvider = 'gitlab'" class="flex-1 md:flex-none px-4 py-2 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all flex items-center justify-center gap-2" :class="localSettings.gitProvider === 'gitlab' ? 'bg-indigo-500 text-white shadow-md' : 'text-app-muted hover:text-indigo-500'"><Globe class="w-3 h-3" /> GitLab</button>
+                      <button @click="localSettings.gitProvider = 'github'" class="flex-1 md:flex-none px-4 py-2 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all flex items-center justify-center gap-2" :class="localSettings.gitProvider === 'github' ? 'bg-indigo-500 text-white shadow-md' : 'text-app-muted hover:text-indigo-500'"><Github class="w-3 h-3" /> GitHub</button>
                     </div>
                   </div>
 
-                  <div class="grid gap-6 pt-4 border-t border-app-border-light">
+                  <!-- Configurações GitLab -->
+                  <div v-if="localSettings.gitProvider === 'gitlab'" class="grid gap-6 pt-4 border-t border-app-border-light animate-fadeIn">
+                    <div class="flex items-center justify-end mb-[-1rem]">
+                      <div class="flex bg-app-surface p-1 rounded-xl border border-app-border-light scale-90 origin-right">
+                        <button @click="localSettings.gitlabIntegrationMode = 'link'" class="px-4 py-1 text-[9px] font-black uppercase rounded-lg" :class="localSettings.gitlabIntegrationMode === 'link' ? 'bg-indigo-500 text-white shadow' : 'text-app-muted'">Link Mágico</button>
+                        <button @click="localSettings.gitlabIntegrationMode = 'api'" class="px-4 py-1 text-[9px] font-black uppercase rounded-lg" :class="localSettings.gitlabIntegrationMode === 'api' ? 'bg-indigo-500 text-white shadow' : 'text-app-muted'">API Automática</button>
+                      </div>
+                    </div>
                     <AppInput v-model="localSettings.gitlabUrl" type="url" label="URL da Instância GitLab" placeholder="https://gitlab.com" />
                     <template v-if="localSettings.gitlabIntegrationMode === 'api'">
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <AppInput v-model="localSettings.gitlabProjectId" label="ID do Projeto" placeholder="Ex: 1234" />
-                        <AppInput v-model="localSettings.gitlabBaseBranch" label="Branch Base" placeholder="develop" />
                       </div>
-                      <AppInput v-model="localSettings.gitlabToken" type="password" label="Personal Access Token (PAT)" placeholder="glpat-..." help-text="O token é armazenado apenas localmente no seu navegador." />
+                      <AppInput v-model="localSettings.gitlabToken" type="password" label="Personal Access Token (PAT)" placeholder="glpat-..." help-text="O token é armazenado apenas localmente." />
                     </template>
                     <div v-else class="p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
-                      <p class="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium leading-relaxed">
-                        No modo <b>Link Mágico</b>, o TASS apenas gerará URLs diretas para criação de branches. Nenhuma credencial de API é necessária.
-                      </p>
+                      <p class="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium leading-relaxed">No modo <b>Link Mágico</b>, o TASS apenas gerará URLs diretas para criação de branches. Nenhuma credencial de API é necessária.</p>
+                    </div>
+
+                    <div class="space-y-4 pt-4 mt-2 border-t border-app-border-light">
+                      <h4 class="text-[10px] font-black uppercase text-app-main tracking-widest">Ambientes e Aliases</h4>
+                      
+                      <!-- Master -->
+                      <div class="flex items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'master' ? 'ring-2 ring-indigo-500/50' : ''">
+                        <div class="grid grid-cols-2 gap-4 flex-1">
+                          <AppInput v-model="localSettings.gitlabBranchMaster" label="Nome Real (Master)" placeholder="master" />
+                          <AppInput v-model="localSettings.gitlabAliasMaster" label="Alias" placeholder="Produção" />
+                        </div>
+                        <div class="flex flex-col items-center justify-center shrink-0 w-24 border-l border-app-border-light pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer mb-2 flex flex-col items-center gap-1 hover:text-indigo-500">
+                            Branch Base
+                            <input type="radio" v-model="localSettings.gitlabBaseTarget" value="master" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
+                          </label>
+                        </div>
+                      </div>
+                      
+                      <!-- HML -->
+                      <div class="flex items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'hml' ? 'ring-2 ring-indigo-500/50' : ''">
+                        <div class="grid grid-cols-2 gap-4 flex-1">
+                          <AppInput v-model="localSettings.gitlabBranchHml" label="Nome Real (Hml)" placeholder="hml" />
+                          <AppInput v-model="localSettings.gitlabAliasHml" label="Alias" placeholder="Homologação" />
+                        </div>
+                        <div class="flex flex-col items-center justify-center shrink-0 w-24 border-l border-app-border-light pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer mb-2 flex flex-col items-center gap-1 hover:text-indigo-500">
+                            Branch Base
+                            <input type="radio" v-model="localSettings.gitlabBaseTarget" value="hml" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- DEV -->
+                      <div class="flex items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'dev' ? 'ring-2 ring-indigo-500/50' : ''">
+                        <div class="grid grid-cols-2 gap-4 flex-1">
+                          <AppInput v-model="localSettings.gitlabBranchDev" label="Nome Real (Dev)" placeholder="dev" />
+                          <AppInput v-model="localSettings.gitlabAliasDev" label="Alias" placeholder="Desenvolvimento" />
+                        </div>
+                        <div class="flex flex-col items-center justify-center shrink-0 w-24 border-l border-app-border-light pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer mb-2 flex flex-col items-center gap-1 hover:text-indigo-500">
+                            Branch Base
+                            <input type="radio" v-model="localSettings.gitlabBaseTarget" value="dev" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Configurações GitHub -->
+                  <div v-else-if="localSettings.gitProvider === 'github'" class="grid gap-6 pt-4 border-t border-app-border-light animate-fadeIn">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <AppInput v-model="localSettings.githubOwner" label="Dono do Repositório (Owner)" placeholder="Ex: ssergio100" />
+                      <AppInput v-model="localSettings.githubRepo" label="Nome do Repositório" placeholder="Ex: TASS" />
+                    </div>
+                    <AppInput v-model="localSettings.githubToken" type="password" label="Personal Access Token (Classic ou Fine-grained)" placeholder="ghp_..." help-text="Precisa das permissões de leitura/escrita em Pull Requests e Conteúdo (repo)." />
+                    
+                    <div class="space-y-4 pt-4 mt-2 border-t border-app-border-light">
+                      <h4 class="text-[10px] font-black uppercase text-app-main tracking-widest">Ambientes e Aliases</h4>
+                      
+                      <!-- Master -->
+                      <div class="flex items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'master' ? 'ring-2 ring-indigo-500/50' : ''">
+                        <div class="grid grid-cols-2 gap-4 flex-1">
+                          <AppInput v-model="localSettings.githubBranchMaster" label="Nome Real (Master)" placeholder="main" />
+                          <AppInput v-model="localSettings.githubAliasMaster" label="Alias" placeholder="Master" />
+                        </div>
+                        <div class="flex flex-col items-center justify-center shrink-0 w-24 border-l border-app-border-light pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer mb-2 flex flex-col items-center gap-1 hover:text-indigo-500">
+                            Branch Base
+                            <input type="radio" v-model="localSettings.githubBaseTarget" value="master" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
+                          </label>
+                        </div>
+                      </div>
+                      
+                      <!-- HML -->
+                      <div class="flex items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'hml' ? 'ring-2 ring-indigo-500/50' : ''">
+                        <div class="grid grid-cols-2 gap-4 flex-1">
+                          <AppInput v-model="localSettings.githubBranchHml" label="Nome Real (Hml)" placeholder="hml" />
+                          <AppInput v-model="localSettings.githubAliasHml" label="Alias" placeholder="Homologação" />
+                        </div>
+                        <div class="flex flex-col items-center justify-center shrink-0 w-24 border-l border-app-border-light pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer mb-2 flex flex-col items-center gap-1 hover:text-indigo-500">
+                            Branch Base
+                            <input type="radio" v-model="localSettings.githubBaseTarget" value="hml" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- DEV -->
+                      <div class="flex items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'dev' ? 'ring-2 ring-indigo-500/50' : ''">
+                        <div class="grid grid-cols-2 gap-4 flex-1">
+                          <AppInput v-model="localSettings.githubBranchDev" label="Nome Real (Dev)" placeholder="dev" />
+                          <AppInput v-model="localSettings.githubAliasDev" label="Alias" placeholder="Desenvolvimento" />
+                        </div>
+                        <div class="flex flex-col items-center justify-center shrink-0 w-24 border-l border-app-border-light pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer mb-2 flex flex-col items-center gap-1 hover:text-indigo-500">
+                            Branch Base
+                            <input type="radio" v-model="localSettings.githubBaseTarget" value="dev" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="pt-6 mt-4 border-t border-app-border-light flex flex-col sm:flex-row items-center gap-4 justify-between">
+                    <button @click="testGitConnection" class="flex items-center gap-2 px-6 py-2.5 bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light shadow-sm w-full sm:w-auto">
+                      <RefreshCw class="w-4 h-4" :class="{'animate-spin': testGitStatus === 'checking'}" />
+                      Testar Conexão Remota
+                    </button>
+                    <div v-if="testGitStatus" class="flex items-center gap-2 flex-1 w-full p-2 rounded-lg" :class="{
+                      'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400': testGitStatus === 'checking',
+                      'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400': testGitStatus === 'success',
+                      'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400': testGitStatus === 'error',
+                      'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400': testGitStatus === 'warning'
+                    }">
+                      <Loader2 v-if="testGitStatus === 'checking'" class="w-4 h-4 animate-spin shrink-0" />
+                      <CheckCircle2 v-else-if="testGitStatus === 'success'" class="w-4 h-4 shrink-0" />
+                      <AlertTriangle v-else class="w-4 h-4 shrink-0" />
+                      <span class="text-[10px] font-bold line-clamp-2 leading-tight">{{ testGitMessage }}</span>
                     </div>
                   </div>
                 </div>

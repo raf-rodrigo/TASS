@@ -40,8 +40,9 @@ const devUrl = ref(taskToEdit?.devUrl || '');
 const homologUrl = ref(taskToEdit?.homologUrl || '');
 const prodUrl = ref(taskToEdit?.prodUrl || '');
 const taskUrl = ref(taskToEdit?.taskUrl || '');
-const branchName = ref(taskToEdit?.branchName || '');
-const branchUrl = ref(taskToEdit?.branchUrl || '');
+const isGitHub = computed(() => settings.gitProvider === 'github');
+const branchName = ref(settings.gitProvider === 'github' ? (taskToEdit?.githubBranchName || '') : (taskToEdit?.branchName || ''));
+const branchUrl = ref(settings.gitProvider === 'github' ? (taskToEdit?.githubBranchUrl || '') : (taskToEdit?.branchUrl || ''));
 const dbScripts = ref(taskToEdit?.dbScripts || '');
 const moreInfo = ref(taskToEdit?.moreInfo || '');
 const sprintId = ref(taskToEdit?.sprintId || '');
@@ -185,8 +186,13 @@ const submitTask = () => {
     homologUrl: ensureProtocol(homologUrl.value.trim()),
     prodUrl: ensureProtocol(prodUrl.value.trim()),
     taskUrl: ensureProtocol(taskUrl.value.trim()),
-    branchName: branchName.value.trim(),
-    branchUrl: ensureProtocol(branchUrl.value.trim()),
+    ...(settings.gitProvider === 'github' ? {
+      githubBranchName: branchName.value.trim(),
+      githubBranchUrl: ensureProtocol(branchUrl.value.trim())
+    } : {
+      branchName: branchName.value.trim(),
+      branchUrl: ensureProtocol(branchUrl.value.trim())
+    }),
     dbScripts: dbScripts.value.trim(),
     moreInfo: moreInfo.value.trim(),
     sprintId: sprintId.value ? parseInt(sprintId.value) : null,

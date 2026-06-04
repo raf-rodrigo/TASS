@@ -11,7 +11,7 @@ import { useTaskStore } from '../stores/taskStore';
 import { useTimerStore } from '../stores/timerStore';
 import { useUIStore } from '../stores/uiStore';
 import { taskActionService } from '../services/taskActionService';
-import { gitlabService } from '../services/gitlab';
+import { gitProviderService } from '../services/gitProvider';
 import { notificationService } from '../services/notificationService';
 
 const props = defineProps({
@@ -72,13 +72,13 @@ const handleEditAction = async (field, label, type = 'url') => {
   await taskActionService.promptQuickUpdate(props.task, taskStore, field, label, type);
 };
 
-const handleGitlabAction = async () => {
+const handleGitAction = async () => {
   isCreatingBranch.value = true;
   try {
-    await gitlabService.handleGitlabFlow(props.task, settings);
+    await gitProviderService.handleGitFlow(props.task, settings);
   } catch (error) {
-    console.error("GitLab Action failed:", error);
-    notificationService.toast('Falha na ação do GitLab', 'error');
+    console.error("Git Action failed:", error);
+    notificationService.toast('Falha na ação remota', 'error');
   } finally {
     isCreatingBranch.value = false;
   }
@@ -204,10 +204,10 @@ onUnmounted(() => {
       <hr class="border-t border-app-border-light my-1.5 mx-1" />
 
       <div class="flex flex-col gap-0.5">
-        <button @click="handleGitlabAction" :disabled="isCreatingBranch" class="context-menu-item" :class="{ 'active-item-purple': task.branchUrl }">
+        <button @click="handleGitAction" :disabled="isCreatingBranch" class="context-menu-item" :class="{ 'active-item-purple': gitProviderService.hasBranch(task, settings) }">
           <GitBranch v-if="!isCreatingBranch" class="w-4 h-4" />
           <div v-else class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
-          <span>{{ task.branchUrl ? 'Ver Branch GitLab' : 'Criar Branch Automática' }}</span>
+          <span>{{ gitProviderService.hasBranch(task, settings) ? `Ver Branch ${gitProviderService.getProviderName(settings)}` : 'Criar Branch Automática' }}</span>
         </button>
         <button @click="handleCloneAction" class="context-menu-item text-slate-500">
           <Copy class="w-4 h-4" />
@@ -262,7 +262,7 @@ onUnmounted(() => {
       </div>
 
       <div class="flex items-center gap-1.5 px-2">
-        <button @click="handleGitlabAction" :disabled="isCreatingBranch" class="icon-btn-large group" :class="{ 'active-action': task.branchUrl }">
+        <button @click="handleGitAction" :disabled="isCreatingBranch" class="icon-btn-large group" :class="{ 'active-action': gitProviderService.hasBranch(task, settings) }">
           <GitBranch v-if="!isCreatingBranch" class="w-4 h-4" />
           <div v-else class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
         </button>

@@ -10,7 +10,10 @@ export const useSettingsStore = defineStore('settings', () => {
   const gitlabIntegrationMode = ref('link');
   const gitlabProjectId = ref('');
   const gitlabToken = ref('');
-  const gitlabBaseBranch = ref('develop');
+  const gitProvider = ref('gitlab');
+  const githubOwner = ref('');
+  const githubRepo = ref('');
+  const githubToken = ref('');
   const inactivityThreshold = ref(1); // Em minutos
   const showEmptyPlaceholders = ref(true);
   const wellnessEnabled = ref(true);
@@ -26,11 +29,39 @@ export const useSettingsStore = defineStore('settings', () => {
   const keepWindowState = ref(localStorage.getItem('app-keep-window-state') === 'true');
   const hideWelcomeModal = ref(false);
   
-  // Customizações dos nomes físicos das branches (Migrado do Breeze)
-  const branchMaster = ref('master-sistsocial');
-  const branchHomologacao = ref('hml');
-  const branchDesenvolvimento = ref('dev-06');
+  // Configuração das branches do GitLab
+  const gitlabBranchMaster = ref('master-sistsocial');
+  const gitlabAliasMaster = ref('Produção');
+  const gitlabBranchHml = ref('hml');
+  const gitlabAliasHml = ref('Homologação');
+  const gitlabBranchDev = ref('dev-06');
+  const gitlabAliasDev = ref('Desenvolvimento');
+  const gitlabBaseTarget = ref('dev'); // 'master', 'hml', 'dev'
+
+  // Configuração das branches do GitHub
+  const githubBranchMaster = ref('main');
+  const githubAliasMaster = ref('Master');
+  const githubBranchHml = ref('hml');
+  const githubAliasHml = ref('Homologação');
+  const githubBranchDev = ref('dev');
+  const githubAliasDev = ref('Desenvolvimento');
+  const githubBaseTarget = ref('dev'); // 'master', 'hml', 'dev'
+
   const consoleFontSize = ref(11);
+
+  // Computed Properties para abstrair o provedor atual
+  const activeBranchMaster = computed(() => gitProvider.value === 'gitlab' ? gitlabBranchMaster.value : githubBranchMaster.value);
+  const activeAliasMaster = computed(() => gitProvider.value === 'gitlab' ? gitlabAliasMaster.value : githubAliasMaster.value);
+  const activeBranchHml = computed(() => gitProvider.value === 'gitlab' ? gitlabBranchHml.value : githubBranchHml.value);
+  const activeAliasHml = computed(() => gitProvider.value === 'gitlab' ? gitlabAliasHml.value : githubAliasHml.value);
+  const activeBranchDev = computed(() => gitProvider.value === 'gitlab' ? gitlabBranchDev.value : githubBranchDev.value);
+  const activeAliasDev = computed(() => gitProvider.value === 'gitlab' ? gitlabAliasDev.value : githubAliasDev.value);
+  const activeBaseBranch = computed(() => {
+    const target = gitProvider.value === 'gitlab' ? gitlabBaseTarget.value : githubBaseTarget.value;
+    if (target === 'master') return activeBranchMaster.value;
+    if (target === 'hml') return activeBranchHml.value;
+    return activeBranchDev.value;
+  });
 
   // Sincroniza mudança do keepWindowState com localStorage e limpa se necessário
   watch(keepWindowState, (val) => {
@@ -128,7 +159,10 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-gitlab-mode'] !== undefined) gitlabIntegrationMode.value = settingsMap['app-gitlab-mode'];
       if (settingsMap['app-gitlab-project-id'] !== undefined) gitlabProjectId.value = settingsMap['app-gitlab-project-id'];
       if (settingsMap['app-gitlab-token'] !== undefined) gitlabToken.value = settingsMap['app-gitlab-token'];
-      if (settingsMap['app-gitlab-base-branch'] !== undefined) gitlabBaseBranch.value = settingsMap['app-gitlab-base-branch'];
+      if (settingsMap['app-git-provider'] !== undefined) gitProvider.value = settingsMap['app-git-provider'];
+      if (settingsMap['app-github-owner'] !== undefined) githubOwner.value = settingsMap['app-github-owner'];
+      if (settingsMap['app-github-repo'] !== undefined) githubRepo.value = settingsMap['app-github-repo'];
+      if (settingsMap['app-github-token'] !== undefined) githubToken.value = settingsMap['app-github-token'];
       if (settingsMap['app-track-inactivity'] !== undefined) trackInactivity.value = settingsMap['app-track-inactivity'];
       if (settingsMap['app-inactivity-threshold'] !== undefined) inactivityThreshold.value = settingsMap['app-inactivity-threshold'];
       if (settingsMap['app-work-start'] !== undefined) workStart.value = settingsMap['app-work-start'];
@@ -192,9 +226,27 @@ export const useSettingsStore = defineStore('settings', () => {
       keepWindowState.value = localStorage.getItem('app-keep-window-state') === 'true';
       if (settingsMap['app-hide-welcome'] !== undefined) hideWelcomeModal.value = settingsMap['app-hide-welcome'] === true;
 
-      if (settingsMap['app-branch-master'] !== undefined) branchMaster.value = settingsMap['app-branch-master'];
-      if (settingsMap['app-branch-hml'] !== undefined) branchHomologacao.value = settingsMap['app-branch-hml'];
-      if (settingsMap['app-branch-dev'] !== undefined) branchDesenvolvimento.value = settingsMap['app-branch-dev'];
+      // Backward compatibility
+      if (settingsMap['app-branch-master'] !== undefined) { gitlabBranchMaster.value = settingsMap['app-branch-master']; }
+      if (settingsMap['app-branch-hml'] !== undefined) { gitlabBranchHml.value = settingsMap['app-branch-hml']; }
+      if (settingsMap['app-branch-dev'] !== undefined) { gitlabBranchDev.value = settingsMap['app-branch-dev']; }
+      
+      // New configurations
+      if (settingsMap['app-gitlab-branch-master'] !== undefined) gitlabBranchMaster.value = settingsMap['app-gitlab-branch-master'];
+      if (settingsMap['app-gitlab-alias-master'] !== undefined) gitlabAliasMaster.value = settingsMap['app-gitlab-alias-master'];
+      if (settingsMap['app-gitlab-branch-hml'] !== undefined) gitlabBranchHml.value = settingsMap['app-gitlab-branch-hml'];
+      if (settingsMap['app-gitlab-alias-hml'] !== undefined) gitlabAliasHml.value = settingsMap['app-gitlab-alias-hml'];
+      if (settingsMap['app-gitlab-branch-dev'] !== undefined) gitlabBranchDev.value = settingsMap['app-gitlab-branch-dev'];
+      if (settingsMap['app-gitlab-alias-dev'] !== undefined) gitlabAliasDev.value = settingsMap['app-gitlab-alias-dev'];
+      if (settingsMap['app-gitlab-base-target'] !== undefined) gitlabBaseTarget.value = settingsMap['app-gitlab-base-target'];
+
+      if (settingsMap['app-github-branch-master'] !== undefined) githubBranchMaster.value = settingsMap['app-github-branch-master'];
+      if (settingsMap['app-github-alias-master'] !== undefined) githubAliasMaster.value = settingsMap['app-github-alias-master'];
+      if (settingsMap['app-github-branch-hml'] !== undefined) githubBranchHml.value = settingsMap['app-github-branch-hml'];
+      if (settingsMap['app-github-alias-hml'] !== undefined) githubAliasHml.value = settingsMap['app-github-alias-hml'];
+      if (settingsMap['app-github-branch-dev'] !== undefined) githubBranchDev.value = settingsMap['app-github-branch-dev'];
+      if (settingsMap['app-github-alias-dev'] !== undefined) githubAliasDev.value = settingsMap['app-github-alias-dev'];
+      if (settingsMap['app-github-base-target'] !== undefined) githubBaseTarget.value = settingsMap['app-github-base-target'];
       if (settingsMap['app-console-font-size'] !== undefined) consoleFontSize.value = parseInt(settingsMap['app-console-font-size'], 10);
 
       isInitialized.value = true;
@@ -228,7 +280,10 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-gitlab-mode', value: gitlabIntegrationMode.value },
       { key: 'app-gitlab-project-id', value: gitlabProjectId.value },
       { key: 'app-gitlab-token', value: gitlabToken.value },
-      { key: 'app-gitlab-base-branch', value: gitlabBaseBranch.value },
+      { key: 'app-git-provider', value: gitProvider.value },
+      { key: 'app-github-owner', value: githubOwner.value },
+      { key: 'app-github-repo', value: githubRepo.value },
+      { key: 'app-github-token', value: githubToken.value },
       { key: 'app-track-inactivity', value: trackInactivity.value },
       { key: 'app-inactivity-threshold', value: inactivityThreshold.value },
       { key: 'app-work-start', value: workStart.value },
@@ -267,9 +322,20 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-text-light-palette', value: textLightPalette.value },
       { key: 'app-text-dark-palette', value: textDarkPalette.value },
       { key: 'app-hide-welcome', value: hideWelcomeModal.value },
-      { key: 'app-branch-master', value: branchMaster.value },
-      { key: 'app-branch-hml', value: branchHomologacao.value },
-      { key: 'app-branch-dev', value: branchDesenvolvimento.value },
+      { key: 'app-gitlab-branch-master', value: gitlabBranchMaster.value },
+      { key: 'app-gitlab-alias-master', value: gitlabAliasMaster.value },
+      { key: 'app-gitlab-branch-hml', value: gitlabBranchHml.value },
+      { key: 'app-gitlab-alias-hml', value: gitlabAliasHml.value },
+      { key: 'app-gitlab-branch-dev', value: gitlabBranchDev.value },
+      { key: 'app-gitlab-alias-dev', value: gitlabAliasDev.value },
+      { key: 'app-gitlab-base-target', value: gitlabBaseTarget.value },
+      { key: 'app-github-branch-master', value: githubBranchMaster.value },
+      { key: 'app-github-alias-master', value: githubAliasMaster.value },
+      { key: 'app-github-branch-hml', value: githubBranchHml.value },
+      { key: 'app-github-alias-hml', value: githubAliasHml.value },
+      { key: 'app-github-branch-dev', value: githubBranchDev.value },
+      { key: 'app-github-alias-dev', value: githubAliasDev.value },
+      { key: 'app-github-base-target', value: githubBaseTarget.value },
       { key: 'app-console-font-size', value: consoleFontSize.value }
 
     ].map(item => ({
@@ -290,7 +356,8 @@ export const useSettingsStore = defineStore('settings', () => {
 
   return {
     theme, columns, appWidth, gitlabUrl, gitlabIntegrationMode,
-    gitlabProjectId, gitlabToken, gitlabBaseBranch,
+    gitlabProjectId, gitlabToken,
+    gitProvider, githubOwner, githubRepo, githubToken,
     inactivityThreshold, activeSprintId, taskNumberSize,
     taskDescriptionSize, taskTimerSize, taskMinHeight, taskMaxWidth, notesSide, backgroundImage, backgroundBlur,
     notesButtonTop, notesWidth, radioPositionX, radioPositionY, cardPadding, fontFamily, trackInactivity,
@@ -299,7 +366,10 @@ export const useSettingsStore = defineStore('settings', () => {
     cardBorderRadius, opacityTargets, customWallpapers, columnTitles, columnStyles,
     wellnessEnabled, wellnessInterval, contrastEnhanced, darkenWallpaper, keepWindowState,
     contextMenuStyle, contextMenuMode, hideWelcomeModal,
-    branchMaster, branchHomologacao, branchDesenvolvimento, consoleFontSize, taskStyleProfiles,
+    gitlabBranchMaster, gitlabAliasMaster, gitlabBranchHml, gitlabAliasHml, gitlabBranchDev, gitlabAliasDev, gitlabBaseTarget,
+    githubBranchMaster, githubAliasMaster, githubBranchHml, githubAliasHml, githubBranchDev, githubAliasDev, githubBaseTarget,
+    activeBranchMaster, activeAliasMaster, activeBranchHml, activeAliasHml, activeBranchDev, activeAliasDev, activeBaseBranch,
+    consoleFontSize, taskStyleProfiles,
     titlePalette, bodyPalette, textLightPalette, textDarkPalette,
     isInitialized, globalGlassEnabled,
     loadSettings, saveSetting, saveAllSettings, normalizedCardOpacity

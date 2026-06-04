@@ -190,7 +190,7 @@ export const useTaskStore = defineStore('task', () => {
 
   const cloneTask = async (taskToClone) => {
     try {
-      const { id, branchUrl, ...rest } = taskToClone;
+      const { id, branchUrl, branchName, githubBranchUrl, githubBranchName, ...rest } = taskToClone;
       const newTaskData = {
         ...rest,
         title: `${taskToClone.title} (Cópia)`

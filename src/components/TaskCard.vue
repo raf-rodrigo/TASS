@@ -10,7 +10,7 @@ import { useTaskStore } from '../stores/taskStore';
 import { useTaskStyleStore } from '../stores/taskStyleStore';
 import { notificationService } from '../services/notificationService';
 import { taskActionService } from '../services/taskActionService';
-import { gitlabService } from '../services/gitlab';
+import { gitProviderService } from '../services/gitProvider';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -98,13 +98,13 @@ const currentTextColor = computed(() => {
 
 const isCreatingBranch = ref(false);
 
-const handleGitlabAction = async () => {
+const handleGitAction = async () => {
   isCreatingBranch.value = true;
   try {
-    await gitlabService.handleGitlabFlow(props.task, settings);
+    await gitProviderService.handleGitFlow(props.task, settings);
   } catch (error) {
-    console.error("GitLab Action failed:", error);
-    notificationService.toast('Falha na ação do GitLab', 'error');
+    console.error("Git Action failed:", error);
+    notificationService.toast('Falha na ação remota', 'error');
   } finally {
     isCreatingBranch.value = false;
   }
@@ -363,9 +363,9 @@ const timerButtonClasses = computed(() => {
           </button>
 
           <!-- 3. Indicadores -->
-          <div v-if="task.branchUrl || task.moreInfo || task.dbScripts || task.taskUrl" class="flex items-center flex-row-reverse" :style="{ gap: (activeStyle.taskTimerSize * 0.4) + 'px' }">
+          <div v-if="gitProviderService.hasBranch(task, settings) || task.moreInfo || task.dbScripts || task.taskUrl" class="flex items-center flex-row-reverse" :style="{ gap: (activeStyle.taskTimerSize * 0.4) + 'px' }">
             
-            <div v-if="task.branchUrl" 
+            <div v-if="gitProviderService.hasBranch(task, settings)" 
               class="transition-all flex items-center justify-center border cursor-pointer hover:brightness-110 active:scale-95" 
               :class="timerButtonClasses"
               :style="{
@@ -376,8 +376,8 @@ const timerButtonClasses = computed(() => {
                 color: taskColors.color ? taskColors.color : '',
                 borderColor: taskColors.color ? `${taskColors.color}33` : ''
               }"
-              @click.stop="handleGitlabAction"
-              data-tip="Possui Branch (Clique p/ abrir ou ver)">
+              @click.stop="handleGitAction"
+              data-tip="Possui Branch Remota (Clique p/ abrir ou ver)">
               <GitBranch v-if="!isCreatingBranch" :size="activeStyle.taskTimerSize - 1" />
               <div v-else class="rounded-full border border-purple-500 border-t-transparent animate-spin" :style="{ width: (activeStyle.taskTimerSize - 4) + 'px', height: (activeStyle.taskTimerSize - 4) + 'px' }"></div>
             </div>
