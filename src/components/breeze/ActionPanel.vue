@@ -17,6 +17,10 @@ defineProps({
   branchHomologacao: {
     type: String,
     required: true
+  },
+  branchMaster: {
+    type: String,
+    required: true
   }
 });
 
@@ -42,6 +46,15 @@ defineEmits([
     <!-- Direita: Ações Contextuais -->
     <div class="flex items-center gap-3">
       <template v-if="selectedBranches.length === 1">
+        <!-- Botão MASTER -->
+        <button
+          @click="$emit('merge-to-target', branchMaster || 'master', 'master')"
+          class="px-5 py-2.5 rounded-[var(--app-input-radius)] border transition-all cursor-pointer flex flex-row items-center justify-center gap-2 shrink-0 bg-emerald-500/10 border-emerald-500/50 hover:border-emerald-500 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 shadow-sm"
+        >
+          <span class="text-[11px] font-black uppercase tracking-wider">Merge para MASTER</span>
+          <span class="text-[9px] opacity-80 font-mono font-bold">({{ branchMaster || 'master' }})</span>
+        </button>
+
         <!-- Botão DEV -->
         <button
           @click="$emit('merge-to-target', branchDesenvolvimento || 'dev-06', 'dev')"

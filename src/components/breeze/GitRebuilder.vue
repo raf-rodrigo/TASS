@@ -168,13 +168,6 @@ const filteredBranches = computed(() => {
 });
 
 const fetchBranches = async (target, isBackgroundSearch = false) => {
-  // Impede listagem se tentar listar master
-  if (target === settingsStore.activeBranchMaster) {
-    activeBranches.value = [];
-    totalBranchesCount.value = 0;
-    branchesError.value = '';
-    return;
-  }
 
   branchesLoading.value = true;
   if (!isBackgroundSearch) {
@@ -761,6 +754,7 @@ const toggleTheme = () => {
           :branchesLoading="branchesLoading"
           :branchDesenvolvimento="settingsStore.activeBranchDev"
           :branchHomologacao="settingsStore.activeBranchHml"
+          :branchMaster="settingsStore.activeBranchMaster"
           @list-all-branches="listAllBranches"
           @merge-to-target="runMergeToTarget"
           @bulk-delete="requestBulkDelete"
