@@ -320,7 +320,7 @@ const handleColumnChange = (n) => {
                           <input type="file" accept=".json" class="hidden" @change="handleImportPalettes" />
                         </label>
                         <button @click="backupService.exportPalettes(settings)" class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-600/10 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-amber-600/20 cursor-pointer text-center">
-                          <Download class="w-4 h-4" /> Exportar Exemplo
+                          <Download class="w-4 h-4" /> Exportar Paletas
                         </button>
                       </div>
                     </div>

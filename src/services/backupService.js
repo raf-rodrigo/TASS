@@ -17,18 +17,18 @@ export const backupService = {
   },
 
   /**
-   * Exporta as paletas de cores legadas para JSON (Exemplo)
+   * Exporta as paletas de cores para JSON
    */
-  exportPalettes() {
+  exportPalettes(settingsStore) {
     try {
       const data = {
-        titlePalette: ["FF5733", "33FF57", "3357FF", "F1C40F", "9B59B6"],
-        bodyPalette: ["121212", "1E1E1E", "2C2C2C", "34495E"],
-        textLightPalette: ["FFFFFF", "F0F0F0", "E0E0E0"],
-        textDarkPalette: ["000000", "111111", "222222"]
+        titlePalette: settingsStore.titlePalette || [],
+        bodyPalette: settingsStore.bodyPalette || [],
+        textLightPalette: settingsStore.textLightPalette || [],
+        textDarkPalette: settingsStore.textDarkPalette || []
       };
-      this.downloadJson(data, 'tass_palettes_exemplo.json');
-      notificationService.toast('Exemplo de paletas exportado com sucesso!');
+      this.downloadJson(data, 'tass_paletas_customizadas.json');
+      notificationService.toast('Paletas exportadas com sucesso!');
     } catch (error) {
       console.error("Palette export failed:", error);
       notificationService.alert('Falha na exportação', 'Não foi possível exportar as paletas.', 'error');

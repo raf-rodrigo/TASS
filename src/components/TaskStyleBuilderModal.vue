@@ -94,11 +94,16 @@ const startEditName = () => {
   isEditingName.value = true;
 };
 
-const saveName = () => {
+const saveName = async () => {
   if (editingNameValue.value.trim()) {
     editingData.value.name = editingNameValue.value.trim();
   }
   isEditingName.value = false;
+
+  // Se estiver criando um novo preset, já salva automaticamente
+  if (selectedTargetId.value === 'new') {
+    await handleSave();
+  }
 };
 
 // Aba ativa dentro da edição
@@ -174,34 +179,7 @@ const handleDelete = async () => {
   }
 };
 
-const injectDemoStyles = async () => {
-  const demoStyles = [
-    { id: 'demo-1', name: 'Dark Premium', styles: { cardPadding: 24, taskNumberSize: 14, taskDescriptionSize: 15, taskTimerSize: 12, taskMinHeight: 140, taskMaxWidth: 0 }, colors: { color: '#2A9D8F', bgColor: '#0f172a', textLightColor: '#f1f5f9', textDarkColor: '#f1f5f9' } },
-    { id: 'demo-2', name: 'Post-it Clássico', styles: { cardPadding: 16, taskNumberSize: 16, taskDescriptionSize: 14, taskTimerSize: 12, taskMinHeight: 100, taskMaxWidth: 0 }, colors: { color: '#F4A261', bgColor: '#F6F4E8', textLightColor: '#334155', textDarkColor: '#1e293b' } },
-    { id: 'demo-3', name: 'Cyberpunk Neon', styles: { cardPadding: 16, taskNumberSize: 18, taskDescriptionSize: 13, taskTimerSize: 18, taskMinHeight: 90, taskMaxWidth: 0 }, colors: { color: '#FF9A86', bgColor: '#1e293b', textLightColor: '#f8fafc', textDarkColor: '#f8fafc' } },
-    { id: 'demo-4', name: 'Slim Minimalista', styles: { cardPadding: 8, taskNumberSize: 10, taskDescriptionSize: 12, taskTimerSize: 10, taskMinHeight: 40, taskMaxWidth: 0 }, colors: { color: '#64748b', bgColor: '', textLightColor: '#64748b', textDarkColor: '#94a3b8' } },
-    { id: 'demo-5', name: 'Alerta Urgente', styles: { cardPadding: 20, taskNumberSize: 24, taskDescriptionSize: 16, taskTimerSize: 14, taskMinHeight: 110, taskMaxWidth: 0 }, colors: { color: '#D25353', bgColor: '#1e293b', textLightColor: '#f1f5f9', textDarkColor: '#f1f5f9' } },
-    { id: 'demo-6', name: 'Bloco Quadrado', styles: { cardPadding: 20, taskNumberSize: 14, taskDescriptionSize: 14, taskTimerSize: 14, taskMinHeight: 200, taskMaxWidth: 200 }, colors: { color: '#264653', bgColor: '#E5EEE4', textLightColor: '#264653', textDarkColor: '#264653' } },
-    { id: 'demo-7', name: 'Floresta Serena', styles: { cardPadding: 16, taskNumberSize: 12, taskDescriptionSize: 13, taskTimerSize: 11, taskMinHeight: 80, taskMaxWidth: 0 }, colors: { color: '#264653', bgColor: '#C0E1D2', textLightColor: '#264653', textDarkColor: '#264653' } },
-    { id: 'demo-8', name: 'Wide Focado', styles: { cardPadding: 32, taskNumberSize: 16, taskDescriptionSize: 18, taskTimerSize: 16, taskMinHeight: 150, taskMaxWidth: 600 }, colors: { color: '#E9C46A', bgColor: '#0f172a', textLightColor: '#f8fafc', textDarkColor: '#f8fafc' } },
-    { id: 'demo-9', name: 'Compacto Largo', styles: { cardPadding: 12, taskNumberSize: 11, taskDescriptionSize: 11, taskTimerSize: 11, taskMinHeight: 60, taskMaxWidth: 700 }, colors: { color: '#475569', bgColor: '#e2e8f0', textLightColor: '#1e293b', textDarkColor: '#0f172a' } },
-    { id: 'demo-10', name: 'Nota Pessoal', styles: { cardPadding: 18, taskNumberSize: 12, taskDescriptionSize: 16, taskTimerSize: 12, taskMinHeight: 180, taskMaxWidth: 260 }, colors: { color: '#DC9B9B', bgColor: '#F6F4E8', textLightColor: '#475569', textDarkColor: '#334155' } }
-  ];
 
-  let added = 0;
-  for (const style of demoStyles) {
-    if (!taskStyleStore.styles.some(s => s.id === style.id)) {
-      await taskStyleStore.saveStyle(style);
-      added++;
-    }
-  }
-  
-  if (added > 0) {
-    notificationService.toast(`${added} Estilos Demo criados com sucesso!`, 'success');
-  } else {
-    notificationService.toast('Os estilos demo já existem.', 'info');
-  }
-};
 
 const injectVintageStyles = async () => {
   const vintageStyles = [
@@ -413,9 +391,6 @@ const isSquareLayout = computed(() => {
               </button>
               <button @click="injectVintageStyles" class="p-1 text-orange-500 hover:bg-orange-500/10 rounded-lg transition-all" data-tip="Gerar 10 Estilos Vintage">
                 <Camera class="w-4 h-4" />
-              </button>
-              <button @click="injectDemoStyles" class="p-1 text-amber-500 hover:bg-amber-500/10 rounded-lg transition-all" data-tip="Gerar 10 Estilos Demo">
-                <Sparkles class="w-4 h-4" />
               </button>
               <button @click="selectedTargetId = 'new'" class="p-1 text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-all" data-tip="Novo Preset">
                 <Plus class="w-4 h-4" />
