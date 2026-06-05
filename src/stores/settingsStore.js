@@ -117,7 +117,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const textDarkPalette = ref([]);
 
   // Widgets
-  const weatherWidgetEnabled = ref(true);
+  const weatherWidgetEnabled = ref(false);
   const weatherCity = ref('');
 
 
