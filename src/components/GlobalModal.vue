@@ -149,7 +149,7 @@ watch(() => modalStore.isOpen, (newVal) => {
                 v-if="modalStore.denyText"
                 type="button" 
                 class="mt-3 sm:mt-0 inline-flex w-full justify-center rounded-xl px-3 py-2 text-sm font-semibold text-rose-500 hover:bg-rose-500/5 transition-all active:scale-95 sm:w-auto border border-rose-500/10"
-                @click="modalStore.handleDeny"
+                @click="modalStore.isPrompt ? modalStore.clearPrompt() : modalStore.handleDeny()"
               >
                 {{ modalStore.denyText }}
               </button>

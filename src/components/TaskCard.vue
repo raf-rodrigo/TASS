@@ -11,10 +11,12 @@ import { useTaskStyleStore } from '../stores/taskStyleStore';
 import { notificationService } from '../services/notificationService';
 import { taskActionService } from '../services/taskActionService';
 import { gitProviderService } from '../services/gitProvider';
+import { useUIStore } from '../stores/uiStore';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
 const taskStyleStore = useTaskStyleStore();
+const uiStore = useUIStore();
 
 const props = defineProps({
   task: {
@@ -51,9 +53,13 @@ const activeStyle = computed(() => {
     if (profile && profile.styles && Object.keys(profile.styles).length > 0) customStyles = profile.styles;
   }
 
-  // Prioridade 2: Estilo próprio da Tarefa
-  if (Object.keys(customStyles).length === 0 && props.task.styleId) {
-    const profile = taskStyleStore.getStyleById(props.task.styleId);
+  // Prioridade 1.5: Preview Temporário (Ao pressionar 'p' e flutuar o mouse)
+  const isPreviewing = uiStore.previewTaskId === props.task.id && uiStore.showStylePickerMenu;
+  const effectiveStyleId = isPreviewing ? uiStore.previewStyleId : props.task.styleId;
+
+  // Prioridade 2: Estilo próprio da Tarefa ou Preview
+  if (Object.keys(customStyles).length === 0 && effectiveStyleId) {
+    const profile = taskStyleStore.getStyleById(effectiveStyleId);
     if (profile && profile.styles && Object.keys(profile.styles).length > 0) customStyles = profile.styles;
   }
   
@@ -77,9 +83,12 @@ const taskColors = computed(() => {
     if (profile && profile.colors && profile.colors.color) return profile.colors;
   }
 
-  // Prioridade 2: Estilo próprio da Tarefa
-  if (props.task.styleId) {
-    const profile = taskStyleStore.getStyleById(props.task.styleId);
+  const isPreviewing = uiStore.previewTaskId === props.task.id && uiStore.showStylePickerMenu;
+  const effectiveStyleId = isPreviewing ? uiStore.previewStyleId : props.task.styleId;
+
+  // Prioridade 2: Estilo próprio da Tarefa ou Preview
+  if (effectiveStyleId) {
+    const profile = taskStyleStore.getStyleById(effectiveStyleId);
     if (profile && profile.colors && profile.colors.color) return profile.colors;
   }
   
@@ -345,6 +354,8 @@ const timerButtonClasses = computed(() => {
 
     :style="cardDynamicStyles"
     @contextmenu.prevent.stop="handleSelect($event)"
+    @mouseenter="taskStore.hoveredTask = task"
+    @mouseleave="taskStore.hoveredTask = taskStore.hoveredTask?.id === task.id ? null : taskStore.hoveredTask"
   >
 
     <div 

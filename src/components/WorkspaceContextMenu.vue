@@ -1,14 +1,16 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useUIStore } from '../stores/uiStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
 import { useRadioStore } from '../stores/radioStore';
 import { useTheme } from '../composables/useTheme';
+import { useTaskStyleStore } from '../stores/taskStyleStore';
+import { notificationService } from '../services/notificationService';
 import { 
   PlusCircle, RotateCcw, List, Activity, CheckCircle, 
   Calendar, CloudLightning, Headphones, Sun, Moon, Settings,
-  Eye, EyeOff, Filter, ChevronRight, Wrench, Info
+  Eye, EyeOff, Filter, ChevronRight, Wrench, Info, Palette
 } from 'lucide-vue-next';
 
 const emit = defineEmits(['close']);
@@ -16,10 +18,12 @@ const uiStore = useUIStore();
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
 const radioStore = useRadioStore();
+const taskStyleStore = useTaskStyleStore();
 const { toggleTheme } = useTheme(settings);
 const menuRef = ref(null);
 const showFilters = ref(false);
 const showUtils = ref(false);
+const showStyles = ref(false);
 
 const menuStyle = ref({ top: 'auto', left: 'auto' });
 
@@ -39,6 +43,27 @@ const adjustPosition = () => {
   
   menuStyle.value = { top: `${y}px`, left: `${x}px` };
 };
+
+const submenuClass = computed(() => {
+  const x = uiStore.workspaceContextMenuPosition.x;
+  const y = uiStore.workspaceContextMenuPosition.y;
+  const isRight = x > window.innerWidth / 2;
+  const isBottom = y > window.innerHeight / 2;
+  
+  let classes = '';
+  if (isRight) {
+    classes += ' right-[calc(100%+0.5rem)]';
+  } else {
+    classes += ' left-[calc(100%+0.5rem)]';
+  }
+  
+  if (isBottom) {
+    classes += ' bottom-[-0.5rem]';
+  } else {
+    classes += ' -top-2';
+  }
+  return classes;
+});
 
 const handleNewTask = () => {
   uiStore.openTaskModal();
@@ -91,6 +116,14 @@ const handleOpenSettings = () => {
 const handleOpenAbout = () => {
   uiStore.openSettings('about');
   emit('close');
+};
+
+const handleApplyStyleAll = async (styleId) => {
+  emit('close');
+  const styleName = styleId === '' ? 'Padrão Global' : taskStyleStore.getStyleById(styleId)?.name;
+  const promises = taskStore.tasks.map(task => taskStore.updateTask(task.id, { styleId: styleId || null }));
+  await Promise.all(promises);
+  notificationService.toast(`Estilo ${styleName} aplicado a todas as tarefas!`, 'success');
 };
 
 onMounted(() => {
@@ -147,15 +180,16 @@ onUnmounted(() => {
 
           <transition 
             enter-active-class="transition duration-150 ease-out"
-            enter-from-class="opacity-0 -translate-x-2"
-            enter-to-class="opacity-100 translate-x-0"
+            enter-from-class="opacity-0 scale-95"
+            enter-to-class="opacity-100 scale-100"
             leave-active-class="transition duration-100 ease-in"
-            leave-from-class="opacity-100 translate-x-0"
-            leave-to-class="opacity-0 -translate-x-2"
+            leave-from-class="opacity-100 scale-100"
+            leave-to-class="opacity-0 scale-95"
           >
             <div 
               v-show="showFilters" 
-              class="absolute left-[calc(100%+0.5rem)] -top-2 glass-panel !py-2 !px-1.5 flex flex-col shadow-2xl border-indigo-500/30 ring-1 ring-black/10 w-max"
+              class="absolute glass-panel !py-2 !px-1.5 flex flex-col shadow-2xl border-indigo-500/30 ring-1 ring-black/10 w-max"
+              :class="submenuClass"
               :style="{ 
                 backgroundColor: `rgba(var(--app-bg-raw), var(--app-menu-opacity))`,
                 borderRadius: 'var(--app-card-radius)'
@@ -182,6 +216,66 @@ onUnmounted(() => {
 
         <div 
           class="relative"
+          @mouseenter="showStyles = true"
+          @mouseleave="showStyles = false"
+        >
+          <button class="context-menu-item w-full justify-between">
+            <div class="flex items-center gap-3">
+              <Palette class="w-4 h-4 text-pink-500" />
+              <span>Presets</span>
+            </div>
+            <ChevronRight class="w-4 h-4 opacity-50" />
+          </button>
+
+          <transition 
+            enter-active-class="transition duration-150 ease-out"
+            enter-from-class="opacity-0 scale-95"
+            enter-to-class="opacity-100 scale-100"
+            leave-active-class="transition duration-100 ease-in"
+            leave-from-class="opacity-100 scale-100"
+            leave-to-class="opacity-0 scale-95"
+          >
+            <div 
+              v-show="showStyles" 
+              class="absolute glass-panel !py-2 !px-1.5 flex flex-col shadow-2xl border-indigo-500/30 ring-1 ring-black/10"
+              :class="[submenuClass, taskStyleStore.sortedStyles.length > 24 ? 'w-[580px]' : taskStyleStore.sortedStyles.length > 12 ? 'w-[380px]' : 'w-[200px]']"
+              :style="{ 
+                backgroundColor: `rgba(var(--app-bg-raw), var(--app-menu-opacity))`,
+                borderRadius: 'var(--app-card-radius)'
+              }"
+            >
+              <div class="px-3 py-1.5 text-[10px] font-black uppercase text-app-sub tracking-widest border-b border-app-border-light mb-1">Presets (Global)</div>
+              
+              <div :class="[taskStyleStore.sortedStyles.length > 12 ? 'grid gap-x-2 gap-y-0.5' : 'flex flex-col gap-0.5', taskStyleStore.sortedStyles.length > 24 ? 'grid-cols-3' : taskStyleStore.sortedStyles.length > 12 ? 'grid-cols-2' : '']">
+                <button @click="handleApplyStyleAll('')" class="context-menu-item">
+                  <div class="w-3 h-3 rounded-full border border-black/10 dark:border-white/10" style="background-color: #e2e8f0;"></div>
+                  <span>Padrão Global</span>
+                </button>
+
+                <hr v-if="taskStyleStore.sortedStyles.length <= 12" class="border-t border-app-border-light my-1 mx-2" />
+
+                <button 
+                  v-for="preset in taskStyleStore.sortedStyles" 
+                  :key="preset.id"
+                  @click="handleApplyStyleAll(preset.id)"
+                  class="context-menu-item"
+                >
+                  <div class="w-3 h-3 rounded-full border border-black/10 dark:border-white/10" :style="{ backgroundColor: preset.colors?.bgColor || '#e2e8f0' }"></div>
+                  <span class="truncate">{{ preset.name }}</span>
+                </button>
+              </div>
+              
+              <div v-if="taskStyleStore.sortedStyles.length === 0" class="py-3 px-2 text-center">
+                <p class="text-[10px] text-slate-400 italic">Nenhum preset.</p>
+              </div>
+            </div>
+          </transition>
+        </div>
+
+        <hr class="border-t border-app-border-light my-1" />
+
+        <div 
+          class="relative"
           @mouseenter="showUtils = true"
           @mouseleave="showUtils = false"
         >
@@ -195,15 +289,16 @@ onUnmounted(() => {
 
           <transition 
             enter-active-class="transition duration-150 ease-out"
-            enter-from-class="opacity-0 -translate-x-2"
-            enter-to-class="opacity-100 translate-x-0"
+            enter-from-class="opacity-0 scale-95"
+            enter-to-class="opacity-100 scale-100"
             leave-active-class="transition duration-100 ease-in"
-            leave-from-class="opacity-100 translate-x-0"
-            leave-to-class="opacity-0 -translate-x-2"
+            leave-from-class="opacity-100 scale-100"
+            leave-to-class="opacity-0 scale-95"
           >
             <div 
               v-show="showUtils" 
-              class="absolute left-[calc(100%+0.5rem)] -top-2 glass-panel !py-2 !px-1.5 flex flex-col shadow-2xl border-indigo-500/30 ring-1 ring-black/10 w-max"
+              class="absolute glass-panel !py-2 !px-1.5 flex flex-col shadow-2xl border-indigo-500/30 ring-1 ring-black/10 w-max"
+              :class="submenuClass"
               :style="{ 
                 backgroundColor: `rgba(var(--app-bg-raw), var(--app-menu-opacity))`,
                 borderRadius: 'var(--app-card-radius)'
@@ -260,7 +355,11 @@ onUnmounted(() => {
 
 <style scoped>
 .context-menu-item {
-  @apply w-full px-3 py-2 flex items-center gap-3 text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors rounded-[8px] active:scale-[0.98] cursor-pointer;
+  @apply w-full px-3 py-2 flex items-center gap-3 text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors rounded-[8px] active:scale-[0.98] cursor-pointer overflow-hidden;
+}
+
+.context-menu-item span {
+  @apply truncate;
 }
 
 .animate-scaleIn { animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }

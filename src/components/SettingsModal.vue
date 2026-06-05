@@ -3,7 +3,7 @@ import { ref, watch, onMounted, computed } from 'vue';
 import { 
   Download, Upload, Globe, Palette, Cloud, Loader2, LogOut, LogIn, Trash2,
   ShieldCheck, Monitor, Briefcase, Activity, FileJson, Server, Clock, X, Sparkles, Bug, MousePointer2, Layout, Layers, Maximize,
-  RefreshCw, Play, CheckCircle2, AlertTriangle, Terminal, ArrowRight, History, Info, Github, MessageCircle, Code2, Coffee, Copy
+  RefreshCw, Play, CheckCircle2, AlertTriangle, Terminal, ArrowRight, History, Info, Github, MessageCircle, Code2, Coffee, Copy, Keyboard
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
@@ -79,6 +79,7 @@ const tabs = [
   { id: 'health', label: 'Saúde e Bem-estar', icon: Activity, color: 'text-indigo-500', desc: 'Lembretes inteligentes para manter sua saúde.' },
   { id: 'system', label: 'Sistema e Interface', icon: Monitor, color: 'text-indigo-500', desc: 'Configurações globais de comportamento.' },
   { id: 'security', label: 'Dados e Segurança', icon: ShieldCheck, color: 'text-indigo-500', desc: 'Gerencie backups e o banco de dados local.' },
+  { id: 'shortcuts', label: 'Atalhos', icon: Keyboard, color: 'text-indigo-500', desc: 'Aumente sua produtividade com o teclado.' },
   { id: 'about', label: 'Sobre o TASS', icon: Info, color: 'text-indigo-500', desc: 'Informações, desenvolvedor e links.' },
 ];
 
@@ -810,6 +811,89 @@ const handleResetSystem = async () => {
                   <div class="glass-section p-6 space-y-4 relative overflow-hidden flex-1"><div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><FileJson class="w-16 h-16" /></div><div class="flex items-center gap-3 mb-2 relative z-10"><FileJson class="w-5 h-5 text-indigo-500" /><h4 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Apenas Tarefas</h4></div><p class="text-[10px] text-slate-500 leading-relaxed mb-4 relative z-10">Lista de tarefas atual. Ideal para transferências rápidas ou backups frequentes.</p><div class="flex flex-col xl:flex-row gap-3 relative z-10"><button @click="handleExportTasks" class="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-100 dark:bg-white/5 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light"><Download class="w-4 h-4" /> Exportar</button><label class="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-slate-100 dark:bg-white/5 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light cursor-pointer text-center"><Upload class="w-4 h-4" /> Importar<input type="file" accept=".json" class="hidden" @change="handleImportTasks" /></label></div></div>
                 </div>
                 <div class="glass-section p-6 bg-red-500/5 dark:bg-red-500/10 border-red-500/20 space-y-4"><div class="flex items-center gap-3 mb-2"><Activity class="w-5 h-5 text-red-500" /><h4 class="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-tight">Zona de Perigo</h4></div><p class="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4">Deseja limpar tudo e começar do zero? Esta ação removerá todas as tarefas e sprints do seu banco de dados local.</p><button @click="handleResetSystem" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 active:scale-95">Zerar Banco de Dados</button></div>
+              </div>
+              
+              <div v-else-if="activeTab === 'shortcuts'" :key="'shortcuts'" class="space-y-6">
+                <div class="glass-section p-6 space-y-6">
+                  <div class="flex items-center gap-4 mb-2">
+                    <div class="p-3 bg-indigo-500/10 rounded-2xl text-indigo-500">
+                      <Keyboard class="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-black text-app-main uppercase tracking-tight">Atalhos de Teclado</h3>
+                      <p class="text-[10px] text-indigo-500 font-bold uppercase tracking-widest">Ações rápidas para o seu fluxo</p>
+                    </div>
+                  </div>
+
+                  <div class="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl mb-4">
+                    <div class="flex items-center gap-3">
+                      <MousePointer2 class="w-4 h-4 text-amber-500" />
+                      <p class="text-[11px] text-amber-700 dark:text-amber-400 font-bold">
+                        <span class="uppercase">Importante:</span> Para os atalhos de tarefa funcionarem, o cursor do mouse deve estar <span class="underline underline-offset-2">posicionado sobre a tarefa</span> desejada.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Coluna 1: Ações de Tarefa -->
+                    <div class="space-y-3">
+                      <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Gestão de Tarefas</h4>
+                      <div class="space-y-2">
+                        <div class="flex items-center justify-between p-3 bg-app-surface border border-app-border-light rounded-xl group hover:border-indigo-500/30 transition-all">
+                          <span class="text-xs font-bold text-app-sub">Editar Tarefa</span>
+                          <kbd class="px-2 py-1 bg-white dark:bg-slate-800 border border-app-border-light rounded-lg text-[12px] font-black text-indigo-500 shadow-sm">E</kbd>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-app-surface border border-app-border-light rounded-xl group hover:border-indigo-500/30 transition-all">
+                          <span class="text-xs font-bold text-app-sub">Concluir / Reabrir</span>
+                          <kbd class="px-2 py-1 bg-white dark:bg-slate-800 border border-app-border-light rounded-lg text-[12px] font-black text-indigo-500 shadow-sm">F</kbd>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-app-surface border border-app-border-light rounded-xl group hover:border-indigo-500/30 transition-all">
+                          <span class="text-xs font-bold text-app-sub">Clonar Tarefa</span>
+                          <kbd class="px-2 py-1 bg-white dark:bg-slate-800 border border-app-border-light rounded-lg text-[12px] font-black text-indigo-500 shadow-sm">C</kbd>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-app-surface border border-app-border-light rounded-xl group hover:border-indigo-500/30 transition-all">
+                          <span class="text-xs font-bold text-app-sub">Zerar Cronômetro</span>
+                          <kbd class="px-2 py-1 bg-white dark:bg-slate-800 border border-app-border-light rounded-lg text-[12px] font-black text-indigo-500 shadow-sm">Z</kbd>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-app-surface border border-app-border-light rounded-xl group hover:border-indigo-500/30 transition-all">
+                          <span class="text-xs font-bold text-app-sub text-rose-500">Excluir Permanente</span>
+                          <kbd class="px-2 py-1 bg-rose-500 text-white rounded-lg text-[12px] font-black shadow-sm">D</kbd>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Coluna 2: Interface e Dados -->
+                    <div class="space-y-3">
+                      <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Estilo e Dados</h4>
+                      <div class="space-y-2">
+                        <div class="flex items-center justify-between p-3 bg-app-surface border border-app-border-light rounded-xl group hover:border-indigo-500/30 transition-all">
+                          <span class="text-xs font-bold text-app-sub">Seletor de Presets</span>
+                          <kbd class="px-2 py-1 bg-white dark:bg-slate-800 border border-app-border-light rounded-lg text-[12px] font-black text-indigo-500 shadow-sm">P</kbd>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-app-surface border border-app-border-light rounded-xl group hover:border-indigo-500/30 transition-all">
+                          <span class="text-xs font-bold text-app-sub">Anexar em Observações</span>
+                          <div class="flex gap-1">
+                            <kbd class="px-1.5 py-1 bg-slate-100 dark:bg-slate-800 border border-app-border-light rounded-lg text-[10px] font-black text-slate-500">CTRL</kbd>
+                            <kbd class="px-2 py-1 bg-white dark:bg-slate-800 border border-app-border-light rounded-lg text-[12px] font-black text-indigo-500">V</kbd>
+                          </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-app-surface border border-app-border-light rounded-xl group hover:border-indigo-500/30 transition-all">
+                          <span class="text-xs font-bold text-app-sub">Anexar Scripts SQL</span>
+                          <div class="flex gap-1">
+                            <kbd class="px-1.5 py-1 bg-slate-100 dark:bg-slate-800 border border-app-border-light rounded-lg text-[10px] font-black text-slate-500">CTRL</kbd>
+                            <kbd class="px-2 py-1 bg-white dark:bg-slate-800 border border-app-border-light rounded-lg text-[12px] font-black text-indigo-500">B</kbd>
+                          </div>
+                        </div>
+                        <hr class="border-app-border-light my-2" />
+                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 pt-1">Global</h4>
+                        <div class="flex items-center justify-between p-3 bg-app-surface border border-app-border-light rounded-xl group hover:border-indigo-500/30 transition-all">
+                          <span class="text-xs font-bold text-app-sub">Terminal de Notas</span>
+                          <kbd class="px-2 py-1 bg-white dark:bg-slate-800 border border-app-border-light rounded-lg text-[12px] font-black text-indigo-500 shadow-sm">T</kbd>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
               
               <div v-else-if="activeTab === 'about'" :key="'about'" class="space-y-8">
