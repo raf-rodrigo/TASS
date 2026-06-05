@@ -8,6 +8,7 @@ const CACHE_DURATION = 30 * 60 * 1000;
 export const useWeatherStore = defineStore('weather', {
   state: () => ({
     temperature: null,
+    precipitation: null,
     iconUrl: null,
     isDay: true,
     isLoading: false,
@@ -51,6 +52,7 @@ export const useWeatherStore = defineStore('weather', {
         const data = await weatherService.fetchWeather(coords.lat, coords.lon);
         
         this.temperature = data.temperature;
+        this.precipitation = data.precipitation;
         this.iconUrl = data.iconUrl;
         this.isDay = !!data.isDay;
         this.lastUpdate = data.timestamp;
@@ -74,6 +76,7 @@ export const useWeatherStore = defineStore('weather', {
       try {
         const data = {
           temperature: this.temperature,
+          precipitation: this.precipitation,
           iconUrl: this.iconUrl,
           isDay: this.isDay,
           lastUpdate: this.lastUpdate,
@@ -90,6 +93,7 @@ export const useWeatherStore = defineStore('weather', {
         if (dataStr) {
           const data = JSON.parse(dataStr);
           this.temperature = data.temperature;
+          this.precipitation = data.precipitation;
           this.iconUrl = data.iconUrl;
           this.isDay = data.isDay;
           this.lastUpdate = data.lastUpdate;

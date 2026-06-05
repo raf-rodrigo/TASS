@@ -1,10 +1,7 @@
 async function check() {
-  const url = 'https://cdn.jsdelivr.net/npm/@meteocons/svg@latest/fill/overcast.svg';
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude=-23.5505&longitude=-46.6333&hourly=precipitation_probability&timezone=auto&forecast_days=1';
   const res = await fetch(url);
-  console.log('Status for overcast:', res.status);
-
-  const url2 = 'https://cdn.jsdelivr.net/npm/@meteocons/svg@1.1.0/design/fill/clear-day.svg';
-  const res2 = await fetch(url2);
-  console.log('Status for clear-day 1.1.0:', res2.status);
+  const data = await res.json();
+  console.log(JSON.stringify(data, null, 2));
 }
 check();

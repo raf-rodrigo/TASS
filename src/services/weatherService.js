@@ -52,7 +52,7 @@ class WeatherService {
   async fetchWeather(lat, lon) {
     try {
       const response = await fetch(
-        `${OPEN_METEO_URL}?latitude=${lat}&longitude=${lon}&current=temperature_2m,is_day,weather_code&timezone=auto`
+        `${OPEN_METEO_URL}?latitude=${lat}&longitude=${lon}&current=temperature_2m,precipitation_probability,is_day,weather_code&timezone=auto`
       );
 
       if (!response.ok) {
@@ -70,11 +70,13 @@ class WeatherService {
       const isDay = current.is_day;
       const wmoCode = current.weather_code;
       const temperature = current.temperature_2m;
+      const precipitation = current.precipitation_probability !== undefined ? current.precipitation_probability : 0;
       const iconName = wmoToIcon(wmoCode, isDay);
       const iconUrl = `https://cdn.jsdelivr.net/npm/@meteocons/svg@latest/fill/${iconName}.svg`;
 
       return {
         temperature,
+        precipitation,
         isDay,
         wmoCode,
         iconName,

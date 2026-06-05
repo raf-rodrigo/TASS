@@ -276,12 +276,12 @@ const timerButtonClasses = computed(() => {
     <div 
       :class="[
         task.completed ? 'opacity-50' : '',
-        isSquareLayout ? 'flex-col items-start h-full flex-1 w-full gap-3' : 'items-center gap-2 w-full'
+        isSquareLayout ? 'flex-col items-start h-full flex-1 w-full gap-3' : 'items-center gap-2 w-full flex-wrap'
       ]" 
       class="flex justify-between transition-opacity"
     >
       <div 
-        class="flex flex-1 min-w-0 overflow-hidden w-full"
+        class="flex flex-1 min-w-[100px] overflow-hidden w-full"
         :class="isSquareLayout ? 'flex-col items-start gap-2' : 'items-center gap-2'"
       >
         <div class="flex items-center gap-2 shrink-0">
@@ -320,12 +320,12 @@ const timerButtonClasses = computed(() => {
       </div>
       
       <div 
-        class="flex items-center shrink-0 flex-row-reverse"
+        class="flex items-center shrink-0 flex-row-reverse flex-wrap justify-end"
         :class="isSquareLayout ? 'w-full justify-between mt-auto pt-3 border-t border-slate-500/10' : 'ml-auto'"
         :style="!isSquareLayout ? { gap: (activeStyle.taskTimerSize * 0.4) + 'px' } : {}"
       >
         <div 
-          class="flex items-center flex-row-reverse"
+          class="flex items-center flex-row-reverse flex-wrap justify-end"
           :style="{ gap: (activeStyle.taskTimerSize * 0.4) + 'px' }"
         >
           <!-- 1. Play/Stop Task (Timer) -->
@@ -434,7 +434,7 @@ const timerButtonClasses = computed(() => {
 
         <!-- Contador (Tempo) -->
         <span 
-          class="hidden sm:inline font-bold leading-none cursor-pointer transition-colors hover:opacity-80"
+          class="font-bold leading-none cursor-pointer transition-colors hover:opacity-80 whitespace-nowrap"
           :class="[
             task.isRunning ? 'animate-pulse' : ''
           ]"

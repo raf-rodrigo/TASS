@@ -2,7 +2,7 @@
 import { onMounted, onUnmounted, computed } from 'vue';
 import { useWeatherStore } from '../stores/weatherStore';
 import { useSettingsStore } from '../stores/settingsStore';
-import { RefreshCcw, MapPinOff, CloudOff } from 'lucide-vue-next';
+import { RefreshCcw, MapPinOff, CloudOff, Droplets } from 'lucide-vue-next';
 
 const weatherStore = useWeatherStore();
 const settings = useSettingsStore();
@@ -83,7 +83,9 @@ const displayTemp = computed(() => {
           <span class="text-[9px] font-bold text-app-sub uppercase tracking-wider mt-0.5 opacity-70 group-hover:opacity-100 transition-opacity">
             <span v-if="weatherStore.isLoading">Buscando...</span>
             <span v-else-if="weatherStore.error">Tentar Novamente</span>
-            <span v-else>Atual</span>
+            <span v-else class="flex items-center gap-1 text-sky-500 dark:text-sky-400">
+              <Droplets class="w-2.5 h-2.5" /> {{ weatherStore.precipitation }}%
+            </span>
           </span>
         </div>
       </button>
