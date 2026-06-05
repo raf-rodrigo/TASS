@@ -119,7 +119,7 @@ export const useSettingsStore = defineStore('settings', () => {
   // Widgets
   const weatherWidgetEnabled = ref(false);
   const weatherCity = ref('');
-
+  const immersiveClockEnabled = ref(true);
 
   // Getters Universais
   const normalizedCardOpacity = computed(() => {
@@ -238,6 +238,7 @@ export const useSettingsStore = defineStore('settings', () => {
       // Widgets
       if (settingsMap['app-weather-enabled'] !== undefined) weatherWidgetEnabled.value = settingsMap['app-weather-enabled'] === true;
       if (settingsMap['app-weather-city'] !== undefined) weatherCity.value = settingsMap['app-weather-city'];
+      if (settingsMap['app-immersive-clock'] !== undefined) immersiveClockEnabled.value = settingsMap['app-immersive-clock'] === true;
       
       // New configurations
       if (settingsMap['app-gitlab-branch-master'] !== undefined) gitlabBranchMaster.value = settingsMap['app-gitlab-branch-master'];
@@ -332,6 +333,7 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-hide-welcome', value: hideWelcomeModal.value },
       { key: 'app-weather-enabled', value: weatherWidgetEnabled.value },
       { key: 'app-weather-city', value: weatherCity.value },
+      { key: 'app-immersive-clock', value: immersiveClockEnabled.value },
       { key: 'app-gitlab-branch-master', value: gitlabBranchMaster.value },
       { key: 'app-gitlab-alias-master', value: gitlabAliasMaster.value },
       { key: 'app-gitlab-branch-hml', value: gitlabBranchHml.value },

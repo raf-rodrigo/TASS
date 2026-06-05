@@ -4,7 +4,7 @@ import {
   X, Palette, Trash2, Plus, Settings,
   Image as ImageIcon, Eraser, MousePointer2,
   LayoutGrid, Layers, Type as TypeIcon, Droplets,
-  Cloud, Loader2, ArrowLeft, RotateCcw,
+  Cloud, Loader2, ArrowLeft, RotateCcw, Clock,
   Save, CheckCircle2, Pencil, Upload, Download, Puzzle
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -527,6 +527,26 @@ const handleColumnChange = (n) => {
                           @change="() => { settings.saveSetting('app-weather-city', settings.weatherCity); weatherStore.refreshWeather(); }" 
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  <div class="glass-section p-6 space-y-6 mt-6">
+                    <div class="flex items-center gap-3 mb-4">
+                      <Clock class="w-5 h-5 text-indigo-500" />
+                      <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Relógio Imersivo</h3>
+                    </div>
+                    
+                    <div class="space-y-4">
+                      <label class="flex items-center justify-between p-4 bg-app-surface rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all">
+                        <div class="flex flex-col">
+                          <span class="text-sm font-bold text-slate-800 dark:text-slate-100">Exibir Relógio Gigante</span>
+                          <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Um relógio minimalista que ocupa o fundo do workspace</span>
+                        </div>
+                        <div class="relative inline-flex items-center">
+                          <input type="checkbox" v-model="settings.immersiveClockEnabled" @change="settings.saveSetting('app-immersive-clock', settings.immersiveClockEnabled)" class="sr-only peer" />
+                          <div class="w-12 h-6 bg-slate-300 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-500 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-md"></div>
+                        </div>
+                      </label>
                     </div>
                   </div>
                 </div>
