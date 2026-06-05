@@ -13,6 +13,7 @@ import NotificationContainer from './components/NotificationContainer.vue';
 import GlobalModal from './components/GlobalModal.vue';
 import TaskContextMenu from './components/TaskContextMenu.vue';
 import WorkspaceContextMenu from './components/WorkspaceContextMenu.vue';
+import StylePickerMenu from './components/StylePickerMenu.vue';
 import GlobalDock from './components/GlobalDock.vue';
 import RadioPlayer from './components/RadioPlayer.vue';
 import WelcomeModal from './components/WelcomeModal.vue';
@@ -27,6 +28,7 @@ import { useNotesDrag } from './composables/useNotesDrag.js';
 import { useTheme } from './composables/useTheme.js';
 import { useSystemMonitoring } from './composables/useSystemMonitoring.js';
 import { useGlobalPulse } from './composables/useGlobalPulse.js';
+import { useTaskShortcuts } from './composables/useTaskShortcuts.js';
 
 // Stores
 
@@ -57,6 +59,8 @@ const sprintInitialShowAddForm = ref(false);
 // Methods
 
 const { currentMessage, showMessage, triggerWellness } = useWellness(settings);
+
+useTaskShortcuts();
 
 useShortcuts({
   onToggleNotes: (val) => {
@@ -404,6 +408,18 @@ onMounted(async () => {
           v-if="uiStore.showWorkspaceContextMenu"
           @close="uiStore.showWorkspaceContextMenu = false"
         />
+      </transition>
+
+      <!-- Menu Flutuante de Seleção de Estilo -->
+      <transition 
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="opacity-0 scale-95"
+        enter-to-class="opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 scale-100"
+        leave-to-class="opacity-0 scale-95"
+      >
+        <StylePickerMenu />
       </transition>
 
       <!-- Global Dock -->

@@ -150,12 +150,12 @@ onUnmounted(() => {
       <div class="flex flex-col gap-0.5">
         <button @click="uiStore.openTaskModal(task); emit('close')" class="context-menu-item text-indigo-500">
           <Pencil class="w-4 h-4" /> 
-          <span>Editar Tarefa</span>
+          <span>Editar Tarefa (e)</span>
         </button>
         <button @click="taskStore.toggleTaskCompletion(task); emit('close')" class="context-menu-item" :class="task.completed ? 'text-blue-500' : 'text-emerald-500'">
           <RotateCcw v-if="task.completed" class="w-4 h-4" />
           <CheckCircle v-else class="w-4 h-4" />
-          <span>{{ task.completed ? 'Reabrir Tarefa' : 'Concluir Tarefa' }}</span>
+          <span>{{ task.completed ? 'Reabrir Tarefa (f)' : 'Concluir Tarefa (f)' }}</span>
         </button>
       </div>
 
@@ -211,7 +211,7 @@ onUnmounted(() => {
         </button>
         <button @click="handleCloneAction" class="context-menu-item text-slate-500">
           <Copy class="w-4 h-4" />
-          <span>Clonar Tarefa</span>
+          <span>Clonar Tarefa (c)</span>
         </button>
       </div>
 
@@ -224,7 +224,7 @@ onUnmounted(() => {
         </button>
         <button @click="handleResetTime" class="context-menu-item text-amber-500">
           <TimerReset class="w-4 h-4" />
-          <span>Zerar Tempo</span>
+          <span>Zerar Tempo (z)</span>
         </button>
       </div>
 
@@ -233,7 +233,7 @@ onUnmounted(() => {
       <div class="flex flex-col gap-0.5">
         <button @click="taskStore.deleteTask(task.id); emit('close')" class="context-menu-item text-red-500 hover:!bg-red-500/10">
           <Trash2 class="w-4 h-4" />
-          <span>Excluir Permanentemente</span>
+          <span>Excluir Permanentemente (d)</span>
         </button>
       </div>
     </div>
@@ -266,7 +266,7 @@ onUnmounted(() => {
           <GitBranch v-if="!isCreatingBranch" class="w-4 h-4" />
           <div v-else class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
         </button>
-        <button @click="handleCloneAction" class="icon-btn-large group" data-tip="Clonar"><Copy class="w-4 h-4" /></button>
+        <button @click="handleCloneAction" class="icon-btn-large group" data-tip="Clonar (c)"><Copy class="w-4 h-4" /></button>
         <button 
           @click="handleAction('moreInfo', 'Observações', 'text')" 
           @contextmenu.prevent="handleEditAction('moreInfo', 'Observações', 'text')"

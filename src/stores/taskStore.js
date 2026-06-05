@@ -11,6 +11,7 @@ export const useTaskStore = defineStore('task', () => {
   const statusFilter = ref('all');
   const isLoading = ref(false);
   const selectedTask = ref(null);
+  const hoveredTask = ref(null);
   const contextMenuPosition = ref({ x: 0, y: 0 });
   const lastDeletedTask = ref(null);
 
@@ -255,7 +256,7 @@ export const useTaskStore = defineStore('task', () => {
   };
 
   return {
-    tasks, isLoading, selectedTask, contextMenuPosition,
+    tasks, isLoading, selectedTask, hoveredTask, contextMenuPosition,
     statusFilter, filteredTasks, boardColumns, lastDeletedTask,
     loadTasks, addTask, updateTask, deleteTask, restoreTask, cloneTask,
     toggleTaskCompletion, migrateOrphanTasks, updateAllPositions, resetSystem

@@ -14,6 +14,12 @@ export const useUIStore = defineStore('ui', () => {
   const showRadio = ref(false);
   const showTimeAdjustment = ref(false);
 
+  // Style Picker Menu and Live Preview
+  const showStylePickerMenu = ref(false);
+  const stylePickerPosition = ref({ x: 0, y: 0 });
+  const previewTaskId = ref(null);
+  const previewStyleId = ref(null);
+
   // Payloads / Intermediary states
   const taskToEdit = ref(null);
   const taskForTimeAdjustment = ref(null);
@@ -75,6 +81,24 @@ export const useUIStore = defineStore('ui', () => {
     }
   };
 
+  const openStylePicker = (task, event) => {
+    if (showStylePickerMenu.value && previewTaskId.value === task.id) {
+      closeStylePicker();
+      return;
+    }
+    
+    previewTaskId.value = task.id;
+    previewStyleId.value = task.styleId || '';
+    stylePickerPosition.value = { x: event.clientX, y: event.clientY };
+    showStylePickerMenu.value = true;
+  };
+
+  const closeStylePicker = () => {
+    showStylePickerMenu.value = false;
+    previewTaskId.value = null;
+    previewStyleId.value = null;
+  };
+
   const closeAll = () => {
     showNotes.value = false;
     showSettings.value = false;
@@ -82,6 +106,7 @@ export const useUIStore = defineStore('ui', () => {
     showTaskModal.value = false;
     showSprints.value = false;
     showTaskStyleBuilder.value = false;
+    showStylePickerMenu.value = false;
   };
 
   return {
@@ -89,11 +114,12 @@ export const useUIStore = defineStore('ui', () => {
     showSprints, showInterfaceMenu, showTaskStyleBuilder, showNotes,
     showRadio, showTimeAdjustment, showGlobalDock,
     showWorkspaceContextMenu, workspaceContextMenuPosition,
+    showStylePickerMenu, stylePickerPosition, previewTaskId, previewStyleId,
     taskToEdit, taskForTimeAdjustment, settingsInitialTab,
     interfaceInitialTab, sprintInitialShowAddForm,
     openTaskModal, closeTaskModal,
     openTimeAdjustment, closeTimeAdjustment,
     openSettings, openInterfaceMenu, openSprints,
-    toggleNotes, closeAll
+    toggleNotes, openStylePicker, closeStylePicker, closeAll
   };
 });

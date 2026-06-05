@@ -76,6 +76,7 @@ export const useModalStore = defineStore('modal', () => {
     type.value = options.type || 'info';
     confirmText.value = options.confirmText || 'Salvar';
     cancelText.value = options.cancelText || 'Cancelar';
+    denyText.value = options.denyText || null;
     
     isPrompt.value = true;
     promptType.value = options.promptType || 'text';
@@ -105,6 +106,12 @@ export const useModalStore = defineStore('modal', () => {
     if (resolvePromise.value) resolvePromise.value(isPrompt.value ? null : 'cancelled');
   };
 
+  const clearPrompt = () => {
+    if (isPrompt.value) {
+      promptValue.value = '';
+    }
+  };
+
   return {
     isOpen,
     title,
@@ -122,6 +129,7 @@ export const useModalStore = defineStore('modal', () => {
     prompt,
     handleConfirm,
     handleDeny,
-    handleCancel
+    handleCancel,
+    clearPrompt
   };
 });
