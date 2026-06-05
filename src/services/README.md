@@ -29,11 +29,11 @@ Sistema unificado de feedback visual da aplicação, integrando-se nativamente c
 - **Toasts:** Notificações flutuantes não-intrusivas (sucesso, erro, info).
 - **Nativo (Desktop):** Gerenciamento e requisição de permissões para exibir notificações via API nativa do sistema operacional.
 
-### 🧪 `gitlab.js`
-Integração profunda e especializada com a API REST do GitLab para otimizar a esteira de desenvolvimento do usuário.
-- **Gestão de Branches:** Automação avançada para verificar, criar ou deletar branches com nomenclatura inteligente derivada das tarefas.
-- **Merge Requests (Fluxo Rápido):** Conta com o `analyzeAndMerge`, que faz a comparação entre a branch da tarefa atual e a branch de destino (`dev-06`). Detecta número de arquivos alterados, analisa previamente a existência de conflitos, permite abrir MRs interativos e aplica o merge de forma conclusiva caso autorizado pelo desenvolvedor.
-- **Tratamento de Estado Local:** Mantém a sincronia entre links da branch criados no Gitlab e os metadados da tarefa no TASS (banco IndexedDB).
+### 🧪 `gitlab.js` e `github.js` (Provider Facade)
+Integração profunda e especializada com as APIs REST do GitLab e GitHub para otimizar a esteira de desenvolvimento. Ambos respondem à interface uniforme do `gitProvider.js`.
+- **Gestão de Branches:** Automação para verificar, criar ou deletar branches (utilizando como origem primária o `activeBaseBranch` selecionado pelo usuário nas configurações do TASS).
+- **Merge Requests/Pull Requests:** O fluxo `analyzeAndMerge` compara a branch de feature e a branch de destino (`dev` ou `hml` dinamicamente selecionadas pela Store via `activeBranchDev`/`activeBranchHml`). Detecta arquivos alterados e analisa conflitos antes de aplicar ou sugerir um Merge direto e conclusivo, resolvido interativamente com o desenvolvedor via interface.
+- **Agnosticismo de UI:** Os componentes visuais (como o `GitRebuilder` ou `ActionPanel`) não se importam com qual serviço está ativo. O roteador (`gitProvider.js`) decide se chama a integração do GitHub ou GitLab mantendo um contrato universal de entrada e saída.
 
 ### 🚀 `taskActionService.js`
 Encapsula fluxos rápidos e rotineiros que alteram dados específicos das tarefas (Quick Actions).
