@@ -5,11 +5,12 @@ import {
   Image as ImageIcon, Eraser, MousePointer2,
   LayoutGrid, Layers, Type as TypeIcon, Droplets,
   Cloud, Loader2, ArrowLeft, RotateCcw,
-  Save, CheckCircle2, Pencil, Upload, Download
+  Save, CheckCircle2, Pencil, Upload, Download, Puzzle
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
 import { useTaskStyleStore } from '../stores/taskStyleStore';
+import { useWeatherStore } from '../stores/weatherStore';
 import { notificationService } from '../services/notificationService';
 import { backupService } from '../services/backupService';
 import BaseModal from './BaseModal.vue';
@@ -18,6 +19,7 @@ import AppColorPalette from './AppColorPalette.vue';
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
 const taskStyleStore = useTaskStyleStore();
+const weatherStore = useWeatherStore();
 
 const props = defineProps({
   isOpen: Boolean,
@@ -111,6 +113,7 @@ const tabs = [
   { id: 'tasks', label: 'Construtor de Estilos', icon: Layers, color: 'text-indigo-500', desc: 'Crie e gerencie os Presets Visuais (WYSIWYG).' },
   { id: 'typography', label: 'Tipografia', icon: TypeIcon, color: 'text-indigo-500', desc: 'Escolha a fonte que melhor se adapta ao seu estilo.' },
   { id: 'effects', label: 'Efeitos e Vidro', icon: Droplets, color: 'text-indigo-500', desc: 'Ajuste o desfoque e as transparências do sistema.' },
+  { id: 'widgets', label: 'Widgets', icon: Puzzle, color: 'text-indigo-500', desc: 'Gerencie mini-aplicativos e integrações extras.' },
 ];
 
 const activeTabObj = computed(() => tabs.find(t => t.id === activeTab.value) || tabs[0]);
@@ -486,6 +489,43 @@ const handleColumnChange = (n) => {
                             <div class="w-10 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all shadow-sm"></div>
                           </div>
                         </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ABA: Widgets -->
+                <div v-else-if="activeTab === 'widgets'" :key="'widgets'" class="space-y-6">
+                  <div class="glass-section p-6 space-y-6">
+                    <div class="flex items-center gap-3 mb-4">
+                      <Cloud class="w-5 h-5 text-sky-500" />
+                      <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Widget de Clima</h3>
+                    </div>
+                    
+                    <div class="space-y-4">
+                      <label class="flex items-center justify-between p-4 bg-app-surface rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all">
+                        <div class="flex flex-col">
+                          <span class="text-sm font-bold text-slate-800 dark:text-slate-100">Exibir Widget de Clima</span>
+                          <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Mostra a temperatura atual próxima à doca</span>
+                        </div>
+                        <div class="relative inline-flex items-center">
+                          <input type="checkbox" v-model="settings.weatherWidgetEnabled" @change="settings.saveSetting('app-weather-enabled', settings.weatherWidgetEnabled)" class="sr-only peer" />
+                          <div class="w-12 h-6 bg-slate-300 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-sky-500 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-md"></div>
+                        </div>
+                      </label>
+
+                      <div class="space-y-2 p-4 bg-app-surface rounded-2xl border border-app-border-light transition-all" :class="{'opacity-50 pointer-events-none': !settings.weatherWidgetEnabled}">
+                        <label class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Forçar Cidade (Opcional)</label>
+                        <p class="text-[10px] text-slate-500 mb-2 ml-1 leading-relaxed">
+                          Se o seu GPS estiver bloqueado ou quiser ver o clima de outra região, digite o nome da cidade abaixo (ex: "Rio de Janeiro", "London"). Deixe em branco para tentar usar o GPS.
+                        </p>
+                        <input 
+                          v-model="settings.weatherCity" 
+                          type="text" 
+                          placeholder="Ex: São Paulo" 
+                          class="app-input px-3 py-2 text-sm shadow-sm transition-all w-full bg-slate-50 dark:bg-slate-900 border-none" 
+                          @change="() => { settings.saveSetting('app-weather-city', settings.weatherCity); weatherStore.refreshWeather(); }" 
+                        />
                       </div>
                     </div>
                   </div>
