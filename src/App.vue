@@ -16,6 +16,7 @@ import WorkspaceContextMenu from './components/WorkspaceContextMenu.vue';
 import GlobalDock from './components/GlobalDock.vue';
 import RadioPlayer from './components/RadioPlayer.vue';
 import WelcomeModal from './components/WelcomeModal.vue';
+import WeatherWidget from './components/WeatherWidget.vue';
 import GitRebuilder from './components/breeze/GitRebuilder.vue';
 import { useRouter, useRoute } from 'vue-router';
 
@@ -427,6 +428,9 @@ onMounted(async () => {
         />
       </transition>
     </div>
+
+    <!-- Weather Widget -->
+    <WeatherWidget />
 
     <!-- 4. Modal Layer -->
     <TaskModal 

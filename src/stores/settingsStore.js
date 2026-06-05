@@ -116,6 +116,10 @@ export const useSettingsStore = defineStore('settings', () => {
   const textLightPalette = ref([]);
   const textDarkPalette = ref([]);
 
+  // Widgets
+  const weatherWidgetEnabled = ref(false);
+  const weatherCity = ref('');
+
 
   // Getters Universais
   const normalizedCardOpacity = computed(() => {
@@ -231,6 +235,10 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-branch-hml'] !== undefined) { gitlabBranchHml.value = settingsMap['app-branch-hml']; }
       if (settingsMap['app-branch-dev'] !== undefined) { gitlabBranchDev.value = settingsMap['app-branch-dev']; }
       
+      // Widgets
+      if (settingsMap['app-weather-enabled'] !== undefined) weatherWidgetEnabled.value = settingsMap['app-weather-enabled'] === true;
+      if (settingsMap['app-weather-city'] !== undefined) weatherCity.value = settingsMap['app-weather-city'];
+      
       // New configurations
       if (settingsMap['app-gitlab-branch-master'] !== undefined) gitlabBranchMaster.value = settingsMap['app-gitlab-branch-master'];
       if (settingsMap['app-gitlab-alias-master'] !== undefined) gitlabAliasMaster.value = settingsMap['app-gitlab-alias-master'];
@@ -322,6 +330,8 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-text-light-palette', value: textLightPalette.value },
       { key: 'app-text-dark-palette', value: textDarkPalette.value },
       { key: 'app-hide-welcome', value: hideWelcomeModal.value },
+      { key: 'app-weather-enabled', value: weatherWidgetEnabled.value },
+      { key: 'app-weather-city', value: weatherCity.value },
       { key: 'app-gitlab-branch-master', value: gitlabBranchMaster.value },
       { key: 'app-gitlab-alias-master', value: gitlabAliasMaster.value },
       { key: 'app-gitlab-branch-hml', value: gitlabBranchHml.value },
@@ -372,6 +382,7 @@ export const useSettingsStore = defineStore('settings', () => {
     consoleFontSize, taskStyleProfiles,
     titlePalette, bodyPalette, textLightPalette, textDarkPalette,
     isInitialized, globalGlassEnabled,
+    weatherWidgetEnabled, weatherCity,
     loadSettings, saveSetting, saveAllSettings, normalizedCardOpacity
 
   };

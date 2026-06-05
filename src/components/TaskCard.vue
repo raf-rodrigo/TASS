@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { Play, Square, MoreVertical, ArrowDown, ArrowRight, ArrowUp, AlertOctagon, GitBranch, MessageSquare, Database, ExternalLink } from 'lucide-vue-next';
 import { formatMsToHMS } from '../utils/time.js';
 import { hexToRgba } from '../utils/colors.js';
@@ -27,6 +27,20 @@ const props = defineProps({
   }
 });
 
+const isMobile = ref(window.innerWidth < 768);
+
+onMounted(() => {
+  window.addEventListener('resize', handleWindowResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleWindowResize);
+});
+
+const handleWindowResize = () => {
+  isMobile.value = window.innerWidth < 768;
+};
+
 const activeStyle = computed(() => {
   let customStyles = {};
 
@@ -50,7 +64,7 @@ const activeStyle = computed(() => {
     taskDescriptionSize: customStyles.taskDescriptionSize ?? settings.taskDescriptionSize,
     taskTimerSize: customStyles.taskTimerSize ?? settings.taskTimerSize,
     taskMinHeight: customStyles.taskMinHeight ?? settings.taskMinHeight,
-    taskMaxWidth: customStyles.taskMaxWidth ?? settings.taskMaxWidth,
+    taskMaxWidth: props.task._labOverride || isMobile.value ? 0 : (customStyles.taskMaxWidth ?? settings.taskMaxWidth),
     taskVerticalAlign: customStyles.taskVerticalAlign ?? settings.taskVerticalAlign
   };
 });
@@ -182,6 +196,64 @@ const handleSelect = (event) => {
 };
 
 // =========================================================================
+// PROGRESSIVE DISCLOSURE (ResizeObserver)
+// =========================================================================
+const cardRef = ref(null);
+const cardWidth = ref(0);
+let resizeObserver = null;
+
+onMounted(() => {
+  if (cardRef.value) {
+    resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        cardWidth.value = entry.target.offsetWidth;
+      }
+    });
+    resizeObserver.observe(cardRef.value);
+  }
+});
+
+onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
+});
+
+const cardMode = computed(() => {
+  if (cardWidth.value === 0) return 'full'; // Fallback inicial (antes do mount)
+  if (cardWidth.value < 242) return 'micro';
+  if (cardWidth.value < 300) return 'compact';
+  return 'full';
+});
+
+// Calcula quais ícones cabem no espaço disponível
+const visibleIcons = computed(() => {
+  // Ícones que a tarefa possui, ordenados por prioridade de sobrevivência
+  // Ordem visual da direita para a esquerda: Git (sobrevive mais), Msg, DB, Link (some primeiro)
+  const icons = [];
+  if (gitProviderService.hasBranch(props.task, settings)) icons.push('git');
+  if (props.task.moreInfo) icons.push('msg');
+  if (props.task.dbScripts) icons.push('db');
+  if (props.task.taskUrl) icons.push('link');
+
+  // Cálculo do espaço: a base consome um espaço mínimo. Ponto de equilíbrio: ~190px.
+  // Cada ícone extra considera ~35px de espaço.
+  if (cardMode.value === 'micro') return [];
+
+  const availableSpace = cardWidth.value - 190;
+  let maxIcons = 0;
+  
+  if (availableSpace >= 140) maxIcons = 4;
+  else if (availableSpace >= 105) maxIcons = 3;
+  else if (availableSpace >= 70) maxIcons = 2;
+  else if (availableSpace >= 35) maxIcons = 1;
+  else maxIcons = 0;
+
+  // Em larguras muito pequenas, podemos não ter espaço nem para 1 ícone
+  return icons.slice(0, maxIcons);
+});
+
+// =========================================================================
 // COMPUTED PROPERTIES SEMÂNTICAS (Evitando Síndrome do Gênio)
 // =========================================================================
 
@@ -232,6 +304,7 @@ const cardDynamicStyles = computed(() => {
     borderColor: borderColor,
     boxShadow: boxShadow,
     minHeight: activeStyle.value.taskMinHeight > 40 ? activeStyle.value.taskMinHeight + 'px' : 'auto',
+    minWidth: '164px',
     maxWidth: activeStyle.value.taskMaxWidth > 0 ? activeStyle.value.taskMaxWidth + 'px' : 'none',
     width: activeStyle.value.taskMaxWidth > 0 ? '100%' : 'auto',
     margin: activeStyle.value.taskMaxWidth > 0 ? '0 auto' : '',
@@ -262,7 +335,8 @@ const timerButtonClasses = computed(() => {
 
 <template>
   <div 
-    class="glass-panel cursor-pointer cursor-grab hover:-translate-y-0.5 group relative hover:z-[100] flex flex-col"
+    ref="cardRef"
+    class="tass-card glass-panel cursor-pointer cursor-grab hover:-translate-y-0.5 group relative hover:z-[100] flex flex-col"
     :class="[
       task.isRunning && !taskColors.color ? 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : '',
       taskStore.selectedTask?.id === task.id ? `z-[50] ${!taskColors.color ? 'ring-2 ring-indigo-500/50 border-indigo-500' : ''}` : ''
@@ -276,13 +350,16 @@ const timerButtonClasses = computed(() => {
     <div 
       :class="[
         task.completed ? 'opacity-50' : '',
-        isSquareLayout ? 'flex-col items-start h-full flex-1 w-full gap-3' : 'items-center gap-2 w-full'
+        isSquareLayout ? 'flex-col items-start h-full flex-1 w-full gap-3' : 'items-center gap-2 w-full flex-wrap'
       ]" 
       class="flex justify-between transition-opacity"
     >
       <div 
-        class="flex flex-1 min-w-0 overflow-hidden w-full"
-        :class="isSquareLayout ? 'flex-col items-start gap-2' : 'items-center gap-2'"
+        class="flex flex-1 overflow-hidden transition-all duration-300"
+        :class="[
+          isSquareLayout ? 'flex-col items-start gap-2 w-full' : 'items-center gap-2',
+          cardMode === 'micro' ? 'justify-center min-w-full' : 'min-w-[100px] w-full'
+        ]"
       >
         <div class="flex items-center gap-2 shrink-0">
           <span 
@@ -303,7 +380,7 @@ const timerButtonClasses = computed(() => {
           </span>
         </div>
           <span 
-            v-if="task.description" 
+            v-if="task.description && cardMode !== 'micro'" 
             class="text-sm flex-1 min-w-0 py-0.5 leading-tight text-justify" 
             :class="[
               task.completed ? 'line-through opacity-60' : '',
@@ -320,12 +397,15 @@ const timerButtonClasses = computed(() => {
       </div>
       
       <div 
-        class="flex items-center shrink-0 flex-row-reverse"
-        :class="isSquareLayout ? 'w-full justify-between mt-auto pt-3 border-t border-slate-500/10' : 'ml-auto'"
+        class="flex items-center shrink-0 flex-row-reverse transition-all duration-300"
+        :class="[
+          isSquareLayout ? 'w-full justify-between mt-auto pt-3 border-t border-slate-500/10' : 'mt-1 sm:mt-0',
+          cardMode === 'micro' ? 'w-full justify-center pt-2 mt-1 border-t border-slate-500/10' : 'ml-auto justify-end'
+        ]"
         :style="!isSquareLayout ? { gap: (activeStyle.taskTimerSize * 0.4) + 'px' } : {}"
       >
         <div 
-          class="flex items-center flex-row-reverse"
+          class="flex items-center flex-row-reverse justify-end"
           :style="{ gap: (activeStyle.taskTimerSize * 0.4) + 'px' }"
         >
           <!-- 1. Play/Stop Task (Timer) -->
@@ -363,9 +443,9 @@ const timerButtonClasses = computed(() => {
           </button>
 
           <!-- 3. Indicadores -->
-          <div v-if="gitProviderService.hasBranch(task, settings) || task.moreInfo || task.dbScripts || task.taskUrl" class="flex items-center flex-row-reverse" :style="{ gap: (activeStyle.taskTimerSize * 0.4) + 'px' }">
+          <div class="flex items-center flex-row-reverse" :style="{ gap: (activeStyle.taskTimerSize * 0.4) + 'px' }">
             
-            <div v-if="gitProviderService.hasBranch(task, settings)" 
+            <div v-if="visibleIcons.includes('git')"
               class="transition-all flex items-center justify-center border cursor-pointer hover:brightness-110 active:scale-95" 
               :class="timerButtonClasses"
               :style="{
@@ -382,7 +462,7 @@ const timerButtonClasses = computed(() => {
               <div v-else class="rounded-full border border-purple-500 border-t-transparent animate-spin" :style="{ width: (activeStyle.taskTimerSize - 4) + 'px', height: (activeStyle.taskTimerSize - 4) + 'px' }"></div>
             </div>
             
-            <div v-if="task.moreInfo" 
+            <div v-if="visibleIcons.includes('msg')"
               class="transition-all flex items-center justify-center border cursor-pointer hover:brightness-110 active:scale-95" 
               :class="timerButtonClasses"
               :style="{
@@ -398,7 +478,7 @@ const timerButtonClasses = computed(() => {
               <MessageSquare :size="activeStyle.taskTimerSize - 1" />
             </div>
             
-            <div v-if="task.dbScripts" 
+            <div v-if="visibleIcons.includes('db')"
               class="transition-all flex items-center justify-center border cursor-pointer hover:brightness-110 active:scale-95" 
               :class="timerButtonClasses"
               :style="{
@@ -414,7 +494,7 @@ const timerButtonClasses = computed(() => {
               <Database :size="activeStyle.taskTimerSize - 1" />
             </div>
 
-            <div v-if="task.taskUrl" 
+            <div v-if="visibleIcons.includes('link')"
               class="transition-all flex items-center justify-center border cursor-pointer hover:brightness-110 active:scale-95" 
               :class="timerButtonClasses"
               :style="{
@@ -434,12 +514,12 @@ const timerButtonClasses = computed(() => {
 
         <!-- Contador (Tempo) -->
         <span 
-          class="hidden sm:inline font-bold leading-none cursor-pointer transition-colors hover:opacity-80"
+          class="font-bold leading-none cursor-pointer transition-colors hover:opacity-80 whitespace-nowrap"
           :class="[
             task.isRunning ? 'animate-pulse' : ''
           ]"
           :style="{ 
-            fontSize: activeStyle.taskTimerSize + 'px',
+            fontSize: (cardMode === 'micro' ? activeStyle.taskTimerSize - 2 : activeStyle.taskTimerSize) + 'px',
             color: task.isRunning ? (taskColors.color || '#ef4444') : currentTextColor,
             marginRight: (activeStyle.taskTimerSize * 0.2) + 'px'
           }"

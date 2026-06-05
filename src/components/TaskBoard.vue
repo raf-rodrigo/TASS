@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import draggable from 'vuedraggable';
 import TaskCard from './TaskCard.vue';
 import { Plus } from 'lucide-vue-next';
@@ -48,24 +48,74 @@ const placeholderStyles = computed(() => {
     backdropFilter: isGlassActive ? 'blur(var(--app-glass-blur))' : 'none'
   };
 });
+
+// ==========================================
+// Lógica de Drag to Scroll (Arrastar para Rolar)
+// ==========================================
+const boardRef = ref(null);
+let isDraggingScroll = false;
+let startX = 0;
+let scrollLeft = 0;
+const isScrollable = ref(false);
+
+const checkScrollable = () => {
+  if (boardRef.value) {
+    // Adiciona uma margem de tolerância pequena (ex: 2px) para arredondamentos
+    isScrollable.value = boardRef.value.scrollWidth > boardRef.value.clientWidth + 2;
+  }
+};
+
+onMounted(() => {
+  checkScrollable();
+  window.addEventListener('resize', checkScrollable);
+  
+  if (boardRef.value) {
+    const observer = new ResizeObserver(checkScrollable);
+    observer.observe(boardRef.value);
+  }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkScrollable);
+});
+
+const startDragScroll = (e) => {
+  if (!isScrollable.value) return;
+  // Ignora se o clique for dentro de um cartão ou botão (deixa o vuedraggable atuar)
+  if (e.target.closest('.tass-card') || e.target.closest('button')) return;
+  
+  isDraggingScroll = true;
+  startX = e.pageX - boardRef.value.offsetLeft;
+  scrollLeft = boardRef.value.scrollLeft;
+};
+
+const doDragScroll = (e) => {
+  if (!isDraggingScroll) return;
+  e.preventDefault(); // Previne a seleção de texto fantasma ao arrastar o fundo
+  const x = e.pageX - boardRef.value.offsetLeft;
+  const walk = (x - startX) * 1.5; // Multiplicador de velocidade
+  boardRef.value.scrollLeft = scrollLeft - walk;
+};
+
+const stopDragScroll = () => {
+  isDraggingScroll = false;
+};
 </script>
 
 <template>
   <section 
-    class="flex flex-nowrap lg:grid gap-6 w-full items-stretch overflow-x-auto lg:overflow-x-visible pb-8 lg:pb-0 snap-x snap-mandatory custom-scrollbar min-h-[50vh]" 
-    :class="{
-      'lg:grid-cols-1': settings.columns === 1 || !settings.columns,
-      'lg:grid-cols-2': settings.columns === 2,
-      'lg:grid-cols-3': settings.columns === 3,
-      'lg:grid-cols-4': settings.columns === 4,
-      'lg:grid-cols-5': settings.columns === 5,
-      'lg:grid-cols-6': settings.columns === 6
-    }"
+    ref="boardRef"
+    class="flex flex-nowrap gap-6 w-full items-stretch overflow-x-auto overflow-y-hidden pb-8 custom-scrollbar min-h-[50vh] transition-colors" 
+    :class="isScrollable ? 'cursor-grab active:cursor-grabbing' : 'cursor-auto'"
+    @mousedown="startDragScroll"
+    @mousemove="doDragScroll"
+    @mouseup="stopDragScroll"
+    @mouseleave="stopDragScroll"
   >
     <div 
       v-for="colIdx in settings.columns" 
       :key="colIdx" 
-      class="flex flex-col gap-4 min-h-[500px] relative flex-shrink-0 lg:flex-shrink snap-center lg:snap-align-none w-[90vw] md:w-[45vw] lg:w-full first:ml-[5vw] last:mr-[5vw] lg:first:ml-0 lg:last:mr-0 pb-10"
+      class="flex flex-col gap-4 min-h-[500px] relative flex-shrink-0 w-[85vw] sm:w-[320px] lg:w-[340px] xl:w-[360px] pb-10 cursor-auto"
     >
       <!-- Cabeçalho da Coluna -->
       <div 
