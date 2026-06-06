@@ -192,6 +192,9 @@
   .custom-scrollbar::-webkit-scrollbar { width: 4px; }
   .custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-slate-400/20 dark:bg-white/10 rounded-full; }
 
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
   /* --- ARQUITETURA SINGLETON: TOOLTIP GLOBAL --- */
   .tass-global-tooltip {
     @apply pointer-events-none fixed opacity-0 transition-opacity duration-300 z-[99999] px-3 py-2 bg-slate-900 dark:bg-slate-700 text-white text-sm font-medium rounded-lg shadow-sm max-w-[300px] whitespace-pre-wrap text-left;

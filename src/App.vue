@@ -342,7 +342,7 @@ onMounted(async () => {
     @contextmenu.prevent="handleWorkspaceContextMenu"
   >
     <div 
-      class="w-full flex flex-col items-center px-4 md:px-6 pt-2 pb-32"
+      class="w-full flex flex-col items-center px-4 md:px-6 pt-2 flex-1"
       :class="[
         isNotesDragging ? '' : 'transition-all duration-500',
         isDraggingTask ? 'is-dragging-mode' : ''
@@ -366,7 +366,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <main class="w-full mt-2 flex-1">
+      <main class="w-full mt-2 flex-1 flex flex-col">
         <NotesPanel :isOpen="uiStore.showNotes" @toggle="uiStore.showNotes = !uiStore.showNotes" @close="uiStore.showNotes = false" />
 
         <!-- Roteador Principal -->
