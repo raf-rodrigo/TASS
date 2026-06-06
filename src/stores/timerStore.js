@@ -105,7 +105,6 @@ export const useTimerStore = defineStore('timer', () => {
         dailyLogs: {},
         isRunning: false 
       });
-      notificationService.toast('Cronômetro da tarefa zerado!');
     } catch (error) {
       console.error("Failed to reset task time:", error);
     }
@@ -159,7 +158,6 @@ export const useTimerStore = defineStore('timer', () => {
       }
 
       await taskStore.updateTask(taskId, updates);
-      notificationService.toast('Tempo da tarefa ajustado!', 'success');
     } catch (error) {
       console.error("Failed to adjust task time:", error);
       notificationService.toast('Erro ao ajustar tempo', 'error');

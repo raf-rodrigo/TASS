@@ -50,13 +50,14 @@ const dockRadius = computed(() => {
       }"
     >
       <!-- LINHA 1: Cabeçalho da Ilha / Ações Principais -->
-      <div class="flex items-center w-full md:w-auto" :class="{ 'justify-between': isMobile && !isExpanded }">
+      <div class="flex items-center w-full md:w-auto" :class="{ 'justify-between': isMobile }">
         <div class="flex items-center gap-2">
           <!-- Adicionar Tarefa -->
           <button 
             @click.stop="emit('add-task')"
             class="w-12 h-12 md:w-10 md:h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 transition-all active:scale-95 group shrink-0"
             :style="{ borderRadius: 'var(--app-input-radius)' }"
+            data-tip="Nova Tarefa (n)"
           >
             <Plus class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
           </button>
@@ -64,6 +65,7 @@ const dockRadius = computed(() => {
           <!-- Cronômetro (Sempre Visível) -->
           <div 
             class="dock-item !bg-indigo-500/5 !border-indigo-500/20 px-3 py-2 flex items-center gap-2"
+            data-tip="Tempo investido na Sprint"
           >
             <Clock class="w-4 h-4 text-indigo-600 dark:text-indigo-400" :class="{ 'animate-pulse': timerStore.activeTask }" />
             <span class="text-xs font-black font-mono text-indigo-600 dark:text-indigo-400">
@@ -96,6 +98,7 @@ const dockRadius = computed(() => {
           v-if="isMobile" 
           @click.stop="isExpanded = !isExpanded"
           class="w-12 h-12 md:w-10 md:h-10 flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-colors ml-2"
+          data-tip="Opções da Dock"
         >
           <X v-if="isExpanded" class="w-5 h-5 text-red-500" />
           <MoreHorizontal v-else class="w-5 h-5" />
@@ -138,24 +141,24 @@ const dockRadius = computed(() => {
         <!-- Sprint e Utilidades -->
         <div class="flex items-center justify-center md:justify-start w-full md:w-auto gap-2">
            <!-- Sprint Selector (Mobile icon only) -->
-          <button @click="emit('open-sprints')" class="util-btn md:hidden">
+          <button @click="emit('open-sprints')" class="util-btn md:hidden" data-tip="Sprints">
             <Calendar class="w-4 h-4 text-indigo-500" />
           </button>
 
           <div class="flex items-center gap-1">
-            <button @click="emit('open-git-rebuilder')" class="util-btn group relative !text-emerald-500 hover:!bg-emerald-500/10 hover:!text-emerald-400" title="Breeze (Git Rebuilder)">
+            <button @click="emit('open-git-rebuilder')" class="util-btn group relative !text-emerald-500 hover:!bg-emerald-500/10 hover:!text-emerald-400" data-tip="Breeze (Git Rebuilder)">
               <CloudLightning class="w-4 h-4" />
             </button>
-            <button @click="emit('open-radio')" class="util-btn group relative">
+            <button @click="emit('open-radio')" class="util-btn group relative" data-tip="Rádio Lofi">
               <Headphones class="w-4 h-4 text-amber-500" />
               <span v-if="radioStore.isPlaying" class="absolute top-0.5 right-0.5 w-2 h-2 bg-amber-500 rounded-full animate-ping opacity-75"></span>
               <span v-if="radioStore.isPlaying" class="absolute top-0.5 right-0.5 w-2 h-2 bg-amber-500 rounded-full opacity-50"></span>
             </button>
-            <button @click="emit('toggle-theme')" class="util-btn">
+            <button @click="emit('toggle-theme')" class="util-btn" data-tip="Alternar Tema">
               <Sun v-if="settings.theme === 'dark'" class="w-4 h-4 text-amber-500" />
               <Moon v-else class="w-4 h-4 text-indigo-500" />
             </button>
-            <button @click="emit('open-settings')" class="util-btn">
+            <button @click="emit('open-settings')" class="util-btn" data-tip="Configurações">
               <Settings class="w-4 h-4" />
             </button>
           </div>

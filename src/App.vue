@@ -61,7 +61,7 @@ const sprintInitialShowAddForm = ref(false);
 // Methods
 
 const { currentMessage, showMessage, triggerWellness } = useWellness(settings);
-const { shouldHideDockForModal } = useDeviceBehavior();
+const { shouldHideDockForModal, isMobile } = useDeviceBehavior();
 
 useTaskShortcuts();
 
@@ -250,6 +250,8 @@ const handleDragEnd = () => {
 };
 
 const handleWorkspaceContextMenu = (event) => {
+  if (isMobile.value) return; // Bloqueia o menu de contexto geral no celular
+
   // Capture click position
   uiStore.workspaceContextMenuPosition = { x: event.clientX, y: event.clientY };
   
@@ -438,7 +440,7 @@ onMounted(async () => {
         leave-to-class="translate-y-20 opacity-0 scale-95"
       >
         <GlobalDock 
-          v-if="uiStore.showGlobalDock && !shouldHideDockForModal && (!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating') && route.name !== 'ComponentSuite'"
+          v-if="uiStore.showGlobalDock && !shouldHideDockForModal && (!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating') && route.name === 'Workspace'"
           @add-task="uiStore.openTaskModal"
           @open-sprints="openSprintsFromDock"
           @open-notes="uiStore.showNotes = !uiStore.showNotes"

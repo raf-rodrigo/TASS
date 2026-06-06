@@ -95,7 +95,6 @@ export const useTaskStore = defineStore('task', () => {
       const id = await db.tasks.add(taskToAdd);
       taskToAdd.id = id;
       tasks.value.unshift(taskToAdd);
-      notificationService.toast('Tarefa adicionada!');
       return id;
     } catch (error) {
       console.error("Failed to add task:", error);
@@ -111,7 +110,6 @@ export const useTaskStore = defineStore('task', () => {
         await timerStore.toggleTimer(task);
       }
       await updateTask(task.id, { completed: newStatus });
-      notificationService.toast(newStatus ? 'Tarefa concluída!' : 'Tarefa reaberta!');
     } catch (error) {
       console.error("Failed to update task completion:", error);
     }
@@ -154,7 +152,6 @@ export const useTaskStore = defineStore('task', () => {
       });
       await Promise.all(updates);
       tasks.value = tasks.value.filter(t => t.id !== id);
-      notificationService.toast('Tarefa excluída');
     } catch (error) {
       console.error("Failed to delete task:", error);
     }
@@ -183,7 +180,6 @@ export const useTaskStore = defineStore('task', () => {
       tasks.value.push(taskToRestore);
       tasks.value.sort((a, b) => a.position - b.position);
       lastDeletedTask.value = null;
-      notificationService.toast('Tarefa restaurada!');
     } catch (error) {
       console.error("Failed to restore task:", error);
     }

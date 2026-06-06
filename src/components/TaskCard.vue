@@ -354,6 +354,7 @@ const timerButtonClasses = computed(() => {
 
     :style="cardDynamicStyles"
     @contextmenu.prevent.stop="handleSelect($event)"
+    @click="handleSelect($event)"
     @mouseenter="taskStore.hoveredTask = task"
     @mouseleave="taskStore.hoveredTask = taskStore.hoveredTask?.id === task.id ? null : taskStore.hoveredTask"
   >

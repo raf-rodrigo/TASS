@@ -262,25 +262,28 @@ onUnmounted(() => {
       </div>
 
       <div class="flex items-center gap-1.5 px-2">
-        <button @click="handleGitAction" :disabled="isCreatingBranch" class="icon-btn-large group" :class="{ 'active-action': gitProviderService.hasBranch(task, settings) }">
+        <button @click="handleGitAction" :disabled="isCreatingBranch" class="icon-btn-large group" :class="{ 'active-action': gitProviderService.hasBranch(task, settings) }" data-tip="Branch do Git">
           <GitBranch v-if="!isCreatingBranch" class="w-4 h-4" />
           <div v-else class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
         </button>
-        <button @click="handleCloneAction" class="icon-btn-large group" data-tip="Clonar (c)"><Copy class="w-4 h-4" /></button>
+        <button @click="handleCloneAction" class="icon-btn-large group" data-tip="Clonar Tarefa (c)"><Copy class="w-4 h-4" /></button>
         <button 
           @click="handleAction('moreInfo', 'Observações', 'text')" 
           @contextmenu.prevent="handleEditAction('moreInfo', 'Observações', 'text')"
           class="icon-btn-large" :class="{ 'active-action-amber': task.moreInfo }"
+          data-tip="Observações"
         ><MessageSquare class="w-4 h-4" /></button>
         <button 
           @click="handleAction('dbScripts', 'Scripts SQL', 'text')" 
           @contextmenu.prevent="handleEditAction('dbScripts', 'Scripts SQL', 'text')"
           class="icon-btn-large" :class="{ 'active-action-purple': task.dbScripts }"
+          data-tip="Scripts SQL"
         ><Database class="w-4 h-4" /></button>
         <button 
           @click="handleAction('taskUrl', 'Link da Tarefa', 'url')" 
           @contextmenu.prevent="handleEditAction('taskUrl', 'Link da Tarefa', 'url')"
           class="icon-btn-large" :class="{ 'active-action-indigo': task.taskUrl }"
+          data-tip="Link da Tarefa"
         ><ExternalLink class="w-4 h-4" /></button>
         <div class="flex items-center gap-1 ml-1">
           <button @click="handleAction('prodUrl', 'PRD', 'url')" @contextmenu.prevent="handleEditAction('prodUrl', 'PRD', 'url')" class="env-btn" :class="{ 'env-active-prd': task.prodUrl }">PRD</button>
@@ -290,16 +293,16 @@ onUnmounted(() => {
       </div>
 
       <div class="flex items-center gap-1.5 pl-2 md:pl-4 border-t md:border-t-0 md:border-l border-app-border-light w-full md:w-auto justify-center">
-        <button @click="uiStore.openTimeAdjustment(task); emit('close')" class="icon-btn-large text-blue-500 hover:bg-blue-500/10"><Clock class="w-5 h-5" /></button>
-        <button @click="handleResetTime" class="icon-btn-large text-amber-500 hover:bg-amber-500/10"><TimerReset class="w-5 h-5" /></button>
-        <button @click="uiStore.openTaskModal(task); emit('close')" class="icon-btn-large text-indigo-500 hover:bg-indigo-500/10"><Pencil class="w-5 h-5" /></button>
-        <button @click="taskStore.toggleTaskCompletion(task); emit('close')" class="icon-btn-large" :class="task.completed ? 'text-blue-500 hover:bg-blue-500/10' : 'text-emerald-500 hover:bg-emerald-500/10'">
+        <button @click="uiStore.openTimeAdjustment(task); emit('close')" class="icon-btn-large text-blue-500 hover:bg-blue-500/10" data-tip="Ajustar Tempo"><Clock class="w-5 h-5" /></button>
+        <button @click="handleResetTime" class="icon-btn-large text-amber-500 hover:bg-amber-500/10" data-tip="Zerar Tempo (z)"><TimerReset class="w-5 h-5" /></button>
+        <button @click="uiStore.openTaskModal(task); emit('close')" class="icon-btn-large text-indigo-500 hover:bg-indigo-500/10" data-tip="Editar (e)"><Pencil class="w-5 h-5" /></button>
+        <button @click="taskStore.toggleTaskCompletion(task); emit('close')" class="icon-btn-large" :class="task.completed ? 'text-blue-500 hover:bg-blue-500/10' : 'text-emerald-500 hover:bg-emerald-500/10'" :data-tip="task.completed ? 'Reabrir (f)' : 'Concluir (f)'">
           <RotateCcw v-if="task.completed" class="w-5 h-5" />
           <CheckCircle v-else class="w-5 h-5" />
         </button>
-        <button @click="taskStore.deleteTask(task.id); emit('close')" class="icon-btn-large text-red-500 hover:bg-red-500/10"><Trash2 class="w-5 h-5" /></button>
+        <button @click="taskStore.deleteTask(task.id); emit('close')" class="icon-btn-large text-red-500 hover:bg-red-500/10" data-tip="Excluir (d)"><Trash2 class="w-5 h-5" /></button>
         <div class="w-px h-6 bg-app-border-light mx-1 hidden md:block"></div>
-        <button @click="emit('close')" class="icon-btn-large text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X class="w-5 h-5" /></button>
+        <button @click="emit('close')" class="icon-btn-large text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" data-tip="Fechar"><X class="w-5 h-5" /></button>
       </div>
     </div>
   </div>

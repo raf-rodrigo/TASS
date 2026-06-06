@@ -142,11 +142,9 @@ export const useTaskStyleStore = defineStore('taskStyle', () => {
         if (index !== -1) {
           styles.value[index] = cleanData;
         }
-        notificationService.toast('Estilo de tarefa atualizado!', 'success');
       } else {
         await db.taskStyles.add(cleanData);
         styles.value.push(cleanData);
-        notificationService.toast('Estilo de tarefa criado!', 'success');
       }
     } catch (error) {
       console.error("Failed to save task style:", error);
@@ -159,7 +157,6 @@ export const useTaskStyleStore = defineStore('taskStyle', () => {
     try {
       await db.taskStyles.delete(id);
       styles.value = styles.value.filter(s => s.id !== id);
-      notificationService.toast('Estilo de tarefa excluído', 'success');
     } catch (error) {
       console.error("Failed to delete task style:", error);
       notificationService.toast('Erro ao excluir estilo', 'error');

@@ -29,7 +29,6 @@ export const taskActionService = {
       const formattedValue = type === 'url' ? ensureProtocol(trimmedValue) : trimmedValue;
       try {
         await taskStore.updateTask(task.id, { [field]: formattedValue });
-        notificationService.toast(`${label} atualizado com sucesso!`, 'success');
         return true;
       } catch (error) {
         notificationService.toast('Erro ao salvar alteração.', 'error');

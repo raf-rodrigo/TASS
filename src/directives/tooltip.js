@@ -21,6 +21,10 @@ const createTooltip = () => {
 
 const showTooltip = (target, text) => {
   if (!text) return;
+  
+  // Ignora tooltips em dispositivos touch (celulares/tablets) para evitar bugs de hover fantasma
+  if (window.matchMedia("(pointer: coarse)").matches) return;
+
   const tooltip = createTooltip();
   tooltip.textContent = text;
   
@@ -29,8 +33,17 @@ const showTooltip = (target, text) => {
   // Medimos o tooltip antes de posicionar para saber sua altura real
   const tooltipRect = tooltip.getBoundingClientRect();
   
-  const x = rect.left + (rect.width / 2);
+  let x = rect.left + (rect.width / 2);
   let y = rect.top - 8;
+
+  // Clamp X para não vazar pelas laterais da tela
+  const halfWidth = tooltipRect.width / 2;
+  const padding = 10;
+  if (x - halfWidth < padding) {
+    x = halfWidth + padding;
+  } else if (x + halfWidth > window.innerWidth - padding) {
+    x = window.innerWidth - halfWidth - padding;
+  }
 
   // Se não houver espaço em cima (top), invertemos para baixo
   if (rect.top - tooltipRect.height - 8 < 10) {
@@ -63,6 +76,9 @@ document.addEventListener('mouseout', (e) => {
   const target = e.target.closest('[data-tip]');
   if (target) hideTooltip();
 });
+
+// Garante que qualquer toque na tela feche eventuais tooltips perdidos
+document.addEventListener('touchstart', hideTooltip, { passive: true });
 
 export const tooltipDirective = {
   mounted(el, binding) {
