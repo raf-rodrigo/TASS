@@ -15,6 +15,7 @@ import { notificationService } from '../services/notificationService';
 import { backupService } from '../services/backupService';
 import BaseModal from './BaseModal.vue';
 import AppColorPalette from './AppColorPalette.vue';
+import AppInput from './base/AppInput.vue';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -264,7 +265,7 @@ const handleColumnChange = (n) => {
                             <div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
                             <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Coluna {{ n }}</span>
                           </div>
-                          <input v-model="settings.columnTitles[n-1]" type="text" placeholder="Ex: Backlog..." class="app-input px-3 py-2 text-sm shadow-sm transition-all w-full bg-slate-50 dark:bg-slate-900 border-none" @input="settings.saveSetting('app-column-titles', [...settings.columnTitles])" />
+                          <AppInput v-model="settings.columnTitles[n-1]" type="text" placeholder="Ex: Backlog..." class="!px-3 !py-2 text-sm shadow-sm transition-all w-full bg-slate-50 dark:bg-slate-900 border-none" @update:modelValue="settings.saveSetting('app-column-titles', [...settings.columnTitles])" />
                           
                           <div class="relative">
                             <select v-model="settings.columnStyles[n-1]" @change="settings.saveSetting('app-column-styles', [...settings.columnStyles])" class="app-input px-3 py-2 text-xs w-full appearance-none cursor-pointer bg-slate-50 dark:bg-slate-900 border-none text-slate-600 dark:text-slate-300 font-medium">
@@ -519,11 +520,11 @@ const handleColumnChange = (n) => {
                         <p class="text-[10px] text-slate-500 mb-2 ml-1 leading-relaxed">
                           Se o seu GPS estiver bloqueado ou quiser ver o clima de outra região, digite o nome da cidade abaixo (ex: "Rio de Janeiro", "London"). Deixe em branco para tentar usar o GPS.
                         </p>
-                        <input 
+                        <AppInput 
                           v-model="settings.weatherCity" 
                           type="text" 
                           placeholder="Ex: São Paulo" 
-                          class="app-input px-3 py-2 text-sm shadow-sm transition-all w-full bg-slate-50 dark:bg-slate-900 border-none" 
+                          class="!px-3 !py-2 text-sm shadow-sm transition-all w-full bg-slate-50 dark:bg-slate-900 border-none" 
                           @change="() => { settings.saveSetting('app-weather-city', settings.weatherCity); weatherStore.refreshWeather(); }" 
                         />
                       </div>
