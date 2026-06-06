@@ -9,6 +9,7 @@ import { useTaskStore } from '../stores/taskStore';
 import { useSprintStore } from '../stores/sprintStore';
 import { useTimerStore } from '../stores/timerStore';
 import { useRadioStore } from '../stores/radioStore';
+import { useDeviceBehavior } from '../composables/useDeviceBehavior.js';
 
 const emit = defineEmits([
   'add-task', 'open-settings', 'open-notes', 'open-interface', 'open-sprints', 'toggle-theme', 'open-radio', 'open-git-rebuilder'
@@ -20,21 +21,13 @@ const sprintStore = useSprintStore();
 const timerStore = useTimerStore();
 const radioStore = useRadioStore();
 
+const { isMobile } = useDeviceBehavior();
 const isExpanded = ref(false);
-const isMobile = ref(false);
-
-const checkMobile = () => {
-  isMobile.value = window.innerWidth < 768;
-  if (!isMobile.value) isExpanded.value = true;
-};
 
 onMounted(() => {
-  checkMobile();
-  window.addEventListener('resize', checkMobile);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', checkMobile);
+  if (!isMobile.value) {
+    isExpanded.value = true;
+  }
 });
 
 // Radius dinâmico para a dock (sempre respeitando a config global)

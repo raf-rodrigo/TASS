@@ -30,6 +30,7 @@ import { useTheme } from './composables/useTheme.js';
 import { useSystemMonitoring } from './composables/useSystemMonitoring.js';
 import { useGlobalPulse } from './composables/useGlobalPulse.js';
 import { useTaskShortcuts } from './composables/useTaskShortcuts.js';
+import { useDeviceBehavior } from './composables/useDeviceBehavior.js';
 
 // Stores
 
@@ -60,6 +61,7 @@ const sprintInitialShowAddForm = ref(false);
 // Methods
 
 const { currentMessage, showMessage, triggerWellness } = useWellness(settings);
+const { shouldHideDockForModal } = useDeviceBehavior();
 
 useTaskShortcuts();
 
@@ -436,7 +438,7 @@ onMounted(async () => {
         leave-to-class="translate-y-20 opacity-0 scale-95"
       >
         <GlobalDock 
-          v-if="uiStore.showGlobalDock && (!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating') && route.name !== 'ComponentSuite'"
+          v-if="uiStore.showGlobalDock && !shouldHideDockForModal && (!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating') && route.name !== 'ComponentSuite'"
           @add-task="uiStore.openTaskModal"
           @open-sprints="openSprintsFromDock"
           @open-notes="uiStore.showNotes = !uiStore.showNotes"
