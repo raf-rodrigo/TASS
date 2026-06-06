@@ -44,7 +44,7 @@ const dockRadius = computed(() => {
 </script>
 
 <template>
-  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[250] w-full max-w-fit px-4 pointer-events-none">
+  <div class="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-[250] w-full max-w-fit px-2 sm:px-4 pointer-events-none pb-[env(safe-area-inset-bottom)]">
     <div 
       class="dynamic-island flex flex-col md:flex-row items-center shadow-2xl border border-app-border-light ring-1 ring-black/5 pointer-events-auto transition-all duration-300 ease-out overflow-hidden"
       :class="[
@@ -62,7 +62,7 @@ const dockRadius = computed(() => {
           <!-- Adicionar Tarefa -->
           <button 
             @click.stop="emit('add-task')"
-            class="w-10 h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 transition-all active:scale-95 group shrink-0"
+            class="w-12 h-12 md:w-10 md:h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 transition-all active:scale-95 group shrink-0"
             :style="{ borderRadius: 'var(--app-input-radius)' }"
           >
             <Plus class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
@@ -102,7 +102,7 @@ const dockRadius = computed(() => {
         <button 
           v-if="isMobile" 
           @click.stop="isExpanded = !isExpanded"
-          class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-colors ml-2"
+          class="w-12 h-12 md:w-10 md:h-10 flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-colors ml-2"
         >
           <X v-if="isExpanded" class="w-5 h-5 text-red-500" />
           <MoreHorizontal v-else class="w-5 h-5" />
@@ -194,7 +194,7 @@ const dockRadius = computed(() => {
 }
 
 .util-btn {
-  @apply w-10 h-10 p-2 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-indigo-500 transition-all active:scale-90 flex items-center justify-center;
+  @apply w-12 h-12 md:w-10 md:h-10 p-2 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-indigo-500 transition-all active:scale-90 flex items-center justify-center;
   border-radius: var(--app-input-radius);
 }
 </style>

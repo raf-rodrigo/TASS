@@ -423,7 +423,7 @@ const handleResetSystem = async () => {
     :subtitle="activeTabObj.desc"
     :icon="activeTabObj.icon"
     maxWidth="max-w-4xl" 
-    customClass="h-[90vh] md:h-[600px]"
+    customClass="h-[95vh] md:h-[600px] flex flex-col"
     layout="sidebar"
     @close="emit('close')"
   >

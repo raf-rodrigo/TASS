@@ -342,7 +342,7 @@ onMounted(async () => {
     @contextmenu.prevent="handleWorkspaceContextMenu"
   >
     <div 
-      class="w-full flex flex-col items-center px-4 md:px-6 pt-2 flex-1"
+      class="w-full flex flex-col items-center px-1 sm:px-4 md:px-6 pt-2 flex-1"
       :class="[
         isNotesDragging ? '' : 'transition-all duration-500',
         isDraggingTask ? 'is-dragging-mode' : ''
@@ -350,7 +350,7 @@ onMounted(async () => {
       :style="{ maxWidth: '98%' }"
     >
       <!-- TASS Branding (Bottom Right) -->
-      <div class="fixed bottom-6 right-6 md:bottom-10 md:right-12 z-20 flex flex-col items-end animate-[fadeInRight_0.8s_ease-out] select-none pointer-events-none opacity-30 md:opacity-60 hover:opacity-100 transition-opacity">
+      <div class="hidden md:flex fixed bottom-6 right-6 md:bottom-10 md:right-12 z-20 flex-col items-end animate-[fadeInRight_0.8s_ease-out] select-none pointer-events-none opacity-30 md:opacity-60 hover:opacity-100 transition-opacity">
         <div class="flex items-center gap-2">
           <h1 
             class="text-xl md:text-2xl leading-none bg-gradient-to-r from-[#00C4CC] to-[#7D2AE8] bg-clip-text text-transparent pr-2"

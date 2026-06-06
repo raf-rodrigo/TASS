@@ -355,7 +355,7 @@ const isSquareLayout = computed(() => {
     subtitle="WYSIWYG: Veja exatamente o que está criando."
     :icon="Palette"
     maxWidth="max-w-6xl" 
-    customClass="h-[90vh] md:h-[750px]"
+    customClass="h-[95vh] md:h-[750px] flex flex-col"
     layout="sidebar"
     @close="emit('close')"
   >

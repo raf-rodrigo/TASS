@@ -221,7 +221,7 @@ const submitTask = () => {
     maxWidth="max-w-5xl" 
     @close="uiStore.closeTaskModal()" 
     layout="sidebar" 
-    customClass="h-[90vh] md:h-[700px]"
+    customClass="h-[95vh] md:h-[700px] flex flex-col"
     :title="activeTabObj.label"
     :subtitle="activeTabObj.desc"
     :icon="activeTabObj.icon"
