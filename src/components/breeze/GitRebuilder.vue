@@ -13,6 +13,7 @@ import TerminalConsole from './TerminalConsole.vue';
 import BranchList from './BranchList.vue';
 import ActionPanel from './ActionPanel.vue';
 import { gitProviderService } from '../../services/gitProvider';
+import { notificationService } from '../../services/notificationService';
 
 const settingsStore = useSettingsStore();
 const emit = defineEmits(['close']);
@@ -340,7 +341,7 @@ const runRebuildPipeline = async (type) => {
   const target = type === 'dev' ? settingsStore.activeBranchDev : settingsStore.activeBranchHml;
   
   if (target === settingsStore.activeBranchMaster) {
-    alert("Operação bloqueada! A branch Master é totalmente protegida.");
+    notificationService.alert("Operação Bloqueada", "A branch Master é totalmente protegida.", "warning");
     return;
   }
 
@@ -430,7 +431,7 @@ const executeDeleteBranch = async () => {
 
   const protectedBranches = [settingsStore.activeBranchMaster, settingsStore.activeBranchHml, settingsStore.activeBranchDev];
   if (protectedBranches.includes(branchName)) {
-    alert("Não é possível deletar uma branch de ambiente principal!");
+    notificationService.alert("Acesso Negado", "Não é possível deletar uma branch de ambiente principal!", "warning");
     showDeleteConfirmModal.value = false;
     return;
   }

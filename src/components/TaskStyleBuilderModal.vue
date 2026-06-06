@@ -11,6 +11,7 @@ import { hexToRgba } from '../utils/colors.js';
 
 import BaseModal from './BaseModal.vue';
 import AppColorPalette from './AppColorPalette.vue';
+import AppInput from './base/AppInput.vue';
 
 const emit = defineEmits(['close']);
 const settings = useSettingsStore();
@@ -549,7 +550,9 @@ const isSquareLayout = computed(() => {
             <p class="text-[10px] text-app-sub">{{ selectedTargetId === 'global' ? 'As dimensões afetam todas as tarefas sem preset.' : 'Cores e dimensões exclusivas deste preset.' }}</p>
           </div>
           <div v-else class="flex items-center gap-2 flex-1 animate-fadeIn">
-            <input v-model="editingNameValue" type="text" class="app-input px-3 py-1.5 text-sm font-bold flex-1" @keyup.enter="saveName" placeholder="Nome do Preset (Ex: Urgente)..." autofocus />
+            <div class="flex-1">
+              <AppInput v-model="editingNameValue" type="text" class="!px-3 !py-1.5 text-sm font-bold" @keyup.enter="saveName" placeholder="Nome do Preset (Ex: Urgente)..." autofocus />
+            </div>
             <button @click="saveName" class="p-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg"><CheckCircle2 class="w-4 h-4" /></button>
             <button v-if="selectedTargetId !== 'new'" @click="isEditingName = false" class="p-1.5 bg-slate-200 dark:bg-slate-700 text-slate-500 rounded-lg"><X class="w-4 h-4" /></button>
           </div>

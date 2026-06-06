@@ -26,11 +26,13 @@ export const useUIStore = defineStore('ui', () => {
   const settingsInitialTab = ref(null);
   const interfaceInitialTab = ref(null);
   const sprintInitialShowAddForm = ref(false);
-  const savedDockState = localStorage.getItem('tass_show_dock');
+
+  const DOCK_STORAGE_KEY = 'tass_show_dock';
+  const savedDockState = localStorage.getItem(DOCK_STORAGE_KEY);
   const showGlobalDock = ref(savedDockState !== null ? savedDockState === 'true' : true);
   
   watch(showGlobalDock, (val) => {
-    localStorage.setItem('tass_show_dock', val.toString());
+    localStorage.setItem(DOCK_STORAGE_KEY, val.toString());
   });
   
   // Workspace Context Menu
@@ -100,13 +102,18 @@ export const useUIStore = defineStore('ui', () => {
   };
 
   const closeAll = () => {
-    showNotes.value = false;
-    showSettings.value = false;
-    showInterfaceMenu.value = false;
+    showWelcome.value = false;
     showTaskModal.value = false;
+    showSettings.value = false;
+    showGitRebuilder.value = false;
     showSprints.value = false;
+    showInterfaceMenu.value = false;
     showTaskStyleBuilder.value = false;
+    showNotes.value = false;
+    showRadio.value = false;
+    showTimeAdjustment.value = false;
     showStylePickerMenu.value = false;
+    showWorkspaceContextMenu.value = false;
   };
 
   return {

@@ -4,7 +4,7 @@ import {
   X, Palette, Trash2, Plus, Settings,
   Image as ImageIcon, Eraser, MousePointer2,
   LayoutGrid, Layers, Type as TypeIcon, Droplets,
-  Cloud, Loader2, ArrowLeft, RotateCcw,
+  Cloud, Loader2, ArrowLeft, RotateCcw, Clock,
   Save, CheckCircle2, Pencil, Upload, Download, Puzzle
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -15,6 +15,7 @@ import { notificationService } from '../services/notificationService';
 import { backupService } from '../services/backupService';
 import BaseModal from './BaseModal.vue';
 import AppColorPalette from './AppColorPalette.vue';
+import AppInput from './base/AppInput.vue';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -264,7 +265,7 @@ const handleColumnChange = (n) => {
                             <div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
                             <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Coluna {{ n }}</span>
                           </div>
-                          <input v-model="settings.columnTitles[n-1]" type="text" placeholder="Ex: Backlog..." class="app-input px-3 py-2 text-sm shadow-sm transition-all w-full bg-slate-50 dark:bg-slate-900 border-none" @input="settings.saveSetting('app-column-titles', [...settings.columnTitles])" />
+                          <AppInput v-model="settings.columnTitles[n-1]" type="text" placeholder="Ex: Backlog..." class="!px-3 !py-2 text-sm shadow-sm transition-all w-full bg-slate-50 dark:bg-slate-900 border-none" @update:modelValue="settings.saveSetting('app-column-titles', [...settings.columnTitles])" />
                           
                           <div class="relative">
                             <select v-model="settings.columnStyles[n-1]" @change="settings.saveSetting('app-column-styles', [...settings.columnStyles])" class="app-input px-3 py-2 text-xs w-full appearance-none cursor-pointer bg-slate-50 dark:bg-slate-900 border-none text-slate-600 dark:text-slate-300 font-medium">
@@ -519,14 +520,34 @@ const handleColumnChange = (n) => {
                         <p class="text-[10px] text-slate-500 mb-2 ml-1 leading-relaxed">
                           Se o seu GPS estiver bloqueado ou quiser ver o clima de outra região, digite o nome da cidade abaixo (ex: "Rio de Janeiro", "London"). Deixe em branco para tentar usar o GPS.
                         </p>
-                        <input 
+                        <AppInput 
                           v-model="settings.weatherCity" 
                           type="text" 
                           placeholder="Ex: São Paulo" 
-                          class="app-input px-3 py-2 text-sm shadow-sm transition-all w-full bg-slate-50 dark:bg-slate-900 border-none" 
+                          class="!px-3 !py-2 text-sm shadow-sm transition-all w-full bg-slate-50 dark:bg-slate-900 border-none" 
                           @change="() => { settings.saveSetting('app-weather-city', settings.weatherCity); weatherStore.refreshWeather(); }" 
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  <div class="glass-section p-6 space-y-6 mt-6">
+                    <div class="flex items-center gap-3 mb-4">
+                      <Clock class="w-5 h-5 text-indigo-500" />
+                      <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Relógio Imersivo</h3>
+                    </div>
+                    
+                    <div class="space-y-4">
+                      <label class="flex items-center justify-between p-4 bg-app-surface rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 transition-all">
+                        <div class="flex flex-col">
+                          <span class="text-sm font-bold text-slate-800 dark:text-slate-100">Exibir Relógio Gigante</span>
+                          <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Um relógio minimalista que ocupa o fundo do workspace</span>
+                        </div>
+                        <div class="relative inline-flex items-center">
+                          <input type="checkbox" v-model="settings.immersiveClockEnabled" @change="settings.saveSetting('app-immersive-clock', settings.immersiveClockEnabled)" class="sr-only peer" />
+                          <div class="w-12 h-6 bg-slate-300 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-500 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-md"></div>
+                        </div>
+                      </label>
                     </div>
                   </div>
                 </div>

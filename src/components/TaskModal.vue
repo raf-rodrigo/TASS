@@ -363,12 +363,15 @@ const submitTask = () => {
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block mb-1.5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Estimativa</label>
-              <div class="relative flex items-center group">
-                <Clock class="absolute left-3 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
-                <input type="number" v-model="estimatedHours" min="0" placeholder="0" class="app-input px-4 py-3 shadow-sm transition-all !pl-10 pr-12 font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                <span class="absolute right-4 text-[12px] font-black text-slate-400 pointer-events-none">H</span>
-              </div>
+              <AppInput
+                v-model="estimatedHours"
+                type="number"
+                label="Estimativa (Horas)"
+                :icon="Clock"
+                min="0"
+                placeholder="0"
+                class="font-bold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
             </div>
             
             <div class="grid grid-cols-2 gap-3">
