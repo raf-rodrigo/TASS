@@ -194,9 +194,9 @@ onUnmounted(() => {
         <div class="px-2 py-1 flex items-center justify-between">
           <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Ambientes</span>
           <div class="flex items-center gap-1">
-            <button @click="handleAction('prodUrl', 'PRD', 'url')" @contextmenu.prevent="handleEditAction('prodUrl', 'PRD', 'url')" class="env-tag-sm" :class="{ 'env-active-prd': task.prodUrl }">PRD</button>
-            <button @click="handleAction('homologUrl', 'HML', 'url')" @contextmenu.prevent="handleEditAction('homologUrl', 'HML', 'url')" class="env-tag-sm" :class="{ 'env-active-hml': task.homologUrl }">HML</button>
-            <button @click="handleAction('devUrl', 'DEV', 'url')" @contextmenu.prevent="handleEditAction('devUrl', 'DEV', 'url')" class="env-tag-sm" :class="{ 'env-active-dev': task.devUrl }">DEV</button>
+            <button @click="taskStore.updateTask(task.id, { prodUrl: task.prodUrl == 1 ? 0 : 1 })" class="env-tag-sm" :class="{ 'env-active-prd': task.prodUrl == 1 }">PRD</button>
+            <button @click="taskStore.updateTask(task.id, { homologUrl: task.homologUrl == 1 ? 0 : 1 })" class="env-tag-sm" :class="{ 'env-active-hml': task.homologUrl == 1 }">HML</button>
+            <button @click="taskStore.updateTask(task.id, { devUrl: task.devUrl == 1 ? 0 : 1 })" class="env-tag-sm" :class="{ 'env-active-dev': task.devUrl == 1 }">DEV</button>
           </div>
         </div>
       </div>
@@ -286,9 +286,9 @@ onUnmounted(() => {
           data-tip="Link da Tarefa"
         ><ExternalLink class="w-4 h-4" /></button>
         <div class="flex items-center gap-1 ml-1">
-          <button @click="handleAction('prodUrl', 'PRD', 'url')" @contextmenu.prevent="handleEditAction('prodUrl', 'PRD', 'url')" class="env-btn" :class="{ 'env-active-prd': task.prodUrl }">PRD</button>
-          <button @click="handleAction('homologUrl', 'HML', 'url')" @contextmenu.prevent="handleEditAction('homologUrl', 'HML', 'url')" class="env-btn" :class="{ 'env-active-hml': task.homologUrl }">HML</button>
-          <button @click="handleAction('devUrl', 'DEV', 'url')" @contextmenu.prevent="handleEditAction('devUrl', 'DEV', 'url')" class="env-btn" :class="{ 'env-active-dev': task.devUrl }">DEV</button>
+          <button @click="taskStore.updateTask(task.id, { prodUrl: task.prodUrl == 1 ? 0 : 1 })" class="env-btn" :class="{ 'env-active-prd': task.prodUrl == 1 }">PRD</button>
+          <button @click="taskStore.updateTask(task.id, { homologUrl: task.homologUrl == 1 ? 0 : 1 })" class="env-btn" :class="{ 'env-active-hml': task.homologUrl == 1 }">HML</button>
+          <button @click="taskStore.updateTask(task.id, { devUrl: task.devUrl == 1 ? 0 : 1 })" class="env-btn" :class="{ 'env-active-dev': task.devUrl == 1 }">DEV</button>
         </div>
       </div>
 
