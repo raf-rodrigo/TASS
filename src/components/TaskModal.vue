@@ -21,6 +21,7 @@ import AppInput from './base/AppInput.vue';
 import AppTextarea from './base/AppTextarea.vue';
 import AppSelect from './base/AppSelect.vue';
 import AppColorPalette from './AppColorPalette.vue';
+import { useTabSwipe } from '../composables/useTabSwipe';
 
 const taskStore = useTaskStore();
 const sprintStore = useSprintStore();
@@ -31,6 +32,7 @@ const uiStore = useUIStore();
 const taskToEdit = uiStore.taskToEdit;
 
 const activeTab = ref('basic');
+
 const title = ref(taskToEdit ? taskToEdit.title : '');
 const description = ref(taskToEdit ? taskToEdit.description : '');
 
@@ -83,6 +85,10 @@ const tabs = [
 ];
 
 const activeTabObj = computed(() => tabs.find(t => t.id === activeTab.value) || tabs[0]);
+
+const navRef = ref(null);
+const swipeAreaRef = ref(null);
+const { offsetX, isSwiping, jumpMode, disableVueTransition } = useTabSwipe(activeTab, tabs, navRef, swipeAreaRef);
 
 // Time State (Simple Hours)
 const parseEstimatedHours = (timeStr) => {
@@ -228,7 +234,7 @@ const submitTask = () => {
   >
     <!-- Sidebar (Navegação) -->
     <template #sidebar>
-      <nav class="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-y-auto no-scrollbar pb-2 md:pb-0">
+      <nav ref="navRef" class="flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-y-auto no-scrollbar pb-2 md:pb-0 scroll-smooth">
         <button 
           v-for="tab in tabs" 
           :key="tab.id"
@@ -259,8 +265,17 @@ const submitTask = () => {
     </template>
 
     <!-- Conteúdo Principal -->
-    <form id="taskForm" @submit.prevent="submitTask" novalidate class="flex-1 flex flex-col justify-between h-full">
-      <transition name="fade-slide" mode="out-in">
+    <form id="taskForm" @submit.prevent="submitTask" novalidate class="flex-1 flex flex-col justify-between h-full overflow-hidden">
+      <div 
+        ref="swipeAreaRef" 
+        class="h-full w-full flex-1 overflow-x-hidden touch-pan-y max-md:min-h-[80vh]" 
+        :style="{
+          touchAction: 'pan-y',
+          transform: `translateX(${offsetX}px)`,
+          transition: (isSwiping || jumpMode) ? 'none' : 'transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)'
+        }"
+      >
+        <transition :name="disableVueTransition ? '' : 'fade-slide'" :mode="disableVueTransition ? '' : 'out-in'">
         <!-- ABA 1: Cadastro Básico -->
         <div v-if="activeTab === 'basic'" :key="'basic'" class="space-y-6">
           <AppInput
@@ -477,6 +492,7 @@ const submitTask = () => {
           </div>
         </div>
       </transition>
+      </div>
     </form>
 
     <template #footer>

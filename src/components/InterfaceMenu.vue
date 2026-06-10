@@ -306,7 +306,7 @@ const handleColumnChange = (n) => {
                 </div>
 
                 <!-- ABA: Construtor de Estilos -->
-                <div v-else-if="activeTab === 'tasks'" :key="'tasks'" class="space-y-8 flex flex-col items-center justify-center h-full text-center">
+                <div v-else-if="activeTab === 'tasks'" :key="'tasks'" class="space-y-6 w-full pt-4">
                   <div class="glass-section p-8 space-y-6 max-w-md w-full mx-auto border-indigo-500/20 bg-indigo-500/5">
                     <div class="w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center mx-auto mb-4">
                       <Palette class="w-8 h-8 text-indigo-500" />
@@ -335,12 +335,12 @@ const handleColumnChange = (n) => {
                       Importe o arquivo JSON contendo as cores hexadecimais (usadas em tarefas mais antigas).
                     </p>
                     <div class="flex flex-col relative z-10 space-y-4">
-                      <div class="flex flex-col md:flex-row gap-3">
-                        <label class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-amber-500/20 cursor-pointer text-center">
+                      <div class="flex flex-row gap-3">
+                        <label class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-amber-500/20 cursor-pointer text-center whitespace-nowrap">
                           <Upload class="w-4 h-4" /> Importar (.json)
                           <input type="file" accept=".json" class="hidden" @change="handleImportPalettes" />
                         </label>
-                        <button @click="backupService.exportPalettes(settings)" class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-600/10 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-amber-600/20 cursor-pointer text-center">
+                        <button @click="backupService.exportPalettes(settings)" class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-600/10 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-amber-600/20 cursor-pointer text-center whitespace-nowrap">
                           <Download class="w-4 h-4" /> Exportar Paletas
                         </button>
                       </div>

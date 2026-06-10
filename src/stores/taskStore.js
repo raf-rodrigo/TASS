@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { db } from '../db.js';
 import { notificationService } from '../services/notificationService';
 import { useSettingsStore } from './settingsStore';
@@ -8,8 +8,12 @@ import { useTimerStore } from './timerStore';
 
 export const useTaskStore = defineStore('task', () => {
   const tasks = ref([]);
-  const statusFilter = ref('all');
+  const statusFilter = ref(localStorage.getItem('tass-status-filter') || 'active');
   const isLoading = ref(false);
+
+  watch(statusFilter, (newVal) => {
+    localStorage.setItem('tass-status-filter', newVal);
+  });
   const selectedTask = ref(null);
   const hoveredTask = ref(null);
   const contextMenuPosition = ref({ x: 0, y: 0 });
