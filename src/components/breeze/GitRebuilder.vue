@@ -231,6 +231,15 @@ let searchTimeout = null;
 const handleSearch = () => {
   if (searchTimeout) clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
+    // Se há uma query de busca e a listagem ainda não foi inicializada, dispara automaticamente
+    if (searchQuery.value && searchQuery.value.trim() !== '') {
+      if (!branchesFetched.value || !mergeTarget.value) {
+        mergeTarget.value = settingsStore.activeBranchDev;
+        mergeTargetType.value = 'dev';
+        branchesFetched.value = true;
+      }
+    }
+
     if (mergeTarget.value) {
       fetchBranches(mergeTarget.value, true);
     }
