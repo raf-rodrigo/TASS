@@ -119,11 +119,8 @@ const handleOpenAbout = () => {
 };
 
 const handleApplyStyleAll = async (styleId) => {
-  emit('close');
-  const styleName = styleId === '' ? 'Padrão Global' : taskStyleStore.getStyleById(styleId)?.name;
   const promises = taskStore.tasks.map(task => taskStore.updateTask(task.id, { styleId: styleId || null }));
   await Promise.all(promises);
-  notificationService.toast(`Estilo ${styleName} aplicado a todas as tarefas!`, 'success');
 };
 
 onMounted(() => {

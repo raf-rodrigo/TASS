@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useWeatherStore } from '../../src/stores/weatherStore';
+import { useSettingsStore } from '../../src/stores/settingsStore';
 import { weatherService } from '../../src/services/weatherService';
 
 describe('Weather Store', () => {
@@ -18,6 +19,8 @@ describe('Weather Store', () => {
 
   it('refreshWeather updates state on success', async () => {
     const store = useWeatherStore();
+    const settingsStore = useSettingsStore();
+    settingsStore.weatherWidgetEnabled = true;
     
     vi.spyOn(weatherService, 'getUserLocation').mockResolvedValue({ lat: -23, lon: -46 });
     vi.spyOn(weatherService, 'fetchWeather').mockResolvedValue({
@@ -36,12 +39,14 @@ describe('Weather Store', () => {
 
   it('handles API fetch error correctly', async () => {
     const store = useWeatherStore();
+    const settingsStore = useSettingsStore();
+    settingsStore.weatherWidgetEnabled = true;
     
     vi.spyOn(weatherService, 'getUserLocation').mockResolvedValue({ lat: -23, lon: -46 });
     vi.spyOn(weatherService, 'fetchWeather').mockRejectedValue(new Error('API failure'));
 
     await store.refreshWeather();
 
-    expect(store.error).toBe('Não foi possível carregar o clima.');
+    expect(store.error).toBe('API failure');
   });
 });

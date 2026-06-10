@@ -29,9 +29,28 @@ const routes = [
   }
 ];
 
+import { useUIStore } from '../stores/uiStore';
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
+});
+
+router.beforeEach((to, from) => {
+  try {
+    const uiStore = useUIStore();
+    if (uiStore.hasOpenModal()) {
+      uiStore.closeAll();
+      if (to.name === 'Privacy' || to.name === 'Terms') {
+        return true;
+      }
+      return false;
+    }
+  } catch (e) {
+    // Evita erros se o Pinia não estiver inicializado na primeira carga de rota estática
+    console.warn("Roteador: Pinia ainda não disponível para o guard de modais", e);
+  }
+  return true;
 });
 
 export default router;

@@ -1,9 +1,9 @@
 <template>
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 p-6 md:p-12 overflow-y-auto custom-scrollbar">
     <div class="max-w-3xl mx-auto glass-panel p-8 md:p-12 rounded-3xl border border-app-border-light shadow-2xl relative">
-      <router-link to="/" class="absolute top-6 right-6 md:top-8 md:right-8 text-slate-400 hover:text-rose-500 transition-colors flex items-center gap-2 text-xs font-bold bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700">
+      <button @click="handleClose" class="absolute top-6 right-6 md:top-8 md:right-8 text-slate-400 hover:text-rose-500 transition-colors flex items-center gap-2 text-xs font-bold bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer">
         <X class="w-4 h-4" /> Fechar
-      </router-link>
+      </button>
       
       <h1 class="text-3xl font-black text-app-main tracking-tight mb-2 mt-8 md:mt-0">Termos de Uso</h1>
       <p class="text-sm text-app-muted font-medium mb-10">Última atualização: Junho de 2026</p>
@@ -45,4 +45,15 @@
 
 <script setup>
 import { X } from 'lucide-vue-next';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const handleClose = () => {
+  if (window.history.state && window.history.state.back) {
+    router.back();
+  } else {
+    router.replace('/');
+  }
+};
 </script>

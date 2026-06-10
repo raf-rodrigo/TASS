@@ -20,6 +20,7 @@ import AppInput from './base/AppInput.vue';
 import AppSelect from './base/AppSelect.vue';
 import AppRadio from './base/AppRadio.vue';
 import QrcodeVue from 'qrcode.vue';
+import { useTabSwipe } from '../composables/useTabSwipe';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -67,8 +68,11 @@ onMounted(() => {
   }
 });
 
-watch(activeTab, (newVal) => {
-  if (settings.keepWindowState) {
+watch(activeTab, (newVal, oldVal) => {
+  if (newVal === 'action-interface') {
+    emit('open-interface');
+    setTimeout(() => { activeTab.value = oldVal !== 'action-interface' && oldVal ? oldVal : 'about'; }, 50);
+  } else if (settings.keepWindowState) {
     localStorage.setItem('app-last-settings-tab', newVal);
   }
 });
@@ -81,9 +85,14 @@ const tabs = [
   { id: 'security', label: 'Dados e Segurança', icon: ShieldCheck, color: 'text-indigo-500', desc: 'Gerencie backups e o banco de dados local.' },
   { id: 'shortcuts', label: 'Atalhos', icon: Keyboard, color: 'text-indigo-500', desc: 'Aumente sua produtividade com o teclado.' },
   { id: 'about', label: 'Sobre o TASS', icon: Info, color: 'text-indigo-500', desc: 'Informações, desenvolvedor e links.' },
+  { id: 'action-interface', label: 'Ajustes Visuais', icon: Palette, color: 'text-indigo-500', isAction: true },
 ];
 
 const activeTabObj = computed(() => tabs.find(t => t.id === activeTab.value) || tabs[0]);
+
+const navRef = ref(null);
+const swipeAreaRef = ref(null);
+const { offsetX, isSwiping, jumpMode, disableVueTransition } = useTabSwipe(activeTab, tabs, navRef, swipeAreaRef);
 
 // Helper to convert "HH:mm" to { hours, minutes }
 const stringToTimeObj = (timeStr) => {
@@ -423,35 +432,27 @@ const handleResetSystem = async () => {
     :subtitle="activeTabObj.desc"
     :icon="activeTabObj.icon"
     maxWidth="max-w-4xl" 
-    customClass="h-[90vh] md:h-[600px]"
+    customClass="h-[95vh] md:h-[600px] flex flex-col"
     layout="sidebar"
     @close="emit('close')"
   >
     <!-- Sidebar -->
     <template #sidebar>
-      <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
-        <button 
-          v-for="tab in tabs" 
-          :key="tab.id"
-          @click="activeTab = tab.id"
-          class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
-          :class="activeTab === tab.id 
-            ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' 
-            : 'text-app-sub hover:bg-app-surface'"
-        >
-          <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
-          <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
-        </button>
-
-        <div class="hidden md:block w-full h-px border-t border-app-border-light my-2"></div>
-
-        <button 
-          @click="emit('open-interface')"
-          class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
-        >
-          <Palette class="w-4 h-4" />
-          <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">Ajustes Visuais</span>
-        </button>
+      <nav ref="navRef" class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0 scroll-smooth">
+        <template v-for="tab in tabs" :key="tab.id">
+          <div v-if="tab.isAction" class="hidden md:block w-full h-px border-t border-app-border-light my-2"></div>
+          <button 
+            :data-tab-id="tab.id"
+            @click="tab.isAction ? emit('open-interface') : activeTab = tab.id"
+            class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
+            :class="activeTab === tab.id 
+              ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' 
+              : (tab.isAction ? 'text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10' : 'text-app-sub hover:bg-app-surface')"
+          >
+            <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : (tab.isAction ? '' : 'text-slate-400')" />
+            <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
+          </button>
+        </template>
       </nav>
       
       <div class="hidden md:block p-4 bg-indigo-500/5 rounded-2xl border border-app-border-light mt-auto">
@@ -462,8 +463,17 @@ const handleResetSystem = async () => {
     </template>
 
     <!-- Conteúdo Principal -->
-    <transition name="fade-slide" mode="out-in">
-                <div v-if="activeTab === 'git'" :key="'git'" class="space-y-8">
+    <div 
+      ref="swipeAreaRef" 
+      class="h-full w-full flex-1 overflow-x-hidden touch-pan-y max-md:min-h-[80vh]" 
+      :style="{
+        touchAction: 'pan-y',
+        transform: `translateX(${offsetX}px)`,
+        transition: (isSwiping || jumpMode) ? 'none' : 'transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)'
+      }"
+    >
+      <transition :name="disableVueTransition ? '' : 'fade-slide'" :mode="disableVueTransition ? '' : 'out-in'">
+              <div v-if="activeTab === 'git'" :key="'git'" class="space-y-8 w-full">
                 <div class="glass-section p-6 space-y-6">
                   <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-2">
                     <div class="flex items-center gap-3">
@@ -483,10 +493,10 @@ const handleResetSystem = async () => {
 
                   <!-- Configurações GitLab -->
                   <div v-if="localSettings.gitProvider === 'gitlab'" class="grid gap-6 pt-4 border-t border-app-border-light animate-fadeIn">
-                    <div class="flex items-center justify-end mb-[-1rem]">
-                      <div class="flex bg-app-surface p-1 rounded-xl border border-app-border-light scale-90 origin-right">
-                        <button @click="localSettings.gitlabIntegrationMode = 'link'" class="px-4 py-1 text-[9px] font-black uppercase rounded-lg" :class="localSettings.gitlabIntegrationMode === 'link' ? 'bg-indigo-500 text-white shadow' : 'text-app-muted'">Link Mágico</button>
-                        <button @click="localSettings.gitlabIntegrationMode = 'api'" class="px-4 py-1 text-[9px] font-black uppercase rounded-lg" :class="localSettings.gitlabIntegrationMode === 'api' ? 'bg-indigo-500 text-white shadow' : 'text-app-muted'">API Automática</button>
+                    <div class="flex w-full mb-2">
+                      <div class="flex bg-app-surface p-1 rounded-xl border border-app-border-light w-full">
+                        <button @click="localSettings.gitlabIntegrationMode = 'link'" class="flex-1 py-2 text-[9px] font-black uppercase rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'link' ? 'bg-indigo-500 text-white shadow' : 'text-app-muted'">Link Mágico</button>
+                        <button @click="localSettings.gitlabIntegrationMode = 'api'" class="flex-1 py-2 text-[9px] font-black uppercase rounded-lg transition-all" :class="localSettings.gitlabIntegrationMode === 'api' ? 'bg-indigo-500 text-white shadow' : 'text-app-muted'">API Automática</button>
                       </div>
                     </div>
                     <AppInput v-model="localSettings.gitlabUrl" type="url" label="URL da Instância GitLab" placeholder="https://gitlab.com" />
@@ -504,13 +514,13 @@ const handleResetSystem = async () => {
                       <h4 class="text-[10px] font-black uppercase text-app-main tracking-widest">Ambientes e Aliases</h4>
                       
                       <!-- Master -->
-                      <div class="flex items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'master' ? 'ring-2 ring-indigo-500/50' : ''">
+                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'master' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.gitlabBranchMaster" label="Nome Real (Master)" placeholder="master" />
+                          <AppInput v-model="localSettings.gitlabBranchMaster" label="Branch (Master)" placeholder="master" />
                           <AppInput v-model="localSettings.gitlabAliasMaster" label="Alias" placeholder="Produção" />
                         </div>
-                        <div class="flex flex-col items-center justify-center shrink-0 w-24 border-l border-app-border-light pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer mb-2 flex flex-col items-center gap-1 hover:text-indigo-500">
+                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
                             Branch Base
                             <input type="radio" v-model="localSettings.gitlabBaseTarget" value="master" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
                           </label>
@@ -518,13 +528,13 @@ const handleResetSystem = async () => {
                       </div>
                       
                       <!-- HML -->
-                      <div class="flex items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'hml' ? 'ring-2 ring-indigo-500/50' : ''">
+                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'hml' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.gitlabBranchHml" label="Nome Real (Hml)" placeholder="hml" />
+                          <AppInput v-model="localSettings.gitlabBranchHml" label="Branch (Hml)" placeholder="hml" />
                           <AppInput v-model="localSettings.gitlabAliasHml" label="Alias" placeholder="Homologação" />
                         </div>
-                        <div class="flex flex-col items-center justify-center shrink-0 w-24 border-l border-app-border-light pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer mb-2 flex flex-col items-center gap-1 hover:text-indigo-500">
+                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
                             Branch Base
                             <input type="radio" v-model="localSettings.gitlabBaseTarget" value="hml" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
                           </label>
@@ -532,13 +542,13 @@ const handleResetSystem = async () => {
                       </div>
 
                       <!-- DEV -->
-                      <div class="flex items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'dev' ? 'ring-2 ring-indigo-500/50' : ''">
+                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'dev' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.gitlabBranchDev" label="Nome Real (Dev)" placeholder="dev" />
+                          <AppInput v-model="localSettings.gitlabBranchDev" label="Branch (Dev)" placeholder="dev" />
                           <AppInput v-model="localSettings.gitlabAliasDev" label="Alias" placeholder="Desenvolvimento" />
                         </div>
-                        <div class="flex flex-col items-center justify-center shrink-0 w-24 border-l border-app-border-light pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer mb-2 flex flex-col items-center gap-1 hover:text-indigo-500">
+                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
                             Branch Base
                             <input type="radio" v-model="localSettings.gitlabBaseTarget" value="dev" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
                           </label>
@@ -559,13 +569,13 @@ const handleResetSystem = async () => {
                       <h4 class="text-[10px] font-black uppercase text-app-main tracking-widest">Ambientes e Aliases</h4>
                       
                       <!-- Master -->
-                      <div class="flex items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'master' ? 'ring-2 ring-indigo-500/50' : ''">
+                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'master' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.githubBranchMaster" label="Nome Real (Master)" placeholder="main" />
+                          <AppInput v-model="localSettings.githubBranchMaster" label="Branch (Master)" placeholder="main" />
                           <AppInput v-model="localSettings.githubAliasMaster" label="Alias" placeholder="Master" />
                         </div>
-                        <div class="flex flex-col items-center justify-center shrink-0 w-24 border-l border-app-border-light pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer mb-2 flex flex-col items-center gap-1 hover:text-indigo-500">
+                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
                             Branch Base
                             <input type="radio" v-model="localSettings.githubBaseTarget" value="master" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
                           </label>
@@ -573,13 +583,13 @@ const handleResetSystem = async () => {
                       </div>
                       
                       <!-- HML -->
-                      <div class="flex items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'hml' ? 'ring-2 ring-indigo-500/50' : ''">
+                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'hml' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.githubBranchHml" label="Nome Real (Hml)" placeholder="hml" />
+                          <AppInput v-model="localSettings.githubBranchHml" label="Branch (Hml)" placeholder="hml" />
                           <AppInput v-model="localSettings.githubAliasHml" label="Alias" placeholder="Homologação" />
                         </div>
-                        <div class="flex flex-col items-center justify-center shrink-0 w-24 border-l border-app-border-light pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer mb-2 flex flex-col items-center gap-1 hover:text-indigo-500">
+                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
                             Branch Base
                             <input type="radio" v-model="localSettings.githubBaseTarget" value="hml" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
                           </label>
@@ -587,13 +597,13 @@ const handleResetSystem = async () => {
                       </div>
 
                       <!-- DEV -->
-                      <div class="flex items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'dev' ? 'ring-2 ring-indigo-500/50' : ''">
+                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'dev' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.githubBranchDev" label="Nome Real (Dev)" placeholder="dev" />
+                          <AppInput v-model="localSettings.githubBranchDev" label="Branch (Dev)" placeholder="dev" />
                           <AppInput v-model="localSettings.githubAliasDev" label="Alias" placeholder="Desenvolvimento" />
                         </div>
-                        <div class="flex flex-col items-center justify-center shrink-0 w-24 border-l border-app-border-light pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer mb-2 flex flex-col items-center gap-1 hover:text-indigo-500">
+                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
                             Branch Base
                             <input type="radio" v-model="localSettings.githubBaseTarget" value="dev" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
                           </label>
@@ -642,9 +652,9 @@ const handleResetSystem = async () => {
                   </div>
                   <div class="space-y-3">
                     <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Dias Ativos</label>
-                    <div class="flex flex-wrap gap-2 justify-center">
+                    <div class="grid grid-cols-7 gap-1.5 justify-center max-w-sm mx-auto">
                       <button v-for="day in dayNames" :key="day.id" @click="toggleDay(day.id)"
-                        class="w-10 h-10 text-xs font-black transition-all border"
+                        class="w-full aspect-square md:w-10 md:h-10 text-xs font-black transition-all border rounded-xl"
                         :class="localSettings.workDays.includes(day.id) ? 'bg-amber-500 border-amber-600 text-white shadow-lg shadow-amber-500/20' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-400'">
                         {{ day.label }}
                       </button>
@@ -734,9 +744,9 @@ const handleResetSystem = async () => {
 
                   <div class="glass-section p-4 space-y-4">
                     <div><p class="text-sm font-bold text-slate-700 dark:text-slate-200">Painel de Notas Rápidas</p><p class="text-[10px] text-slate-500">Escolha de qual lado da tela o terminal de notas deve deslizar.</p></div>
-                    <div class="flex bg-slate-200 dark:bg-white/5 p-1 rounded-xl w-fit">
-                      <button @click="localSettings.notesSide = 'left'" class="px-6 py-1.5 text-xs font-bold rounded-lg transition-all" :class="localSettings.notesSide === 'left' ? 'bg-white dark:bg-slate-700 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-500'">Lado Esquerdo</button>
-                      <button @click="localSettings.notesSide = 'right'" class="px-6 py-1.5 text-xs font-bold rounded-lg transition-all" :class="localSettings.notesSide === 'right' ? 'bg-white dark:bg-slate-700 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-500'">Lado Direito</button>
+                    <div class="flex bg-slate-200 dark:bg-white/5 p-1 rounded-xl w-full">
+                      <button @click="localSettings.notesSide = 'left'" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all" :class="localSettings.notesSide === 'left' ? 'bg-white dark:bg-slate-700 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-500'">Lado Esquerdo</button>
+                      <button @click="localSettings.notesSide = 'right'" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all" :class="localSettings.notesSide === 'right' ? 'bg-white dark:bg-slate-700 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-500'">Lado Direito</button>
                     </div>
                   </div>
 
@@ -807,8 +817,8 @@ const handleResetSystem = async () => {
                   </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="glass-section p-6 space-y-4 relative overflow-hidden"><div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><Server class="w-16 h-16" /></div><div class="flex items-center gap-3 mb-2 relative z-10"><ShieldCheck class="w-5 h-5 text-emerald-500" /><h4 class="text-sm font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">Sistema Completo</h4></div><p class="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4 relative z-10">Exporta <b>absolutamente tudo</b>: tarefas, sprints, notas rápidas e todas as configurações de interface.</p><div class="flex flex-col xl:flex-row gap-3 relative z-10"><button @click="handleExportSystem" class="flex-1 flex items-center justify-center gap-2 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20"><Download class="w-4 h-4" /> Exportar</button><label class="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer text-center"><Upload class="w-4 h-4" /> Restaurar<input type="file" accept=".json" class="hidden" @change="handleImportSystem" /></label></div></div>
-                  <div class="glass-section p-6 space-y-4 relative overflow-hidden flex-1"><div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><FileJson class="w-16 h-16" /></div><div class="flex items-center gap-3 mb-2 relative z-10"><FileJson class="w-5 h-5 text-indigo-500" /><h4 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Apenas Tarefas</h4></div><p class="text-[10px] text-slate-500 leading-relaxed mb-4 relative z-10">Lista de tarefas atual. Ideal para transferências rápidas ou backups frequentes.</p><div class="flex flex-col xl:flex-row gap-3 relative z-10"><button @click="handleExportTasks" class="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-100 dark:bg-white/5 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light"><Download class="w-4 h-4" /> Exportar</button><label class="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-slate-100 dark:bg-white/5 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light cursor-pointer text-center"><Upload class="w-4 h-4" /> Importar<input type="file" accept=".json" class="hidden" @change="handleImportTasks" /></label></div></div>
+                  <div class="glass-section p-6 space-y-4 relative overflow-hidden"><div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><Server class="w-16 h-16" /></div><div class="flex items-center gap-3 mb-2 relative z-10"><ShieldCheck class="w-5 h-5 text-emerald-500" /><h4 class="text-sm font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">Sistema Completo</h4></div><p class="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4 relative z-10">Exporta <b>absolutamente tudo</b>: tarefas, sprints, notas rápidas e todas as configurações de interface.</p><div class="flex flex-row gap-3 relative z-10"><button @click="handleExportSystem" class="flex-1 flex items-center justify-center gap-2 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20"><Download class="w-4 h-4" /> Exportar</button><label class="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer text-center"><Upload class="w-4 h-4" /> Restaurar<input type="file" accept=".json" class="hidden" @change="handleImportSystem" /></label></div></div>
+                  <div class="glass-section p-6 space-y-4 relative overflow-hidden flex-1"><div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><FileJson class="w-16 h-16" /></div><div class="flex items-center gap-3 mb-2 relative z-10"><FileJson class="w-5 h-5 text-indigo-500" /><h4 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Apenas Tarefas</h4></div><p class="text-[10px] text-slate-500 leading-relaxed mb-4 relative z-10">Lista de tarefas atual. Ideal para transferências rápidas ou backups frequentes.</p><div class="flex flex-row gap-3 relative z-10"><button @click="handleExportTasks" class="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-100 dark:bg-white/5 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light"><Download class="w-4 h-4" /> Exportar</button><label class="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-slate-100 dark:bg-white/5 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light cursor-pointer text-center"><Upload class="w-4 h-4" /> Importar<input type="file" accept=".json" class="hidden" @change="handleImportTasks" /></label></div></div>
                 </div>
                 <div class="glass-section p-6 bg-red-500/5 dark:bg-red-500/10 border-red-500/20 space-y-4"><div class="flex items-center gap-3 mb-2"><Activity class="w-5 h-5 text-red-500" /><h4 class="text-sm font-black text-red-600 dark:text-red-400 uppercase tracking-tight">Zona de Perigo</h4></div><p class="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4">Deseja limpar tudo e começar do zero? Esta ação removerá todas as tarefas e sprints do seu banco de dados local.</p><button @click="handleResetSystem" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 active:scale-95">Zerar Banco de Dados</button></div>
               </div>
@@ -825,11 +835,17 @@ const handleResetSystem = async () => {
                     </div>
                   </div>
 
-                  <div class="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl mb-4">
+                  <div class="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl mb-4 space-y-2">
                     <div class="flex items-center gap-3">
                       <MousePointer2 class="w-4 h-4 text-amber-500" />
                       <p class="text-[11px] text-amber-700 dark:text-amber-400 font-bold">
                         <span class="uppercase">Importante:</span> Para os atalhos de tarefa funcionarem, o cursor do mouse deve estar <span class="underline underline-offset-2">posicionado sobre a tarefa</span> desejada.
+                      </p>
+                    </div>
+                    <div class="flex items-center gap-3 pt-2 border-t border-amber-500/10">
+                      <Info class="w-4 h-4 text-amber-500 shrink-0" />
+                      <p class="text-[11px] text-amber-700 dark:text-amber-400 font-bold">
+                        <span class="uppercase">Aviso Mobile:</span> Atalhos de teclado e ações de mouse hover **não estão disponíveis** no modo móvel.
                       </p>
                     </div>
                   </div>
@@ -918,18 +934,18 @@ const handleResetSystem = async () => {
                       <p class="text-lg font-black text-indigo-600 dark:text-indigo-400">Sérgio Moreira</p>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                      <a href="https://github.com/ssergio100/TASS" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light shadow-sm">
+                    <div class="flex flex-row flex-wrap gap-3 justify-center pt-4">
+                      <a href="https://github.com/ssergio100/TASS" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light shadow-sm text-center whitespace-nowrap">
                         <Github class="w-4 h-4" />
                         GitHub
                       </a>
                       
-                      <button @click="showPix = true" class="flex items-center justify-center gap-2 px-6 py-2.5 bg-amber-500 text-white hover:bg-amber-600 rounded-xl text-xs font-bold transition-all shadow-lg shadow-amber-500/20">
+                      <button @click="showPix = true" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 text-white hover:bg-amber-600 rounded-xl text-xs font-bold transition-all shadow-lg shadow-amber-500/20 text-center whitespace-nowrap">
                         <Coffee class="w-4 h-4" />
                         Buy me a coffee
                       </button>
 
-                      <a href="https://wa.me/5511991386328?text=Olá!%20Gostaria%20de%20falar%20com%20você%20sobre%20o%20projeto%20TASS." target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 px-6 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-emerald-500/20 shadow-sm">
+                      <a href="https://wa.me/5511991386328?text=Olá!%20Gostaria%20de%20falar%20com%20você%20sobre%20o%20projeto%20TASS." target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-emerald-500/20 shadow-sm text-center whitespace-nowrap">
                         <MessageCircle class="w-4 h-4" />
                         WhatsApp
                       </a>
@@ -952,6 +968,7 @@ const handleResetSystem = async () => {
                 </div>
               </div>
       </transition>
+    </div>
 
     <template #footer>
       <button type="button" @click="uiStore.showSettings = false" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Fechar</button>

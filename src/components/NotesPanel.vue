@@ -4,6 +4,7 @@ import { X } from 'lucide-vue-next';
 import { useNoteStore } from '../stores/noteStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useNotesDrag } from '../composables/useNotesDrag.js';
+import { useSwipe } from '@vueuse/core';
 
 const props = defineProps({
   isOpen: Boolean
@@ -86,6 +87,10 @@ const handleHandleClick = () => {
   }
 };
 
+const handleSwipe = () => {
+  emit('toggle');
+};
+
 /**
  * Define se o painel está oculto (translate) ou visível,
  * baseado no lado em que o painel está fixado (esquerda ou direita).
@@ -95,6 +100,40 @@ const panelSlideClass = computed(() => {
     return 'translate-x-0';
   }
   return settings.notesSide === 'right' ? 'translate-x-full' : '-translate-x-full';
+});
+
+// Arraste fluido (1:1 Tracking) com @vueuse/core
+const asideRef = ref(null);
+const { lengthX, isSwiping } = useSwipe(asideRef, {
+  onSwipeEnd() {
+    const threshold = Math.min(settings.notesWidth / 3, 100);
+    const isRightSide = settings.notesSide === 'right';
+    
+    if (Math.abs(lengthX.value) > threshold) {
+      if (props.isOpen) {
+        // Para fechar: painel na direita -> deslizar direita (lengthX < 0)
+        if (isRightSide && lengthX.value < 0) emit('toggle');
+        else if (!isRightSide && lengthX.value > 0) emit('toggle');
+      } else {
+        // Para abrir: painel na direita -> deslizar esquerda (lengthX > 0)
+        if (isRightSide && lengthX.value > 0) emit('toggle');
+        else if (!isRightSide && lengthX.value < 0) emit('toggle');
+      }
+    }
+  }
+});
+
+const swipeTransform = computed(() => {
+  if (!isSwiping.value) return '';
+  const isRight = settings.notesSide === 'right';
+  
+  if (props.isOpen) {
+    if (isRight) return `translateX(${Math.max(0, -lengthX.value)}px)`;
+    return `translateX(${Math.min(0, -lengthX.value)}px)`;
+  } else {
+    if (isRight) return `translateX(calc(100% - ${Math.max(0, lengthX.value)}px))`;
+    return `translateX(calc(-100% + ${Math.max(0, -lengthX.value)}px))`;
+  }
 });
 </script>
 
@@ -117,18 +156,21 @@ const panelSlideClass = computed(() => {
 
   <!-- Painel de Notas -->
   <aside 
+    ref="asideRef"
     class="fixed top-0 h-full max-w-[90vw] z-[70] shadow-2xl flex flex-col glass-panel !p-0"
     :class="[
-      isResizingLocal ? '' : 'transition-all duration-500 ease-in-out',
+      (isResizingLocal || isSwiping) ? '!transition-none' : 'transition-all duration-500 ease-in-out',
       settings.notesSide === 'right' ? 'right-0' : 'left-0',
-      panelSlideClass
+      panelSlideClass,
+      isOpen ? 'is-open' : 'is-closed'
     ]"
     :style="{ 
       width: settings.notesWidth + 'px',
+      transform: swipeTransform || undefined,
       backgroundColor: `rgba(var(--app-bg-raw), var(--app-notes-opacity))`,
       backdropFilter: settings.opacityTargets.notes ? 'blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))' : 'none',
       WebkitBackdropFilter: settings.opacityTargets.notes ? 'blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))' : 'none'
-    }" 
+    }"
   >
     <!-- Aba de Arraste Física -->
     <div 
@@ -138,7 +180,7 @@ const panelSlideClass = computed(() => {
         isResizingLocal ? '!transition-none' : '',
         'bg-app-glass border-app-border-light'
       ]"
-      :style="{ top: settings.notesButtonTop + 'px' }"
+      :style="{ top: settings.notesButtonTop + 'px', touchAction: 'none' }"
       @mousedown.stop="handleResize"
       @click.stop="handleHandleClick"
       :data-tip="isOpen ? 'Arraste para redimensionar / Clique para fechar' : 'Arraste para mover / Clique para abrir'"

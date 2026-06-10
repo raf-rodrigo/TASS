@@ -16,6 +16,7 @@ import { backupService } from '../services/backupService';
 import BaseModal from './BaseModal.vue';
 import AppColorPalette from './AppColorPalette.vue';
 import AppInput from './base/AppInput.vue';
+import { useTabSwipe } from '../composables/useTabSwipe';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -46,8 +47,11 @@ onMounted(() => {
   }
 });
 
-watch(activeTab, (newVal) => {
-  if (settings.keepWindowState) {
+watch(activeTab, (newVal, oldVal) => {
+  if (newVal === 'action-settings') {
+    emit('open-settings');
+    setTimeout(() => { activeTab.value = oldVal !== 'action-settings' && oldVal ? oldVal : 'wallpapers'; }, 50);
+  } else if (settings.keepWindowState) {
     localStorage.setItem('app-last-interface-tab', newVal);
   }
 });
@@ -115,15 +119,32 @@ const tabs = [
   { id: 'typography', label: 'Tipografia', icon: TypeIcon, color: 'text-indigo-500', desc: 'Escolha a fonte que melhor se adapta ao seu estilo.' },
   { id: 'effects', label: 'Efeitos e Vidro', icon: Droplets, color: 'text-indigo-500', desc: 'Ajuste o desfoque e as transparências do sistema.' },
   { id: 'widgets', label: 'Widgets', icon: Puzzle, color: 'text-indigo-500', desc: 'Gerencie mini-aplicativos e integrações extras.' },
+  { id: 'action-settings', label: 'Configurações', icon: Settings, color: 'text-indigo-500', isAction: true },
 ];
 
 const activeTabObj = computed(() => tabs.find(t => t.id === activeTab.value) || tabs[0]);
 
-const fontOptions = [
-  'Inter', 'Outfit', 'Lexend', 
-  'Montserrat', 'Roboto', 'Ubuntu', 
-  'Poppins', 'Open Sans', 'Sora',
-  'Mulish', 'Quicksand', 'JetBrains Mono'
+const navRef = ref(null);
+const swipeAreaRef = ref(null);
+const { offsetX, isSwiping, jumpMode, disableVueTransition } = useTabSwipe(activeTab, tabs, navRef, swipeAreaRef);
+
+const fontCategories = [
+  {
+    name: 'Sans-Serif (Moderna / UI)',
+    fonts: ['Inter', 'Outfit', 'Lexend', 'Plus Jakarta Sans', 'Montserrat', 'Roboto', 'Poppins', 'Open Sans', 'Sora', 'Mulish', 'Ubuntu']
+  },
+  {
+    name: 'Serif (Clássica / Elegante)',
+    fonts: ['Playfair Display', 'Lora']
+  },
+  {
+    name: 'Monospace (Código / Tech)',
+    fonts: ['JetBrains Mono', 'Fira Code']
+  },
+  {
+    name: 'Arredondada e Display',
+    fonts: ['Quicksand', 'Comfortaa', 'Fredoka']
+  }
 ];
 
 const setWallpaper = (url) => {
@@ -222,39 +243,47 @@ const handleColumnChange = (n) => {
 
     <!-- Sidebar -->
     <template #sidebar>
-      <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
-        <button 
-          v-for="tab in tabs" :key="tab.id"
-          @click="activeTab = tab.id"
-          class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
-          :class="activeTab === tab.id ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' : 'text-app-sub hover:bg-app-surface'"
-        >
-          <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
-          <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
-        </button>
-        <div class="hidden md:block w-full h-px border-t border-app-border-light my-2"></div>
-        <button 
-          @click="emit('open-settings')"
-          class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
-        >
-          <Settings class="w-4 h-4" />
-          <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">Configurações</span>
-        </button>
+      <nav ref="navRef" class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0 scroll-smooth">
+        <template v-for="tab in tabs" :key="tab.id">
+          <div v-if="tab.isAction" class="hidden md:block w-full h-px border-t border-app-border-light my-2"></div>
+          <button 
+            :data-tab-id="tab.id"
+            @click="tab.isAction ? emit('open-settings') : activeTab = tab.id"
+            class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
+            :class="activeTab === tab.id 
+              ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' 
+              : (tab.isAction ? 'text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10' : 'text-app-sub hover:bg-app-surface')"
+          >
+            <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : (tab.isAction ? '' : 'text-slate-400')" />
+            <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
+          </button>
+        </template>
       </nav>
     </template>
 
     <!-- Conteúdo Principal -->
-    <transition name="fade-slide" mode="out-in">
+    <div 
+      ref="swipeAreaRef" 
+      class="h-full w-full flex-1 overflow-x-hidden touch-pan-y max-md:min-h-[80vh]" 
+      :style="{
+        touchAction: 'pan-y',
+        transform: `translateX(${offsetX}px)`,
+        transition: (isSwiping || jumpMode) ? 'none' : 'transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)'
+      }"
+    >
+      <transition :name="disableVueTransition ? '' : 'fade-slide'" :mode="disableVueTransition ? '' : 'out-in'">
 
                 <!-- ABA: Board -->
-                <div v-if="activeTab === 'board'" :key="'board'" class="space-y-8">
+                <div v-if="activeTab === 'board'" :key="'board'" class="space-y-8 w-full">
                   <div class="space-y-8">
                     <div class="space-y-3">
                       <label class="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">Quantidade de Colunas</label>
                       <div class="flex bg-app-surface p-1 rounded-2xl border border-app-border-light w-full overflow-x-auto custom-scrollbar">
                         <button v-for="n in 6" :key="n" @click="handleColumnChange(n)"
                           class="flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300"
-                          :class="settings.columns === n ? 'bg-indigo-500 text-white shadow-lg' : 'text-app-muted'">{{ n }} Colunas</button>
+                          :class="settings.columns === n ? 'bg-indigo-500 text-white shadow-lg' : 'text-app-muted'">
+                          {{ n }}<span class="hidden md:inline"> Colunas</span><span class="inline md:hidden"> Col</span>
+                        </button>
                       </div>
                     </div>
                     <div class="space-y-4 animate-fadeIn">
@@ -289,7 +318,7 @@ const handleColumnChange = (n) => {
                 </div>
 
                 <!-- ABA: Construtor de Estilos -->
-                <div v-else-if="activeTab === 'tasks'" :key="'tasks'" class="space-y-8 flex flex-col items-center justify-center h-full text-center">
+                <div v-else-if="activeTab === 'tasks'" :key="'tasks'" class="space-y-6 w-full pt-4">
                   <div class="glass-section p-8 space-y-6 max-w-md w-full mx-auto border-indigo-500/20 bg-indigo-500/5">
                     <div class="w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center mx-auto mb-4">
                       <Palette class="w-8 h-8 text-indigo-500" />
@@ -318,12 +347,12 @@ const handleColumnChange = (n) => {
                       Importe o arquivo JSON contendo as cores hexadecimais (usadas em tarefas mais antigas).
                     </p>
                     <div class="flex flex-col relative z-10 space-y-4">
-                      <div class="flex flex-col md:flex-row gap-3">
-                        <label class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-amber-500/20 cursor-pointer text-center">
+                      <div class="flex flex-row gap-3">
+                        <label class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-amber-500/20 cursor-pointer text-center whitespace-nowrap">
                           <Upload class="w-4 h-4" /> Importar (.json)
                           <input type="file" accept=".json" class="hidden" @change="handleImportPalettes" />
                         </label>
-                        <button @click="backupService.exportPalettes(settings)" class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-600/10 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-amber-600/20 cursor-pointer text-center">
+                        <button @click="backupService.exportPalettes(settings)" class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-600/10 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl text-[10px] font-bold transition-all border border-amber-600/20 cursor-pointer text-center whitespace-nowrap">
                           <Download class="w-4 h-4" /> Exportar Paletas
                         </button>
                       </div>
@@ -332,12 +361,13 @@ const handleColumnChange = (n) => {
                 </div>
 
                 <!-- ABA: Tipografia -->
-                <div v-else-if="activeTab === 'typography'" :key="'typography'" class="space-y-8">
-                  <div class="glass-section p-6 space-y-4">
+                <div v-else-if="activeTab === 'typography'" :key="'typography'" class="space-y-6 w-full pt-2">
+                  <div v-for="category in fontCategories" :key="category.name" class="glass-section p-5 space-y-3">
+                    <h4 class="text-[10px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest ml-1">{{ category.name }}</h4>
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      <button v-for="font in fontOptions" :key="font" @click="settings.fontFamily = font; settings.saveSetting('app-font-family', font)"
-                        class="px-2 py-2.5 text-[10px] font-medium rounded-xl border transition-all truncate"
-                        :class="settings.fontFamily === font ? 'bg-indigo-500 text-white border-indigo-500 shadow-md' : 'bg-white dark:bg-slate-900 border-app-border-light'"
+                      <button v-for="font in category.fonts" :key="font" @click="settings.fontFamily = font; settings.saveSetting('app-font-family', font)"
+                        class="px-3 py-2.5 text-[11px] font-bold rounded-xl border transition-all truncate"
+                        :class="settings.fontFamily === font ? 'bg-indigo-500 text-white border-indigo-500 shadow-md' : 'bg-white dark:bg-slate-900 border-app-border-light text-slate-600 dark:text-slate-300 hover:border-indigo-500/30'"
                         :style="{ fontFamily: font }">{{ font }}</button>
                     </div>
                   </div>
@@ -552,6 +582,7 @@ const handleColumnChange = (n) => {
                   </div>
                 </div>
       </transition>
+    </div>
 
     <!-- Footer -->
     <template #footer>

@@ -9,6 +9,7 @@ import { useRadioStore } from '../stores/radioStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import RadioModal from './RadioModal.vue';
 import { ref } from 'vue';
+import { useSwipe } from '@vueuse/core';
 
 const props = defineProps({
   isOpen: {
@@ -53,6 +54,23 @@ const handleImport = async (event) => {
 const panelSlideClass = computed(() => {
   return props.isOpen ? 'translate-x-0' : '-translate-x-full';
 });
+
+// Arraste fluido para a Rádio (fixada na esquerda)
+const asideRef = ref(null);
+const { lengthX, isSwiping } = useSwipe(asideRef, {
+  onSwipeEnd() {
+    // Painel na esquerda -> deslizar para a esquerda (lengthX > 0) fecha
+    if (lengthX.value > 100) {
+      emit('close');
+    }
+  }
+});
+
+const swipeTransform = computed(() => {
+  if (!isSwiping.value || !props.isOpen) return '';
+  // Mover para a esquerda (valores negativos de X) conforme o dedo desliza para a esquerda (lengthX > 0)
+  return `translateX(${Math.min(0, -lengthX.value)}px)`;
+});
 </script>
 
 <template>
@@ -74,9 +92,14 @@ const panelSlideClass = computed(() => {
 
   <!-- Sidebar da Rádio (Opção 1 - Drawer) -->
   <aside 
-    class="fixed top-0 left-0 h-full w-[340px] max-w-[90vw] z-[260] shadow-2xl flex flex-col glass-panel !p-0 transition-transform duration-500 ease-in-out border-r border-app-border-light"
-    :class="panelSlideClass"
+    ref="asideRef"
+    class="fixed top-0 left-0 h-full w-[340px] max-w-[90vw] z-[260] shadow-2xl flex flex-col glass-panel !p-0 border-r border-app-border-light"
+    :class="[
+      isSwiping ? '!transition-none' : 'transition-transform duration-500 ease-in-out',
+      panelSlideClass
+    ]"
     :style="{ 
+      transform: swipeTransform || undefined,
       backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-sidebar-opacity))`,
       backdropFilter: 'blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))'
     }"

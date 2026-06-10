@@ -105,8 +105,8 @@ const stopDragScroll = () => {
 <template>
   <section 
     ref="boardRef"
-    class="flex flex-nowrap gap-6 w-full items-stretch overflow-x-auto overflow-y-hidden pb-32 no-scrollbar flex-1 min-h-[calc(100vh-120px)] transition-colors" 
-    :class="isScrollable ? 'cursor-grab active:cursor-grabbing' : 'cursor-auto'"
+    class="flex flex-nowrap gap-6 w-full items-stretch overflow-x-auto overflow-y-hidden pb-32 no-scrollbar flex-1 min-h-[calc(100vh-120px)] transition-colors snap-x snap-mandatory" 
+    :class="[isScrollable ? 'cursor-grab active:cursor-grabbing justify-start' : 'cursor-auto justify-center']"
     @mousedown="startDragScroll"
     @mousemove="doDragScroll"
     @mouseup="stopDragScroll"
@@ -115,7 +115,7 @@ const stopDragScroll = () => {
     <div 
       v-for="colIdx in settings.columns" 
       :key="colIdx" 
-      class="flex flex-col gap-4 min-h-[500px] relative flex-shrink-0 w-[85vw] sm:w-[320px] lg:w-[340px] xl:w-[360px] pb-10"
+      class="flex flex-col gap-4 min-h-[500px] relative flex-shrink-0 w-[85vw] sm:w-[320px] lg:w-[340px] xl:w-[360px] pb-10 snap-center"
     >
       <!-- Cabeçalho da Coluna -->
       <div 
@@ -160,6 +160,9 @@ const stopDragScroll = () => {
           drag-class="app-drag-effect" 
           :force-fallback="true"
           :fallback-on-body="true"
+          :delay="200"
+          :delayOnTouchOnly="true"
+          :touchStartThreshold="5"
           animation="400" 
           @start="emit('drag-start')"
           @end="emit('drag-end')"

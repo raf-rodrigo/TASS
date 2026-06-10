@@ -21,7 +21,7 @@ defineProps({
   >
     <div 
       v-if="show" 
-      class="fixed bottom-10 left-10 z-[500] max-w-xs pointer-events-none"
+      class="fixed bottom-24 left-1/2 -translate-x-1/2 md:translate-x-0 md:bottom-10 md:left-10 z-[500] w-[90vw] md:w-auto md:max-w-xs pointer-events-none"
     >
       <div 
         class="!p-4 border border-app-border-light shadow-2xl flex items-center gap-4 ring-1 ring-black/5 bg-app-glass backdrop-blur-md"

@@ -94,13 +94,10 @@ const handleClearPreview = () => {
 
 const applyStyle = async (styleId) => {
   const taskId = uiStore.previewTaskId;
-  const styleName = styleId === '' ? 'Padrão Global' : taskStyleStore.getStyleById(styleId)?.name;
-  
   try {
     await taskStore.updateTask(taskId, { styleId: styleId || null });
     localStorage.setItem('tass_last_used_style_id', styleId);
     lastUsedStyleId.value = styleId;
-    notificationService.toast(`Estilo ${styleName} aplicado!`, 'success');
   } catch (error) {
     console.error("Erro ao aplicar estilo:", error);
     notificationService.toast('Erro ao salvar estilo', 'error');

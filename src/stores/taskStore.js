@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { db } from '../db.js';
 import { notificationService } from '../services/notificationService';
 import { useSettingsStore } from './settingsStore';
@@ -8,8 +8,12 @@ import { useTimerStore } from './timerStore';
 
 export const useTaskStore = defineStore('task', () => {
   const tasks = ref([]);
-  const statusFilter = ref('all');
+  const statusFilter = ref(localStorage.getItem('tass-status-filter') || 'active');
   const isLoading = ref(false);
+
+  watch(statusFilter, (newVal) => {
+    localStorage.setItem('tass-status-filter', newVal);
+  });
   const selectedTask = ref(null);
   const hoveredTask = ref(null);
   const contextMenuPosition = ref({ x: 0, y: 0 });
@@ -95,7 +99,6 @@ export const useTaskStore = defineStore('task', () => {
       const id = await db.tasks.add(taskToAdd);
       taskToAdd.id = id;
       tasks.value.unshift(taskToAdd);
-      notificationService.toast('Tarefa adicionada!');
       return id;
     } catch (error) {
       console.error("Failed to add task:", error);
@@ -111,7 +114,6 @@ export const useTaskStore = defineStore('task', () => {
         await timerStore.toggleTimer(task);
       }
       await updateTask(task.id, { completed: newStatus });
-      notificationService.toast(newStatus ? 'Tarefa concluída!' : 'Tarefa reaberta!');
     } catch (error) {
       console.error("Failed to update task completion:", error);
     }
@@ -154,7 +156,6 @@ export const useTaskStore = defineStore('task', () => {
       });
       await Promise.all(updates);
       tasks.value = tasks.value.filter(t => t.id !== id);
-      notificationService.toast('Tarefa excluída');
     } catch (error) {
       console.error("Failed to delete task:", error);
     }
@@ -183,7 +184,6 @@ export const useTaskStore = defineStore('task', () => {
       tasks.value.push(taskToRestore);
       tasks.value.sort((a, b) => a.position - b.position);
       lastDeletedTask.value = null;
-      notificationService.toast('Tarefa restaurada!');
     } catch (error) {
       console.error("Failed to restore task:", error);
     }

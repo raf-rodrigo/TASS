@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => ({
     vue()
   ],
   server: {
+    host: true, // Expõe o servidor na rede local (responde por IP)
     port: 5175,
     strictPort: true
   },
