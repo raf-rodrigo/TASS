@@ -835,11 +835,17 @@ const handleResetSystem = async () => {
                     </div>
                   </div>
 
-                  <div class="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl mb-4">
+                  <div class="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl mb-4 space-y-2">
                     <div class="flex items-center gap-3">
                       <MousePointer2 class="w-4 h-4 text-amber-500" />
                       <p class="text-[11px] text-amber-700 dark:text-amber-400 font-bold">
                         <span class="uppercase">Importante:</span> Para os atalhos de tarefa funcionarem, o cursor do mouse deve estar <span class="underline underline-offset-2">posicionado sobre a tarefa</span> desejada.
+                      </p>
+                    </div>
+                    <div class="flex items-center gap-3 pt-2 border-t border-amber-500/10">
+                      <Info class="w-4 h-4 text-amber-500 shrink-0" />
+                      <p class="text-[11px] text-amber-700 dark:text-amber-400 font-bold">
+                        <span class="uppercase">Aviso Mobile:</span> Atalhos de teclado e ações de mouse hover **não estão disponíveis** no modo móvel.
                       </p>
                     </div>
                   </div>
