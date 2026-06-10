@@ -39,11 +39,10 @@ export function useDeviceBehavior() {
   });
 
   // Lógica centralizada: Ocultar a dock principal se algum modal estiver ativo.
-  // Isso evita que a dock (z-index muito alto) fique sobrepondo os rodapés e botões dos modais.
+  // No mobile, a dock fica sobreposta aos rodapés dos modais, então a escondemos.
+  // No desktop, a dock convive bem com os modais (que ficam centralizados), então permanece visível.
   const shouldHideDockForModal = computed(() => {
-    // Se preferir limitar essa ocultação apenas ao mobile no futuro, bastaria adicionar:
-    // return isMobile.value && isAnyModalOpen.value;
-    return isAnyModalOpen.value;
+    return isMobile.value && isAnyModalOpen.value;
   });
 
   return {
