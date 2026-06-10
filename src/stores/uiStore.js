@@ -101,6 +101,21 @@ export const useUIStore = defineStore('ui', () => {
     previewStyleId.value = null;
   };
 
+  const hasOpenModal = () => {
+    return showWelcome.value || 
+           showTaskModal.value || 
+           showSettings.value || 
+           showGitRebuilder.value || 
+           showSprints.value || 
+           showInterfaceMenu.value || 
+           showTaskStyleBuilder.value ||
+           showNotes.value ||
+           showRadio.value ||
+           showTimeAdjustment.value ||
+           showStylePickerMenu.value ||
+           showWorkspaceContextMenu.value;
+  };
+
   const closeAll = () => {
     showWelcome.value = false;
     showTaskModal.value = false;
@@ -127,6 +142,6 @@ export const useUIStore = defineStore('ui', () => {
     openTaskModal, closeTaskModal,
     openTimeAdjustment, closeTimeAdjustment,
     openSettings, openInterfaceMenu, openSprints,
-    toggleNotes, openStylePicker, closeStylePicker, closeAll
+    toggleNotes, openStylePicker, closeStylePicker, closeAll, hasOpenModal
   };
 });

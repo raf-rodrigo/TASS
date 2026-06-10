@@ -80,7 +80,7 @@ const dockRadius = computed(() => {
   <button 
     v-if="isMobile"
     @click.stop="emit('add-task')"
-    class="fixed bottom-4 right-4 w-12 h-12 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/30 transition-all duration-300 active:scale-95 z-[240]"
+    class="fixed bottom-4 right-4 w-12 h-12 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/30 transition-all duration-300 active:scale-95 z-[246]"
     :class="[
       isMobileDockOpen ? 'pointer-events-none opacity-0 scale-75' : 'pointer-events-auto opacity-100 scale-100'
     ]"

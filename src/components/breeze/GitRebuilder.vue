@@ -14,6 +14,7 @@ import BranchList from './BranchList.vue';
 import ActionPanel from './ActionPanel.vue';
 import { gitProviderService } from '../../services/gitProvider';
 import { notificationService } from '../../services/notificationService';
+import { useTabSwipe } from '../../composables/useTabSwipe';
 
 const settingsStore = useSettingsStore();
 const emit = defineEmits(['close']);
@@ -69,6 +70,17 @@ const confirmDestruction = () => {
 
 // --- ESTADOS DAS ABAS, MESCLAGEM E DELEÇÃO ---
 const activeTab = ref('merges'); // 'rebuilder' ou 'merges'
+const isMaximized = ref(false);
+
+const tabs = [
+  { id: 'merges', label: 'Mesclar e Excluir', icon: GitBranch, color: 'text-indigo-500' },
+  { id: 'rebuilder', label: 'Limpar e Recriar', icon: RefreshCw, color: 'text-indigo-500' }
+];
+
+const navRef = ref(null);
+const swipeAreaRef = ref(null);
+const { offsetX, isSwiping, jumpMode, disableVueTransition } = useTabSwipe(activeTab, tabs, navRef, swipeAreaRef);
+
 const mergeTarget = ref(null);      // Nome físico da branch selecionada (dev ou hml)
 const mergeTargetType = ref(null);    // 'dev' ou 'hml'
 const mergeLogs = ref([]);          // Logs da aba de mesclagem
@@ -528,32 +540,24 @@ const toggleTheme = () => {
 
     <!-- SIDEBAR -->
     <template #sidebar>
-      <nav class="space-y-2 p-2 w-full flex flex-col items-center">
+      <nav ref="navRef" class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0 scroll-smooth w-full">
         <button 
-          @click="activeTab = 'merges'"
-          class="flex items-center gap-3 py-3 rounded-[var(--app-input-radius)] transition-all font-black uppercase tracking-widest text-[10px]"
+          v-for="tab in tabs" 
+          :key="tab.id"
+          :data-tab-id="tab.id"
+          @click="activeTab = tab.id"
+          class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2.5 rounded-xl transition-all group"
           :class="[
-            activeTab === 'merges' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent',
+            activeTab === tab.id 
+              ? 'bg-app-surface text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-sm' 
+              : 'text-app-sub hover:bg-app-surface border border-transparent',
             isMaximized ? 'w-auto px-4 justify-center' : 'w-full px-4'
           ]"
-          :title="isMaximized ? 'Mesclar e Excluir' : ''"
+          :title="isMaximized ? tab.label : ''"
         >
-          <GitBranch class="w-4 h-4 shrink-0" />
-          <span v-if="!isMaximized">Mesclar e Excluir</span>
+          <component :is="tab.icon" class="w-4 h-4 shrink-0" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
+          <span v-if="!isMaximized" class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
         </button>
-        <button 
-          @click="activeTab = 'rebuilder'"
-          class="flex items-center gap-3 py-3 rounded-[var(--app-input-radius)] transition-all font-black uppercase tracking-widest text-[10px]"
-          :class="[
-            activeTab === 'rebuilder' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent',
-            isMaximized ? 'w-auto px-4 justify-center' : 'w-full px-4'
-          ]"
-          :title="isMaximized ? 'Limpar e Recriar' : ''"
-        >
-          <RefreshCw class="w-4 h-4 shrink-0" />
-          <span v-if="!isMaximized">Limpar e Recriar</span>
-        </button>
-
       </nav>
       
       <div v-if="!isMaximized" class="mt-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-[var(--app-card-radius)]">
@@ -569,8 +573,17 @@ const toggleTheme = () => {
 
     <!-- MAIN CONTENT -->
     <template #default>
-      <div class="flex flex-col gap-6 w-full h-full pb-8">
-        <div v-if="activeTab === 'rebuilder'" class="space-y-6 animate-fadeIn flex-1 flex flex-col min-h-0 lg:overflow-hidden overflow-y-auto">
+      <div 
+        ref="swipeAreaRef" 
+        class="h-full w-full flex-1 overflow-x-hidden touch-pan-y" 
+        :style="{
+          touchAction: 'pan-y',
+          transform: `translateX(${offsetX}px)`,
+          transition: (isSwiping || jumpMode) ? 'none' : 'transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)'
+        }"
+      >
+        <transition :name="disableVueTransition ? '' : 'fade-slide'" :mode="disableVueTransition ? '' : 'out-in'">
+          <div v-if="activeTab === 'rebuilder'" :key="'rebuilder'" class="space-y-6 animate-fadeIn flex-1 flex flex-col min-h-0 lg:overflow-hidden overflow-y-auto h-full w-full pb-8">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch w-full flex-1 min-h-0">
           
           <!-- Coluna 1: Lista de Ambientes (5 colunas) -->
@@ -747,7 +760,7 @@ const toggleTheme = () => {
       </div>
 
       <!-- ABA 2: MESCLAR E EXCLUIR BRANCHES -->
-      <div v-else-if="activeTab === 'merges'" class="space-y-4 animate-fadeIn flex-1 flex flex-col min-h-0 lg:overflow-hidden overflow-y-auto">
+      <div v-else-if="activeTab === 'merges'" :key="'merges'" class="space-y-4 animate-fadeIn flex-1 flex flex-col min-h-0 lg:overflow-hidden overflow-y-auto h-full w-full pb-8">
         
         <!-- BARRA DE CONTROLE NO TOPO -->
         <ActionPanel
@@ -796,6 +809,7 @@ const toggleTheme = () => {
 
         </div>
       </div>
+      </transition>
       </div>
     </template>
   </BaseModal>
