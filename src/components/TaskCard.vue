@@ -373,12 +373,7 @@ const timerButtonClasses = computed(() => {
           cardMode === 'micro' ? 'justify-center min-w-full' : 'min-w-[100px] w-full'
         ]"
       >
-        <div class="flex items-center gap-2 shrink-0">
-          <div v-if="task.prodUrl == 1 || task.homologUrl == 1 || task.devUrl == 1" class="flex items-center gap-0.5 mr-0.5">
-            <div v-if="task.prodUrl == 1" class="px-1 py-0.5 rounded-[4px] text-[7px] font-black bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20 leading-none">PRD</div>
-            <div v-if="task.homologUrl == 1" class="px-1 py-0.5 rounded-[4px] text-[7px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 leading-none">HML</div>
-            <div v-if="task.devUrl == 1" class="px-1 py-0.5 rounded-[4px] text-[7px] font-black bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/20 leading-none">DEV</div>
-          </div>
+        <div class="flex items-center gap-2 shrink-0" :class="{ 'w-full': isSquareLayout }">
           <span 
             class="font-bold px-2 py-1 rounded-lg leading-tight flex-shrink-0 transition-all border flex items-center justify-center min-w-[85px] active:scale-95" 
             :style="{ 
@@ -395,6 +390,12 @@ const timerButtonClasses = computed(() => {
           >
             {{ task.title }}
           </span>
+
+          <div v-if="task.prodUrl == 1 || task.homologUrl == 1 || task.devUrl == 1" class="flex flex-row-reverse items-center gap-0.5 ml-auto">
+            <div v-if="task.prodUrl == 1" class="px-1 py-0.5 rounded-[4px] text-[7px] font-black bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20 leading-none">PRD</div>
+            <div v-if="task.homologUrl == 1" class="px-1 py-0.5 rounded-[4px] text-[7px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 leading-none">HML</div>
+            <div v-if="task.devUrl == 1" class="px-1 py-0.5 rounded-[4px] text-[7px] font-black bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/20 leading-none">DEV</div>
+          </div>
         </div>
           <span 
             v-if="task.description && cardMode !== 'micro'" 
