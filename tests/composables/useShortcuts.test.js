@@ -70,6 +70,23 @@ describe('useShortcuts', () => {
     document.body.removeChild(input);
   });
 
+  it('não deve disparar atalhos se o input estiver dentro de um container de modal (simulando closest())', async () => {
+    const wrapper = mount(TestComponent);
+
+    // Simula um input dentro de um div pai (como um modal) — cenário real do bug
+    const modal = document.createElement('div');
+    const input = document.createElement('input');
+    modal.appendChild(input);
+    document.body.appendChild(modal);
+    input.focus();
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 't' }));
+
+    expect(wrapper.emitted()).not.toHaveProperty('toggle');
+
+    document.body.removeChild(modal);
+  });
+
   it('quando aberto, deve permitir apenas Escape para fechar e ignorar outras teclas', async () => {
     const wrapper = mount(TestComponent, {
       props: { isOpen: true }
