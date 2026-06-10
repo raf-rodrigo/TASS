@@ -128,11 +128,23 @@ const navRef = ref(null);
 const swipeAreaRef = ref(null);
 const { offsetX, isSwiping, jumpMode, disableVueTransition } = useTabSwipe(activeTab, tabs, navRef, swipeAreaRef);
 
-const fontOptions = [
-  'Inter', 'Outfit', 'Lexend', 
-  'Montserrat', 'Roboto', 'Ubuntu', 
-  'Poppins', 'Open Sans', 'Sora',
-  'Mulish', 'Quicksand', 'JetBrains Mono'
+const fontCategories = [
+  {
+    name: 'Sans-Serif (Moderna / UI)',
+    fonts: ['Inter', 'Outfit', 'Lexend', 'Plus Jakarta Sans', 'Montserrat', 'Roboto', 'Poppins', 'Open Sans', 'Sora', 'Mulish', 'Ubuntu']
+  },
+  {
+    name: 'Serif (Clássica / Elegante)',
+    fonts: ['Playfair Display', 'Lora']
+  },
+  {
+    name: 'Monospace (Código / Tech)',
+    fonts: ['JetBrains Mono', 'Fira Code']
+  },
+  {
+    name: 'Arredondada e Display',
+    fonts: ['Quicksand', 'Comfortaa', 'Fredoka']
+  }
 ];
 
 const setWallpaper = (url) => {
@@ -349,12 +361,13 @@ const handleColumnChange = (n) => {
                 </div>
 
                 <!-- ABA: Tipografia -->
-                <div v-else-if="activeTab === 'typography'" :key="'typography'" class="space-y-8">
-                  <div class="glass-section p-6 space-y-4">
+                <div v-else-if="activeTab === 'typography'" :key="'typography'" class="space-y-6 w-full pt-2">
+                  <div v-for="category in fontCategories" :key="category.name" class="glass-section p-5 space-y-3">
+                    <h4 class="text-[10px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest ml-1">{{ category.name }}</h4>
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      <button v-for="font in fontOptions" :key="font" @click="settings.fontFamily = font; settings.saveSetting('app-font-family', font)"
-                        class="px-2 py-2.5 text-[10px] font-medium rounded-xl border transition-all truncate"
-                        :class="settings.fontFamily === font ? 'bg-indigo-500 text-white border-indigo-500 shadow-md' : 'bg-white dark:bg-slate-900 border-app-border-light'"
+                      <button v-for="font in category.fonts" :key="font" @click="settings.fontFamily = font; settings.saveSetting('app-font-family', font)"
+                        class="px-3 py-2.5 text-[11px] font-bold rounded-xl border transition-all truncate"
+                        :class="settings.fontFamily === font ? 'bg-indigo-500 text-white border-indigo-500 shadow-md' : 'bg-white dark:bg-slate-900 border-app-border-light text-slate-600 dark:text-slate-300 hover:border-indigo-500/30'"
                         :style="{ fontFamily: font }">{{ font }}</button>
                     </div>
                   </div>

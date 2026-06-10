@@ -516,7 +516,7 @@ const handleResetSystem = async () => {
                       <!-- Master -->
                       <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'master' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.gitlabBranchMaster" label="Nome Real (Master)" placeholder="master" />
+                          <AppInput v-model="localSettings.gitlabBranchMaster" label="Branch (Master)" placeholder="master" />
                           <AppInput v-model="localSettings.gitlabAliasMaster" label="Alias" placeholder="Produção" />
                         </div>
                         <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
@@ -530,7 +530,7 @@ const handleResetSystem = async () => {
                       <!-- HML -->
                       <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'hml' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.gitlabBranchHml" label="Nome Real (Hml)" placeholder="hml" />
+                          <AppInput v-model="localSettings.gitlabBranchHml" label="Branch (Hml)" placeholder="hml" />
                           <AppInput v-model="localSettings.gitlabAliasHml" label="Alias" placeholder="Homologação" />
                         </div>
                         <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
@@ -544,7 +544,7 @@ const handleResetSystem = async () => {
                       <!-- DEV -->
                       <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'dev' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.gitlabBranchDev" label="Nome Real (Dev)" placeholder="dev" />
+                          <AppInput v-model="localSettings.gitlabBranchDev" label="Branch (Dev)" placeholder="dev" />
                           <AppInput v-model="localSettings.gitlabAliasDev" label="Alias" placeholder="Desenvolvimento" />
                         </div>
                         <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
@@ -571,7 +571,7 @@ const handleResetSystem = async () => {
                       <!-- Master -->
                       <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'master' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.githubBranchMaster" label="Nome Real (Master)" placeholder="main" />
+                          <AppInput v-model="localSettings.githubBranchMaster" label="Branch (Master)" placeholder="main" />
                           <AppInput v-model="localSettings.githubAliasMaster" label="Alias" placeholder="Master" />
                         </div>
                         <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
@@ -585,7 +585,7 @@ const handleResetSystem = async () => {
                       <!-- HML -->
                       <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'hml' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.githubBranchHml" label="Nome Real (Hml)" placeholder="hml" />
+                          <AppInput v-model="localSettings.githubBranchHml" label="Branch (Hml)" placeholder="hml" />
                           <AppInput v-model="localSettings.githubAliasHml" label="Alias" placeholder="Homologação" />
                         </div>
                         <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
@@ -599,7 +599,7 @@ const handleResetSystem = async () => {
                       <!-- DEV -->
                       <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'dev' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.githubBranchDev" label="Nome Real (Dev)" placeholder="dev" />
+                          <AppInput v-model="localSettings.githubBranchDev" label="Branch (Dev)" placeholder="dev" />
                           <AppInput v-model="localSettings.githubAliasDev" label="Alias" placeholder="Desenvolvimento" />
                         </div>
                         <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
