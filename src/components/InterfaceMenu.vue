@@ -16,6 +16,7 @@ import { backupService } from '../services/backupService';
 import BaseModal from './BaseModal.vue';
 import AppColorPalette from './AppColorPalette.vue';
 import AppInput from './base/AppInput.vue';
+import { useTabSwipe } from '../composables/useTabSwipe';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -46,8 +47,11 @@ onMounted(() => {
   }
 });
 
-watch(activeTab, (newVal) => {
-  if (settings.keepWindowState) {
+watch(activeTab, (newVal, oldVal) => {
+  if (newVal === 'action-settings') {
+    emit('open-settings');
+    setTimeout(() => { activeTab.value = oldVal !== 'action-settings' && oldVal ? oldVal : 'wallpapers'; }, 50);
+  } else if (settings.keepWindowState) {
     localStorage.setItem('app-last-interface-tab', newVal);
   }
 });
@@ -115,9 +119,14 @@ const tabs = [
   { id: 'typography', label: 'Tipografia', icon: TypeIcon, color: 'text-indigo-500', desc: 'Escolha a fonte que melhor se adapta ao seu estilo.' },
   { id: 'effects', label: 'Efeitos e Vidro', icon: Droplets, color: 'text-indigo-500', desc: 'Ajuste o desfoque e as transparências do sistema.' },
   { id: 'widgets', label: 'Widgets', icon: Puzzle, color: 'text-indigo-500', desc: 'Gerencie mini-aplicativos e integrações extras.' },
+  { id: 'action-settings', label: 'Configurações', icon: Settings, color: 'text-indigo-500', isAction: true },
 ];
 
 const activeTabObj = computed(() => tabs.find(t => t.id === activeTab.value) || tabs[0]);
+
+const navRef = ref(null);
+const swipeAreaRef = ref(null);
+const { offsetX, isSwiping, jumpMode, disableVueTransition } = useTabSwipe(activeTab, tabs, navRef, swipeAreaRef);
 
 const fontOptions = [
   'Inter', 'Outfit', 'Lexend', 
@@ -222,39 +231,47 @@ const handleColumnChange = (n) => {
 
     <!-- Sidebar -->
     <template #sidebar>
-      <nav class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0">
-        <button 
-          v-for="tab in tabs" :key="tab.id"
-          @click="activeTab = tab.id"
-          class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
-          :class="activeTab === tab.id ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' : 'text-app-sub hover:bg-app-surface'"
-        >
-          <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
-          <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
-        </button>
-        <div class="hidden md:block w-full h-px border-t border-app-border-light my-2"></div>
-        <button 
-          @click="emit('open-settings')"
-          class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
-        >
-          <Settings class="w-4 h-4" />
-          <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">Configurações</span>
-        </button>
+      <nav ref="navRef" class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0 scroll-smooth">
+        <template v-for="tab in tabs" :key="tab.id">
+          <div v-if="tab.isAction" class="hidden md:block w-full h-px border-t border-app-border-light my-2"></div>
+          <button 
+            :data-tab-id="tab.id"
+            @click="tab.isAction ? emit('open-settings') : activeTab = tab.id"
+            class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2 md:py-2.5 rounded-xl transition-all group"
+            :class="activeTab === tab.id 
+              ? 'bg-app-surface text-indigo-600 dark:text-indigo-400' 
+              : (tab.isAction ? 'text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10' : 'text-app-sub hover:bg-app-surface')"
+          >
+            <component :is="tab.icon" class="w-4 h-4" :class="activeTab === tab.id ? tab.color : (tab.isAction ? '' : 'text-slate-400')" />
+            <span class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
+          </button>
+        </template>
       </nav>
     </template>
 
     <!-- Conteúdo Principal -->
-    <transition name="fade-slide" mode="out-in">
+    <div 
+      ref="swipeAreaRef" 
+      class="h-full w-full flex-1 overflow-x-hidden touch-pan-y max-md:min-h-[80vh]" 
+      :style="{
+        touchAction: 'pan-y',
+        transform: `translateX(${offsetX}px)`,
+        transition: (isSwiping || jumpMode) ? 'none' : 'transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)'
+      }"
+    >
+      <transition :name="disableVueTransition ? '' : 'fade-slide'" :mode="disableVueTransition ? '' : 'out-in'">
 
                 <!-- ABA: Board -->
-                <div v-if="activeTab === 'board'" :key="'board'" class="space-y-8">
+                <div v-if="activeTab === 'board'" :key="'board'" class="space-y-8 w-full">
                   <div class="space-y-8">
                     <div class="space-y-3">
                       <label class="text-[10px] font-black text-app-muted uppercase tracking-widest ml-1">Quantidade de Colunas</label>
                       <div class="flex bg-app-surface p-1 rounded-2xl border border-app-border-light w-full overflow-x-auto custom-scrollbar">
                         <button v-for="n in 6" :key="n" @click="handleColumnChange(n)"
                           class="flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-300"
-                          :class="settings.columns === n ? 'bg-indigo-500 text-white shadow-lg' : 'text-app-muted'">{{ n }} Colunas</button>
+                          :class="settings.columns === n ? 'bg-indigo-500 text-white shadow-lg' : 'text-app-muted'">
+                          {{ n }}<span class="hidden md:inline"> Colunas</span><span class="inline md:hidden"> Col</span>
+                        </button>
                       </div>
                     </div>
                     <div class="space-y-4 animate-fadeIn">
@@ -552,6 +569,7 @@ const handleColumnChange = (n) => {
                   </div>
                 </div>
       </transition>
+    </div>
 
     <!-- Footer -->
     <template #footer>

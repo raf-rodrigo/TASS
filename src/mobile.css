@@ -1,0 +1,58 @@
+@media (max-width: 767.98px) {
+  /* Redução do padding geral dos modais com layout sidebar no mobile */
+  .tass-layout-content {
+    padding: 1rem !important; /* px-4 instead of px-6/px-10 */
+  }
+
+  .tass-layout-sidebar {
+    padding: 0.5rem 1rem !important;
+  }
+
+  /* Redução do padding horizontal dos botões de abas no mobile para caberem mais abas visíveis */
+  .tass-layout-sidebar nav button {
+    padding-left: 0.625rem !important;
+    padding-right: 0.625rem !important;
+    gap: 0.375rem !important;
+  }
+
+  /* Achatamento automático de seções de vidro dentro dos modais no mobile */
+  .tass-layout-content .glass-section {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* Otimização de formulários e inputs para telas de celular */
+  .app-input, 
+  input[type="text"], 
+  input[type="number"], 
+  input[type="password"], 
+  input[type="url"], 
+  select, 
+  textarea {
+    padding: 0.5rem 0.75rem !important; /* px-3 py-2 */
+    font-size: 0.75rem !important; /* text-xs */
+  }
+
+  /* Redução do espaçamento das divisórias e grupos de inputs */
+  .space-y-6 > * + * {
+    margin-top: 1rem !important;
+  }
+
+  .space-y-8 > * + * {
+    margin-top: 1.25rem !important;
+  }
+
+  /* Correções para o seletor de quantidade de colunas no painel de Interface */
+  .flex.bg-app-surface.p-1.rounded-2xl {
+    padding: 0.25rem !important;
+    border-radius: var(--app-input-radius) !important;
+  }
+}
