@@ -123,6 +123,36 @@ const handleApplyStyleAll = async (styleId) => {
   await Promise.all(promises);
 };
 
+// --- PREVIEW DE PRESETS AO HOVER ---
+// Guarda o styleId original de cada tarefa antes de iniciar o preview.
+// Assim conseguimos restaurar exatamente o estado anterior caso o usuário não confirme.
+let savedStylesBeforePreview = null;
+
+const handlePreviewStart = async (styleId) => {
+  // Salva o estado atual antes de qualquer alteração de preview
+  if (!savedStylesBeforePreview) {
+    savedStylesBeforePreview = taskStore.tasks.map(t => ({ id: t.id, styleId: t.styleId || null }));
+  }
+  await handleApplyStyleAll(styleId);
+};
+
+const handlePreviewEnd = async () => {
+  // Restaura o estado salvo ao sair do hover sem clicar
+  if (savedStylesBeforePreview) {
+    const promises = savedStylesBeforePreview.map(({ id, styleId }) =>
+      taskStore.updateTask(id, { styleId })
+    );
+    await Promise.all(promises);
+    savedStylesBeforePreview = null;
+  }
+};
+
+const handleApplyAndConfirm = async (styleId) => {
+  // Ao clicar, descarta o snapshot (o estado atual já é o correto)
+  savedStylesBeforePreview = null;
+  await handleApplyStyleAll(styleId);
+};
+
 onMounted(() => {
   adjustPosition();
   window.addEventListener('click', (e) => {
@@ -244,7 +274,12 @@ onUnmounted(() => {
               <div class="px-3 py-1.5 text-[10px] font-black uppercase text-app-sub tracking-widest border-b border-app-border-light mb-1">Presets (Global)</div>
               
               <div :class="[taskStyleStore.sortedStyles.length > 12 ? 'grid gap-x-2 gap-y-0.5' : 'flex flex-col gap-0.5', taskStyleStore.sortedStyles.length > 24 ? 'grid-cols-3' : taskStyleStore.sortedStyles.length > 12 ? 'grid-cols-2' : '']">
-                <button @click="handleApplyStyleAll('')" class="context-menu-item">
+                <button
+                  @click="handleApplyAndConfirm('')"
+                  @mouseenter="handlePreviewStart('')"
+                  @mouseleave="handlePreviewEnd"
+                  class="context-menu-item"
+                >
                   <div class="w-3 h-3 rounded-full border border-black/10 dark:border-white/10" style="background-color: #e2e8f0;"></div>
                   <span>Padrão Global</span>
                 </button>
@@ -254,7 +289,9 @@ onUnmounted(() => {
                 <button 
                   v-for="preset in taskStyleStore.sortedStyles" 
                   :key="preset.id"
-                  @click="handleApplyStyleAll(preset.id)"
+                  @click="handleApplyAndConfirm(preset.id)"
+                  @mouseenter="handlePreviewStart(preset.id)"
+                  @mouseleave="handlePreviewEnd"
                   class="context-menu-item"
                 >
                   <div class="w-3 h-3 rounded-full border border-black/10 dark:border-white/10" :style="{ backgroundColor: preset.colors?.bgColor || '#e2e8f0' }"></div>
