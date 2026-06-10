@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useSwipe } from '@vueuse/core';
 import { 
-  Plus, Calendar, Clock, RotateCcw, X, 
+  Plus, Calendar, Clock, RotateCcw, 
   Settings, Sun, Moon, Headphones, MoreHorizontal, CloudLightning, FileText, ChevronUp
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -130,71 +130,59 @@ const dockRadius = computed(() => {
       <div 
         v-if="isMobile" 
         @click="isMobileDockOpen = false" 
-        class="w-full flex justify-center py-1 cursor-pointer group -mt-2 mb-1 border-b border-app-border-light/10 pb-2"
+        class="w-full flex justify-center py-1 cursor-pointer group -mt-2 mb-1"
       >
         <div class="w-10 h-1 bg-slate-400/30 dark:bg-white/10 rounded-full group-hover:bg-indigo-500/50 transition-all"></div>
       </div>
 
       <!-- LINHA 1: Cabeçalho da Ilha / Ações Principais -->
-      <div class="flex items-center w-full md:w-auto" :class="{ 'justify-between': isMobile }">
-        <div class="flex items-center gap-2">
-          <!-- Adicionar Tarefa -->
-          <button 
-            @click.stop="emit('add-task')"
-            class="w-12 h-12 md:w-10 md:h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 transition-all active:scale-95 group shrink-0"
-            :style="{ borderRadius: 'var(--app-input-radius)' }"
-            data-tip="Nova Tarefa (n)"
-          >
-            <Plus class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-          </button>
+      <div class="flex items-center w-full md:w-auto gap-2">
+        <!-- Adicionar Tarefa -->
+        <button 
+          @click.stop="emit('add-task')"
+          class="w-12 h-12 md:w-10 md:h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 transition-all active:scale-95 group shrink-0"
+          :style="{ borderRadius: 'var(--app-input-radius)' }"
+          data-tip="Nova Tarefa (n)"
+        >
+          <Plus class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
+        </button>
 
-          <!-- Cronômetro (Sempre Visível) -->
-          <div 
-            class="dock-item !bg-indigo-500/5 !border-indigo-500/20 px-3 py-2 flex items-center gap-2"
-            data-tip="Tempo investido na Sprint"
-          >
-            <Clock class="w-4 h-4 text-indigo-600 dark:text-indigo-400" :class="{ 'animate-pulse': timerStore.activeTask }" />
-            <span class="text-xs font-black font-mono text-indigo-600 dark:text-indigo-400">
-              {{ sprintStore.activeSprintTotalTime }}
-            </span>
-          </div>
-
-          <!-- Botão Desfazer (Integrado na Dock) -->
-          <transition 
-            enter-active-class="transition-all duration-500 ease-out" 
-            enter-from-class="w-0 opacity-0 -translate-x-4" 
-            enter-to-class="w-[100px] opacity-100 translate-x-0"
-            leave-active-class="transition-all duration-300 ease-in"
-            leave-from-class="w-[100px] opacity-100 translate-x-0"
-            leave-to-class="w-0 opacity-0 -translate-x-4"
-          >
-            <button 
-              v-if="taskStore.lastDeletedTask" 
-              @click.stop="taskStore.restoreTask" 
-              class="dock-item !bg-amber-500 !border-amber-600 px-3 py-2 flex items-center gap-2 text-white shadow-lg shadow-amber-500/20 group overflow-hidden whitespace-nowrap"
-            >
-              <RotateCcw class="w-3.5 h-3.5 group-hover:-rotate-45 transition-transform" />
-              <span class="text-[10px] font-black uppercase tracking-tighter">Desfazer</span>
-            </button>
-          </transition>
+        <!-- Cronômetro (Sempre Visível) -->
+        <div 
+          class="dock-item !bg-indigo-500/5 !border-indigo-500/20 px-3 flex items-center gap-2 h-12 md:h-10 shrink-0"
+          data-tip="Tempo trabalhado (Sprint • Hoje)"
+        >
+          <Clock class="w-4 h-4 text-indigo-600 dark:text-indigo-400" :class="{ 'animate-pulse': timerStore.activeTask }" />
+          <span class="text-xs font-black font-mono text-indigo-600 dark:text-indigo-400 whitespace-nowrap">
+            Sprint: {{ sprintStore.activeSprintTotalTime }} • Hoje: {{ timerStore.todayWorkedTimeFormatted }}
+          </span>
         </div>
 
-        <!-- Toggle Mobile Expansion (Fechar no mobile) -->
-        <button 
-          v-if="isMobile" 
-          @click.stop="isMobileDockOpen = false"
-          class="w-12 h-12 md:w-10 md:h-10 flex items-center justify-center text-red-500 hover:text-red-600 transition-colors ml-2"
-          data-tip="Fechar opções"
+        <!-- Botão Desfazer (Integrado na Dock) -->
+        <transition 
+          enter-active-class="transition-all duration-500 ease-out" 
+          enter-from-class="w-0 opacity-0 -translate-x-4" 
+          enter-to-class="w-[100px] opacity-100 translate-x-0"
+          leave-active-class="transition-all duration-300 ease-in"
+          leave-from-class="w-[100px] opacity-100 translate-x-0"
+          leave-to-class="w-0 opacity-0 -translate-x-4"
         >
-          <X class="w-5 h-5" />
-        </button>
+          <button 
+            v-if="taskStore.lastDeletedTask" 
+            @click.stop="taskStore.restoreTask" 
+            class="dock-item !bg-amber-500 !border-amber-600 px-3 py-2 flex items-center gap-2 text-white shadow-lg shadow-amber-500/20 group overflow-hidden whitespace-nowrap"
+          >
+            <RotateCcw class="w-3.5 h-3.5 group-hover:-rotate-45 transition-transform" />
+            <span class="text-[10px] font-black uppercase tracking-tighter">Desfazer</span>
+          </button>
+        </transition>
       </div>
 
       <!-- SEÇÃO EXPANSÍVEL (Filtros e Utilidades) -->
       <div 
         v-show="!isMobile || isMobileDockOpen"
         class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto overflow-hidden transition-all duration-300"
-        :class="{ 'mt-3 pt-3 border-t border-app-border-light': isMobile && isMobileDockOpen }"
+        :class="{ 'mt-3 pt-3': isMobile && isMobileDockOpen }"
       >
         <!-- Filtros -->
         <div 

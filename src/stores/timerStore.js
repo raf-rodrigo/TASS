@@ -164,6 +164,14 @@ export const useTimerStore = defineStore('timer', () => {
     }
   };
 
+  const todayWorkedTimeFormatted = computed(() => {
+    const today = getTodayDateString();
+    const totalMs = taskStore.tasks.reduce((acc, task) => {
+      return acc + (task.dailyLogs?.[today] || 0);
+    }, 0);
+    return formatMsToHMS(totalMs, true);
+  });
+
   return {
     activeTask,
     activeTaskTimeFormatted,
@@ -171,6 +179,7 @@ export const useTimerStore = defineStore('timer', () => {
     resetTaskTime,
     updateRunningTasks,
     autoSaveRunningTasks,
-    adjustTaskTime
+    adjustTaskTime,
+    todayWorkedTimeFormatted
   };
 });
