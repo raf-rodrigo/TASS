@@ -85,7 +85,7 @@ const formatDate = (dateString) => {
             @input="$emit('update:searchQuery', $event.target.value); $emit('search')"
             type="text"
             placeholder="Buscar branch..."
-            :disabled="branchesLoading"
+            :disabled="!branchesFetched"
             class="w-full h-full bg-slate-50 dark:bg-slate-900/50 border border-app-border-light rounded-[var(--app-input-radius)] shadow-inner pl-4 pr-10 py-0 text-xs text-app-main placeholder-app-muted focus:outline-none focus:border-indigo-500/50 transition-all font-mono min-w-0 disabled:opacity-50"
           />
           <div class="absolute right-3 top-2.5 flex items-center gap-1.5 pointer-events-none">

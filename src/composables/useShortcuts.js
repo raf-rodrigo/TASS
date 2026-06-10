@@ -18,11 +18,15 @@ export function useShortcuts({ onToggleNotes, onOpenAddModal, onOpenSettings, on
       return;
     }
 
-    const activeTag = document.activeElement.tagName.toLowerCase();
+    // Verifica se o foco está em qualquer elemento editável — incluindo os dentro de modais complexos.
+    // O activeElement pode ser o container do modal em vez do input filho, então usamos closest() como fallback.
+    const active = document.activeElement;
+    const activeTag = active?.tagName?.toLowerCase();
     const isInput = activeTag === 'input' || 
                     activeTag === 'textarea' || 
                     activeTag === 'select' || 
-                    document.activeElement.isContentEditable;
+                    active?.isContentEditable ||
+                    active?.closest('input, textarea, select, [contenteditable]') !== null;
     
     if (isInput) return;
 
