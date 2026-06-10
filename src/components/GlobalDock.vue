@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { 
   Plus, Calendar, Clock, RotateCcw, X, 
-  Settings, Sun, Moon, Headphones, MoreHorizontal, CloudLightning
+  Settings, Sun, Moon, Headphones, MoreHorizontal, CloudLightning, FileText
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
@@ -153,6 +153,9 @@ const dockRadius = computed(() => {
               <Headphones class="w-4 h-4 text-amber-500" />
               <span v-if="radioStore.isPlaying" class="absolute top-0.5 right-0.5 w-2 h-2 bg-amber-500 rounded-full animate-ping opacity-75"></span>
               <span v-if="radioStore.isPlaying" class="absolute top-0.5 right-0.5 w-2 h-2 bg-amber-500 rounded-full opacity-50"></span>
+            </button>
+            <button @click="emit('open-notes')" class="util-btn" data-tip="Notas Rápidas">
+              <FileText class="w-4 h-4" />
             </button>
             <button @click="emit('toggle-theme')" class="util-btn" data-tip="Alternar Tema">
               <Sun v-if="settings.theme === 'dark'" class="w-4 h-4 text-amber-500" />

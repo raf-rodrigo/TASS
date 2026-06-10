@@ -55,4 +55,9 @@
     padding: 0.25rem !important;
     border-radius: var(--app-input-radius) !important;
   }
+
+  /* Ocultar a abinha física do Notes no mobile quando estiver fechado */
+  aside.is-closed > div.absolute {
+    display: none !important;
+  }
 }

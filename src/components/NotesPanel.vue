@@ -161,7 +161,8 @@ const swipeTransform = computed(() => {
     :class="[
       (isResizingLocal || isSwiping) ? '!transition-none' : 'transition-all duration-500 ease-in-out',
       settings.notesSide === 'right' ? 'right-0' : 'left-0',
-      panelSlideClass
+      panelSlideClass,
+      isOpen ? 'is-open' : 'is-closed'
     ]"
     :style="{ 
       width: settings.notesWidth + 'px',
