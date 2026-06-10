@@ -8,11 +8,20 @@ export function useTabSwipe(activeTabRef, tabsArray, navRef, swipeAreaRef) {
   const offsetX = ref(0);
   const jumpMode = ref(false);
   const disableVueTransition = ref(false);
+  const swipeDirectionLocked = ref('none'); // 'none', 'horizontal', 'vertical'
 
-  const { lengthX, isSwiping } = useSwipe(swipeAreaRef, {
+  const { lengthX, lengthY, isSwiping } = useSwipe(swipeAreaRef, {
     threshold: 40,
+    onSwipeStart: () => {
+      swipeDirectionLocked.value = 'none';
+    },
     onSwipeEnd: (e, direction) => {
       if (!isMobile.value) return;
+      if (swipeDirectionLocked.value !== 'horizontal') {
+        offsetX.value = 0;
+        swipeDirectionLocked.value = 'none';
+        return;
+      }
 
       const currentIndex = tabsArray.findIndex(t => t.id === activeTabRef.value);
       if (currentIndex === -1) return;
@@ -27,6 +36,7 @@ export function useTabSwipe(activeTabRef, tabsArray, navRef, swipeAreaRef) {
       } else {
         offsetX.value = 0; // Snap back if threshold not met
       }
+      swipeDirectionLocked.value = 'none';
     }
   });
 
@@ -52,9 +62,31 @@ export function useTabSwipe(activeTabRef, tabsArray, navRef, swipeAreaRef) {
     }, 250);
   };
 
-  watch([isSwiping, lengthX], () => {
-    if (isSwiping.value && !jumpMode.value) {
+  watch([isSwiping, lengthX, lengthY], () => {
+    if (!isMobile.value) return;
+
+    if (!isSwiping.value) {
+      return;
+    }
+
+    if (swipeDirectionLocked.value === 'none') {
+      const absX = Math.abs(lengthX.value);
+      const absY = Math.abs(lengthY.value);
+      
+      // Decidir a direção dominante se exceder o limite mínimo de 8px
+      if (absX > 8 || absY > 8) {
+        if (absX > absY * 1.5) {
+          swipeDirectionLocked.value = 'horizontal';
+        } else {
+          swipeDirectionLocked.value = 'vertical';
+        }
+      }
+    }
+
+    if (swipeDirectionLocked.value === 'horizontal' && !jumpMode.value) {
       offsetX.value = -lengthX.value;
+    } else {
+      offsetX.value = 0;
     }
   });
 
