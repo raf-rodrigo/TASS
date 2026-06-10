@@ -20,6 +20,7 @@ import BaseModal from './BaseModal.vue';
 import AppInput from './base/AppInput.vue';
 import AppTextarea from './base/AppTextarea.vue';
 import AppSelect from './base/AppSelect.vue';
+import AppSwitch from './base/AppSwitch.vue';
 import AppColorPalette from './AppColorPalette.vue';
 import { useTabSwipe } from '../composables/useTabSwipe';
 
@@ -38,9 +39,9 @@ const description = ref(taskToEdit ? taskToEdit.description : '');
 
 // Advanced properties
 const priority = ref(taskToEdit?.priority || 'Normal');
-const devUrl = ref(taskToEdit?.devUrl || '');
-const homologUrl = ref(taskToEdit?.homologUrl || '');
-const prodUrl = ref(taskToEdit?.prodUrl || '');
+const devUrl = ref(taskToEdit?.devUrl == 1);
+const homologUrl = ref(taskToEdit?.homologUrl == 1);
+const prodUrl = ref(taskToEdit?.prodUrl == 1);
 const taskUrl = ref(taskToEdit?.taskUrl || '');
 const isGitHub = computed(() => settings.gitProvider === 'github');
 const branchName = ref(settings.gitProvider === 'github' ? (taskToEdit?.githubBranchName || '') : (taskToEdit?.branchName || ''));
@@ -105,9 +106,6 @@ const validateFields = () => {
   let firstErrorTab = null;
 
   const urlFields = [
-    { key: 'devUrl', value: devUrl.value, label: 'Desenvolvimento', tab: 'links' },
-    { key: 'homologUrl', value: homologUrl.value, label: 'Homologação', tab: 'links' },
-    { key: 'prodUrl', value: prodUrl.value, label: 'Produção', tab: 'links' },
     { key: 'taskUrl', value: taskUrl.value, label: 'Link da Tarefa', tab: 'links' },
     { key: 'branchUrl', value: branchUrl.value, label: 'Link da Branch', tab: 'links' }
   ];
@@ -130,7 +128,7 @@ const validateFields = () => {
 
 const hasErrorInTab = (tabId) => {
   if (tabId === 'links') {
-    return !!(errors.value.devUrl || errors.value.homologUrl || errors.value.prodUrl || errors.value.taskUrl || errors.value.branchUrl);
+    return !!(errors.value.taskUrl || errors.value.branchUrl);
   }
   if (tabId === 'basic') {
     return !!errors.value.title;
@@ -188,9 +186,9 @@ const submitTask = () => {
     description: description.value.trim(),
     estimatedTime: timeStr,
     priority: priority.value,
-    devUrl: ensureProtocol(devUrl.value.trim()),
-    homologUrl: ensureProtocol(homologUrl.value.trim()),
-    prodUrl: ensureProtocol(prodUrl.value.trim()),
+    devUrl: devUrl.value ? 1 : 0,
+    homologUrl: homologUrl.value ? 1 : 0,
+    prodUrl: prodUrl.value ? 1 : 0,
     taskUrl: ensureProtocol(taskUrl.value.trim()),
     ...(settings.gitProvider === 'github' ? {
       githubBranchName: branchName.value.trim(),
@@ -441,10 +439,10 @@ const submitTask = () => {
               <h4 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.2em]">Pipeline</h4>
             </div>
             
-            <div class="grid grid-cols-1 gap-6">
-              <AppInput v-model="devUrl" type="url" label="Desenvolvimento" label-color="text-orange-500" placeholder="https://..." :error="errors.devUrl" @update:modelValue="clearError('devUrl')" />
-              <AppInput v-model="homologUrl" type="url" label="Homologação" label-color="text-emerald-500" placeholder="https://..." :error="errors.homologUrl" @update:modelValue="clearError('homologUrl')" />
-              <AppInput v-model="prodUrl" type="url" label="Produção" label-color="text-blue-500" placeholder="https://..." :error="errors.prodUrl" @update:modelValue="clearError('prodUrl')" />
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <AppSwitch v-model="devUrl" label="Desenvolvimento" active-color="peer-checked:bg-orange-500" />
+              <AppSwitch v-model="homologUrl" label="Homologação" active-color="peer-checked:bg-emerald-500" />
+              <AppSwitch v-model="prodUrl" label="Produção" active-color="peer-checked:bg-blue-500" />
             </div>
           </div>
         </div>

@@ -25,9 +25,9 @@ const mockTask = ref({
   moreInfo: 'Informações adicionais bem longas para testar o ícone',
   dbScripts: 'SELECT * FROM test;',
   taskUrl: 'https://github.com',
-  devUrl: 'http://localhost:8080',
-  homologUrl: 'https://staging.myapp.com',
-  prodUrl: 'https://myapp.com',
+  devUrl: 1,
+  homologUrl: 1,
+  prodUrl: 1,
   _labOverride: true
 });
 </script>
