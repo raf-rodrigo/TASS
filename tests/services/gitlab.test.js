@@ -45,7 +45,7 @@ describe('gitlabService', () => {
     });
   });
 
-  describe('handleGitlabFlow (Modo Link)', () => {
+  describe('handleGitFlow (Modo Link)', () => {
     it('deve abrir a URL de criação de branch quando o modo for "link" preservando o case', async () => {
       const task = { title: 'TASK-1', description: 'Teste' };
       const settings = { 
@@ -53,7 +53,7 @@ describe('gitlabService', () => {
         gitlabIntegrationMode: 'link' 
       };
 
-      await gitlabService.handleGitlabFlow(task, settings);
+      await gitlabService.handleGitFlow(task, settings);
       
       expect(window.open).toHaveBeenCalledWith(
         expect.stringContaining('gitlab.com/-/branches/new?branch_name=TASK-1-Teste'),

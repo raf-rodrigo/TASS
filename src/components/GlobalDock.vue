@@ -1,8 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { useSwipe } from '@vueuse/core';
 import { 
   Plus, Calendar, Clock, RotateCcw, X, 
-  Settings, Sun, Moon, Headphones, MoreHorizontal, CloudLightning, FileText
+  Settings, Sun, Moon, Headphones, MoreHorizontal, CloudLightning, FileText, ChevronUp
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
@@ -23,6 +24,28 @@ const radioStore = useRadioStore();
 
 const { isMobile } = useDeviceBehavior();
 const isExpanded = ref(false);
+const isMobileDockOpen = ref(false);
+
+const handleRef = ref(null);
+const dockRef = ref(null);
+
+useSwipe(handleRef, {
+  threshold: 15,
+  onSwipeEnd: (e, direction) => {
+    if (isMobile.value && String(direction).toUpperCase() === 'UP') {
+      isMobileDockOpen.value = true;
+    }
+  }
+});
+
+useSwipe(dockRef, {
+  threshold: 15,
+  onSwipeEnd: (e, direction) => {
+    if (isMobile.value && String(direction).toUpperCase() === 'DOWN') {
+      isMobileDockOpen.value = false;
+    }
+  }
+});
 
 onMounted(() => {
   if (!isMobile.value) {
@@ -37,11 +60,65 @@ const dockRadius = computed(() => {
 </script>
 
 <template>
-  <div class="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-[250] w-full max-w-fit px-2 sm:px-4 pointer-events-none pb-[env(safe-area-inset-bottom)]">
+  <!-- 1. BACKDROP OVERLAY (Mobile only when dock is expanded) -->
+  <transition
+    enter-active-class="transition duration-300 ease-out"
+    enter-from-class="opacity-0"
+    enter-to-class="opacity-100"
+    leave-active-class="transition duration-200 ease-in"
+    leave-from-class="opacity-100"
+    leave-to-class="opacity-0"
+  >
+    <div 
+      v-if="isMobile && isMobileDockOpen"
+      class="fixed inset-0 bg-slate-900/15 backdrop-blur-[1.5px] z-[240] pointer-events-auto"
+      @click="isMobileDockOpen = false"
+    ></div>
+  </transition>
+
+  <!-- 2. FLOATING ACTION BUTTON (Mobile only, shown when dock is closed) -->
+  <button 
+    v-if="isMobile"
+    @click.stop="emit('add-task')"
+    class="fixed bottom-4 right-4 w-12 h-12 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/30 transition-all duration-300 active:scale-95 z-[240]"
+    :class="[
+      isMobileDockOpen ? 'pointer-events-none opacity-0 scale-75' : 'pointer-events-auto opacity-100 scale-100'
+    ]"
+    :style="{ borderRadius: 'var(--app-card-radius)' }"
+  >
+    <Plus class="w-6 h-6" />
+  </button>
+
+  <!-- 3. PULL-UP INDICATOR HANDLE (Mobile only, shown when dock is closed) -->
+  <div 
+    v-if="isMobile"
+    ref="handleRef"
+    @click.stop="isMobileDockOpen = true"
+    class="fixed bottom-0 left-0 w-full h-14 z-[240] flex items-end justify-center pb-3 cursor-pointer transition-all duration-300 touch-none select-none bg-slate-900/0"
+    :class="[
+      isMobileDockOpen ? 'pointer-events-none opacity-0 translate-y-4' : 'pointer-events-auto opacity-100 translate-y-0'
+    ]"
+  >
+    <div class="flex flex-col items-center gap-1 group">
+      <ChevronUp class="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-indigo-500 transition-colors animate-bounce" />
+      <div class="w-16 h-1.5 bg-slate-400/40 dark:bg-white/20 rounded-full group-hover:bg-indigo-500/50 transition-colors"></div>
+    </div>
+  </div>
+
+  <!-- 4. MAIN DOCK CONTAINER -->
+  <div 
+    ref="dockRef"
+    class="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-[250] w-full max-w-fit px-2 sm:px-4 pb-[env(safe-area-inset-bottom)] transition-all duration-300 ease-out"
+    :class="[
+      isMobile 
+        ? (isMobileDockOpen ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none translate-y-[150%] opacity-0') 
+        : 'pointer-events-auto translate-y-0 opacity-100'
+    ]"
+  >
     <div 
       class="dynamic-island flex flex-col md:flex-row items-center shadow-2xl border border-app-border-light ring-1 ring-black/5 pointer-events-auto transition-all duration-300 ease-out overflow-hidden"
       :class="[
-        isMobile && isExpanded ? 'w-[90vw] gap-3 p-4' : 'p-1.5 gap-2'
+        isMobile && isMobileDockOpen ? 'w-[90vw] gap-3 p-4' : 'p-1.5 gap-2'
       ]"
       :style="{ 
         backgroundColor: `rgba(var(--app-bg-raw), var(--app-bottom-opacity))`,
@@ -49,6 +126,15 @@ const dockRadius = computed(() => {
         borderRadius: dockRadius
       }"
     >
+      <!-- Pull-down Close Bar (Mobile only inside open dock) -->
+      <div 
+        v-if="isMobile" 
+        @click="isMobileDockOpen = false" 
+        class="w-full flex justify-center py-1 cursor-pointer group -mt-2 mb-1 border-b border-app-border-light/10 pb-2"
+      >
+        <div class="w-10 h-1 bg-slate-400/30 dark:bg-white/10 rounded-full group-hover:bg-indigo-500/50 transition-all"></div>
+      </div>
+
       <!-- LINHA 1: Cabeçalho da Ilha / Ações Principais -->
       <div class="flex items-center w-full md:w-auto" :class="{ 'justify-between': isMobile }">
         <div class="flex items-center gap-2">
@@ -93,24 +179,22 @@ const dockRadius = computed(() => {
           </transition>
         </div>
 
-        <!-- Toggle Mobile Expansion -->
+        <!-- Toggle Mobile Expansion (Fechar no mobile) -->
         <button 
           v-if="isMobile" 
-          @click.stop="isExpanded = !isExpanded"
-          class="w-12 h-12 md:w-10 md:h-10 flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-colors ml-2"
-          data-tip="Opções da Dock"
+          @click.stop="isMobileDockOpen = false"
+          class="w-12 h-12 md:w-10 md:h-10 flex items-center justify-center text-red-500 hover:text-red-600 transition-colors ml-2"
+          data-tip="Fechar opções"
         >
-          <X v-if="isExpanded" class="w-5 h-5 text-red-500" />
-          <MoreHorizontal v-else class="w-5 h-5" />
+          <X class="w-5 h-5" />
         </button>
       </div>
 
       <!-- SEÇÃO EXPANSÍVEL (Filtros e Utilidades) -->
-      <!-- No desktop v-show é sempre true. No mobile controlado pelo isExpanded -->
       <div 
-        v-show="!isMobile || isExpanded"
+        v-show="!isMobile || isMobileDockOpen"
         class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto overflow-hidden transition-all duration-300"
-        :class="{ 'mt-3 pt-3 border-t border-app-border-light': isMobile && isExpanded }"
+        :class="{ 'mt-3 pt-3 border-t border-app-border-light': isMobile && isMobileDockOpen }"
       >
         <!-- Filtros -->
         <div 

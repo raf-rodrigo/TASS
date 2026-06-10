@@ -3,6 +3,12 @@ import { mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import GlobalDock from '../../src/components/GlobalDock.vue';
 
+// Mock do useSwipe do VueUse
+const mockUseSwipe = vi.fn();
+vi.mock('@vueuse/core', () => ({
+  useSwipe: (...args) => mockUseSwipe(...args)
+}));
+
 // Mock das Stores
 vi.mock('../../src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
@@ -69,5 +75,11 @@ describe('GlobalDock.vue', () => {
       await themeBtn.trigger('click');
       expect(wrapper.emitted()).toHaveProperty('toggle-theme');
     }
+  });
+
+  it('deve registrar os listeners de swipe na montagem', () => {
+    mount(GlobalDock);
+    // Deve chamar useSwipe duas vezes (uma para o handle e outra para a dock)
+    expect(mockUseSwipe).toHaveBeenCalledTimes(2);
   });
 });
