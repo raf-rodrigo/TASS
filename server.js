@@ -10,29 +10,34 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 5176;
+const PORT = process.env.PORT || 5176;
 
-// Configuração de CORS Restrita a Origens de Desenvolvimento Local
+// Configuração de CORS Restrita a Origens de Desenvolvimento Local e do Servidor
 const allowedOrigins = [
   /^http:\/\/localhost(:\d+)?$/,
   /^http:\/\/127\.0\.0\.1(:\d+)?$/
 ];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Permite requisições sem origem (como ferramentas locais de backend ou carregamento direto)
-    if (!origin) return callback(null, true);
-    
-    const isAllowed = allowedOrigins.some(regex => regex.test(origin));
+app.use(cors((req, callback) => {
+  const origin = req.header('Origin');
+  let corsOptions = {
+    methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-TASS-Client']
+  };
+
+  if (!origin) {
+    corsOptions.origin = true;
+  } else {
+    const host = req.get('host');
+    const isAllowed = allowedOrigins.some(regex => regex.test(origin)) || (host && origin.includes(host));
     if (isAllowed) {
-      callback(null, true);
+      corsOptions.origin = true;
     } else {
       console.warn(`[TASS] Requisição bloqueada por política CORS de origem não confiável: ${origin}`);
-      callback(new Error('Bloqueado por política CORS do TASS (Origem não confiável)'));
+      return callback(new Error('Bloqueado por política CORS do TASS (Origem não confiável)'));
     }
-  },
-  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-TASS-Client']
+  }
+  callback(null, corsOptions);
 }));
 
 app.use(express.json());

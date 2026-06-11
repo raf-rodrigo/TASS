@@ -5,9 +5,14 @@ const serverVersion = ref('');
 const checkInterval = 10000; // 10 segundos
 let intervalId = null;
 
+// Define a URL base do backend de forma dinâmica. Em produção (no mesmo domínio), usa caminhos relativos.
+const API_BASE = (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
+  ? ''
+  : 'http://localhost:5176';
+
 /**
  * bridgeService
- * Gerencia o monitoramento da conexão com o backend (server.js na porta 5176).
+ * Gerencia o monitoramento da conexão com o backend.
  */
 export const bridgeService = {
   isServerOnline,
@@ -18,7 +23,7 @@ export const bridgeService = {
    */
   async checkStatus() {
     try {
-      const response = await fetch('http://localhost:5176/api/health', {
+      const response = await fetch(`${API_BASE}/api/health`, {
         // Aborta após 3 segundos para evitar esperas longas em caso de offline
         signal: AbortSignal.timeout(3000)
       });
@@ -59,7 +64,7 @@ export const bridgeService = {
    */
   async executeTerminalCommand(command, cwd) {
     try {
-      const response = await fetch('http://localhost:5176/api/terminal/execute', {
+      const response = await fetch(`${API_BASE}/api/terminal/execute`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +92,7 @@ export const bridgeService = {
    */
   async getTerminalInfo() {
     try {
-      const response = await fetch('http://localhost:5176/api/terminal/info', {
+      const response = await fetch(`${API_BASE}/api/terminal/info`, {
         headers: {
           'X-TASS-Client': 'true'
         }
