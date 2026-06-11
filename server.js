@@ -40,7 +40,42 @@ app.use(cors((req, callback) => {
   callback(null, corsOptions);
 }));
 
+// Middleware de Autenticação Básica (Basic Auth) para Produção
+    app.use((req, res, next) => {
+      const expectedPassword = process.env.TASS_PASSWORD;
+
+      // Se a senha não estiver configurada no ambiente (ex: desenvolvimento local), libera o acesso
+      if (!expectedPassword) {
+        return next();
+      }
+
+      const expectedUser = process.env.TASS_USER || 'admin';
+      const authHeader = req.headers.authorization;
+
+      if (!authHeader) {
+        res.setHeader('WWW-Authenticate', 'Basic realm="TASS Secure Area"');
+        return res.status(401).send('Autenticação necessária.');
+      }
+
+      try {
+        const auth = Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+        const user = auth[0];
+        const pass = auth[1];
+
+        if (user === expectedUser && pass === expectedPassword) {
+          return next();
+        }
+      } catch (err) {
+        // Erro ao decodificar as credenciais
+      }
+
+      res.setHeader('WWW-Authenticate', 'Basic realm="TASS Secure Area"');
+      return res.status(401).send('Credenciais inválidas.');
+    });
+
+    
 app.use(express.json());
+
 
 // Middleware de Log Detalhado
 app.use((req, res, next) => {
