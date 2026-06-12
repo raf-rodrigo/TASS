@@ -6,7 +6,6 @@ import { useTaskStore } from '../stores/taskStore';
 import { useRadioStore } from '../stores/radioStore';
 import { useTheme } from '../composables/useTheme';
 import { useTaskStyleStore } from '../stores/taskStyleStore';
-import { notificationService } from '../services/notificationService';
 import { 
   PlusCircle, RotateCcw, List, Activity, CheckCircle, 
   Calendar, CloudLightning, Headphones, Sun, Moon, Settings,
@@ -119,7 +118,9 @@ const handleOpenAbout = () => {
 };
 
 const handleApplyStyleAll = async (styleId) => {
-  const promises = taskStore.tasks.map(task => taskStore.updateTask(task.id, { styleId: styleId || null }));
+  const promises = taskStore.tasks
+    .filter(task => !task.styleLocked)
+    .map(task => taskStore.updateTask(task.id, { styleId: styleId || null }));
   await Promise.all(promises);
 };
 

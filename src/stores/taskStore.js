@@ -68,6 +68,7 @@ export const useTaskStore = defineStore('task', () => {
       tasks.value = dbTasks;
     } catch (error) {
       console.error("Failed to load tasks:", error);
+      notificationService.toast("Erro ao carregar as tarefas do banco de dados local.", "error");
     } finally {
       isLoading.value = false;
     }
@@ -102,6 +103,7 @@ export const useTaskStore = defineStore('task', () => {
       return id;
     } catch (error) {
       console.error("Failed to add task:", error);
+      notificationService.toast("Erro ao criar a tarefa no banco de dados.", "error");
       throw error;
     }
   };
@@ -116,6 +118,7 @@ export const useTaskStore = defineStore('task', () => {
       await updateTask(task.id, { completed: newStatus });
     } catch (error) {
       console.error("Failed to update task completion:", error);
+      notificationService.toast("Erro ao alterar o estado de conclusão da tarefa.", "error");
     }
   };
 
@@ -136,6 +139,7 @@ export const useTaskStore = defineStore('task', () => {
       }
     } catch (error) {
       console.error("Failed to update task:", error);
+      notificationService.toast("Erro ao salvar atualizações da tarefa no banco de dados.", "error");
       throw error;
     }
   };
@@ -158,6 +162,7 @@ export const useTaskStore = defineStore('task', () => {
       tasks.value = tasks.value.filter(t => t.id !== id);
     } catch (error) {
       console.error("Failed to delete task:", error);
+      notificationService.toast("Erro ao remover a tarefa do banco de dados.", "error");
     }
   };
 
@@ -186,6 +191,7 @@ export const useTaskStore = defineStore('task', () => {
       lastDeletedTask.value = null;
     } catch (error) {
       console.error("Failed to restore task:", error);
+      notificationService.toast("Erro ao restaurar a tarefa deletada.", "error");
     }
   };
 
@@ -199,7 +205,7 @@ export const useTaskStore = defineStore('task', () => {
       await addTask(newTaskData);
     } catch (error) {
       console.error("Failed to clone task:", error);
-      notificationService.toast('Erro ao clonar tarefa', 'error');
+      notificationService.toast("Erro ao clonar a tarefa.", "error");
     }
   };
 
@@ -232,6 +238,7 @@ export const useTaskStore = defineStore('task', () => {
       }
     } catch (error) {
       console.error("Failed to update task positions:", error);
+      notificationService.toast("Erro ao salvar nova posição das tarefas no banco de dados.", "error");
     }
   };
 
@@ -251,6 +258,7 @@ export const useTaskStore = defineStore('task', () => {
       return true;
     } catch (error) {
       console.error("Failed to reset system:", error);
+      notificationService.toast("Erro ao limpar dados do sistema no banco de dados.", "error");
       return false;
     }
   };

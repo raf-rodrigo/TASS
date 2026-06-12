@@ -50,6 +50,7 @@ const dbScripts = ref(taskToEdit?.dbScripts || '');
 const moreInfo = ref(taskToEdit?.moreInfo || '');
 const sprintId = ref(taskToEdit?.sprintId || '');
 const styleId = ref(taskToEdit?.styleId || '');
+const styleLocked = ref(taskToEdit?.styleLocked === true);
 
 const hoveredStyleId = ref(null);
 const showStyleDropdown = ref(false);
@@ -201,6 +202,7 @@ const submitTask = () => {
     moreInfo: moreInfo.value.trim(),
     sprintId: sprintId.value ? parseInt(sprintId.value) : null,
     styleId: styleId.value || null,
+    styleLocked: styleLocked.value,
     // Limpar as propriedades legadas para evitar sobreposição de estilos
     color: '',
     bgColor: '',
@@ -351,6 +353,14 @@ const submitTask = () => {
                </div>
                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Prévia de Cores</span>
             </div>
+          </div>
+
+          <div class="bg-app-surface p-4 rounded-2xl border border-app-border-light mt-4">
+            <AppSwitch 
+              v-model="styleLocked"
+              label="Proteger Preset da Tarefa"
+              description="Impede que o preset selecionado seja alterado se você aplicar uma mudança de preset global no workspace."
+            />
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

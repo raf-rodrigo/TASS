@@ -31,7 +31,8 @@ export const taskActionService = {
         await taskStore.updateTask(task.id, { [field]: formattedValue });
         return true;
       } catch (error) {
-        notificationService.toast('Erro ao salvar alteração.', 'error');
+        console.error('Erro ao atualizar campo da tarefa:', error);
+        notificationService.toast(`Erro ao salvar alteração: ${error.message}`, 'error');
         return false;
       }
     }

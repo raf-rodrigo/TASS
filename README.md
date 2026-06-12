@@ -107,6 +107,9 @@ O TASS foi construído com foco em precisão, leveza e performance extremas. **A
 - **Arquitetura Client-Side:** Baixo consumo de memória e total isolamento (sandbox) local. Não há polling de rede invisível consumindo sua bateria.
 - **Web Workers (Virtual Hardware Precision):** O cronômetro das tarefas opera em uma thread isolada via Web Worker nativo, garantindo que a contagem de tempo seja imune a restrições de economia de bateria aplicadas pelo navegador em abas de segundo plano.
 - **Modularidade Avançada:** Arquitetura baseada em serviços desacoplados (`src/services/`) e stores reativas do Pinia (`src/stores/`) para máxima escalabilidade.
+- **Garantia de Qualidade (ESLint & Vitest):**
+  - **ESLint:** Configuração baseada na especificação Flat Config moderna (v9+) integrada com analisadores de Vue 3. Varre o repositório em busca de variáveis órfãs, imports mortos ou sintaxes inválidas, mantendo a base de código limpa e otimizada.
+  - **Vitest:** Suite de testes moderna, integrada nativamente ao Vite, que valida a integridade de stores, composables e utilitários em tempo recorde, prevenindo regressões de lógica.
 - **Estilização Semântica:** Uso rigoroso de Tailwind CSS e variáveis de CSS puro, garantindo zero hardcoding em estilos e permitindo customização infinita.
 
 ---
@@ -117,7 +120,8 @@ O TASS foi construído com foco em precisão, leveza e performance extremas. **A
 - **[Pinia](https://pinia.vuejs.org/)**: Gestão de estado global de alta performance.
 - **[Tailwind CSS](https://tailwindcss.com/)**: Design atômico e responsivo.
 - **[Lucide Vue Next](https://lucide.dev/)**: Iconografia premium e consistente.
-- **[Vitest](https://vitest.dev/)**: Suite de testes moderna e ultra-rápida.
+- **[Vitest](https://vitest.dev/)**: Suite de testes unitários ultra-rápida.
+- **[ESLint](https://eslint.org/)**: Análise estática do código para qualidade e consistência.
 - **[Dexie.js](https://dexie.org/)**: Persistência robusta no cliente.
 
 ---
@@ -142,6 +146,9 @@ O TASS foi construído com foco em precisão, leveza e performance extremas. **A
 ```bash
 # Executar testes unitários
 npm test
+
+# Executar a varredura do linter para controle de código órfão
+npm run lint
 
 # Gerar build final de produção (SPA)
 npm run build

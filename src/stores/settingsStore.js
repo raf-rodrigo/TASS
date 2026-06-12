@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, watch, computed } from 'vue';
 import { db } from '../db.js';
+import { notificationService } from '../services/notificationService';
 
 export const useSettingsStore = defineStore('settings', () => {
   const theme = ref('dark');
@@ -195,19 +196,7 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-radio-pos-x'] !== undefined) radioPositionX.value = settingsMap['app-radio-pos-x'];
       if (settingsMap['app-radio-pos-y'] !== undefined) radioPositionY.value = settingsMap['app-radio-pos-y'];
 
-      // Injeção Inteligente: Sugere os wallpapers de elite apenas se a galeria ainda estiver vazia
-      if (customWallpapers.value.length === 0) {
-        const eliteWallpapers = [
-          { name: 'Minimalist Zen', url: 'https://images.unsplash.com/photo-1510672981848-a1c4f1cb5ccf?q=80&w=1920&auto=format&fit=crop' },
-          { name: 'Deep Abstract', url: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?q=80&w=1920&auto=format&fit=crop' },
-          { name: 'Neon Rain', url: 'https://images.unsplash.com/photo-1493238792000-811347057630?q=80&w=1920&auto=format&fit=crop' },
-          { name: 'Foggy Silence', url: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1920&auto=format&fit=crop' },
-          { name: 'Liquid Obsidian', url: 'https://images.unsplash.com/photo-1614850523296-e811cf7ef895?q=80&w=1920&auto=format&fit=crop' },
-          { name: 'Scholar’s Retreat', url: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1920&auto=format&fit=crop' }
-        ];
-        customWallpapers.value = eliteWallpapers;
-        saveAllSettings(); // Salva a carga inicial
-      }
+
       if (settingsMap['app-task-number-size'] !== undefined) taskNumberSize.value = settingsMap['app-task-number-size'];
       if (settingsMap['app-task-desc-size'] !== undefined) taskDescriptionSize.value = settingsMap['app-task-desc-size'];
       if (settingsMap['app-task-timer-size'] !== undefined) taskTimerSize.value = settingsMap['app-task-timer-size'];
@@ -258,9 +247,24 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-github-base-target'] !== undefined) githubBaseTarget.value = settingsMap['app-github-base-target'];
       if (settingsMap['app-console-font-size'] !== undefined) consoleFontSize.value = parseInt(settingsMap['app-console-font-size'], 10);
 
+      // Injeção Inteligente: Sugere os wallpapers de elite apenas se a galeria ainda estiver vazia
+      if (customWallpapers.value.length === 0) {
+        const eliteWallpapers = [
+          { name: 'Minimalist Zen', url: 'https://images.unsplash.com/photo-1510672981848-a1c4f1cb5ccf?q=80&w=1920&auto=format&fit=crop' },
+          { name: 'Deep Abstract', url: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?q=80&w=1920&auto=format&fit=crop' },
+          { name: 'Neon Rain', url: 'https://images.unsplash.com/photo-1493238792000-811347057630?q=80&w=1920&auto=format&fit=crop' },
+          { name: 'Foggy Silence', url: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1920&auto=format&fit=crop' },
+          { name: 'Liquid Obsidian', url: 'https://images.unsplash.com/photo-1614850523296-e811cf7ef895?q=80&w=1920&auto=format&fit=crop' },
+          { name: 'Scholar’s Retreat', url: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1920&auto=format&fit=crop' }
+        ];
+        customWallpapers.value = eliteWallpapers;
+        await saveAllSettings(); // Salva a carga inicial
+      }
+
       isInitialized.value = true;
     } catch (error) {
       console.error("Failed to load settings from IndexedDB", error);
+      notificationService.toast("Erro ao carregar as configurações locais do sistema.", "error");
     }
   };
 
@@ -273,6 +277,7 @@ export const useSettingsStore = defineStore('settings', () => {
       await db.settings.put({ key, value: cleanValue });
     } catch (error) {
       console.error(`Failed to save setting ${key}`, error);
+      notificationService.toast("Falha ao salvar configuração no banco de dados.", "error");
     }
   };
 
@@ -363,6 +368,7 @@ export const useSettingsStore = defineStore('settings', () => {
       console.log("All settings saved to database");
     } catch (error) {
       console.error("Failed to save all settings", error);
+      notificationService.toast("Erro ao salvar configurações no banco de dados.", "error");
     }
   };
 

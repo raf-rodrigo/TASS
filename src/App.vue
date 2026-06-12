@@ -63,6 +63,13 @@ const sprintInitialShowAddForm = ref(false);
 const { currentMessage, showMessage, triggerWellness } = useWellness(settings);
 const { shouldHideDockForModal, isMobile } = useDeviceBehavior();
 
+const isDockVisible = computed(() => {
+  return uiStore.showGlobalDock && 
+         !shouldHideDockForModal.value && 
+         (!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating') && 
+         route.name === 'Workspace';
+});
+
 useTaskShortcuts();
 
 useShortcuts({
@@ -431,26 +438,17 @@ onMounted(async () => {
       </transition>
 
       <!-- Global Dock -->
-      <transition 
-        enter-active-class="transition duration-500 ease-out"
-        enter-from-class="translate-y-20 opacity-0 scale-95"
-        enter-to-class="translate-y-0 opacity-100 scale-100"
-        leave-active-class="transition duration-300 ease-in"
-        leave-from-class="translate-y-0 opacity-100 scale-100"
-        leave-to-class="translate-y-20 opacity-0 scale-95"
-      >
-        <GlobalDock 
-          v-if="uiStore.showGlobalDock && !shouldHideDockForModal && (!taskStore.selectedTask || settings.contextMenuMode === 'stack' || settings.contextMenuStyle === 'floating') && route.name === 'Workspace'"
-          @add-task="uiStore.openTaskModal"
-          @open-sprints="openSprintsFromDock"
-          @open-notes="uiStore.showNotes = !uiStore.showNotes"
-          @open-interface="openInterfaceFromDock"
-          @open-settings="openSettingsFromDock"
-          @toggle-theme="toggleTheme"
-          @open-radio="handleToggleRadio"
-          @open-git-rebuilder="handleOpenGitRebuilder"
-        />
-      </transition>
+      <GlobalDock 
+        :visible="isDockVisible"
+        @add-task="uiStore.openTaskModal"
+        @open-sprints="openSprintsFromDock"
+        @open-notes="uiStore.showNotes = !uiStore.showNotes"
+        @open-interface="openInterfaceFromDock"
+        @open-settings="openSettingsFromDock"
+        @toggle-theme="toggleTheme"
+        @open-radio="handleToggleRadio"
+        @open-git-rebuilder="handleOpenGitRebuilder"
+      />
     </div>
 
     <!-- Weather Widget -->

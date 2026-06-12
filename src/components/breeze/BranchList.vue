@@ -67,6 +67,7 @@ const formatDate = (dateString) => {
       minute: '2-digit'
     }).replace(',', ' às');
   } catch (e) {
+    console.error('Erro ao formatar data do commit:', e);
     return dateString;
   }
 };

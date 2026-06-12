@@ -116,13 +116,6 @@ const decreaseFontSize = () => {
   }
 };
 
-const closeSettings = () => {
-  // Reverte as CSS variables para os valores salvos na store
-  document.documentElement.style.setProperty('--app-card-radius', `${settingsStore.cardRadius}px`);
-  document.documentElement.style.setProperty('--app-input-radius', `${settingsStore.inputRadius}px`);
-  showSettingsModal.value = false;
-};
-
 const increaseFontSize = () => {
   if (settingsStore.consoleFontSize < 18) {
     settingsStore.consoleFontSize++;
@@ -373,12 +366,13 @@ const runRebuildPipeline = async (type) => {
 
   // Passo 1: Backup
   pipelineStep.value = 1;
-  let timestamp = "";
+  let timestamp;
   try {
     const timeRes = await fetch('http://127.0.0.1:5501/api/server-time');
     if (timeRes.ok) timestamp = (await timeRes.json()).timestamp;
     else throw new Error();
   } catch (e) {
+    console.warn('Erro ao obter hora do servidor, usando hora local para backup:', e);
     const now = new Date();
     timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}h${String(now.getMinutes()).padStart(2, '0')}`;
   }

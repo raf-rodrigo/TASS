@@ -35,7 +35,7 @@ export const gitBranchSlug = (text) => {
     .replace(/[\u0300-\u036f]/g, '')    // Remove acentos
     .trim()
     .replace(/\s+/g, '-')               // Espaços para hífens
-    .replace(/[^\w\d\-\/\.]/g, '')       // Remove caracteres inválidos para branch (mantém /, . e -)
+    .replace(new RegExp('[^\\w\\d\\-/.]', 'g'), '')       // Remove caracteres inválidos para branch (mantém /, . e -)
     .replace(/--+/g, '-')               // Evita múltiplos hífens
     .replace(/^-+|-+$/g, '');           // Remove hífens nas extremidades
 };

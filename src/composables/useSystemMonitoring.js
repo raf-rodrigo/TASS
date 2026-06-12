@@ -39,7 +39,7 @@ export function useSystemMonitoring(settings, timerStore) {
       
       const isWorkDay = settings.workDays.includes(currentDay);
       
-      let isWithinHours = false;
+      let isWithinHours;
       if (settings.workStart <= settings.workEnd) {
         // Horário comercial comum (ex: 08:00 às 18:00)
         isWithinHours = currentTimeStr >= settings.workStart && currentTimeStr < settings.workEnd;

@@ -83,7 +83,7 @@ export const useWeatherStore = defineStore('weather', {
         };
         localStorage.setItem('tass_weather_cache', JSON.stringify(data));
       } catch (e) {
-        // Ignora erro de cota ou private browsing
+        console.error('Erro ao salvar cache do clima no localStorage:', e);
       }
     },
     
@@ -99,7 +99,7 @@ export const useWeatherStore = defineStore('weather', {
           this.lastUpdate = data.lastUpdate;
         }
       } catch (e) {
-        // Ignora erro de parsing
+        console.error('Erro ao carregar ou parsear cache do clima do localStorage:', e);
       }
     }
   }
