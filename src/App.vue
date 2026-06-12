@@ -17,7 +17,6 @@ import StylePickerMenu from './components/StylePickerMenu.vue';
 import GlobalDock from './components/GlobalDock.vue';
 import RadioPlayer from './components/RadioPlayer.vue';
 import WelcomeModal from './components/WelcomeModal.vue';
-import WeatherWidget from './components/WeatherWidget.vue';
 import ImmersiveClock from './components/ImmersiveClock.vue';
 import GitRebuilder from './components/breeze/GitRebuilder.vue';
 import { useRouter, useRoute } from 'vue-router';
@@ -450,9 +449,6 @@ onMounted(async () => {
         @open-git-rebuilder="handleOpenGitRebuilder"
       />
     </div>
-
-    <!-- Weather Widget -->
-    <WeatherWidget />
 
     <!-- 4. Modal Layer -->
     <TaskModal 

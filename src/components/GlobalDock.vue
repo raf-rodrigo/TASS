@@ -11,6 +11,7 @@ import { useSprintStore } from '../stores/sprintStore';
 import { useTimerStore } from '../stores/timerStore';
 import { useRadioStore } from '../stores/radioStore';
 import { useDeviceBehavior } from '../composables/useDeviceBehavior.js';
+import WeatherWidget from './WeatherWidget.vue';
 
 const props = defineProps({
   visible: {
@@ -175,6 +176,9 @@ const dockRadius = computed(() => {
               Sprint: {{ sprintStore.activeSprintTotalTime }} • Hoje: {{ timerStore.todayWorkedTimeFormatted }}
             </span>
           </div>
+
+          <!-- Widget de Clima na Dock -->
+          <WeatherWidget />
 
           <!-- Botão Desfazer (Integrado na Dock) -->
           <transition 
