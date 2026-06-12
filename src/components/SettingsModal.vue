@@ -31,9 +31,7 @@ const props = defineProps({
     default: null
   }
 });
-
-const emit = defineEmits(['save', 'test-wellness']);
-
+const emit = defineEmits(['save', 'test-wellness', 'close', 'open-interface']);
 const activeTab = ref(props.initialTab || 'git');
 const isGoogleLoading = ref(false);
 const isGoogleAuthenticated = ref(googleDriveService.isAuthenticated());
