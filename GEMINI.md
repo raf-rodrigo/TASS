@@ -18,6 +18,7 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
 ## 2. Gestão de Dependências e Ecossistema
 - **Sugestão de Pacotes:** Sempre que uma melhoria ou funcionalidade nova puder ser implementada de forma mais robusta, segura ou eficiente através da instalação de um pacote externo (NPM), a IA **DEVE** recomendar o uso desse pacote em vez de uma implementação manual "do zero".
 - **Avaliação de Custo/Benefício:** Ao sugerir um pacote, a IA deve justificar brevemente por que aquela dependência é preferível à implementação interna (ex: manutenção, segurança, edge cases tratados).
+- **Documentação de Novas Ferramentas (MANDATÓRIO):** Sempre que qualquer nova ferramenta relevante (linters, compiladores, bibliotecas de teste, utilitários globais, etc.) for instalada ou integrada ao repositório, a IA **DEVE** atualizar o `README.md` detalhando seu propósito técnico e comandos no setup do projeto, bem como atualizar este arquivo (`GEMINI.md`) introduzindo quaisquer diretrizes ou regras de conduta associadas ao seu uso.
 
 ## 3. Padrões Técnicos e Visuais (Sintetizado do .cursorrules)
 - **Política "Zero Hardcoded":** Proibido o uso de valores visuais fixos. Use sempre tokens semânticos (`text-app-*`, `bg-app-*`, `border-app-*`).
