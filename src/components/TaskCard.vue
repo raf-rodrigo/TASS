@@ -250,7 +250,7 @@ const visibleIcons = computed(() => {
   if (cardMode.value === 'micro') return [];
 
   const availableSpace = cardWidth.value - 190;
-  let maxIcons = 0;
+  let maxIcons;
   
   if (availableSpace >= 140) maxIcons = 4;
   else if (availableSpace >= 105) maxIcons = 3;

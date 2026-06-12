@@ -52,7 +52,7 @@ export const useTimerStore = defineStore('timer', () => {
                              nowDate.getMinutes().toString().padStart(2, '0');
       
       const isWorkDay = settings.workDays.includes(currentDay);
-      let isWithinHours = false;
+      let isWithinHours;
       
       if (settings.workStart <= settings.workEnd) {
         isWithinHours = currentTimeStr >= settings.workStart && currentTimeStr < settings.workEnd;

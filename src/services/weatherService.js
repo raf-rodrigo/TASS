@@ -1,5 +1,3 @@
-import { notificationService } from './notificationService';
-
 const OPEN_METEO_URL = 'https://api.open-meteo.com/v1/forecast';
 const GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 

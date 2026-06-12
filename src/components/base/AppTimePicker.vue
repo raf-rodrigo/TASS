@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, defineAsyncComponent } from 'vue';
+import { computed, defineAsyncComponent } from 'vue';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { ptBR } from 'date-fns/locale';

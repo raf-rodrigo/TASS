@@ -63,6 +63,7 @@ Este arquivo define o comportamento esperado da inteligência artificial ao inte
 - **Integridade de Cronômetros:** Ao implementar ajustes manuais de tempo, garantir que a alteração no tempo da sessão (`totalTimeSpent`) seja refletida proporcionalmente no acumulador histórico (`totalWorked`).
 - **Validação de Build:** Antes de concluir qualquer tarefa, é obrigatório garantir que a suite de testes (`npm run test`) passe integralmente e que o projeto compile sem erros via `npm run build`.
 - **Bug Fixes:** Para correções de bugs, deve-se primeiro criar um teste que reproduza a falha e, após a correção, garantir que o teste passe (Red-Green-Refactor).
+- **Tratamento de Erros e Logs (MANDATÓRIO):** Toda e qualquer operação de persistência, leitura ou escrita no banco de dados local (IndexedDB) ou requisição síncrona crítica disparada diretamente por ações do usuário **DEVE** exibir uma mensagem de erro na tela (via `notificationService.toast` ou modal de erro) em formato compreensível para o usuário final, em vez de apenas logar silenciosamente no console com `console.error`. Erros técnicos silenciosos e recuperáveis de forma automática que não afetam a jornada do usuário (ex: escrita de cache de clima, formatação de fallbacks) devem ser contornados sem interromper a interface do usuário nem poluir desnecessariamente o terminal de testes.
 
 ## 6. Comunicação e Workflow
 - **Idioma:** Todo o raciocínio e comunicação devem ser realizados em **Português**.

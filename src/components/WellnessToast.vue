@@ -1,8 +1,5 @@
 <script setup>
 import { Sparkles } from 'lucide-vue-next';
-import { useSettingsStore } from '../stores/settingsStore';
-
-const settings = useSettingsStore();
 
 defineProps({
   message: String,

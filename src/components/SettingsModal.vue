@@ -49,7 +49,8 @@ const copyPixKey = async () => {
     await navigator.clipboard.writeText(pixKey);
     notificationService.toast('Chave PIX copiada!', 'success');
   } catch (err) {
-    notificationService.toast('Erro ao copiar chave PIX.', 'error');
+    console.error('Erro ao copiar chave PIX para a área de transferência:', err);
+    notificationService.toast(`Erro ao copiar chave PIX: ${err.message}`, 'error');
   }
 };
 

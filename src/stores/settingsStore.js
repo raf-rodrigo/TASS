@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, watch, computed } from 'vue';
 import { db } from '../db.js';
+import { notificationService } from '../services/notificationService';
 
 export const useSettingsStore = defineStore('settings', () => {
   const theme = ref('dark');
@@ -263,6 +264,7 @@ export const useSettingsStore = defineStore('settings', () => {
       isInitialized.value = true;
     } catch (error) {
       console.error("Failed to load settings from IndexedDB", error);
+      notificationService.toast("Erro ao carregar as configurações locais do sistema.", "error");
     }
   };
 
@@ -275,6 +277,7 @@ export const useSettingsStore = defineStore('settings', () => {
       await db.settings.put({ key, value: cleanValue });
     } catch (error) {
       console.error(`Failed to save setting ${key}`, error);
+      notificationService.toast("Falha ao salvar configuração no banco de dados.", "error");
     }
   };
 
@@ -365,6 +368,7 @@ export const useSettingsStore = defineStore('settings', () => {
       console.log("All settings saved to database");
     } catch (error) {
       console.error("Failed to save all settings", error);
+      notificationService.toast("Erro ao salvar configurações no banco de dados.", "error");
     }
   };
 

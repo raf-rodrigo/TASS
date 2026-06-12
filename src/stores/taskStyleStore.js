@@ -44,6 +44,7 @@ export const useTaskStyleStore = defineStore('taskStyle', () => {
       }
     } catch (error) {
       console.error("Failed to load task styles:", error);
+      notificationService.toast("Erro ao carregar os estilos de tarefas do banco de dados.", "error");
     } finally {
       isLoading.value = false;
     }
@@ -126,7 +127,7 @@ export const useTaskStyleStore = defineStore('taskStyle', () => {
       }
     } catch (error) {
       console.error("Failed to restore default styles:", error);
-      if (!silent) notificationService.toast('Erro ao restaurar presets', 'error');
+      if (!silent) notificationService.toast('Erro ao restaurar os presets padrões das tarefas.', 'error');
     }
   };
 
@@ -148,7 +149,7 @@ export const useTaskStyleStore = defineStore('taskStyle', () => {
       }
     } catch (error) {
       console.error("Failed to save task style:", error);
-      notificationService.toast('Erro ao salvar estilo', 'error');
+      notificationService.toast('Erro ao salvar o estilo customizado no banco de dados.', 'error');
       throw error;
     }
   };
@@ -159,7 +160,7 @@ export const useTaskStyleStore = defineStore('taskStyle', () => {
       styles.value = styles.value.filter(s => s.id !== id);
     } catch (error) {
       console.error("Failed to delete task style:", error);
-      notificationService.toast('Erro ao excluir estilo', 'error');
+      notificationService.toast('Erro ao excluir o estilo customizado do banco de dados.', 'error');
     }
   };
 

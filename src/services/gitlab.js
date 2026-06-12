@@ -355,39 +355,35 @@ export const gitlabService = {
   // --- BREEZE (GitRebuilder) PRIMITIVES ---
   async breezeGetBranches(settings, targetBranch, searchQuery, branchesOrder) {
     const { gitlabUrl, gitlabToken, gitlabProjectId } = settings;
-    try {
-      const urlObj = new URL(gitlabUrl);
-      const apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
-      const safeProjectId = encodeURIComponent(decodeURIComponent(gitlabProjectId));
-      
-      const searchParam = searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : '';
-      const url = `${apiBase}/projects/${safeProjectId}/repository/branches?per_page=100${searchParam}`;
+    const urlObj = new URL(gitlabUrl);
+    const apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
+    const safeProjectId = encodeURIComponent(decodeURIComponent(gitlabProjectId));
+    
+    const searchParam = searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : '';
+    const url = `${apiBase}/projects/${safeProjectId}/repository/branches?per_page=100${searchParam}`;
 
-      const res = await fetch(url, { headers: { 'PRIVATE-TOKEN': gitlabToken } });
-      if (!res.ok) throw new Error('Erro ao buscar branches');
+    const res = await fetch(url, { headers: { 'PRIVATE-TOKEN': gitlabToken } });
+    if (!res.ok) throw new Error('Erro ao buscar branches');
+    
+    const branches = await res.json();
+    
+    // Filter out targetBranch and map
+    let mapped = branches
+      .filter(b => b.name !== targetBranch)
+      .map(b => ({
+        name: b.name,
+        title: b.commit.title,
+        committedDate: b.commit.committed_date,
+        authorName: b.commit.author_name
+      }));
       
-      const branches = await res.json();
-      
-      // Filter out targetBranch and map
-      let mapped = branches
-        .filter(b => b.name !== targetBranch)
-        .map(b => ({
-          name: b.name,
-          title: b.commit.title,
-          committedDate: b.commit.committed_date,
-          authorName: b.commit.author_name
-        }));
-        
-      mapped.sort((a, b) => {
-        const tA = new Date(a.committedDate).getTime();
-        const tB = new Date(b.committedDate).getTime();
-        return branchesOrder === 'asc' ? tA - tB : tB - tA;
-      });
-      
-      return mapped;
-    } catch (err) {
-      throw err;
-    }
+    mapped.sort((a, b) => {
+      const tA = new Date(a.committedDate).getTime();
+      const tB = new Date(b.committedDate).getTime();
+      return branchesOrder === 'asc' ? tA - tB : tB - tA;
+    });
+    
+    return mapped;
   },
 
   async breezeCheckMergeStatus(settings, source, target) {
@@ -474,61 +470,51 @@ export const gitlabService = {
         headers: { 'PRIVATE-TOKEN': gitlabToken, 'Content-Type': 'application/json' },
         body: JSON.stringify({ state_event: 'close' })
       });
-    } catch (e) {}
+    } catch (e) {
+      console.error("Falha ao fechar Merge Request no GitLab:", e);
+    }
   },
 
   async breezeExecuteMergeRequest(settings, mrIid) {
     const { gitlabUrl, gitlabToken, gitlabProjectId } = settings;
-    try {
-      const urlObj = new URL(gitlabUrl);
-      const apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
-      const safeProjectId = encodeURIComponent(decodeURIComponent(gitlabProjectId));
-      const doMergeRes = await fetch(`${apiBase}/projects/${safeProjectId}/merge_requests/${mrIid}/merge`, {
-        method: 'PUT',
-        headers: { 'PRIVATE-TOKEN': gitlabToken }
-      });
-      if (!doMergeRes.ok) throw new Error('Erro ao aceitar MR no GitLab');
-      return true;
-    } catch (e) {
-      throw e;
-    }
+    const urlObj = new URL(gitlabUrl);
+    const apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
+    const safeProjectId = encodeURIComponent(decodeURIComponent(gitlabProjectId));
+    const doMergeRes = await fetch(`${apiBase}/projects/${safeProjectId}/merge_requests/${mrIid}/merge`, {
+      method: 'PUT',
+      headers: { 'PRIVATE-TOKEN': gitlabToken }
+    });
+    if (!doMergeRes.ok) throw new Error('Erro ao aceitar MR no GitLab');
+    return true;
   },
 
   async breezeCreateBranch(settings, newBranchName, baseRef) {
     const { gitlabUrl, gitlabToken, gitlabProjectId } = settings;
-    try {
-      const urlObj = new URL(gitlabUrl);
-      const apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
-      const safeProjectId = encodeURIComponent(decodeURIComponent(gitlabProjectId));
-      const res = await fetch(`${apiBase}/projects/${safeProjectId}/repository/branches`, {
-        method: 'POST',
-        headers: { 'PRIVATE-TOKEN': gitlabToken, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ branch: newBranchName, ref: baseRef })
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(()=>({}));
-        throw new Error(data.message || 'Erro ao criar branch');
-      }
-      return true;
-    } catch (err) {
-      throw err;
+    const urlObj = new URL(gitlabUrl);
+    const apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
+    const safeProjectId = encodeURIComponent(decodeURIComponent(gitlabProjectId));
+    const res = await fetch(`${apiBase}/projects/${safeProjectId}/repository/branches`, {
+      method: 'POST',
+      headers: { 'PRIVATE-TOKEN': gitlabToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ branch: newBranchName, ref: baseRef })
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(()=>({}));
+      throw new Error(data.message || 'Erro ao criar branch');
     }
+    return true;
   },
 
   async breezeDeleteBranch(settings, branchName) {
     const { gitlabUrl, gitlabToken, gitlabProjectId } = settings;
-    try {
-      const urlObj = new URL(gitlabUrl);
-      const apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
-      const safeProjectId = encodeURIComponent(decodeURIComponent(gitlabProjectId));
-      const deleteResponse = await fetch(`${apiBase}/projects/${safeProjectId}/repository/branches/${encodeURIComponent(branchName)}`, {
-        method: 'DELETE',
-        headers: { 'PRIVATE-TOKEN': gitlabToken }
-      });
-      if (!deleteResponse.ok && deleteResponse.status !== 404) throw new Error('Falha ao excluir');
-      return true;
-    } catch (err) {
-      throw err;
-    }
+    const urlObj = new URL(gitlabUrl);
+    const apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
+    const safeProjectId = encodeURIComponent(decodeURIComponent(gitlabProjectId));
+    const deleteResponse = await fetch(`${apiBase}/projects/${safeProjectId}/repository/branches/${encodeURIComponent(branchName)}`, {
+      method: 'DELETE',
+      headers: { 'PRIVATE-TOKEN': gitlabToken }
+    });
+    if (!deleteResponse.ok && deleteResponse.status !== 404) throw new Error('Falha ao excluir');
+    return true;
   }
 };

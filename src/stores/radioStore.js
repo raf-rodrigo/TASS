@@ -176,6 +176,7 @@ export const useRadioStore = defineStore('radio', () => {
       }
     } catch (err) {
       console.error('Failed to rate radio', err);
+      notificationService.toast('Erro ao favoritar rádio no banco de dados.', 'error');
     }
   };
 

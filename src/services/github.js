@@ -231,7 +231,8 @@ export const githubService = {
           return;
         }
       } catch (err) {
-        notificationService.toast("Erro de rede ao comparar branches.", "error");
+        console.error("Erro de rede ao comparar branches no GitHub:", err);
+        notificationService.toast(`Erro de rede ao comparar branches: ${err.message}`, "error");
         return;
       }
 
@@ -359,49 +360,45 @@ export const githubService = {
   // --- BREEZE (GitRebuilder) PRIMITIVES ---
   async breezeGetBranches(settings, targetBranch, searchQuery, branchesOrder) {
     const { githubOwner, githubRepo, githubToken } = settings;
-    try {
-      let page = 1;
-      let allBranches = [];
-      let hasMore = true;
+    let page = 1;
+    let allBranches = [];
+    let hasMore = true;
 
-      // GitHub does not support search in list branches API, we fetch all and filter client side
-      while(hasMore) {
-        const res = await fetch(`https://api.github.com/repos/${githubOwner}/${githubRepo}/branches?per_page=100&page=${page}`, {
-          headers: { 'Authorization': `Bearer ${githubToken}` }
-        });
-        if (!res.ok) throw new Error('Erro ao buscar branches');
-        const branches = await res.json();
-        if (branches.length === 0) {
-          hasMore = false;
-        } else {
-          allBranches = allBranches.concat(branches);
-          page++;
-        }
-      }
-
-      // Map exactly to what Breeze expects
-      let mapped = allBranches
-        .filter(b => b.name !== targetBranch)
-        .map(b => ({
-          name: b.name,
-          title: b.commit.sha.substring(0, 7), // fallback, GitHub basic API doesn't return commit title
-          committedDate: new Date().toISOString(), // we don't have this without extra calls
-          authorName: 'GitHub User'
-        }));
-
-      if (searchQuery) {
-        const lowerQ = searchQuery.toLowerCase();
-        mapped = mapped.filter(b => b.name.toLowerCase().includes(lowerQ));
-      }
-      
-      mapped.sort((a, b) => {
-        return branchesOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+    // GitHub does not support search in list branches API, we fetch all and filter client side
+    while(hasMore) {
+      const res = await fetch(`https://api.github.com/repos/${githubOwner}/${githubRepo}/branches?per_page=100&page=${page}`, {
+        headers: { 'Authorization': `Bearer ${githubToken}` }
       });
-      
-      return mapped;
-    } catch (err) {
-      throw err;
+      if (!res.ok) throw new Error('Erro ao buscar branches');
+      const branches = await res.json();
+      if (branches.length === 0) {
+        hasMore = false;
+      } else {
+        allBranches = allBranches.concat(branches);
+        page++;
+      }
     }
+
+    // Map exactly to what Breeze expects
+    let mapped = allBranches
+      .filter(b => b.name !== targetBranch)
+      .map(b => ({
+        name: b.name,
+        title: b.commit.sha.substring(0, 7), // fallback, GitHub basic API doesn't return commit title
+        committedDate: new Date().toISOString(), // we don't have this without extra calls
+        authorName: 'GitHub User'
+      }));
+
+    if (searchQuery) {
+      const lowerQ = searchQuery.toLowerCase();
+      mapped = mapped.filter(b => b.name.toLowerCase().includes(lowerQ));
+    }
+    
+    mapped.sort((a, b) => {
+      return branchesOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+    });
+    
+    return mapped;
   },
 
   async breezeCheckMergeStatus(settings, source, target) {
@@ -488,61 +485,51 @@ export const githubService = {
         headers: { 'Authorization': `Bearer ${githubToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ state: 'closed' })
       });
-    } catch (e) {}
+    } catch (e) {
+      console.error("Falha ao fechar Pull Request no GitHub:", e);
+    }
   },
 
   async breezeExecuteMergeRequest(settings, mrIid) {
     const { githubOwner, githubRepo, githubToken } = settings;
-    try {
-      const doMergeRes = await fetch(`https://api.github.com/repos/${githubOwner}/${githubRepo}/pulls/${mrIid}/merge`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${githubToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ merge_method: 'merge' })
-      });
-      if (!doMergeRes.ok) throw new Error('Erro ao aceitar PR no GitHub');
-      return true;
-    } catch (e) {
-      throw e;
-    }
+    const doMergeRes = await fetch(`https://api.github.com/repos/${githubOwner}/${githubRepo}/pulls/${mrIid}/merge`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${githubToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ merge_method: 'merge' })
+    });
+    if (!doMergeRes.ok) throw new Error('Erro ao aceitar PR no GitHub');
+    return true;
   },
 
   async breezeCreateBranch(settings, newBranchName, baseRef) {
     const { githubOwner, githubRepo, githubToken } = settings;
-    try {
-      const baseRes = await fetch(`https://api.github.com/repos/${githubOwner}/${githubRepo}/git/refs/heads/${baseRef}`, {
-        headers: { 'Authorization': `Bearer ${githubToken}` }
-      });
-      if (!baseRes.ok) throw new Error('Branch base não encontrada');
-      const baseData = await baseRes.json();
-      const sha = baseData.object.sha;
+    const baseRes = await fetch(`https://api.github.com/repos/${githubOwner}/${githubRepo}/git/refs/heads/${baseRef}`, {
+      headers: { 'Authorization': `Bearer ${githubToken}` }
+    });
+    if (!baseRes.ok) throw new Error('Branch base não encontrada');
+    const baseData = await baseRes.json();
+    const sha = baseData.object.sha;
 
-      const createRes = await fetch(`https://api.github.com/repos/${githubOwner}/${githubRepo}/git/refs`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${githubToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ref: `refs/heads/${newBranchName}`, sha: sha })
-      });
+    const createRes = await fetch(`https://api.github.com/repos/${githubOwner}/${githubRepo}/git/refs`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${githubToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ref: `refs/heads/${newBranchName}`, sha: sha })
+    });
 
-      if (!createRes.ok) {
-        const data = await createRes.json().catch(()=>({}));
-        throw new Error(data.message || 'Erro ao criar branch');
-      }
-      return true;
-    } catch (err) {
-      throw err;
+    if (!createRes.ok) {
+      const data = await createRes.json().catch(()=>({}));
+      throw new Error(data.message || 'Erro ao criar branch');
     }
+    return true;
   },
 
   async breezeDeleteBranch(settings, branchName) {
     const { githubOwner, githubRepo, githubToken } = settings;
-    try {
-      const deleteResponse = await fetch(`https://api.github.com/repos/${githubOwner}/${githubRepo}/git/refs/heads/${encodeURIComponent(branchName)}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${githubToken}` }
-      });
-      if (!deleteResponse.ok && deleteResponse.status !== 404) throw new Error('Falha ao excluir');
-      return true;
-    } catch (err) {
-      throw err;
-    }
+    const deleteResponse = await fetch(`https://api.github.com/repos/${githubOwner}/${githubRepo}/git/refs/heads/${encodeURIComponent(branchName)}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${githubToken}` }
+    });
+    if (!deleteResponse.ok && deleteResponse.status !== 404) throw new Error('Falha ao excluir');
+    return true;
   }
 };

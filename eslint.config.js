@@ -24,7 +24,7 @@ export default [
       }
     },
     rules: {
-      'no-unused-vars': ['warn', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_' }],
+      'no-unused-vars': ['warn', { 'args': 'none', 'varsIgnorePattern': '^_' }],
       'vue/no-unused-vars': ['warn', { 'ignorePattern': '^_' }],
       'vue/multi-word-component-names': 'off', // Permite nomes de componente como Terms.vue ou App.vue
       'vue/no-v-html': 'off', // Permite o uso de v-html se necessário para mensagens formatadas
@@ -37,7 +37,8 @@ export default [
       'dist/**',
       'node_modules/**',
       'public/**',
-      'tests/coverage/**',
+      'tests/**',
+      'tass/**',
     ]
   }
 ];
