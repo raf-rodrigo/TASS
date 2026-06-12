@@ -60,8 +60,8 @@ const isScrollable = ref(false);
 
 const checkScrollable = () => {
   if (boardRef.value) {
-    // Adiciona uma margem de tolerância pequena (ex: 2px) para arredondamentos
-    isScrollable.value = boardRef.value.scrollWidth > boardRef.value.clientWidth + 2;
+    // Margem de tolerância estendida (20px) para acomodar as sombras e o espaçamento sem bugar o flex
+    isScrollable.value = boardRef.value.scrollWidth > boardRef.value.clientWidth + 20;
   }
 };
 
@@ -105,17 +105,20 @@ const stopDragScroll = () => {
 <template>
   <section 
     ref="boardRef"
-    class="flex flex-nowrap gap-6 w-full items-stretch overflow-x-auto overflow-y-hidden pb-32 no-scrollbar flex-1 min-h-[calc(100vh-120px)] transition-colors snap-x snap-mandatory" 
-    :class="[isScrollable ? 'cursor-grab active:cursor-grabbing justify-start' : 'cursor-auto justify-center']"
+    class="flex flex-nowrap gap-6 w-full items-stretch overflow-x-auto overflow-y-hidden pb-32 no-scrollbar flex-1 min-h-[calc(100vh-120px)] transition-colors snap-x snap-mandatory sm:snap-none justify-start px-4 sm:px-8" 
+    :class="[isScrollable ? 'cursor-grab active:cursor-grabbing' : 'cursor-auto']"
     @mousedown="startDragScroll"
     @mousemove="doDragScroll"
     @mouseup="stopDragScroll"
     @mouseleave="stopDragScroll"
   >
+    <!-- Espaçador fantasma ESQUERDO apenas no Mobile (impede que o primeiro card seja esmagado) -->
+    <div class="w-4 flex-shrink-0 pointer-events-none snap-align-none border-none sm:hidden"></div>
+
     <div 
       v-for="colIdx in settings.columns" 
       :key="colIdx" 
-      class="flex flex-col gap-4 min-h-[500px] relative flex-shrink-0 w-[85vw] sm:w-[320px] lg:w-[340px] xl:w-[360px] pb-10 snap-center"
+      class="flex flex-col gap-4 min-h-[500px] relative w-[85vw] flex-shrink-0 sm:flex-1 sm:w-auto sm:min-w-0 pb-10 snap-center sm:snap-align-none"
     >
       <!-- Cabeçalho da Coluna -->
       <div 
@@ -182,5 +185,8 @@ const stopDragScroll = () => {
         </draggable>
       </div>
     </div>
+
+    <!-- Elemento espaçador (fantasma) apenas no Mobile para evitar o corte das sombras -->
+    <div class="w-10 flex-shrink-0 pointer-events-none snap-align-none border-none sm:hidden"></div>
   </section>
 </template>
