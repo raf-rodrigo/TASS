@@ -82,4 +82,12 @@ describe('GlobalDock.vue', () => {
     // Deve chamar useSwipe duas vezes (uma para o handle e outra para a dock)
     expect(mockUseSwipe).toHaveBeenCalledTimes(2);
   });
+
+  it('deve ocultar a dock se a prop visible for false', () => {
+    const wrapper = mount(GlobalDock, {
+      props: { visible: false }
+    });
+    expect(wrapper.find('button').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain('10h 30m');
+  });
 });

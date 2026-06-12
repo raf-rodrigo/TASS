@@ -12,6 +12,13 @@ import { useTimerStore } from '../stores/timerStore';
 import { useRadioStore } from '../stores/radioStore';
 import { useDeviceBehavior } from '../composables/useDeviceBehavior.js';
 
+const props = defineProps({
+  visible: {
+    type: Boolean,
+    default: true
+  }
+});
+
 const emit = defineEmits([
   'add-task', 'open-settings', 'open-notes', 'open-interface', 'open-sprints', 'toggle-theme', 'open-radio', 'open-git-rebuilder'
 ]);
@@ -22,12 +29,14 @@ const sprintStore = useSprintStore();
 const timerStore = useTimerStore();
 const radioStore = useRadioStore();
 
-const { isMobile } = useDeviceBehavior();
+const { isMobile, shouldHideDockForModal } = useDeviceBehavior();
 const isExpanded = ref(false);
 const isMobileDockOpen = ref(false);
 
 const handleRef = ref(null);
 const dockRef = ref(null);
+
+const shouldShowDock = computed(() => props.visible);
 
 useSwipe(handleRef, {
   threshold: 15,
@@ -60,54 +69,62 @@ const dockRadius = computed(() => {
 </script>
 
 <template>
-  <div class="pointer-events-none">
-    <!-- 1. BACKDROP OVERLAY (Mobile only when dock is expanded) -->
-    <transition
-      enter-active-class="transition duration-300 ease-out"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="transition duration-200 ease-in"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div 
-        v-if="isMobile && isMobileDockOpen"
-        class="fixed inset-0 bg-slate-900/15 backdrop-blur-[1.5px] z-[240] pointer-events-auto"
-        @click="isMobileDockOpen = false"
-      ></div>
-    </transition>
-
-    <!-- 2. FLOATING ACTION BUTTON (Mobile only, shown when dock is closed) -->
-    <button 
-      v-if="isMobile"
-      @click.stop="emit('add-task')"
-      class="fixed bottom-4 right-4 w-12 h-12 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/30 transition-all duration-300 active:scale-95 z-[246] pointer-events-auto"
-      :class="[
-        isMobileDockOpen ? 'pointer-events-none opacity-0 scale-75' : 'pointer-events-auto opacity-100 scale-100'
-      ]"
-      :style="{ borderRadius: 'var(--app-card-radius)' }"
-    >
-      <Plus class="w-6 h-6" />
-    </button>
-
-    <!-- 3. PULL-UP INDICATOR HANDLE (Mobile only, shown when dock is closed) -->
+  <!-- 1. BACKDROP OVERLAY (Mobile only when dock is expanded) -->
+  <transition
+    enter-active-class="transition duration-300 ease-out"
+    enter-from-class="opacity-0"
+    enter-to-class="opacity-100"
+    leave-active-class="transition duration-200 ease-in"
+    leave-from-class="opacity-100"
+    leave-to-class="opacity-0"
+  >
     <div 
-      v-if="isMobile"
-      ref="handleRef"
-      @click.stop="isMobileDockOpen = true"
-      class="fixed bottom-0 left-0 w-full h-14 z-[240] flex items-end justify-center pb-3 cursor-pointer transition-all duration-300 touch-none select-none bg-slate-900/0 pointer-events-auto"
-      :class="[
-        isMobileDockOpen ? 'pointer-events-none opacity-0 translate-y-4' : 'pointer-events-auto opacity-100 translate-y-0'
-      ]"
-    >
-      <div class="flex flex-col items-center gap-1 group">
-        <ChevronUp class="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-indigo-500 transition-colors animate-bounce" />
-        <div class="w-16 h-1.5 bg-slate-400/40 dark:bg-white/20 rounded-full group-hover:bg-indigo-500/50 transition-colors"></div>
-      </div>
+      v-if="isMobile && isMobileDockOpen && shouldShowDock"
+      class="fixed inset-0 bg-slate-900/15 backdrop-blur-[1.5px] z-[240] pointer-events-auto"
+      @click="isMobileDockOpen = false"
+    ></div>
+  </transition>
+
+  <!-- 2. FLOATING ACTION BUTTON (Mobile only, shown when dock is closed) -->
+  <button 
+    v-if="isMobile && shouldShowDock"
+    @click.stop="emit('add-task')"
+    class="fixed bottom-4 right-4 w-12 h-12 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/30 transition-all duration-300 active:scale-95 z-[246]"
+    :class="[
+      isMobileDockOpen ? 'pointer-events-none opacity-0 scale-75' : 'pointer-events-auto opacity-100 scale-100'
+    ]"
+    :style="{ borderRadius: 'var(--app-card-radius)' }"
+  >
+    <Plus class="w-6 h-6" />
+  </button>
+
+  <!-- 3. PULL-UP INDICATOR HANDLE (Mobile only, shown when dock is closed) -->
+  <div 
+    v-if="isMobile && shouldShowDock"
+    ref="handleRef"
+    @click.stop="isMobileDockOpen = true"
+    class="fixed bottom-0 left-0 w-full h-14 z-[240] flex items-end justify-center pb-3 cursor-pointer transition-all duration-300 touch-none select-none bg-slate-900/0"
+    :class="[
+      isMobileDockOpen ? 'pointer-events-none opacity-0 translate-y-4' : 'pointer-events-auto opacity-100 translate-y-0'
+    ]"
+  >
+    <div class="flex flex-col items-center gap-1 group">
+      <ChevronUp class="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-indigo-500 transition-colors animate-bounce" />
+      <div class="w-16 h-1.5 bg-slate-400/40 dark:bg-white/20 rounded-full group-hover:bg-indigo-500/50 transition-colors"></div>
     </div>
+  </div>
 
-    <!-- 4. MAIN DOCK CONTAINER -->
+  <!-- 4. MAIN DOCK CONTAINER -->
+  <transition
+    enter-active-class="transition duration-500 ease-out"
+    enter-from-class="translate-y-20 opacity-0 scale-95"
+    enter-to-class="translate-y-0 opacity-100 scale-100"
+    leave-active-class="transition duration-300 ease-in"
+    leave-from-class="translate-y-0 opacity-100 scale-100"
+    leave-to-class="translate-y-20 opacity-0 scale-95"
+  >
     <div 
+      v-if="shouldShowDock"
       ref="dockRef"
       class="fixed bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-[250] w-full max-w-fit px-2 sm:px-4 pb-[env(safe-area-inset-bottom)] transition-all duration-300 ease-out"
       :class="[
@@ -253,7 +270,7 @@ const dockRadius = computed(() => {
         </transition>
       </div>
     </div>
-  </div>
+  </transition>
 </template>
 
 <style scoped>
