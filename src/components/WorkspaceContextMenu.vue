@@ -6,7 +6,6 @@ import { useTaskStore } from '../stores/taskStore';
 import { useRadioStore } from '../stores/radioStore';
 import { useTheme } from '../composables/useTheme';
 import { useTaskStyleStore } from '../stores/taskStyleStore';
-import { notificationService } from '../services/notificationService';
 import { 
   PlusCircle, RotateCcw, List, Activity, CheckCircle, 
   Calendar, CloudLightning, Headphones, Sun, Moon, Settings,
