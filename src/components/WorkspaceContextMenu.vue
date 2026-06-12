@@ -119,7 +119,9 @@ const handleOpenAbout = () => {
 };
 
 const handleApplyStyleAll = async (styleId) => {
-  const promises = taskStore.tasks.map(task => taskStore.updateTask(task.id, { styleId: styleId || null }));
+  const promises = taskStore.tasks
+    .filter(task => !task.styleLocked)
+    .map(task => taskStore.updateTask(task.id, { styleId: styleId || null }));
   await Promise.all(promises);
 };
 
