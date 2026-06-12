@@ -17,6 +17,26 @@ export const backupService = {
   },
 
   /**
+   * Exporta as paletas de cores para JSON
+   */
+  exportPalettes(settingsStore) {
+    try {
+      const data = {
+        titlePalette: settingsStore.titlePalette || [],
+        bodyPalette: settingsStore.bodyPalette || [],
+        textLightPalette: settingsStore.textLightPalette || [],
+        textDarkPalette: settingsStore.textDarkPalette || []
+      };
+      this.downloadJson(data, 'tass_paletas_customizadas.json');
+      notificationService.toast('Paletas exportadas com sucesso!');
+    } catch (error) {
+      console.error("Palette export failed:", error);
+      notificationService.alert('Falha na exportação', 'Não foi possível exportar as paletas.', 'error');
+    }
+  },
+
+
+  /**
    * Obtém todo o sistema (Tarefas, Sprints, Configs, Notas) em um objeto
    */
   async getFullBackupData() {
@@ -26,6 +46,7 @@ export const backupService = {
       settings: await db.settings.toArray(),
       notes: await db.notes.toArray(),
       radios: await db.radios.toArray(),
+      taskStyles: await db.taskStyles.toArray(),
       version: '1.0',
       timestamp: new Date().toISOString()
     };
@@ -92,8 +113,13 @@ export const backupService = {
 
       // Importação sequencial e limpa
       if (data.tasks) {
+        const stoppedTasks = data.tasks.map(task => ({
+          ...task,
+          isRunning: false,
+          lastStartTime: null
+        }));
         await db.tasks.clear();
-        await db.tasks.bulkPut(data.tasks);
+        await db.tasks.bulkPut(stoppedTasks);
       }
       if (data.sprints) {
         await db.sprints.clear();
@@ -111,10 +137,13 @@ export const backupService = {
         await db.radios.clear();
         await db.radios.bulkPut(data.radios);
       }
+      if (data.taskStyles) {
+        await db.taskStyles.clear();
+        await db.taskStyles.bulkPut(data.taskStyles);
+      }
       
       await settingsStore.loadSettings();
       await taskStore.loadTasks();
-      await taskStore.loadSprints();
       
       notificationService.toast('Sistema restaurado! Recarregando...', 'success');
       

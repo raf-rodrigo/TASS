@@ -19,6 +19,13 @@ vi.mock('../../src/stores/taskStore', () => ({
   }))
 }));
 
+// Mock do ResizeObserver para o ambiente de testes
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 describe('TaskCard.vue', () => {
   const mockTask = {
     id: 1,

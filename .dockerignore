@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.gitignore
+.cursorrules
+GEMINI.md
+MEMORY.md
+README.md
+tests
+*.png
+*.jpg
+*.jpeg

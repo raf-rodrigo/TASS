@@ -15,7 +15,8 @@ export function useWellness(settings) {
     "Postura de mestre: ajuste a coluna e relaxe os ombros. 🏛️",
     "Água é o combustível do seu código. Já bebeu hoje? 🌊",
     "Hora de dar uma caminhada curta para esticar as pernas. 🚶‍♂️",
-    "Que tal uma pausa de 2 minutos para um café ou chá? ☕"
+    "Que tal uma pausa de 2 minutos para um café ou chá? ☕",
+    "Fique mais tempo com os seus filhos e seus pais. Agradeça quando entender. 💖"
   ];
 
   const triggerWellness = (force = false, customMessage = null) => {

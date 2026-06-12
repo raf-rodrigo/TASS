@@ -16,7 +16,8 @@ import AppSkeleton from '../components/base/AppSkeleton.vue';
 import AppSwitch from '../components/base/AppSwitch.vue';
 import AppTextarea from '../components/base/AppTextarea.vue';
 import AppTimePicker from '../components/base/AppTimePicker.vue';
-
+import AppGlassCard from '../components/base/AppGlassCard.vue';
+import AppColorPalette from '../components/AppColorPalette.vue';
 // --- ESTADOS DE TESTE PARA A GALERIA DE COMPONENTES BASE ---
 const testSwitchVal = ref(false);
 const testSwitch2Val = ref(true);
@@ -404,6 +405,34 @@ const decrementProgress = () => {
             <label class="text-[8px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 block">btn-ghost</label>
             <button class="btn-ghost btn w-full py-2 text-[10px]">Voltar Menu</button>
           </div>
+        </div>
+      </div>
+
+      <!-- Card 8: Efeito Glass Card Personalizado -->
+      <div class="app-card-panel flex flex-col gap-4 text-left shadow-lg lg:col-span-1">
+        <div>
+          <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">Glass Card (Uiverse)</h3>
+          <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Teste do componente AppGlassCard com efeito de transparência</p>
+        </div>
+        
+        <div class="flex-1 flex items-center justify-center bg-slate-900 rounded-xl overflow-hidden relative border border-slate-700 min-h-[220px]">
+          <!-- Um background colorido/gradiente atrás pra ver o vidro (blur) em ação -->
+          <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 opacity-60"></div>
+          
+          <!-- Componente Base importado -->
+          <AppGlassCard text="Github" :rotation="-15" />
+        </div>
+      </div>
+
+      <!-- Card 9: Paleta de Cores (Uiverse) -->
+      <div class="app-card-panel flex flex-col gap-4 text-left shadow-lg lg:col-span-1">
+        <div>
+          <h3 class="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">Color Palette (Uiverse)</h3>
+          <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Componente interativo de paleta de cores</p>
+        </div>
+        
+        <div class="flex-1 flex items-center justify-center rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 min-h-[250px]">
+          <AppColorPalette />
         </div>
       </div>
 

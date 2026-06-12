@@ -45,8 +45,21 @@ export const useRadioStore = defineStore('radio', () => {
       }
       
       let savedRadios = await db.radios.toArray();
-      // Garante que todas as rádios tenham a propriedade stars (migração)
-      savedRadios = savedRadios.map(r => ({ ...r, stars: r.stars || 0 }));
+      
+      let dbModified = false;
+      // Garante que todas as rádios tenham a propriedade stars e remove as propriedades abandonadas (isDefault, apiUrl)
+      savedRadios = savedRadios.map(r => {
+        let changed = false;
+        if (r.stars === undefined) { r.stars = 0; changed = true; }
+        if ('isDefault' in r) { delete r.isDefault; changed = true; }
+        if ('apiUrl' in r) { delete r.apiUrl; changed = true; }
+        if (changed) dbModified = true;
+        return r;
+      });
+
+      if (dbModified) {
+        await db.radios.bulkPut(savedRadios);
+      }
       
       // Ordena decrescente por estrelas
       savedRadios.sort((a, b) => b.stars - a.stars);

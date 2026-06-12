@@ -1,13 +1,18 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import draggable from 'vuedraggable';
 import TaskCard from './TaskCard.vue';
 import { Plus } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
+import { useTimerStore } from '../stores/timerStore';
+import { useUIStore } from '../stores/uiStore';
+import { useTaskStyleStore } from '../stores/taskStyleStore';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
+const timerStore = useTimerStore();
+const uiStore = useUIStore();
 
 const props = defineProps({
   boardColumns: {
@@ -22,35 +27,95 @@ const props = defineProps({
 
 const emit = defineEmits([
   'update-board',
-  'edit-task',
-  'toggle-completion',
-  'delete-task',
   'drag-start',
-  'drag-end',
-  'open-time-adjustment'
+  'drag-end'
 ]);
 
 const handleBoardChange = (evt, colIdx) => {
   emit('update-board', evt, colIdx);
 };
+
+/**
+ * Estilos dinâmicos do placeholder de coluna vazia.
+ * Respeita a opacidade do painel e a Chave Mestra global do efeito de vidro.
+ */
+const placeholderStyles = computed(() => {
+  const isGlassActive = settings.normalizedCardOpacity < 1.0;
+  
+  return {
+    borderColor: `rgba(var(--app-bg-raw), 0.1)`,
+    backgroundColor: isGlassActive ? `rgba(var(--app-bg-raw), 0.05)` : 'transparent',
+    backdropFilter: isGlassActive ? 'blur(var(--app-glass-blur))' : 'none'
+  };
+});
+
+// ==========================================
+// Lógica de Drag to Scroll (Arrastar para Rolar)
+// ==========================================
+const boardRef = ref(null);
+let isDraggingScroll = false;
+let startX = 0;
+let scrollLeft = 0;
+const isScrollable = ref(false);
+
+const checkScrollable = () => {
+  if (boardRef.value) {
+    // Adiciona uma margem de tolerância pequena (ex: 2px) para arredondamentos
+    isScrollable.value = boardRef.value.scrollWidth > boardRef.value.clientWidth + 2;
+  }
+};
+
+onMounted(() => {
+  checkScrollable();
+  window.addEventListener('resize', checkScrollable);
+  
+  if (boardRef.value) {
+    const observer = new ResizeObserver(checkScrollable);
+    observer.observe(boardRef.value);
+  }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkScrollable);
+});
+
+const startDragScroll = (e) => {
+  if (!isScrollable.value) return;
+  // Ignora se o clique for dentro de um cartão ou botão (deixa o vuedraggable atuar)
+  if (e.target.closest('.tass-card') || e.target.closest('button')) return;
+  
+  isDraggingScroll = true;
+  startX = e.pageX - boardRef.value.offsetLeft;
+  scrollLeft = boardRef.value.scrollLeft;
+};
+
+const doDragScroll = (e) => {
+  if (!isDraggingScroll) return;
+  e.preventDefault(); // Previne a seleção de texto fantasma ao arrastar o fundo
+  const x = e.pageX - boardRef.value.offsetLeft;
+  const walk = (x - startX) * 1.5; // Multiplicador de velocidade
+  boardRef.value.scrollLeft = scrollLeft - walk;
+};
+
+const stopDragScroll = () => {
+  isDraggingScroll = false;
+};
 </script>
 
 <template>
   <section 
-    class="flex flex-nowrap lg:grid gap-6 w-full items-stretch overflow-x-auto lg:overflow-x-visible pb-8 lg:pb-0 snap-x snap-mandatory custom-scrollbar min-h-[50vh]" 
-    :class="{
-      'lg:grid-cols-1': settings.columns === 1 || !settings.columns,
-      'lg:grid-cols-2': settings.columns === 2,
-      'lg:grid-cols-3': settings.columns === 3,
-      'lg:grid-cols-4': settings.columns === 4,
-      'lg:grid-cols-5': settings.columns === 5,
-      'lg:grid-cols-6': settings.columns === 6
-    }"
+    ref="boardRef"
+    class="flex flex-nowrap gap-6 w-full items-stretch overflow-x-auto overflow-y-hidden pb-32 no-scrollbar flex-1 min-h-[calc(100vh-120px)] transition-colors snap-x snap-mandatory" 
+    :class="[isScrollable ? 'cursor-grab active:cursor-grabbing justify-start' : 'cursor-auto justify-center']"
+    @mousedown="startDragScroll"
+    @mousemove="doDragScroll"
+    @mouseup="stopDragScroll"
+    @mouseleave="stopDragScroll"
   >
     <div 
       v-for="colIdx in settings.columns" 
       :key="colIdx" 
-      class="flex flex-col gap-4 min-h-[500px] relative flex-shrink-0 lg:flex-shrink snap-center lg:snap-align-none w-[90vw] md:w-[45vw] lg:w-full first:ml-[5vw] last:mr-[5vw] lg:first:ml-0 lg:last:mr-0 pb-10"
+      class="flex flex-col gap-4 min-h-[500px] relative flex-shrink-0 w-[85vw] sm:w-[320px] lg:w-[340px] xl:w-[360px] pb-10 snap-center"
     >
       <!-- Cabeçalho da Coluna -->
       <div 
@@ -76,11 +141,7 @@ const handleBoardChange = (evt, colIdx) => {
         >
           <div 
             class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed rounded-2xl text-app-muted/30 transition-all"
-            :style="{ 
-              borderColor: `rgba(var(--app-bg-raw), 0.1)`,
-              backgroundColor: settings.cardOpacity > 0 ? `rgba(var(--app-bg-raw), 0.05)` : 'transparent',
-              backdropFilter: settings.cardOpacity > 0 ? 'blur(4px)' : 'none'
-            }"
+            :style="placeholderStyles"
           >
             <Plus class="w-10 h-10 mb-4 opacity-20" />
             <span class="text-[10px] font-black uppercase tracking-[0.3em] opacity-30 text-center px-8">
@@ -99,6 +160,9 @@ const handleBoardChange = (evt, colIdx) => {
           drag-class="app-drag-effect" 
           :force-fallback="true"
           :fallback-on-body="true"
+          :delay="200"
+          :delayOnTouchOnly="true"
+          :touchStartThreshold="5"
           animation="400" 
           @start="emit('drag-start')"
           @end="emit('drag-end')"
@@ -108,11 +172,11 @@ const handleBoardChange = (evt, colIdx) => {
             <TaskCard 
               :task="task" 
               :columnIndex="colIdx - 1"
-              @toggle-completion="(t) => emit('toggle-completion', t)" 
-              @delete-task="(id) => emit('delete-task', id)" 
-              @edit-task="(t) => emit('edit-task', t)" 
-              @toggle-timer="taskStore.toggleTimer" 
-              @open-time-adjustment="(t) => emit('open-time-adjustment', t)"
+              @toggle-completion="taskStore.toggleTaskCompletion" 
+              @delete-task="taskStore.deleteTask" 
+              @edit-task="uiStore.openTaskModal" 
+              @toggle-timer="timerStore.toggleTimer" 
+              @open-time-adjustment="uiStore.openTimeAdjustment"
             />
           </template>
         </draggable>

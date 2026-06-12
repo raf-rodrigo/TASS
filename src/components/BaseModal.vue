@@ -228,7 +228,7 @@ const { position, isDragging, onMouseDown } = useModalDrag();
       <!-- Footer Area (Global: Disponível em todos os layouts se props existirem) -->
       <footer 
         v-if="$slots.footer || okText || cancelText" 
-        :class="layout === 'sidebar' ? 'tass-layout-footer modal-header-footer-tint' : 'py-4 px-6 border-t border-app-border-light flex justify-end items-center gap-3 mt-auto modal-header-footer-tint'"
+        :class="layout === 'sidebar' ? 'tass-layout-footer modal-header-footer-tint' : 'py-4 px-6 border-t border-app-border-light flex justify-center md:justify-end items-center gap-3 mt-auto modal-header-footer-tint'"
         :style="{ backgroundColor: `rgba(var(--app-bg-raw), var(--app-modal-header-opacity))` }"
       >
         <slot name="footer">

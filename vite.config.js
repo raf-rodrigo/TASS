@@ -2,11 +2,13 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  base: mode === 'production' ? '/tass/' : '/',
   plugins: [
     vue()
   ],
   server: {
+    host: true, // Expõe o servidor na rede local (responde por IP)
     port: 5175,
     strictPort: true
   },
@@ -28,4 +30,4 @@ export default defineConfig({
       }
     }
   }
-})
+}))

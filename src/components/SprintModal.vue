@@ -4,6 +4,7 @@ import { Plus, Trash2, Calendar, Layers } from 'lucide-vue-next';
 import { db } from '../db.js';
 import { notificationService } from '../services/notificationService';
 import { useTaskStore } from '../stores/taskStore';
+import { useSprintStore } from '../stores/sprintStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import { ptBR } from 'date-fns/locale';
@@ -11,6 +12,7 @@ import BaseModal from './BaseModal.vue';
 import '@vuepic/vue-datepicker/dist/main.css';
 
 const taskStore = useTaskStore();
+const sprintStore = useSprintStore();
 const settings = useSettingsStore();
 
 const props = defineProps({
@@ -38,7 +40,7 @@ const addSprint = async () => {
     });
     newSprintDate.value = null;
     showAddForm.value = false;
-    await taskStore.loadSprints();
+    await sprintStore.loadSprints();
     notificationService.toast('Sprint criada!');
     emit('updated');
   } catch (error) {
@@ -58,7 +60,7 @@ const deleteSprint = async (id) => {
   if (confirmed) {
     try {
       await db.sprints.delete(id);
-      await taskStore.loadSprints();
+      await sprintStore.loadSprints();
       notificationService.toast('Sprint removida!');
       emit('updated');
     } catch (error) {
@@ -163,14 +165,14 @@ const isPast = (dateStr) => {
       <section class="space-y-4">
         <div class="flex items-center justify-between px-1">
           <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Histórico de Ciclos</h3>
-          <span class="text-[10px] font-bold text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full">{{ taskStore.sprints.length }} sprints</span>
+          <span class="text-[10px] font-bold text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded-full">{{ sprintStore.sprints.length }} sprints</span>
         </div>
 
         <div class="max-h-[350px] overflow-y-auto pr-1 custom-scrollbar">
-          <div class="grid gap-4" :class="taskStore.sprints.length > 1 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'">
+          <div class="grid gap-4" :class="sprintStore.sprints.length > 1 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'">
             <!-- Cards das Sprints -->
             <div 
-              v-for="(sprint, index) in taskStore.sprints" 
+              v-for="(sprint, index) in sprintStore.sprints" 
               :key="sprint.id"
               class="group relative"
             >
@@ -185,7 +187,7 @@ const isPast = (dateStr) => {
                 <div class="w-10 h-10 flex items-center justify-center transition-all flex-shrink-0"
                   :style="{ borderRadius: 'calc(var(--app-input-radius) * 0.8)' }"
                   :class="activeSprintId == sprint.id ? 'bg-white/20' : 'bg-slate-100 dark:bg-white/5 text-slate-400 group-hover:text-indigo-500'">
-                  <span class="text-xs font-black">#{{ taskStore.sprints.length - index }}</span>
+                  <span class="text-xs font-black">#{{ sprintStore.sprints.length - index }}</span>
                 </div>
                 <div class="text-left overflow-hidden">
                   <span class="block text-sm font-black uppercase tracking-tight truncate">Término: {{ formatDate(sprint.endDate) }}</span>

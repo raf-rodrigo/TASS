@@ -20,15 +20,15 @@ export const taskActionService = {
       value: currentValue,
       placeholder: type === 'url' ? 'https://...' : 'Escreva aqui...',
       promptType: isTextArea ? 'textarea' : 'text',
-      confirmText: 'Salvar'
+      confirmText: 'Salvar',
+      denyText: 'Limpar'
     });
 
-    if (newValue) {
+    if (newValue !== null) {
       const trimmedValue = newValue.trim();
       const formattedValue = type === 'url' ? ensureProtocol(trimmedValue) : trimmedValue;
       try {
         await taskStore.updateTask(task.id, { [field]: formattedValue });
-        notificationService.toast(`${label} atualizado com sucesso!`, 'success');
         return true;
       } catch (error) {
         notificationService.toast('Erro ao salvar alteração.', 'error');

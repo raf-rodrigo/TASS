@@ -3,6 +3,12 @@ import { mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import GlobalDock from '../../src/components/GlobalDock.vue';
 
+// Mock do useSwipe do VueUse
+const mockUseSwipe = vi.fn();
+vi.mock('@vueuse/core', () => ({
+  useSwipe: (...args) => mockUseSwipe(...args)
+}));
+
 // Mock das Stores
 vi.mock('../../src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
@@ -13,10 +19,21 @@ vi.mock('../../src/stores/settingsStore', () => ({
 
 vi.mock('../../src/stores/taskStore', () => ({
   useTaskStore: vi.fn(() => ({
-    activeTask: null,
-    activeSprintTotalTime: '10h 30m',
     lastDeletedTask: null,
-    statusFilter: 'all'
+    statusFilter: 'all',
+    tasks: []
+  }))
+}));
+
+vi.mock('../../src/stores/timerStore', () => ({
+  useTimerStore: vi.fn(() => ({
+    activeTask: null
+  }))
+}));
+
+vi.mock('../../src/stores/sprintStore', () => ({
+  useSprintStore: vi.fn(() => ({
+    activeSprintTotalTime: '10h 30m'
   }))
 }));
 
@@ -58,5 +75,11 @@ describe('GlobalDock.vue', () => {
       await themeBtn.trigger('click');
       expect(wrapper.emitted()).toHaveProperty('toggle-theme');
     }
+  });
+
+  it('deve registrar os listeners de swipe na montagem', () => {
+    mount(GlobalDock);
+    // Deve chamar useSwipe duas vezes (uma para o handle e outra para a dock)
+    expect(mockUseSwipe).toHaveBeenCalledTimes(2);
   });
 });

@@ -1,18 +1,20 @@
 <script setup>
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { 
-  RefreshCw, ArrowRight, Terminal, ArrowLeft,
+  RefreshCw, Terminal,
   GitBranch, AlertTriangle, Check,
-  Trash2, Eye, EyeOff, Lock, Settings, Info, CloudLightning,
-  Sun, Moon
+  Trash2, Eye, EyeOff, Lock, Settings, Info, CloudLightning
 } from 'lucide-vue-next';
-import { useRouter } from 'vue-router';
+
 import { useSettingsStore } from '../../stores/settingsStore';
 import BaseModal from '../BaseModal.vue';
 import AppInput from '../base/AppInput.vue';
 import TerminalConsole from './TerminalConsole.vue';
 import BranchList from './BranchList.vue';
 import ActionPanel from './ActionPanel.vue';
+import { gitProviderService } from '../../services/gitProvider';
+import { notificationService } from '../../services/notificationService';
+import { useTabSwipe } from '../../composables/useTabSwipe';
 
 const settingsStore = useSettingsStore();
 const emit = defineEmits(['close']);
@@ -67,7 +69,18 @@ const confirmDestruction = () => {
 };
 
 // --- ESTADOS DAS ABAS, MESCLAGEM E DELEÇÃO ---
-const activeTab = ref('rebuilder'); // 'rebuilder' ou 'merges'
+const activeTab = ref('merges'); // 'rebuilder' ou 'merges'
+const isMaximized = ref(false);
+
+const tabs = [
+  { id: 'merges', label: 'Mesclar e Excluir', icon: GitBranch, color: 'text-indigo-500' },
+  { id: 'rebuilder', label: 'Limpar e Recriar', icon: RefreshCw, color: 'text-indigo-500' }
+];
+
+const navRef = ref(null);
+const swipeAreaRef = ref(null);
+const { offsetX, isSwiping, jumpMode, disableVueTransition } = useTabSwipe(activeTab, tabs, navRef, swipeAreaRef);
+
 const mergeTarget = ref(null);      // Nome físico da branch selecionada (dev ou hml)
 const mergeTargetType = ref(null);    // 'dev' ou 'hml'
 const mergeLogs = ref([]);          // Logs da aba de mesclagem
@@ -76,30 +89,6 @@ const mergeStatusMap = ref({});     // Mapeamento de branch -> status string
 const branchesFetched = ref(false);
 
 // --- ESTADOS DE CONFIGURAÇÕES E MODAIS ---
-const showSettingsModal = ref(false);
-const diagnosticStatus = ref(null); // 'checking', 'success', 'error'
-const diagnosticMessage = ref('');
-const showToken = ref(false);
-
-// Configurações locais para edição temporária
-const editGitlabUrl = ref(settingsStore.gitlabUrl);
-const editGitlabProjectId = ref(settingsStore.gitlabProjectId);
-const editGitlabToken = ref(settingsStore.gitlabToken);
-const editBranchMaster = ref(settingsStore.branchMaster);
-const editBranchHomologacao = ref(settingsStore.branchHomologacao);
-const editBranchDesenvolvimento = ref(settingsStore.branchDesenvolvimento);
-const editConsoleFontSize = ref(settingsStore.consoleFontSize);
-const editCardRadius = ref(settingsStore.cardRadius);
-const editInputRadius = ref(settingsStore.inputRadius);
-
-watch(editCardRadius, (newVal) => {
-  document.documentElement.style.setProperty('--app-card-radius', `${newVal}px`);
-});
-
-watch(editInputRadius, (newVal) => {
-  document.documentElement.style.setProperty('--app-input-radius', `${newVal}px`);
-});
-
 // Modal de deleção
 const showDeleteConfirmModal = ref(false);
 const branchToDelete = ref(null);
@@ -119,47 +108,6 @@ const currentCheckMrIid = ref(null); // Armazena o ID do MR de teste para fecham
 // Exclusão em lote (Bulk Delete)
 const selectedBranches = ref([]);
 const showBulkDeleteModal = ref(false);
-
-const openSettings = () => {
-  editGitlabUrl.value = settingsStore.gitlabUrl;
-  editGitlabProjectId.value = settingsStore.gitlabProjectId;
-  editGitlabToken.value = settingsStore.gitlabToken;
-  editBranchMaster.value = settingsStore.branchMaster;
-  editBranchHomologacao.value = settingsStore.branchHomologacao;
-  editBranchDesenvolvimento.value = settingsStore.branchDesenvolvimento;
-  editConsoleFontSize.value = settingsStore.consoleFontSize;
-  editCardRadius.value = settingsStore.cardRadius;
-  editInputRadius.value = settingsStore.inputRadius;
-  diagnosticStatus.value = null;
-  diagnosticMessage.value = '';
-  showSettingsModal.value = true;
-};
-
-const saveSettings = async () => {
-  settingsStore.gitlabUrl = editGitlabUrl.value;
-  settingsStore.gitlabProjectId = editGitlabProjectId.value;
-  settingsStore.gitlabToken = editGitlabToken.value;
-  settingsStore.branchMaster = editBranchMaster.value;
-  settingsStore.branchHomologacao = editBranchHomologacao.value;
-  settingsStore.branchDesenvolvimento = editBranchDesenvolvimento.value;
-  settingsStore.consoleFontSize = editConsoleFontSize.value;
-  settingsStore.cardRadius = editCardRadius.value;
-  settingsStore.inputRadius = editInputRadius.value;
-  
-  await settingsStore.saveAllSettings();
-  showSettingsModal.value = false;
-  
-  // Atualiza listagem se aplicável
-  if (mergeTarget.value) {
-    const isMaster = mergeTarget.value === settingsStore.branchMaster;
-    if (isMaster) {
-      mergeTarget.value = null;
-      mergeTargetType.value = null;
-    } else {
-      fetchBranches(mergeTarget.value, false);
-    }
-  }
-};
 
 const decreaseFontSize = () => {
   if (settingsStore.consoleFontSize > 10) {
@@ -182,62 +130,23 @@ const increaseFontSize = () => {
   }
 };
 
-const testConnection = async () => {
-  diagnosticStatus.value = 'checking';
-  diagnosticMessage.value = 'Testando conexão com o GitLab...';
 
-  const token = editGitlabToken.value;
-  const projectId = editGitlabProjectId.value;
-  let apiBase = editGitlabUrl.value || 'https://gitlab.com';
 
-  if (!projectId || !token) {
-    diagnosticStatus.value = 'error';
-    diagnosticMessage.value = 'Token e ID do Projeto são obrigatórios.';
-    return;
-  }
-
-  try {
-    if (!apiBase.includes('/api/v4')) {
-      const urlObj = new URL(apiBase);
-      apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
-    }
-    const safeProjectId = encodeURIComponent(decodeURIComponent(projectId));
-    const url = `${apiBase}/projects/${safeProjectId}`;
-
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'PRIVATE-TOKEN': token
-      }
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      diagnosticStatus.value = 'success';
-      diagnosticMessage.value = `Conectado com sucesso! Projeto: "${data.name_with_namespace}"`;
-    } else {
-      diagnosticStatus.value = 'error';
-      diagnosticMessage.value = `GitLab respondeu com erro HTTP ${res.status}: ${res.statusText}`;
-    }
-  } catch (err) {
-    diagnosticStatus.value = 'error';
-    diagnosticMessage.value = `Erro de rede/resolução: ${err.message}`;
-  }
-};
-
-const addPipelineLog = (text, type = 'info') => {
+const addPipelineLog = (text, type = 'info', link = null) => {
   pipelineLogs.value.push({
     time: new Date().toLocaleTimeString('pt-BR', { hour12: false }),
     text,
-    type
+    type,
+    link
   });
 };
 
-const addMergeLog = (text, type = 'info') => {
+const addMergeLog = (text, type = 'info', link = null) => {
   mergeLogs.value.push({
     time: new Date().toLocaleTimeString('pt-BR', { hour12: false }),
     text,
-    type
+    type,
+    link
   });
 };
 
@@ -272,21 +181,6 @@ const filteredBranches = computed(() => {
 });
 
 const fetchBranches = async (target, isBackgroundSearch = false) => {
-  // Impede listagem se tentar listar master
-  if (target === settingsStore.branchMaster) {
-    activeBranches.value = [];
-    totalBranchesCount.value = 0;
-    branchesError.value = '';
-    return;
-  }
-
-  const useGitLab = !!(settingsStore.gitlabToken && settingsStore.gitlabProjectId);
-  if (!useGitLab) {
-    activeBranches.value = [];
-    totalBranchesCount.value = 0;
-    branchesError.value = 'Credenciais do GitLab não configuradas! Informe-as clicando em "Configurar Ambientes".';
-    return;
-  }
 
   branchesLoading.value = true;
   if (!isBackgroundSearch) {
@@ -294,43 +188,17 @@ const fetchBranches = async (target, isBackgroundSearch = false) => {
   }
   
   try {
-    let apiBase = settingsStore.gitlabUrl || 'https://gitlab.com';
-    if (!apiBase.includes('/api/v4')) {
-      const urlObj = new URL(apiBase);
-      apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
-    }
-    const safeProjectId = encodeURIComponent(decodeURIComponent(settingsStore.gitlabProjectId));
-    
-    const apiOrder = branchesOrder.value === 'desc' ? 'updated_desc' : 'updated_asc';
-    let url = `${apiBase}/projects/${safeProjectId}/repository/branches?per_page=100&sort=${apiOrder}`;
-    // Se for busca em background, envia o filtro também para a API do GitLab (trazendo resultados fora das top 100 mais recentes)
-    if (searchQuery.value) {
-      url += `&search=${encodeURIComponent(searchQuery.value)}`;
-    }
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'PRIVATE-TOKEN': settingsStore.gitlabToken
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`GitLab HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    
-    data.sort((a, b) => {
-      const dateA = a.commit && a.commit.committed_date ? new Date(a.commit.committed_date) : 0;
-      const dateB = b.commit && b.commit.committed_date ? new Date(b.commit.committed_date) : 0;
-      return dateB - dateA;
-    });
+    const data = await gitProviderService.breezeGetBranches(
+      settingsStore, 
+      target, 
+      searchQuery.value, 
+      branchesOrder.value
+    );
 
     const baseBranches = [
-      settingsStore.branchMaster,
-      settingsStore.branchHomologacao,
-      settingsStore.branchDesenvolvimento,
+      settingsStore.activeBranchMaster,
+      settingsStore.activeBranchHml,
+      settingsStore.activeBranchDev,
       'master', 'main', 'develop'
     ];
     
@@ -340,22 +208,17 @@ const fetchBranches = async (target, isBackgroundSearch = false) => {
     activeBranches.value = filtered.map(b => ({
       name: b.name,
       mr: null,
-      title: b.commit ? b.commit.title : 'Commit recente',
+      title: b.title || 'Commit recente',
       status: 'waiting',
-      committedDate: b.commit && b.commit.committed_date ? b.commit.committed_date : '',
-      authorName: b.commit ? b.commit.author_name : ''
+      committedDate: b.committedDate || '',
+      authorName: b.authorName || ''
     }));
 
-    const xTotal = response.headers.get('X-Total');
-    if (xTotal) {
-      totalBranchesCount.value = Math.max(filtered.length, parseInt(xTotal, 10) - (searchQuery.value ? 0 : baseBranches.length));
-    } else {
-      totalBranchesCount.value = filtered.length;
-    }
+    totalBranchesCount.value = filtered.length;
   } catch (err) {
     console.error(err);
     if (!isBackgroundSearch) {
-      branchesError.value = `Erro ao carregar branches: ${err.message}`;
+      branchesError.value = `Erro ao carregar branches do ${gitProviderService.getProviderName(settingsStore)}: ${err.message}`;
       activeBranches.value = [];
       totalBranchesCount.value = 0;
     }
@@ -388,108 +251,28 @@ const listAllBranches = async () => {
   branchesError.value = '';
   selectedBranches.value = [];
   // Usamos Desenvolvimento por padrão para a chamada do GitLab
-  mergeTarget.value = settingsStore.branchDesenvolvimento;
+  mergeTarget.value = settingsStore.activeBranchDev;
   mergeTargetType.value = 'dev';
-  await fetchBranches(settingsStore.branchDesenvolvimento, false);
+  await fetchBranches(settingsStore.activeBranchDev, false);
   branchesFetched.value = true;
 };
 
 const performMergeCheck = async (source, target) => {
   mergeCheckStatus.value = 'checking';
-  mergeCheckMessage.value = 'Analisando branch e verificando conflitos no GitLab...';
+  mergeCheckMessage.value = `Analisando branch e verificando conflitos no ${gitProviderService.getProviderName(settingsStore)}...`;
 
   try {
-    let apiBase = settingsStore.gitlabUrl || 'https://gitlab.com';
-    if (!apiBase.includes('/api/v4')) {
-      const urlObj = new URL(apiBase);
-      apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
-    }
-    const safeProjectId = encodeURIComponent(decodeURIComponent(settingsStore.gitlabProjectId));
-
-    // 1. Verificar se há mudanças (Divergência)
-    const compareUrl = `${apiBase}/projects/${safeProjectId}/repository/compare?from=${encodeURIComponent(target)}&to=${encodeURIComponent(source)}`;
-    const compareRes = await fetch(compareUrl, {
-      method: 'GET',
-      headers: { 'PRIVATE-TOKEN': settingsStore.gitlabToken }
-    });
+    const result = await gitProviderService.breezeCheckMergeStatus(settingsStore, source, target);
     
-    if (compareRes.ok) {
-      const compareData = await compareRes.json();
-      if (compareData.commits && compareData.commits.length === 0) {
-        mergeCheckStatus.value = 'no_changes';
-        mergeCheckMessage.value = 'Esta branch já está integrada ou não possui novos commits em relação ao destino.';
-        return;
-      }
+    if (result.status === 'error') {
+       throw new Error(result.message);
     }
-
-    // 2. Verificar conflitos criando/buscando um Merge Request (sem aceitar)
-    const mrUrl = `${apiBase}/projects/${safeProjectId}/merge_requests`;
-    const mrRes = await fetch(mrUrl, {
-      method: 'POST',
-      headers: {
-        'PRIVATE-TOKEN': settingsStore.gitlabToken,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        source_branch: source,
-        target_branch: target,
-        title: `Breeze Check: ${source} em ${target}`,
-        remove_source_branch: false
-      })
-    });
-
-    let mrIid = null;
-    if (mrRes.ok) {
-      const mrData = await mrRes.json();
-      mrIid = mrData.iid;
-    } else if (mrRes.status === 409) {
-      // Já existe, buscar IID
-      const searchUrl = `${apiBase}/projects/${safeProjectId}/merge_requests?source_branch=${encodeURIComponent(source)}&target_branch=${encodeURIComponent(target)}&state=opened`;
-      const searchRes = await fetch(searchUrl, {
-        method: 'GET',
-        headers: { 'PRIVATE-TOKEN': settingsStore.gitlabToken }
-      });
-      if (searchRes.ok) {
-        const searchData = await searchRes.json();
-        if (searchData.length > 0) mrIid = searchData[0].iid;
-      }
-    }
-
-    if (!mrIid) throw new Error("Não foi possível validar o estado do Merge Request.");
     
-    currentCheckMrIid.value = mrIid;
-
-    // Polling rápido para pegar o detailed_merge_status
-    let attempts = 0;
-    while (attempts < 5) {
-      const mrStateUrl = `${apiBase}/projects/${safeProjectId}/merge_requests/${mrIid}`;
-      const mrStateRes = await fetch(mrStateUrl, {
-        method: 'GET',
-        headers: { 'PRIVATE-TOKEN': settingsStore.gitlabToken }
-      });
-
-      if (mrStateRes.ok) {
-        const mrState = await mrStateRes.json();
-        const status = mrState.detailed_merge_status;
-
-        if (status === 'mergeable' || mrState.merge_status === 'can_be_merged') {
-          mergeCheckStatus.value = 'mergeable';
-          mergeCheckMessage.value = 'Merge seguro! Nenhum conflito detectado.';
-          return;
-        } else if (status === 'conflict' || mrState.has_conflicts) {
-          mergeCheckStatus.value = 'conflict';
-          mergeCheckMessage.value = 'CONFLITO DETECTADO! Esta branch não pode ser mesclada automaticamente.';
-          return;
-        }
-      }
-      attempts++;
-      await new Promise(r => setTimeout(r, 1000));
+    mergeCheckStatus.value = result.status;
+    mergeCheckMessage.value = result.message;
+    if (result.mrIid) {
+       currentCheckMrIid.value = result.mrIid;
     }
-
-    // Fallback se demorar muito
-    mergeCheckStatus.value = 'mergeable'; // Assume que se não deu erro imediato, está ok (ou GitLab está lento)
-    mergeCheckMessage.value = 'O GitLab está demorando para responder, mas o MR foi criado e parece estar íntegro.';
-
   } catch (err) {
     mergeCheckStatus.value = 'error';
     mergeCheckMessage.value = `Erro na verificação: ${err.message}`;
@@ -516,71 +299,61 @@ const cancelMergeCheck = async () => {
     currentCheckMrIid.value = null; // Evita duplicação de chamadas
 
     try {
-      let apiBase = settingsStore.gitlabUrl || 'https://gitlab.com';
-      if (!apiBase.includes('/api/v4')) {
-        const urlObj = new URL(apiBase);
-        apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
-      }
-      const safeProjectId = encodeURIComponent(decodeURIComponent(settingsStore.gitlabProjectId));
-      
-      await fetch(`${apiBase}/projects/${safeProjectId}/merge_requests/${iidToClose}`, {
-        method: 'PUT',
-        headers: {
-          'PRIVATE-TOKEN': settingsStore.gitlabToken,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ state_event: 'close' })
-      });
-      addMergeLog(`Merge Request de teste #${iidToClose} foi fechado e descartado (Cancelamento ou Conflito).`, 'info');
+      await gitProviderService.breezeCloseMergeRequest(settingsStore, iidToClose);
+      addMergeLog(`Pull/Merge Request de teste #${iidToClose} foi fechado e descartado (Cancelamento ou Conflito).`, 'info');
     } catch (err) {
-      console.error("Falha ao fechar MR de teste:", err);
+      console.error("Falha ao fechar request de teste:", err);
     }
   }
 };
 
 const executeMergeAfterConfirm = async () => {
   showMergeConfirmModal.value = false;
-  currentCheckMrIid.value = null; // Limpa para não ser fechado acidentalmente, pois será usado no merge
   
   const branchName = mergeConfirmSourceBranch.value;
   const targetBranch = mergeConfirmTargetBranch.value;
   const targetType = mergeConfirmTargetType.value;
   
-  if (!branchName || !targetBranch) return;
+  if (!branchName || !targetBranch || !currentCheckMrIid.value) return;
   
   mergeTarget.value = targetBranch;
   mergeTargetType.value = targetType;
   
-  await runIndividualMerge(branchName);
+  const iidToMerge = currentCheckMrIid.value;
+  currentCheckMrIid.value = null; 
+  
+  mergeLoadingMap.value[branchName] = true;
+  mergeStatusMap.value[branchName] = null;
+
+  const prefix = `[Merge: ${branchName} ➔ ${targetBranch}]`;
+  addMergeLog(`Iniciando mesclagem de '${branchName}' no ambiente '${targetBranch}'...`, 'info');
+
+  try {
+    await gitProviderService.breezeExecuteMergeRequest(settingsStore, iidToMerge);
+    addMergeLog(`${prefix} Branch '${branchName}' integrada com SUCESSO no ${gitProviderService.getProviderName(settingsStore)}!`, 'success');
+    mergeStatusMap.value[branchName] = 'success';
+  } catch (err) {
+    addMergeLog(`${prefix} ERRO no merge: ${err.message}`, 'error');
+    mergeStatusMap.value[branchName] = 'error';
+  }
+
+  mergeLoadingMap.value[branchName] = false;
 };
 
 const toggleOrderAndRefetch = async () => {
   branchesOrder.value = branchesOrder.value === 'desc' ? 'asc' : 'desc';
   if (branchesFetched.value) {
-    await fetchBranches(settingsStore.branchDesenvolvimento, false);
+    await fetchBranches(settingsStore.activeBranchDev, false);
   }
 };
-
 
 const runRebuildPipeline = async (type) => {
   if (pipelineActive.value) return;
 
-  const target = type === 'dev' ? settingsStore.branchDesenvolvimento : settingsStore.branchHomologacao;
+  const target = type === 'dev' ? settingsStore.activeBranchDev : settingsStore.activeBranchHml;
   
-  // Impede qualquer ação se tentar atuar sobre a master
-  if (target === settingsStore.branchMaster) {
-    alert("Operação bloqueada! A branch Master é totalmente protegida.");
-    return;
-  }
-
-  const useGitLab = !!(settingsStore.gitlabToken && settingsStore.gitlabProjectId);
-  if (!useGitLab) {
-    pipelineActive.value = true;
-    pipelineTarget.value = type;
-    pipelineStep.value = 1;
-    pipelineLogs.value = [];
-    addPipelineLog("[Erro] Credenciais do GitLab não configuradas! Por favor, clique em 'Configurar Ambientes' no topo para registrar o ID do Projeto e Token de Acesso.", "error");
-    pipelineActive.value = false;
+  if (target === settingsStore.activeBranchMaster) {
+    notificationService.alert("Operação Bloqueada", "A branch Master é totalmente protegida.", "warning");
     return;
   }
 
@@ -592,119 +365,59 @@ const runRebuildPipeline = async (type) => {
   totalBranchesCount.value = 0;
   searchQuery.value = '';
 
-  let apiBase = settingsStore.gitlabUrl || 'https://gitlab.com';
-  if (!apiBase.includes('/api/v4')) {
-    const urlObj = new URL(apiBase);
-    apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
-  }
-  const safeProjectId = encodeURIComponent(decodeURIComponent(settingsStore.gitlabProjectId));
-
-  addPipelineLog(`Iniciando pipeline de recriação do ambiente '${target}'...`, 'info');
-  
-  addPipelineLog(`Consultando GitLab para listar branches de feature ativas...`, 'info');
+  addPipelineLog(`Iniciando pipeline de recriação do ambiente '${target}' no ${gitProviderService.getProviderName(settingsStore)}...`, 'info');
+  addPipelineLog(`Consultando branches de feature ativas...`, 'info');
   await fetchBranches(target);
-  
   addPipelineLog(`Consulta concluída. Encontradas ${totalBranchesCount.value} branches ativas.`, 'success');
-  
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  // Passo 1: Preparação e Backup
+  // Passo 1: Backup
   pipelineStep.value = 1;
-  
   let timestamp = "";
   try {
     const timeRes = await fetch('http://127.0.0.1:5501/api/server-time');
-    if (timeRes.ok) {
-      const timeData = await timeRes.json();
-      timestamp = timeData.timestamp;
-    } else {
-      throw new Error("Falha na API de tempo");
-    }
+    if (timeRes.ok) timestamp = (await timeRes.json()).timestamp;
+    else throw new Error();
   } catch (e) {
-    // Fallback para o horário local se o servidor falhar por algum motivo
     const now = new Date();
     timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}h${String(now.getMinutes()).padStart(2, '0')}`;
   }
   
   const backupBranchName = `archive/${target}-${timestamp}`;
-
   addPipelineLog(`[Fase 1: Backup] Criando branch de backup '${backupBranchName}' a partir de '${target}'...`, 'info');
 
   try {
-    const backupUrl = `${apiBase}/projects/${safeProjectId}/repository/branches?branch=${encodeURIComponent(backupBranchName)}&ref=${encodeURIComponent(target)}`;
-    const backupRes = await fetch(backupUrl, {
-      method: 'POST',
-      headers: {
-        'PRIVATE-TOKEN': settingsStore.gitlabToken
-      }
-    });
-    if (backupRes.ok) {
-      addPipelineLog(`[Fase 1: Backup] Backup criado com sucesso como '${backupBranchName}'`, 'success');
-    } else {
-      const errorData = await backupRes.json().catch(() => ({}));
-      addPipelineLog(`[Fase 1: Backup] Não foi possível criar backup remoto (${errorData.message || backupRes.statusText}). Prosseguindo.`, 'warning');
-    }
+    await gitProviderService.breezeCreateBranch(settingsStore, backupBranchName, target);
+    addPipelineLog(`[Fase 1: Backup] Backup criado com sucesso como '${backupBranchName}'`, 'success');
   } catch (e) {
-    addPipelineLog(`[Fase 1: Backup] Erro ao tentar criar backup: ${e.message}. Prosseguindo.`, 'warning');
+    addPipelineLog(`[Fase 1: Backup] Erro: ${e.message}. Prosseguindo.`, 'warning');
   }
 
-  // Passo 2: Destruição (Aguardando Confirmação)
+  // Passo 2: Destruição
   waitingForDestruction.value = true;
   addPipelineLog(`[Pausa] Aguardando autorização manual para excluir a branch '${target}'...`, 'warning');
-  await new Promise(resolve => {
-    resolveDestruction = resolve;
-  });
+  await new Promise(resolve => resolveDestruction = resolve);
 
   pipelineStep.value = 2;
-
   addPipelineLog(`[Fase 2: Destruição] Iniciando deleção da branch antiga '${target}'...`, 'info');
   try {
-    const deleteUrl = `${apiBase}/projects/${safeProjectId}/repository/branches/${encodeURIComponent(target)}`;
-    const deleteRes = await fetch(deleteUrl, {
-      method: 'DELETE',
-      headers: {
-        'PRIVATE-TOKEN': settingsStore.gitlabToken
-      }
-    });
-
-    if (deleteRes.ok) {
-      addPipelineLog(`[Fase 2: Destruição] Branch antiga '${target}' deletada com sucesso.`, 'success');
-    } else if (deleteRes.status === 403) {
-      addPipelineLog(`[Fase 2: Destruição] ERRO (403 Forbidden): A branch '${target}' é PROTEGIDA no GitLab. Por favor desproteja-a temporariamente e tente novamente.`, 'error');
-      pipelineActive.value = false;
-      return;
-    } else {
-      const errorData = await deleteRes.json().catch(() => ({}));
-      addPipelineLog(`[Fase 2: Destruição] Aviso ao deletar: ${errorData.message || deleteRes.statusText}. Prosseguindo para criação.`, 'warning');
-    }
+    await gitProviderService.breezeDeleteBranch(settingsStore, target);
+    addPipelineLog(`[Fase 2: Destruição] Branch antiga '${target}' deletada com sucesso.`, 'success');
   } catch (err) {
     addPipelineLog(`[Fase 2: Destruição] ERRO ao tentar deletar a branch: ${err.message}`, 'error');
     pipelineActive.value = false;
     return;
   }
 
-  // Passo 3: Recriação (da Master Protegida)
+  // Passo 3: Recriação
   await new Promise(resolve => setTimeout(resolve, 1200));
   pipelineStep.value = 3;
-
-  const baseRef = settingsStore.branchMaster;
+  const baseRef = settingsStore.activeBranchMaster;
 
   addPipelineLog(`[Fase 3: Recriação] Criando nova branch '${target}' a partir da master '${baseRef}'...`, 'info');
   try {
-    const createUrl = `${apiBase}/projects/${safeProjectId}/repository/branches?branch=${encodeURIComponent(target)}&ref=${encodeURIComponent(baseRef)}`;
-    const createRes = await fetch(createUrl, {
-      method: 'POST',
-      headers: {
-        'PRIVATE-TOKEN': settingsStore.gitlabToken
-      }
-    });
-
-    if (createRes.ok) {
-      addPipelineLog(`[Fase 3: Recriação] Nova branch '${target}' recriada de forma limpa a partir da '${baseRef}'!`, 'success');
-    } else {
-      const errorData = await createRes.json().catch(() => ({}));
-      throw new Error(errorData.message || createRes.statusText);
-    }
+    await gitProviderService.breezeCreateBranch(settingsStore, target, baseRef);
+    addPipelineLog(`[Fase 3: Recriação] Nova branch '${target}' recriada de forma limpa a partir da '${baseRef}'!`, 'success');
   } catch (err) {
     addPipelineLog(`[Fase 3: Recriação] ERRO ao recriar branch: ${err.message}`, 'error');
     pipelineActive.value = false;
@@ -719,230 +432,7 @@ const runRebuildPipeline = async (type) => {
   pipelineActive.value = false;
 };
 
-const acceptMergeRequest = async (mrIid, branchName, target, apiBase, safeProjectId, prefix, isExistingMr = false) => {
-  addMergeLog(`${prefix} Verificando estado do MR #${mrIid} no GitLab...`, 'info');
-  
-  let isReady = false;
-  let attempts = 0;
-  const maxAttempts = 12;
-
-  while (attempts < maxAttempts) {
-    const mrStateUrl = `${apiBase}/projects/${safeProjectId}/merge_requests/${mrIid}`;
-    const mrStateRes = await fetch(mrStateUrl, {
-      method: 'GET',
-      headers: { 'PRIVATE-TOKEN': settingsStore.gitlabToken }
-    });
-
-    if (mrStateRes.ok) {
-      const mrState = await mrStateRes.json();
-      const basicStatus = mrState.merge_status;
-      const detailedStatus = mrState.detailed_merge_status;
-
-      if (mrState.state === 'merged') {
-        addMergeLog(`${prefix} Branch já foi integrada com SUCESSO no GitLab!`, 'success');
-        mergeStatusMap.value[branchName] = 'success';
-        return;
-      }
-      
-      if (mrState.state === 'closed') {
-        addMergeLog(`${prefix} O Merge Request correspondente (#${mrIid}) está fechado.`, 'error');
-        mergeStatusMap.value[branchName] = 'error';
-        return;
-      }
-
-      const isNoChanges = detailedStatus === 'no_changes' || detailedStatus === 'no_commits' || mrState.changes_count === '0' || mrState.changes_count === 0;
-      if (isNoChanges) {
-        if (mrState.has_conflicts) {
-          addMergeLog(`${prefix} CONFLITO DE MESCLAGEM DETECTADO! É necessária resolução manual.`, 'error');
-          mergeStatusMap.value[branchName] = 'conflict';
-        } else {
-          addMergeLog(`${prefix} Não há alterações/commits a integrar. A branch de origem já é idêntica à de destino.`, 'warning');
-          mergeStatusMap.value[branchName] = 'no_changes';
-        }
-        return;
-      }
-
-      if (detailedStatus === 'conflict' || mrState.has_conflicts === true) {
-        addMergeLog(`${prefix} CONFLITO DE MESCLAGEM DETECTADO! É necessária resolução manual no GitLab.`, 'error');
-        mergeStatusMap.value[branchName] = 'conflict';
-        return;
-      }
-
-      const blockingStatuses = ['draft', 'ci_must_pass', 'ci_still_running', 'discussions_not_resolved', 'not_approved'];
-      if (blockingStatuses.includes(detailedStatus)) {
-        addMergeLog(`${prefix} MR #${mrIid} impossibilitado de merge imediato: ${detailedStatus}`, 'error');
-        mergeStatusMap.value[branchName] = 'error';
-        return;
-      }
-
-      if (basicStatus === 'can_be_merged' || detailedStatus === 'mergeable') {
-        isReady = true;
-        break;
-      }
-
-      if (basicStatus === 'cannot_be_merged' && detailedStatus !== 'checking' && detailedStatus !== 'unchecked') {
-        addMergeLog(`${prefix} GitLab relata cannot_be_merged (provável falha de pipeline ou restrição).`, 'error');
-        mergeStatusMap.value[branchName] = 'error';
-        return;
-      }
-    }
-    attempts++;
-    await new Promise(resolve => setTimeout(resolve, 1500));
-  }
-
-  if (!isReady) {
-    addMergeLog(`${prefix} Timeout: O GitLab não concluiu a verificação de mesclagem a tempo.`, 'error');
-    mergeStatusMap.value[branchName] = 'error';
-    return;
-  }
-
-  addMergeLog(`${prefix} MR #${mrIid} verificado. Executando mesclagem final...`, 'info');
-  const acceptUrl = `${apiBase}/projects/${safeProjectId}/merge_requests/${mrIid}/merge`;
-  const acceptRes = await fetch(acceptUrl, {
-    method: 'PUT',
-    headers: {
-      'PRIVATE-TOKEN': settingsStore.gitlabToken,
-      'Content-Type': 'application/json'
-    }
-  });
-
-  if (acceptRes.ok) {
-    addMergeLog(`${prefix} Branch '${branchName}' integrada com SUCESSO no GitLab!`, 'success');
-    mergeStatusMap.value[branchName] = 'success';
-  } else {
-    const errorData = await acceptRes.json().catch(() => ({}));
-    addMergeLog(`${prefix} Erro na requisição de mesclagem: ${errorData.message || acceptRes.statusText}`, 'error');
-    mergeStatusMap.value[branchName] = 'error';
-  }
-};
-
-const runIndividualMerge = async (branchName) => {
-  if (mergeLoadingMap.value[branchName]) return;
-  const target = mergeTarget.value;
-  if (!target) return;
-
-  // Garante proteção se de alguma forma tentar mesclar para master
-  if (target === settingsStore.branchMaster) {
-    alert("Operação bloqueada! A branch Master é protegida.");
-    return;
-  }
-
-  const useGitLab = !!(settingsStore.gitlabToken && settingsStore.gitlabProjectId);
-  if (!useGitLab) {
-    addMergeLog("[Erro] Credenciais não configuradas. Cadastre seu token e ID do projeto nas configurações.", "error");
-    return;
-  }
-
-  mergeLoadingMap.value[branchName] = true;
-  mergeStatusMap.value[branchName] = null;
-
-  const prefix = `[Merge: ${branchName} ➔ ${target}]`;
-  addMergeLog(`Iniciando mesclagem de '${branchName}' no ambiente '${target}'...`, 'info');
-
-  try {
-    let apiBase = settingsStore.gitlabUrl || 'https://gitlab.com';
-    if (!apiBase.includes('/api/v4')) {
-      const urlObj = new URL(apiBase);
-      apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
-    }
-    const safeProjectId = encodeURIComponent(decodeURIComponent(settingsStore.gitlabProjectId));
-
-    addMergeLog(`${prefix} Verificando divergência de commits...`, 'info');
-    const compareUrl = `${apiBase}/projects/${safeProjectId}/repository/compare?from=${encodeURIComponent(target)}&to=${encodeURIComponent(branchName)}`;
-    const compareRes = await fetch(compareUrl, {
-      method: 'GET',
-      headers: { 'PRIVATE-TOKEN': settingsStore.gitlabToken }
-    });
-    
-    if (compareRes.ok) {
-      const compareData = await compareRes.json();
-      if (compareData.commits && compareData.commits.length === 0) {
-        addMergeLog(`${prefix} Não há alterações a integrar. A branch de origem já é idêntica à de destino (Verificado via API).`, 'warning');
-        mergeStatusMap.value[branchName] = 'no_changes';
-        mergeLoadingMap.value[branchName] = false;
-        return;
-      }
-    }
-
-    addMergeLog(`${prefix} Criando Merge Request no GitLab...`, 'info');
-    const mrUrl = `${apiBase}/projects/${safeProjectId}/merge_requests`;
-    const mrRes = await fetch(mrUrl, {
-      method: 'POST',
-      headers: {
-        'PRIVATE-TOKEN': settingsStore.gitlabToken,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        source_branch: branchName,
-        target_branch: target,
-        title: `Breeze Merge: ${branchName} em ${target} (${new Date().toLocaleDateString('pt-BR')})`,
-        remove_source_branch: false
-      })
-    });
-
-    if (!mrRes.ok) {
-      const errorData = await mrRes.json().catch(() => ({}));
-      const errorMsg = errorData.message || mrRes.statusText || "";
-      const errorMsgStr = Array.isArray(errorMsg) ? errorMsg.join(", ") : String(errorMsg);
-      
-      // Se o MR já existe, busca o IID via API GET
-      if (mrRes.status === 409 || errorMsgStr.toLowerCase().includes("already exists")) {
-        addMergeLog(`${prefix} Merge Request já existente. Buscando MR aberto via API...`, 'info');
-        const searchUrl = `${apiBase}/projects/${safeProjectId}/merge_requests?source_branch=${encodeURIComponent(branchName)}&target_branch=${encodeURIComponent(target)}&state=opened`;
-        const searchRes = await fetch(searchUrl, {
-          method: 'GET',
-          headers: { 'PRIVATE-TOKEN': settingsStore.gitlabToken }
-        });
-        
-        if (searchRes.ok) {
-          const searchData = await searchRes.json();
-          if (searchData && searchData.length > 0) {
-            const existingIid = searchData[0].iid;
-            addMergeLog(`${prefix} Merge Request existente encontrado (#${existingIid}). Prosseguindo...`, 'info');
-            await acceptMergeRequest(existingIid, branchName, target, apiBase, safeProjectId, prefix, true);
-            return;
-          }
-        }
-        throw new Error("Falha ao recuperar o Merge Request existente. " + errorMsgStr);
-      }
-      
-      throw new Error(errorMsgStr);
-    }
-
-    const mrData = await mrRes.json();
-    const mrIid = mrData.iid;
-    addMergeLog(`${prefix} Merge Request #${mrIid} criado. Aceitando e executando mesclagem...`, 'info');
-
-    await acceptMergeRequest(mrIid, branchName, target, apiBase, safeProjectId, prefix);
-
-  } catch (err) {
-    const msg = String(err.message).toLowerCase();
-    const noChangesTerms = [
-      "no changes", "no commits", "already merged", "already up-to-date", 
-      "nothing to merge", "empty merge request", "no difference", "has no changes",
-      "not diverging", "cannot create: branches are not diverging"
-    ];
-    const isNoChanges = noChangesTerms.some(term => msg.includes(term));
-    
-    if (isNoChanges) {
-      addMergeLog(`${prefix} Não há alterações a integrar. A branch já é idêntica ao destino.`, 'warning');
-      mergeStatusMap.value[branchName] = 'no_changes';
-    } else {
-      addMergeLog(`${prefix} ERRO no merge: ${err.message}`, 'error');
-      mergeStatusMap.value[branchName] = 'error';
-    }
-  }
-
-  mergeLoadingMap.value[branchName] = false;
-};
-
-// --- FLUXO DE DELEÇÃO COM CONFIRMAÇÃO ---
 const requestDeleteBranch = (branchName) => {
-  const useGitLab = !!(settingsStore.gitlabToken && settingsStore.gitlabProjectId);
-  if (!useGitLab) {
-    alert("Credenciais não configuradas. Cadastre seu token e ID do projeto nas configurações.");
-    return;
-  }
   branchToDelete.value = branchName;
   showDeleteConfirmModal.value = true;
 };
@@ -951,10 +441,9 @@ const executeDeleteBranch = async () => {
   const branchName = branchToDelete.value;
   if (!branchName) return;
 
-  // Garante que não é possível deletar branches principais
-  const protectedBranches = [settingsStore.branchMaster, settingsStore.branchHomologacao, settingsStore.branchDesenvolvimento];
+  const protectedBranches = [settingsStore.activeBranchMaster, settingsStore.activeBranchHml, settingsStore.activeBranchDev];
   if (protectedBranches.includes(branchName)) {
-    alert("Não é possível deletar uma branch de ambiente principal!");
+    notificationService.alert("Acesso Negado", "Não é possível deletar uma branch de ambiente principal!", "warning");
     showDeleteConfirmModal.value = false;
     return;
   }
@@ -963,31 +452,11 @@ const executeDeleteBranch = async () => {
   addMergeLog(`Iniciando deleção da branch de feature '${branchName}'...`, 'info');
 
   try {
-    let apiBase = settingsStore.gitlabUrl || 'https://gitlab.com';
-    if (!apiBase.includes('/api/v4')) {
-      const urlObj = new URL(apiBase);
-      apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
-    }
-    const safeProjectId = encodeURIComponent(decodeURIComponent(settingsStore.gitlabProjectId));
-    const deleteUrl = `${apiBase}/projects/${safeProjectId}/repository/branches/${encodeURIComponent(branchName)}`;
-
-    const res = await fetch(deleteUrl, {
-      method: 'DELETE',
-      headers: {
-        'PRIVATE-TOKEN': settingsStore.gitlabToken
-      }
-    });
-
-    if (res.ok) {
-      addMergeLog(`[Deleção] Branch '${branchName}' DELETADA do GitLab com sucesso!`, 'success');
-      // Remove da lista exibida
-      activeBranches.value = activeBranches.value.filter(b => b.name !== branchName);
-    } else {
-      const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || res.statusText);
-    }
+    await gitProviderService.breezeDeleteBranch(settingsStore, branchName);
+    addMergeLog(`[Deleção] Branch '${branchName}' DELETADA do ${gitProviderService.getProviderName(settingsStore)} com sucesso!`, 'success');
+    activeBranches.value = activeBranches.value.filter(b => b.name !== branchName);
   } catch (err) {
-    addMergeLog(`[Deleção] ERRO ao deletar branch no GitLab: ${err.message}`, 'error');
+    addMergeLog(`[Deleção] ERRO ao deletar branch no ${gitProviderService.getProviderName(settingsStore)}: ${err.message}`, 'error');
   }
 
   deleteLoading.value = false;
@@ -1009,8 +478,7 @@ const executeBulkDelete = async () => {
   addMergeLog(`Iniciando exclusão em lote de ${branchesToExclude.length} branches...`, 'warning');
   
   for (const branchName of branchesToExclude) {
-    // Garante que não é possível deletar branches principais
-    const protectedBranches = [settingsStore.branchMaster, settingsStore.branchHomologacao, settingsStore.branchDesenvolvimento];
+    const protectedBranches = [settingsStore.activeBranchMaster, settingsStore.activeBranchHml, settingsStore.activeBranchDev];
     if (protectedBranches.includes(branchName)) {
       addMergeLog(`[Lote] Ação abortada para '${branchName}' (branch protegida).`, 'error');
       continue;
@@ -1018,30 +486,11 @@ const executeBulkDelete = async () => {
     
     addMergeLog(`[Lote] Removendo branch '${branchName}'...`, 'info');
     try {
-      let apiBase = settingsStore.gitlabUrl || 'https://gitlab.com';
-      if (!apiBase.includes('/api/v4')) {
-        const urlObj = new URL(apiBase);
-        apiBase = `${urlObj.protocol}//${urlObj.host}/api/v4`;
-      }
-      const safeProjectId = encodeURIComponent(decodeURIComponent(settingsStore.gitlabProjectId));
-      const deleteUrl = `${apiBase}/projects/${safeProjectId}/repository/branches/${encodeURIComponent(branchName)}`;
-
-      const res = await fetch(deleteUrl, {
-        method: 'DELETE',
-        headers: {
-          'PRIVATE-TOKEN': settingsStore.gitlabToken
-        }
-      });
-
-      if (res.ok) {
-        addMergeLog(`[Lote] Branch '${branchName}' DELETADA com sucesso!`, 'success');
-        activeBranches.value = activeBranches.value.filter(b => b.name !== branchName);
-      } else {
-        const errorData = await res.json().catch(() => ({}));
-        addMergeLog(`[Lote] Erro ao deletar '${branchName}': ${errorData.message || res.statusText}`, 'error');
-      }
+      await gitProviderService.breezeDeleteBranch(settingsStore, branchName);
+      addMergeLog(`[Lote] Branch '${branchName}' DELETADA com sucesso!`, 'success');
+      activeBranches.value = activeBranches.value.filter(b => b.name !== branchName);
     } catch (err) {
-      addMergeLog(`[Lote] Erro de rede ao deletar '${branchName}': ${err.message}`, 'error');
+      addMergeLog(`[Lote] Erro ao deletar '${branchName}': ${err.message}`, 'error');
     }
   }
   
@@ -1091,39 +540,23 @@ const toggleTheme = () => {
 
     <!-- SIDEBAR -->
     <template #sidebar>
-      <nav class="space-y-2 p-2 w-full flex flex-col items-center">
+      <nav ref="navRef" class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto no-scrollbar gap-1 md:space-y-1 pb-2 md:pb-0 scroll-smooth w-full">
         <button 
-          @click="activeTab = 'merges'"
-          class="flex items-center gap-3 py-3 rounded-[var(--app-input-radius)] transition-all font-black uppercase tracking-widest text-[10px]"
+          v-for="tab in tabs" 
+          :key="tab.id"
+          :data-tab-id="tab.id"
+          @click="activeTab = tab.id"
+          class="flex-shrink-0 flex items-center gap-3 px-4 md:px-3 py-2.5 rounded-xl transition-all group"
           :class="[
-            activeTab === 'merges' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent',
+            activeTab === tab.id 
+              ? 'bg-app-surface text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-sm' 
+              : 'text-app-sub hover:bg-app-surface border border-transparent',
             isMaximized ? 'w-auto px-4 justify-center' : 'w-full px-4'
           ]"
-          :title="isMaximized ? 'Mesclar e Excluir' : ''"
+          :title="isMaximized ? tab.label : ''"
         >
-          <GitBranch class="w-4 h-4 shrink-0" />
-          <span v-if="!isMaximized">Mesclar e Excluir</span>
-        </button>
-        <button 
-          @click="activeTab = 'rebuilder'"
-          class="flex items-center gap-3 py-3 rounded-[var(--app-input-radius)] transition-all font-black uppercase tracking-widest text-[10px]"
-          :class="[
-            activeTab === 'rebuilder' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent',
-            isMaximized ? 'w-auto px-4 justify-center' : 'w-full px-4'
-          ]"
-          :title="isMaximized ? 'Limpar e Recriar' : ''"
-        >
-          <RefreshCw class="w-4 h-4 shrink-0" />
-          <span v-if="!isMaximized">Limpar e Recriar</span>
-        </button>
-        <button 
-          @click="showSettingsModal = true"
-          class="flex items-center gap-3 py-3 rounded-[var(--app-input-radius)] transition-all font-black uppercase tracking-widest text-[10px] text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent"
-          :class="isMaximized ? 'w-auto px-4 justify-center' : 'w-full px-4'"
-          :title="isMaximized ? 'Configurações' : ''"
-        >
-          <Settings class="w-4 h-4 shrink-0" />
-          <span v-if="!isMaximized">Configurações</span>
+          <component :is="tab.icon" class="w-4 h-4 shrink-0" :class="activeTab === tab.id ? tab.color : 'text-slate-400'" />
+          <span v-if="!isMaximized" class="text-[11px] md:text-xs font-bold whitespace-nowrap">{{ tab.label }}</span>
         </button>
       </nav>
       
@@ -1140,8 +573,17 @@ const toggleTheme = () => {
 
     <!-- MAIN CONTENT -->
     <template #default>
-      <div class="flex flex-col gap-6 w-full h-full pb-8">
-        <div v-if="activeTab === 'rebuilder'" class="space-y-6 animate-fadeIn flex-1 flex flex-col min-h-0 lg:overflow-hidden overflow-y-auto">
+      <div 
+        ref="swipeAreaRef" 
+        class="h-full w-full flex-1 overflow-x-hidden touch-pan-y" 
+        :style="{
+          touchAction: 'pan-y',
+          transform: `translateX(${offsetX}px)`,
+          transition: (isSwiping || jumpMode) ? 'none' : 'transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)'
+        }"
+      >
+        <transition :name="disableVueTransition ? '' : 'fade-slide'" :mode="disableVueTransition ? '' : 'out-in'">
+          <div v-if="activeTab === 'rebuilder'" :key="'rebuilder'" class="space-y-6 animate-fadeIn flex-1 flex flex-col min-h-0 lg:overflow-hidden overflow-y-auto h-full w-full pb-8">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch w-full flex-1 min-h-0">
           
           <!-- Coluna 1: Lista de Ambientes (5 colunas) -->
@@ -1163,11 +605,11 @@ const toggleTheme = () => {
                   </div>
                   <div>
                     <div class="flex items-center justify-between mb-4">
-                      <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 text-[8px] font-black uppercase tracking-wider rounded-[var(--app-input-radius)]">Master / Produção</span>
+                      <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 text-[8px] font-black uppercase tracking-wider rounded-[var(--app-input-radius)]">{{ settingsStore.activeAliasMaster }}</span>
                       <div class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                     </div>
-                    <h3 class="text-xl font-black text-app-main font-mono text-emerald-500 dark:text-emerald-400 truncate pr-16" :title="settingsStore.branchMaster">
-                      {{ settingsStore.branchMaster }}
+                    <h3 class="text-xl font-black text-app-main font-mono text-emerald-500 dark:text-emerald-400 truncate pr-16" :title="settingsStore.activeBranchMaster">
+                      {{ settingsStore.activeBranchMaster }}
                     </h3>
                   </div>
                   <div class="mt-6 pt-4 border-t border-app-border-light">
@@ -1180,11 +622,11 @@ const toggleTheme = () => {
                 <div class="glass-section flex flex-col justify-between shadow-md group shrink-0 border-indigo-500/10 hover:border-indigo-500/30 transition-all !p-4">
                   <div>
                     <div class="flex items-center justify-between mb-4">
-                      <span class="px-2.5 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-500 text-[8px] font-black uppercase tracking-wider rounded-[var(--app-input-radius)]">Homologação</span>
+                      <span class="px-2.5 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-500 text-[8px] font-black uppercase tracking-wider rounded-[var(--app-input-radius)]">{{ settingsStore.activeAliasHml }}</span>
                       <div class="w-3 h-3 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.3)]"></div>
                     </div>
-                    <h3 class="text-xl font-black text-app-main font-mono truncate" :title="settingsStore.branchHomologacao">
-                      {{ settingsStore.branchHomologacao }}
+                    <h3 class="text-xl font-black text-app-main font-mono truncate" :title="settingsStore.activeBranchHml">
+                      {{ settingsStore.activeBranchHml }}
                     </h3>
                     <div class="mt-4 pt-4 border-t border-app-border-light">
                       <p class="text-[10px] text-app-muted font-bold uppercase">Ambiente de Testes Finais</p>
@@ -1207,11 +649,11 @@ const toggleTheme = () => {
                 <div class="glass-section flex flex-col justify-between shadow-md group shrink-0 border-indigo-500/10 hover:border-indigo-500/30 transition-all !p-4">
                   <div>
                     <div class="flex items-center justify-between mb-4">
-                      <span class="px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-500 text-[8px] font-black uppercase tracking-wider rounded-[var(--app-input-radius)]">Desenvolvimento</span>
+                      <span class="px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-500 text-[8px] font-black uppercase tracking-wider rounded-[var(--app-input-radius)]">{{ settingsStore.activeAliasDev }}</span>
                       <div class="w-3 h-3 bg-amber-500 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.3)]"></div>
                     </div>
-                    <h3 class="text-xl font-black text-app-main font-mono text-amber-500 dark:text-amber-400 truncate" :title="settingsStore.branchDesenvolvimento">
-                      {{ settingsStore.branchDesenvolvimento }}
+                    <h3 class="text-xl font-black text-app-main font-mono text-amber-500 dark:text-amber-400 truncate" :title="settingsStore.activeBranchDev">
+                      {{ settingsStore.activeBranchDev }}
                     </h3>
                     <div class="mt-4 pt-4 border-t border-app-border-light">
                       <p class="text-[10px] text-app-muted font-bold uppercase">Ambiente de Integração Diária</p>
@@ -1318,14 +760,15 @@ const toggleTheme = () => {
       </div>
 
       <!-- ABA 2: MESCLAR E EXCLUIR BRANCHES -->
-      <div v-else-if="activeTab === 'merges'" class="space-y-4 animate-fadeIn flex-1 flex flex-col min-h-0 lg:overflow-hidden overflow-y-auto">
+      <div v-else-if="activeTab === 'merges'" :key="'merges'" class="space-y-4 animate-fadeIn flex-1 flex flex-col min-h-0 lg:overflow-hidden overflow-y-auto h-full w-full pb-8">
         
         <!-- BARRA DE CONTROLE NO TOPO -->
         <ActionPanel
           :selectedBranches="selectedBranches"
           :branchesLoading="branchesLoading"
-          :branchDesenvolvimento="settingsStore.branchDesenvolvimento"
-          :branchHomologacao="settingsStore.branchHomologacao"
+          :branchDesenvolvimento="settingsStore.activeBranchDev"
+          :branchHomologacao="settingsStore.activeBranchHml"
+          :branchMaster="settingsStore.activeBranchMaster"
           @list-all-branches="listAllBranches"
           @merge-to-target="runMergeToTarget"
           @bulk-delete="requestBulkDelete"
@@ -1366,161 +809,12 @@ const toggleTheme = () => {
 
         </div>
       </div>
+      </transition>
       </div>
     </template>
   </BaseModal>
 
-    <!-- ========================================== -->
-    <!-- MODAL: CONFIGURAÇÕES DE AMBIENTE (BaseModal) -->
-    <!-- ========================================== -->
-    <BaseModal 
-      v-if="showSettingsModal"
-      title="Configurações do Breeze"
-      subtitle="Definição de Conexões do GitLab e Branches"
-      :icon="Settings"
-      okText="Salvar Configurações"
-      cancelText="Cancelar"
-      @close="closeSettings"
-      @cancel="closeSettings"
-      @ok="saveSettings"
-    >
-      <div class="space-y-5 text-left">
-        <!-- GitLab Config Section -->
-        <div class="space-y-4">
-          <h4 class="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1.5">
-            <CloudLightning class="w-3.5 h-3.5" />
-            Conexão com GitLab API
-          </h4>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="text-[9px] font-black text-app-muted uppercase tracking-widest mb-1.5 block">URL do GitLab</label>
-              <AppInput v-model="editGitlabUrl" placeholder="https://gitlab.com" />
-            </div>
-            <div>
-              <label class="text-[9px] font-black text-app-muted uppercase tracking-widest mb-1.5 block">ID do Projeto</label>
-              <AppInput v-model="editGitlabProjectId" placeholder="ex: 12345" />
-            </div>
-          </div>
-
-          <div>
-            <label class="text-[9px] font-black text-app-muted uppercase tracking-widest mb-1.5 block">Token de Acesso Pessoal (Private Token)</label>
-            <div class="relative">
-              <input 
-                v-model="editGitlabToken"
-                :type="showToken ? 'text' : 'password'"
-                placeholder="Insira seu private token..."
-                class="app-input w-full pr-10"
-              />
-              <button 
-                type="button"
-                @click="showToken = !showToken"
-                class="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
-              >
-                <EyeOff v-if="showToken" class="w-4 h-4" />
-                <Eye v-else class="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          <!-- Diagnóstico de Conexão -->
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/[0.05] rounded-xl">
-            <div class="text-left">
-              <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Verificar Credenciais</span>
-              <p class="text-[9px] text-slate-450 dark:text-slate-500 mt-0.5">Testa a conexão com o GitLab sem salvar os dados ainda.</p>
-            </div>
-            <button 
-              type="button" 
-              @click="testConnection"
-              class="btn-secondary text-[10px]"
-            >
-              Testar Conexão
-            </button>
-          </div>
-
-          <!-- Mensagem de diagnóstico -->
-          <div v-if="diagnosticStatus" class="p-3.5 rounded-xl text-[10px] font-bold flex items-center gap-2 border"
-            :class="{
-              'bg-indigo-500/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400': diagnosticStatus === 'checking',
-              'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400': diagnosticStatus === 'success',
-              'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400': diagnosticStatus === 'error'
-            }"
-          >
-            <Info class="w-4 h-4 shrink-0" />
-            <span>{{ diagnosticMessage }}</span>
-          </div>
-        </div>
-
-        <div class="w-full h-px bg-slate-200 dark:bg-white/[0.06] my-2"></div>
-
-        <!-- Branches Config Section -->
-        <div class="space-y-4">
-          <h4 class="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1.5">
-            <GitBranch class="w-3.5 h-3.5" />
-            Nomes Físicos das Ramificações (Branches)
-          </h4>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="text-[9px] font-black text-app-muted uppercase tracking-widest mb-1.5 block">Master (🔒 Protegida)</label>
-              <AppInput v-model="editBranchMaster" placeholder="master-sistsocial" />
-            </div>
-            <div>
-              <label class="text-[9px] font-black text-app-muted uppercase tracking-widest mb-1.5 block">Homologação</label>
-              <AppInput v-model="editBranchHomologacao" placeholder="hml" />
-            </div>
-            <div>
-              <label class="text-[9px] font-black text-app-muted uppercase tracking-widest mb-1.5 block">Desenvolvimento</label>
-              <AppInput v-model="editBranchDesenvolvimento" placeholder="dev-06" />
-            </div>
-          </div>
-        </div>
-
-        <div class="w-full h-px bg-slate-200 dark:bg-white/[0.06] my-2"></div>
-
-        <!-- Border Radius Config Section -->
-        <div class="space-y-4">
-          <h4 class="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1.5">
-            <Settings class="w-3.5 h-3.5" />
-            Ajuste de Arredondamento (Geometria Dinâmica)
-          </h4>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Slider para Card Radius -->
-            <div class="space-y-2">
-              <div class="flex justify-between items-center">
-                <label class="text-[9px] font-black text-app-muted uppercase tracking-widest">Arredondamento de Cards</label>
-                <span class="text-[10px] font-mono font-bold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded-[var(--app-input-radius)]">{{ editCardRadius }}px</span>
-              </div>
-              <input 
-                type="range" 
-                v-model.number="editCardRadius" 
-                min="0" 
-                max="32" 
-                step="2"
-                class="w-full h-1 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500 focus:outline-none"
-              />
-            </div>
-
-            <!-- Slider para Input Radius -->
-            <div class="space-y-2">
-              <div class="flex justify-between items-center">
-                <label class="text-[9px] font-black text-app-muted uppercase tracking-widest">Arredondamento de Inputs/Botões</label>
-                <span class="text-[10px] font-mono font-bold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded-[var(--app-input-radius)]">{{ editInputRadius }}px</span>
-              </div>
-              <input 
-                type="range" 
-                v-model.number="editInputRadius" 
-                min="0" 
-                max="16" 
-                step="1"
-                class="w-full h-1 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500 focus:outline-none"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </BaseModal>
 
     <!-- ========================================== -->
     <!-- MODAL: CONFIRMAÇÃO DE MESCLAGEM (BaseModal) -->

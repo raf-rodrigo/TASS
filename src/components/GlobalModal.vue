@@ -83,7 +83,8 @@ watch(() => modalStore.isOpen, (newVal) => {
       aria-modal="true"
     >
       <div 
-        class="relative transform overflow-hidden rounded-xl bg-app-solid text-center shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-white/5 pointer-events-auto"
+        class="relative transform overflow-hidden rounded-xl bg-app-solid text-center shadow-2xl transition-all sm:my-8 sm:w-full border border-white/5 pointer-events-auto"
+        :class="modalStore.promptType === 'textarea' ? 'sm:max-w-3xl' : 'sm:max-w-lg'"
         @click.stop
       >
         <!-- Content Area (Matches Example Proportions) -->
@@ -115,7 +116,7 @@ watch(() => modalStore.isOpen, (newVal) => {
                       ref="inputRef"
                       v-model="modalStore.promptValue"
                       :placeholder="modalStore.promptPlaceholder"
-                      class="app-input px-4 py-3 shadow-sm transition-all text-center min-h-[80px] resize-none placeholder:text-slate-500"
+                      class="app-input px-4 py-3 shadow-sm transition-all text-left min-h-[120px] resize-y placeholder:text-slate-500"
                       @keydown.enter.ctrl="modalStore.handleConfirm"
                     ></textarea>
                     <input
@@ -148,7 +149,7 @@ watch(() => modalStore.isOpen, (newVal) => {
                 v-if="modalStore.denyText"
                 type="button" 
                 class="mt-3 sm:mt-0 inline-flex w-full justify-center rounded-xl px-3 py-2 text-sm font-semibold text-rose-500 hover:bg-rose-500/5 transition-all active:scale-95 sm:w-auto border border-rose-500/10"
-                @click="modalStore.handleDeny"
+                @click="modalStore.isPrompt ? modalStore.clearPrompt() : modalStore.handleDeny()"
               >
                 {{ modalStore.denyText }}
               </button>
