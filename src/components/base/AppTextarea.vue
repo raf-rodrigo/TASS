@@ -16,13 +16,11 @@
  * />
  * =========================================================================
  */
-import { useAttrs } from 'vue';
-
 defineOptions({
   inheritAttrs: false
 });
 
-const props = defineProps({
+defineProps({
   modelValue: {
     type: String,
     default: ''

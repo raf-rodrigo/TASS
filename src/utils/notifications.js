@@ -42,6 +42,7 @@ export const sendNotification = (title, body) => {
       body: body
     });
   } catch (e) {
+    console.error("Erro ao disparar notificação do sistema:", e);
     return false;
   }
 };

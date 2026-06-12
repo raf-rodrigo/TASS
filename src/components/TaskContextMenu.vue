@@ -4,7 +4,7 @@ import {
   Pencil, CheckCircle, RotateCcw, Trash2, X, 
   GitBranch, MessageSquare, ExternalLink, 
   Play, Square, Globe, Copy, TimerReset,
-  Database, Clock
+  Database, Clock, Lock, Unlock
 } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
@@ -213,6 +213,13 @@ onUnmounted(() => {
           <Copy class="w-4 h-4" />
           <span>Clonar Tarefa (c)</span>
         </button>
+        <button @click="taskStore.updateTask(task.id, { styleLocked: !task.styleLocked })" class="context-menu-item" :class="task.styleLocked ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10' : 'text-slate-500'">
+          <component :is="task.styleLocked ? Lock : Unlock" class="w-4 h-4" />
+          <span>{{ task.styleLocked ? 'Preset Protegido' : 'Proteger Preset' }}</span>
+        </button>
+        <div class="px-3 py-1 text-[9px] text-slate-400 dark:text-slate-500 leading-tight font-medium max-w-[220px]">
+          Impede que o preset deste card seja alterado por mudanças globais no workspace.
+        </div>
       </div>
 
       <hr class="border-t border-app-border-light my-1.5 mx-1" />
@@ -267,6 +274,9 @@ onUnmounted(() => {
           <div v-else class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
         </button>
         <button @click="handleCloneAction" class="icon-btn-large group" data-tip="Clonar Tarefa (c)"><Copy class="w-4 h-4" /></button>
+        <button @click="taskStore.updateTask(task.id, { styleLocked: !task.styleLocked })" class="icon-btn-large group" :class="{ 'active-action': task.styleLocked }" :data-tip="task.styleLocked ? 'Desbloquear Preset (Preset Protegido)' : 'Proteger Preset (Ignora mudanças globais)'">
+          <component :is="task.styleLocked ? Lock : Unlock" class="w-4 h-4" />
+        </button>
         <button 
           @click="handleAction('moreInfo', 'Observações', 'text')" 
           @contextmenu.prevent="handleEditAction('moreInfo', 'Observações', 'text')"

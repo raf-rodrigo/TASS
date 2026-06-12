@@ -3,9 +3,8 @@ import { ref, watch, onMounted } from 'vue';
 import TaskBoard from '../components/TaskBoard.vue';
 import { useTaskStore } from '../stores/taskStore';
 import { useSettingsStore } from '../stores/settingsStore';
-import { notificationService } from '../services/notificationService';
 
-const props = defineProps({
+defineProps({
   isDraggingTask: Boolean
 });
 

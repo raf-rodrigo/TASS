@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { db } from '../db.js';
+import { notificationService } from '../services/notificationService';
 
 export const useNoteStore = defineStore('note', () => {
   const note = ref('');
@@ -18,6 +19,7 @@ export const useNoteStore = defineStore('note', () => {
       isLoaded.value = true;
     } catch (error) {
       console.error("Failed to load note:", error);
+      notificationService.toast("Erro ao carregar as notas rápidas do banco de dados.", "error");
     }
   };
 
@@ -32,6 +34,7 @@ export const useNoteStore = defineStore('note', () => {
       }
     } catch (error) {
       console.error("Failed to save note:", error);
+      notificationService.toast("Erro ao salvar as notas rápidas no banco de dados.", "error");
     }
   };
 

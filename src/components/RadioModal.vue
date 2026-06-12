@@ -104,8 +104,9 @@ const handleTestUrl = () => {
       errors.value.url = 'Erro ao iniciar reprodução.';
     });
   } catch (err) {
+    console.error('Erro inesperado ao testar URL de rádio:', err);
     isTesting.value = false;
-    errors.value.url = 'Erro ao testar URL.';
+    errors.value.url = `Erro ao testar URL: ${err.message}`;
   }
 };
 

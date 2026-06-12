@@ -1,12 +1,10 @@
 <script setup>
 import { ref } from 'vue';
 import TaskCard from '../components/TaskCard.vue';
-import { useSettingsStore } from '../stores/settingsStore';
 import { ArrowLeft, Beaker } from 'lucide-vue-next';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-const settings = useSettingsStore();
 
 const containerWidth = ref(600);
 
@@ -74,7 +72,7 @@ const mockTask = ref({
         </div>
         <div class="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
           <span class="block text-xs font-bold text-slate-500 mb-1">Micro Mode (0)</span>
-          <span class="text-sm font-black text-rose-500">< 242px</span>
+          <span class="text-sm font-black text-rose-500">&lt; 242px</span>
         </div>
       </div>
     </div>

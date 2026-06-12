@@ -1,5 +1,5 @@
 <script setup>
-const props = defineProps({
+defineProps({
   label: String,
   variant: {
     type: String,

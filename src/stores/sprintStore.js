@@ -4,6 +4,7 @@ import { db } from '../db.js';
 import { useSettingsStore } from './settingsStore';
 import { useTaskStore } from './taskStore';
 import { formatMsToHMS } from '../utils/time.js';
+import { notificationService } from '../services/notificationService';
 
 export const useSprintStore = defineStore('sprint', () => {
   const sprints = ref([]);
@@ -13,6 +14,7 @@ export const useSprintStore = defineStore('sprint', () => {
       sprints.value = await db.sprints.toArray();
     } catch (error) {
       console.error("Failed to load sprints:", error);
+      notificationService.toast("Erro ao carregar as sprints do banco de dados.", "error");
     }
   };
 

@@ -13,7 +13,7 @@ defineOptions({
   inheritAttrs: false
 });
 
-const props = defineProps({
+defineProps({
   variant: {
     type: String,
     default: 'primary',
