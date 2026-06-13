@@ -131,6 +131,16 @@ export const useUIStore = defineStore('ui', () => {
     showWorkspaceContextMenu.value = false;
   };
 
+  const animatingTaskIds = ref([]);
+
+  const triggerPresetAnimation = (taskIds) => {
+    const ids = Array.isArray(taskIds) ? taskIds : [taskIds];
+    animatingTaskIds.value = [...animatingTaskIds.value, ...ids];
+    setTimeout(() => {
+      animatingTaskIds.value = animatingTaskIds.value.filter(id => !ids.includes(id));
+    }, 600);
+  };
+
   return {
     showWelcome, showTaskModal, showSettings, showGitRebuilder,
     showSprints, showInterfaceMenu, showTaskStyleBuilder, showNotes,
@@ -138,10 +148,11 @@ export const useUIStore = defineStore('ui', () => {
     showWorkspaceContextMenu, workspaceContextMenuPosition,
     showStylePickerMenu, stylePickerPosition, previewTaskId, previewStyleId,
     taskToEdit, taskForTimeAdjustment, settingsInitialTab,
-    interfaceInitialTab, sprintInitialShowAddForm,
+    interfaceInitialTab, sprintInitialShowAddForm, animatingTaskIds,
     openTaskModal, closeTaskModal,
     openTimeAdjustment, closeTimeAdjustment,
     openSettings, openInterfaceMenu, openSprints,
-    toggleNotes, openStylePicker, closeStylePicker, closeAll, hasOpenModal
+    toggleNotes, openStylePicker, closeStylePicker, closeAll, hasOpenModal,
+    triggerPresetAnimation
   };
 });

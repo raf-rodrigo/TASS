@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import { Play, Square, MoreVertical, ArrowDown, ArrowRight, ArrowUp, AlertOctagon, GitBranch, MessageSquare, Database, ExternalLink } from 'lucide-vue-next';
 import { formatMsToHMS } from '../utils/time.js';
 import { hexToRgba } from '../utils/colors.js';
@@ -30,6 +30,7 @@ const props = defineProps({
 });
 
 const isMobile = ref(window.innerWidth < 768);
+const isAnimatingPreset = computed(() => uiStore.animatingTaskIds.includes(props.task.id));
 
 onMounted(() => {
   window.addEventListener('resize', handleWindowResize);
@@ -348,7 +349,8 @@ const timerButtonClasses = computed(() => {
     class="tass-card glass-panel cursor-pointer cursor-grab hover:-translate-y-0.5 group relative hover:z-[100] flex flex-col"
     :class="[
       task.isRunning && !taskColors.color ? 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : '',
-      taskStore.selectedTask?.id === task.id ? `z-[50] ${!taskColors.color ? 'ring-2 ring-indigo-500/50 border-indigo-500' : ''}` : ''
+      taskStore.selectedTask?.id === task.id ? `z-[50] ${!taskColors.color ? 'ring-2 ring-indigo-500/50 border-indigo-500' : ''}` : '',
+      isAnimatingPreset ? 'animate-preset-pulse' : ''
     ]"
 
 
@@ -564,5 +566,21 @@ const timerButtonClasses = computed(() => {
 </template>
 
 <style scoped>
-/* Estilos específicos do card se necessário */
+@keyframes presetPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px 4px rgba(99, 102, 241, 0.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-preset-pulse {
+  animation: presetPulse 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+  z-index: 10;
+}
 </style>
