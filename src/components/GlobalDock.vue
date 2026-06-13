@@ -37,7 +37,17 @@ const isMobileDockOpen = ref(false);
 const handleRef = ref(null);
 const dockRef = ref(null);
 
-const shouldShowDock = computed(() => props.visible);
+const hasAnyVisibleItem = computed(() => {
+  if (taskStore.lastDeletedTask) return true;
+  return Object.values(settings.dockVisibleItems).some(val => val === true);
+});
+
+const shouldShowDock = computed(() => props.visible && hasAnyVisibleItem.value);
+
+const dockBlur = computed(() => {
+  if (!settings.globalGlassEnabled) return '0px';
+  return settings.dockOpacity > 0 ? '20px' : '0px';
+});
 
 useSwipe(handleRef, {
   threshold: 15,
@@ -135,13 +145,16 @@ const dockRadius = computed(() => {
       ]"
     >
       <div 
-        class="dynamic-island flex flex-col md:flex-row items-center shadow-2xl border border-app-border-light ring-1 ring-black/5 pointer-events-auto transition-all duration-300 ease-out overflow-hidden"
+        class="dynamic-island flex flex-col md:flex-row items-center justify-center border pointer-events-auto transition-all duration-300 ease-out overflow-hidden"
         :class="[
-          isMobile && isMobileDockOpen ? 'w-[90vw] gap-3 p-4' : 'p-1.5 gap-2'
+          isMobile && isMobileDockOpen ? 'w-[90vw] gap-3 p-4' : 'p-1.5 gap-2',
+          settings.dockBackgroundEnabled 
+            ? 'shadow-2xl border-app-border-light ring-1 ring-black/5' 
+            : 'border-transparent shadow-none ring-0'
         ]"
         :style="{ 
-          backgroundColor: `rgba(var(--app-bg-raw), var(--app-bottom-opacity))`,
-          backdropFilter: `blur(var(--app-glass-blur)) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))`,
+          backgroundColor: settings.dockBackgroundEnabled ? `rgba(var(--app-bg-raw), ${settings.normalizedDockOpacity})` : 'transparent',
+          backdropFilter: settings.dockBackgroundEnabled ? `blur(${dockBlur}) brightness(var(--app-glass-brightness)) saturate(var(--app-glass-saturate))` : 'none',
           borderRadius: dockRadius
         }"
       >
@@ -155,32 +168,37 @@ const dockRadius = computed(() => {
         </div>
 
         <!-- LINHA 1: Cabeçalho da Ilha / Ações Principais -->
-        <div class="flex items-center w-full md:w-auto gap-2">
+        <div 
+          v-if="settings.dockVisibleItems.addTask || settings.dockVisibleItems.workedHours || settings.dockVisibleItems.weather || taskStore.lastDeletedTask"
+          class="flex items-center justify-center w-full md:w-auto gap-2"
+        >
           <!-- Adicionar Tarefa -->
           <button 
+            v-if="settings.dockVisibleItems.addTask"
             @click.stop="emit('add-task')"
             class="w-12 h-12 md:w-10 md:h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 transition-all active:scale-95 group shrink-0"
             :style="{ borderRadius: 'var(--app-input-radius)' }"
             data-tip="Nova Tarefa (n)"
           >
-            <Plus class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
+            <Plus :size="settings.dockIconSize" class="group-hover:rotate-90 transition-transform duration-300" />
           </button>
 
-          <!-- Cronômetro (Sempre Visível) -->
+          <!-- Marcador de Horas Trabalhadas -->
           <div 
+            v-if="settings.dockVisibleItems.workedHours"
             class="dock-item !bg-indigo-500/5 !border-indigo-500/20 px-3 flex items-center gap-2 h-12 md:h-10 shrink-0"
             data-tip="Tempo trabalhado (Sprint • Hoje)"
           >
-            <Clock class="w-4 h-4 text-indigo-600 dark:text-indigo-400" :class="{ 'animate-pulse': timerStore.activeTask }" />
+            <Clock :size="settings.dockIconSize" class="text-indigo-600 dark:text-indigo-400" :class="{ 'animate-pulse': timerStore.activeTask }" />
             <span class="text-xs font-black font-mono text-indigo-600 dark:text-indigo-400 whitespace-nowrap">
               Sprint: {{ sprintStore.activeSprintTotalTime }} • Hoje: {{ timerStore.todayWorkedTimeFormatted }}
             </span>
           </div>
 
           <!-- Widget de Clima na Dock -->
-          <WeatherWidget />
+          <WeatherWidget v-if="settings.dockVisibleItems.weather" />
 
-          <!-- Botão Desfazer (Integrado na Dock) -->
+          <!-- Botão Desfazer (Integrado na Dock - Sempre visível) -->
           <transition 
             enter-active-class="transition-all duration-500 ease-out" 
             enter-from-class="w-0 opacity-0 -translate-x-4" 
@@ -194,7 +212,7 @@ const dockRadius = computed(() => {
               @click.stop="taskStore.restoreTask" 
               class="dock-item !bg-amber-500 !border-amber-600 px-3 py-2 flex items-center gap-2 text-white shadow-lg shadow-amber-500/20 group overflow-hidden whitespace-nowrap"
             >
-              <RotateCcw class="w-3.5 h-3.5 group-hover:-rotate-45 transition-transform" />
+              <RotateCcw :size="settings.dockIconSize" class="group-hover:-rotate-45 transition-transform" />
               <span class="text-[10px] font-black uppercase tracking-tighter">Desfazer</span>
             </button>
           </transition>
@@ -202,12 +220,14 @@ const dockRadius = computed(() => {
 
         <!-- SEÇÃO EXPANSÍVEL (Filtros e Utilidades) -->
         <div 
+          v-if="settings.dockVisibleItems.filters || settings.dockVisibleItems.sprints || settings.dockVisibleItems.gitRebuilder || settings.dockVisibleItems.radio || settings.dockVisibleItems.notes || settings.dockVisibleItems.themeToggle || settings.dockVisibleItems.settings"
           v-show="!isMobile || isMobileDockOpen"
-          class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto overflow-hidden transition-all duration-300"
+          class="flex flex-col md:flex-row items-center justify-center gap-3 w-full md:w-auto overflow-hidden transition-all duration-300"
           :class="{ 'mt-3 pt-3': isMobile && isMobileDockOpen }"
         >
           <!-- Filtros -->
           <div 
+            v-if="settings.dockVisibleItems.filters"
             class="flex items-center gap-1 bg-app-surface p-1 border border-app-border-light w-full md:w-auto justify-center"
             :style="{ borderRadius: 'var(--app-input-radius)' }"
           >
@@ -230,33 +250,34 @@ const dockRadius = computed(() => {
             </button>
           </div>
 
-          <div class="hidden md:block w-px h-6 bg-app-border-light mx-1"></div>
+          <div v-if="settings.dockVisibleItems.filters && (settings.dockVisibleItems.sprints || settings.dockVisibleItems.gitRebuilder || settings.dockVisibleItems.radio || settings.dockVisibleItems.notes || settings.dockVisibleItems.themeToggle || settings.dockVisibleItems.settings)" class="hidden md:block w-px h-6 bg-app-border-light mx-1"></div>
 
           <!-- Sprint e Utilidades -->
-          <div class="flex items-center justify-center md:justify-start w-full md:w-auto gap-2">
-             <!-- Sprint Selector (Mobile icon only) -->
-            <button @click="emit('open-sprints')" class="util-btn md:hidden" data-tip="Sprints">
-              <Calendar class="w-4 h-4 text-indigo-500" />
-            </button>
-
+          <div 
+            v-if="settings.dockVisibleItems.sprints || settings.dockVisibleItems.gitRebuilder || settings.dockVisibleItems.radio || settings.dockVisibleItems.notes || settings.dockVisibleItems.themeToggle || settings.dockVisibleItems.settings"
+            class="flex items-center justify-center md:justify-start w-full md:w-auto gap-2"
+          >
             <div class="flex items-center gap-1">
-              <button @click="emit('open-git-rebuilder')" class="util-btn group relative !text-emerald-500 hover:!bg-emerald-500/10 hover:!text-emerald-400" data-tip="Breeze (Git Rebuilder)">
-                <CloudLightning class="w-4 h-4" />
+              <button v-if="settings.dockVisibleItems.sprints" @click="emit('open-sprints')" class="util-btn" data-tip="Sprints">
+                <Calendar :size="settings.dockIconSize" class="text-indigo-500" />
               </button>
-              <button @click="emit('open-radio')" class="util-btn group relative" data-tip="Rádio Lofi">
-                <Headphones class="w-4 h-4 text-amber-500" />
+              <button v-if="settings.dockVisibleItems.gitRebuilder" @click="emit('open-git-rebuilder')" class="util-btn group relative !text-emerald-500 hover:!bg-emerald-500/10 hover:!text-emerald-400" data-tip="Breeze (Git Rebuilder)">
+                <CloudLightning :size="settings.dockIconSize" />
+              </button>
+              <button v-if="settings.dockVisibleItems.radio" @click="emit('open-radio')" class="util-btn group relative" data-tip="Rádio Lofi">
+                <Headphones :size="settings.dockIconSize" class="text-amber-500" />
                 <span v-if="radioStore.isPlaying" class="absolute top-0.5 right-0.5 w-2 h-2 bg-amber-500 rounded-full animate-ping opacity-75"></span>
                 <span v-if="radioStore.isPlaying" class="absolute top-0.5 right-0.5 w-2 h-2 bg-amber-500 rounded-full opacity-50"></span>
               </button>
-              <button @click="emit('open-notes')" class="util-btn" data-tip="Notas Rápidas">
-                <FileText class="w-4 h-4" />
+              <button v-if="settings.dockVisibleItems.notes" @click="emit('open-notes')" class="util-btn" data-tip="Notas Rápidas">
+                <FileText :size="settings.dockIconSize" />
               </button>
-              <button @click="emit('toggle-theme')" class="util-btn" data-tip="Alternar Tema">
-                <Sun v-if="settings.theme === 'dark'" class="w-4 h-4 text-amber-500" />
-                <Moon v-else class="w-4 h-4 text-indigo-500" />
+              <button v-if="settings.dockVisibleItems.themeToggle" @click="emit('toggle-theme')" class="util-btn" data-tip="Alternar Tema">
+                <Sun v-if="settings.theme === 'dark'" :size="settings.dockIconSize" class="text-amber-500" />
+                <Moon v-else :size="settings.dockIconSize" class="text-indigo-500" />
               </button>
-              <button @click="emit('open-settings')" class="util-btn" data-tip="Configurações">
-                <Settings class="w-4 h-4" />
+              <button v-if="settings.dockVisibleItems.settings" @click="emit('open-settings')" class="util-btn" data-tip="Configurações">
+                <Settings :size="settings.dockIconSize" />
               </button>
             </div>
           </div>
@@ -269,7 +290,7 @@ const dockRadius = computed(() => {
             @click="taskStore.restoreTask" 
             class="absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/30 rounded-full animate-bounce pointer-events-auto"
           >
-            <RotateCcw class="w-3.5 h-3.5" /> Desfazer
+            <RotateCcw :size="settings.dockIconSize" /> Desfazer
           </button>
         </transition>
       </div>

@@ -5,8 +5,10 @@ import {
   Image as ImageIcon, Eraser, MousePointer2,
   LayoutGrid, Layers, Type as TypeIcon, Droplets,
   Cloud, Loader2, ArrowLeft, RotateCcw, Clock,
-  Save, CheckCircle2, Pencil, Upload, Download, Puzzle
+  Save, CheckCircle2, Pencil, Upload, Download, Puzzle,
+  Sliders
 } from 'lucide-vue-next';
+import { DOCK_ITEMS } from '../utils/dockConfig.js';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
 import { useTaskStyleStore } from '../stores/taskStyleStore';
@@ -115,6 +117,7 @@ const handleImportPalettes = (event) => {
 const tabs = [
   { id: 'wallpapers', label: 'Papéis de Parede', icon: ImageIcon, color: 'text-indigo-500', desc: 'Troque o clima do seu workspace instantaneamente.' },
   { id: 'board', label: 'Board & Layout', icon: LayoutGrid, color: 'text-indigo-500', desc: 'Configure a estrutura principal do seu quadro de tarefas.' },
+  { id: 'dock', label: 'Doca (Dock)', icon: Sliders, color: 'text-indigo-500', desc: 'Personalize os itens exibidos e o tamanho dos ícones na Doca.' },
   { id: 'tasks', label: 'Construtor de Estilos', icon: Layers, color: 'text-indigo-500', desc: 'Crie e gerencie os Presets Visuais (WYSIWYG).' },
   { id: 'typography', label: 'Tipografia', icon: TypeIcon, color: 'text-indigo-500', desc: 'Escolha a fonte que melhor se adapta ao seu estilo.' },
   { id: 'effects', label: 'Efeitos e Vidro', icon: Droplets, color: 'text-indigo-500', desc: 'Ajuste o desfoque e as transparências do sistema.' },
@@ -488,16 +491,6 @@ const handleColumnChange = (n) => {
                           </div>
                         </label>
 
-                        <label class="flex items-center justify-between p-3.5 bg-transparent dark:bg-transparent rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 hover:bg-app-surface transition-all">
-                          <div class="flex flex-col">
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Barra Inferior</span>
-                            <span class="text-[8px] text-slate-500 uppercase font-medium">Ilha Dinâmica</span>
-                          </div>
-                          <div class="relative inline-flex items-center">
-                            <input type="checkbox" v-model="settings.opacityTargets.bottomBar" @change="settings.saveSetting('app-opacity-targets', { ...settings.opacityTargets })" class="sr-only peer" />
-                            <div class="w-10 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all shadow-sm"></div>
-                          </div>
-                        </label>
 
                         <label class="flex items-center justify-between p-3.5 bg-transparent dark:bg-transparent rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 hover:bg-app-surface transition-all">
                           <div class="flex flex-col">
@@ -578,6 +571,124 @@ const handleColumnChange = (n) => {
                           <div class="w-12 h-6 bg-slate-300 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-500 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all shadow-md"></div>
                         </div>
                       </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ABA: Doca (Dock) -->
+                <div v-else-if="activeTab === 'dock'" :key="'dock'" class="space-y-6">
+                  <div class="glass-section p-6 space-y-8">
+                    <!-- Bloco 1: Tamanho dos Ícones -->
+                    <div class="space-y-5">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                          <Sliders class="w-5 h-5 text-indigo-500" />
+                          <h3 class="text-sm font-bold text-app-main uppercase tracking-tight">Tamanho dos Ícones</h3>
+                        </div>
+                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.dockIconSize }}px</span>
+                      </div>
+                      
+                      <div class="space-y-2">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1">Regular Escala</p>
+                        <input 
+                          type="range" 
+                          v-model.number="settings.dockIconSize" 
+                          min="14" 
+                          max="24" 
+                          step="1" 
+                          class="w-full app-range" 
+                          @change="settings.saveSetting('app-dock-icon-size', settings.dockIconSize)" 
+                        />
+                        <div class="flex justify-between text-[9px] text-app-muted font-medium px-1">
+                          <span>14px (Compacto)</span>
+                          <span>16px (Padrão)</span>
+                          <span>24px (Grande)</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Bloco 2: Opacidade da Doca -->
+                    <div class="pt-6 border-t border-app-border-light space-y-5 animate-fadeIn">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                          <Droplets class="w-5 h-5 text-indigo-500" />
+                          <h3 class="text-sm font-bold text-app-main uppercase tracking-tight">Opacidade da Doca</h3>
+                        </div>
+                        <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-3 py-1 rounded-lg">{{ settings.dockOpacity }}%</span>
+                      </div>
+                      
+                      <div class="space-y-2" :class="{'opacity-50 pointer-events-none': !settings.dockBackgroundEnabled}">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest ml-1">Nível de Transparência</p>
+                        <input 
+                          type="range" 
+                          v-model.number="settings.dockOpacity" 
+                          min="0" 
+                          max="100" 
+                          step="5" 
+                          class="w-full app-range" 
+                          @change="settings.saveSetting('app-dock-opacity', settings.dockOpacity)" 
+                        />
+                        <div class="flex justify-between text-[9px] text-app-muted font-medium px-1">
+                          <span>0% (Sólido)</span>
+                          <span>80% (Padrão)</span>
+                          <span>100% (Invisível)</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Bloco 2: Visibilidade dos Itens -->
+                    <div class="pt-6 border-t border-app-border-light space-y-4">
+                      <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Itens Visíveis na Doca:</p>
+                      
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label 
+                          v-for="item in DOCK_ITEMS" 
+                          :key="item.id" 
+                          class="flex items-center justify-between p-3.5 bg-transparent rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 hover:bg-app-surface transition-all"
+                        >
+                          <div class="flex items-center gap-3">
+                            <div class="p-1.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                              <component :is="item.icon" class="w-4 h-4" />
+                            </div>
+                            <div class="flex flex-col">
+                              <span class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ item.label }}</span>
+                              <span class="text-[8px] text-slate-500 uppercase font-medium line-clamp-1 pr-2">{{ item.desc }}</span>
+                            </div>
+                          </div>
+                          <div class="relative inline-flex items-center">
+                            <input 
+                              type="checkbox" 
+                              v-model="settings.dockVisibleItems[item.id]" 
+                              @change="settings.saveSetting('app-dock-visible-items', { ...settings.dockVisibleItems })" 
+                              class="sr-only peer" 
+                            />
+                            <div class="w-10 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all shadow-sm"></div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- Bloco 3: Estilo da Doca -->
+                    <div class="pt-6 border-t border-app-border-light space-y-4">
+                      <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Estilo da Doca:</p>
+                      
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="flex items-center justify-between p-3.5 bg-transparent rounded-2xl cursor-pointer border border-app-border-light group hover:border-indigo-500/30 hover:bg-app-surface transition-all">
+                          <div class="flex flex-col">
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Exibir Fundo da Doca</span>
+                            <span class="text-[8px] text-slate-500 uppercase font-medium">Habilita o contêiner de vidro (Glassmorphism) de fundo</span>
+                          </div>
+                          <div class="relative inline-flex items-center">
+                            <input 
+                              type="checkbox" 
+                              v-model="settings.dockBackgroundEnabled" 
+                              @change="settings.saveSetting('app-dock-bg-enabled', settings.dockBackgroundEnabled)" 
+                              class="sr-only peer" 
+                            />
+                            <div class="w-10 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all shadow-sm"></div>
+                          </div>
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>

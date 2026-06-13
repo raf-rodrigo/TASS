@@ -63,4 +63,17 @@ describe('SettingsStore', () => {
       expect(store.appWidth).toBe(1400);
     expect(db.settings.put).toHaveBeenCalledWith({ key: 'app-width', value: 1400 });
   });
+
+  it('deve possuir valores padronizados para a Doca na inicialização', () => {
+    const store = useSettingsStore();
+    expect(store.dockIconSize).toBe(16);
+    expect(store.dockBackgroundEnabled).toBe(true);
+    expect(store.dockOpacity).toBe(80);
+    expect(store.normalizedDockOpacity).toBe(0.2);
+    expect(store.dockVisibleItems).toBeDefined();
+    expect(store.dockVisibleItems.addTask).toBe(true);
+    expect(store.dockVisibleItems.workedHours).toBe(true);
+    expect(store.dockVisibleItems.sprints).toBe(true);
+    expect(store.dockVisibleItems.weather).toBe(true);
+  });
 });

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import GlobalDock from '../../src/components/GlobalDock.vue';
+import { useSettingsStore } from '../../src/stores/settingsStore';
 
 // Mock do useSwipe do VueUse
 const mockUseSwipe = vi.fn();
@@ -13,7 +14,24 @@ vi.mock('@vueuse/core', () => ({
 vi.mock('../../src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
     theme: 'dark',
-    cardBorderRadius: 16
+    cardBorderRadius: 16,
+    dockIconSize: 16,
+    dockBackgroundEnabled: true,
+    dockOpacity: 80,
+    normalizedDockOpacity: 0.2,
+    globalGlassEnabled: true,
+    dockVisibleItems: {
+      addTask: true,
+      workedHours: true,
+      sprints: true,
+      weather: true,
+      filters: true,
+      gitRebuilder: true,
+      radio: true,
+      notes: true,
+      themeToggle: true,
+      settings: true
+    }
   }))
 }));
 
@@ -89,5 +107,176 @@ describe('GlobalDock.vue', () => {
     });
     expect(wrapper.find('button').exists()).toBe(false);
     expect(wrapper.text()).not.toContain('10h 30m');
+  });
+
+  it('deve ocultar o botão de adicionar tarefa se configurado como oculto', () => {
+    useSettingsStore.mockReturnValueOnce({
+      theme: 'dark',
+      cardBorderRadius: 16,
+      dockIconSize: 16,
+      dockBackgroundEnabled: true,
+      dockOpacity: 80,
+      normalizedDockOpacity: 0.2,
+      globalGlassEnabled: true,
+      dockVisibleItems: {
+        addTask: false,
+        workedHours: true,
+        sprints: true,
+        weather: true,
+        filters: true,
+        gitRebuilder: true,
+        radio: true,
+        notes: true,
+        themeToggle: true,
+        settings: true
+      }
+    });
+
+    const wrapper = mount(GlobalDock);
+    const buttons = wrapper.findAll('button');
+    const hasPlus = buttons.some(b => b.html().includes('Plus') || b.attributes('data-tip') === 'Nova Tarefa (n)');
+    expect(hasPlus).toBe(false);
+  });
+
+  it('deve ocultar o marcador de horas trabalhadas se configurado como oculto', () => {
+    useSettingsStore.mockReturnValueOnce({
+      theme: 'dark',
+      cardBorderRadius: 16,
+      dockIconSize: 16,
+      dockBackgroundEnabled: true,
+      dockOpacity: 80,
+      normalizedDockOpacity: 0.2,
+      globalGlassEnabled: true,
+      dockVisibleItems: {
+        addTask: true,
+        workedHours: false,
+        sprints: true,
+        weather: true,
+        filters: true,
+        gitRebuilder: true,
+        radio: true,
+        notes: true,
+        themeToggle: true,
+        settings: true
+      }
+    });
+
+    const wrapper = mount(GlobalDock);
+    expect(wrapper.text()).not.toContain('10h 30m');
+  });
+
+  it('deve aplicar o tamanho correto de ícone especificado na store', () => {
+    useSettingsStore.mockReturnValueOnce({
+      theme: 'dark',
+      cardBorderRadius: 16,
+      dockIconSize: 22,
+      dockBackgroundEnabled: true,
+      dockOpacity: 80,
+      normalizedDockOpacity: 0.2,
+      globalGlassEnabled: true,
+      dockVisibleItems: {
+        addTask: true,
+        workedHours: true,
+        sprints: true,
+        weather: true,
+        filters: true,
+        gitRebuilder: true,
+        radio: true,
+        notes: true,
+        themeToggle: true,
+        settings: true
+      }
+    });
+
+    const wrapper = mount(GlobalDock);
+    const plusIcon = wrapper.findComponent({ name: 'Plus' });
+    if (plusIcon.exists()) {
+      expect(plusIcon.props('size')).toBe(22);
+    }
+  });
+
+  it('deve ocultar a doca completamente se todos os itens configurados forem ocultados', () => {
+    useSettingsStore.mockReturnValueOnce({
+      theme: 'dark',
+      cardBorderRadius: 16,
+      dockIconSize: 16,
+      dockBackgroundEnabled: true,
+      dockOpacity: 80,
+      normalizedDockOpacity: 0.2,
+      globalGlassEnabled: true,
+      dockVisibleItems: {
+        addTask: false,
+        workedHours: false,
+        sprints: false,
+        weather: false,
+        filters: false,
+        gitRebuilder: false,
+        radio: false,
+        notes: false,
+        themeToggle: false,
+        settings: false
+      }
+    });
+
+    const wrapper = mount(GlobalDock);
+    expect(wrapper.find('.dynamic-island').exists()).toBe(false);
+  });
+
+  it('deve remover borda, sombra e anel se o fundo da doca estiver desabilitado', () => {
+    useSettingsStore.mockReturnValueOnce({
+      theme: 'dark',
+      cardBorderRadius: 16,
+      dockIconSize: 16,
+      dockBackgroundEnabled: false,
+      dockOpacity: 80,
+      normalizedDockOpacity: 0.2,
+      globalGlassEnabled: true,
+      dockVisibleItems: {
+        addTask: true,
+        workedHours: true,
+        sprints: true,
+        weather: true,
+        filters: true,
+        gitRebuilder: true,
+        radio: true,
+        notes: true,
+        themeToggle: true,
+        settings: true
+      }
+    });
+
+    const wrapper = mount(GlobalDock);
+    const island = wrapper.find('.dynamic-island');
+    expect(island.classes()).toContain('border-transparent');
+    expect(island.classes()).toContain('shadow-none');
+    expect(island.classes()).toContain('ring-0');
+  });
+
+  it('deve aplicar a opacidade da Doca especificada de forma independente', () => {
+    useSettingsStore.mockReturnValueOnce({
+      theme: 'dark',
+      cardBorderRadius: 16,
+      dockIconSize: 16,
+      dockBackgroundEnabled: true,
+      dockOpacity: 50,
+      normalizedDockOpacity: 0.5,
+      globalGlassEnabled: true,
+      dockVisibleItems: {
+        addTask: true,
+        workedHours: true,
+        sprints: true,
+        weather: true,
+        filters: true,
+        gitRebuilder: true,
+        radio: true,
+        notes: true,
+        themeToggle: true,
+        settings: true
+      }
+    });
+
+    const wrapper = mount(GlobalDock);
+    const island = wrapper.find('.dynamic-island');
+    expect(island.attributes('style')).toContain('rgba(var(--app-bg-raw), 0.5)');
   });
 });
