@@ -8,7 +8,9 @@ import { useTaskStore } from '../../src/stores/taskStore';
 vi.mock('../../src/stores/uiStore', () => ({
   useUIStore: vi.fn(() => ({
     workspaceContextMenuPosition: { x: 100, y: 100 },
-    showWorkspaceContextMenu: true
+    showWorkspaceContextMenu: true,
+    animatingTaskIds: [],
+    triggerPresetAnimation: vi.fn()
   }))
 }));
 

@@ -48,9 +48,12 @@ const displayTemp = computed(() => {
       title="Clique para atualizar o clima"
     >
       <!-- Ícone do Clima -->
-      <div class="relative w-6 h-6 flex items-center justify-center shrink-0">
-        <RefreshCcw v-if="weatherStore.isLoading && !weatherStore.iconUrl" class="w-4 h-4 text-indigo-500 animate-spin" />
-        <CloudOff v-else-if="weatherStore.error && !weatherStore.iconUrl" class="w-4 h-4 text-red-400" />
+      <div 
+        class="relative flex items-center justify-center shrink-0"
+        :style="{ width: `${settings.dockIconSize + 8}px`, height: `${settings.dockIconSize + 8}px` }"
+      >
+        <RefreshCcw v-if="weatherStore.isLoading && !weatherStore.iconUrl" :size="settings.dockIconSize" class="text-indigo-500 animate-spin" />
+        <CloudOff v-else-if="weatherStore.error && !weatherStore.iconUrl" :size="settings.dockIconSize" class="text-red-400" />
         <img 
           v-else-if="weatherStore.iconUrl" 
           :src="weatherStore.iconUrl" 
@@ -87,7 +90,7 @@ const displayTemp = computed(() => {
       v-else-if="settings.weatherWidgetEnabled && weatherStore.locationDenied"
       class="dock-item px-3 flex items-center gap-2 h-12 md:h-10 shrink-0 opacity-40 hover:opacity-100 transition-opacity"
     >
-      <MapPinOff class="w-4 h-4 text-app-sub" />
+      <MapPinOff :size="settings.dockIconSize" class="text-app-sub" />
       <span class="text-[8px] font-black uppercase tracking-wider text-app-sub">Local Negado</span>
     </div>
   </transition>

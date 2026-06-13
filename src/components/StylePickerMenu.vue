@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
-import { Palette, X } from 'lucide-vue-next';
+import { Palette, X, Check } from 'lucide-vue-next';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
 import { useTaskStyleStore } from '../stores/taskStyleStore';
@@ -95,6 +95,9 @@ const handleClearPreview = () => {
 const applyStyle = async (styleId) => {
   const taskId = uiStore.previewTaskId;
   try {
+    if (taskId) {
+      uiStore.triggerPresetAnimation(taskId);
+    }
     await taskStore.updateTask(taskId, { styleId: styleId || null });
     localStorage.setItem('tass_last_used_style_id', styleId);
     lastUsedStyleId.value = styleId;
@@ -147,25 +150,31 @@ const isCurrentStyle = (styleId) => {
         <button 
           @mouseenter="handlePreview('')"
           @click="applyStyle('')"
-          class="preset-item"
+          class="preset-item flex justify-between items-center"
           :class="isCurrentStyle('') ? 'bg-indigo-500/10 text-indigo-500 font-bold' : ''"
         >
-          <div class="w-3 h-3 rounded-full border border-black/10 dark:border-white/10" style="background-color: #e2e8f0;"></div>
-          <span>Padrão Global</span>
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-3 h-3 rounded-full border border-black/10 dark:border-white/10 flex-shrink-0" style="background-color: #e2e8f0;"></div>
+            <span class="truncate">Padrão Global</span>
+          </div>
+          <Check v-if="isCurrentStyle('')" class="w-3.5 h-3.5 text-indigo-500 flex-shrink-0 ml-auto" />
         </button>
 
-        <hr v-if="sortedPresets.length <= 12" class="border-t border-app-border-light my-1 mx-2" />
+        <hr v-if="sortedPresets.length <= 12" class="border-t border-app-border-light my-1.5 mx-2" />
 
         <button 
           v-for="preset in sortedPresets" 
           :key="preset.id"
           @mouseenter="handlePreview(preset.id)"
           @click="applyStyle(preset.id)"
-          class="preset-item"
+          class="preset-item flex justify-between items-center"
           :class="isCurrentStyle(preset.id) ? 'bg-indigo-500/10 text-indigo-500 font-bold' : ''"
         >
-          <div class="w-3 h-3 rounded-full border border-black/10 dark:border-white/10" :style="{ backgroundColor: preset.colors?.bgColor || '#e2e8f0' }"></div>
-          <span class="truncate">{{ preset.name }}</span>
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-3 h-3 rounded-full border border-black/10 dark:border-white/10 flex-shrink-0" :style="{ backgroundColor: preset.colors?.bgColor || '#e2e8f0' }"></div>
+            <span class="truncate">{{ preset.name }}</span>
+          </div>
+          <Check v-if="isCurrentStyle(preset.id)" class="w-3.5 h-3.5 text-indigo-500 flex-shrink-0 ml-auto" />
         </button>
 
         <div v-if="taskStyleStore.sortedStyles.length === 0" class="py-3 px-2 text-center" :class="sortedPresets.length > 12 ? 'col-span-full' : ''">

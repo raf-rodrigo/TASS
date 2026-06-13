@@ -33,7 +33,6 @@ export function useTheme(settings) {
     };
 
     root.style.setProperty('--app-card-opacity', getOpacity(settings.opacityTargets.cards));
-    root.style.setProperty('--app-bottom-opacity', getOpacity(settings.opacityTargets.bottomBar));
     root.style.setProperty('--app-action-opacity', getOpacity(settings.opacityTargets.actionBar));
     root.style.setProperty('--app-modal-opacity', getOpacity(settings.opacityTargets.modals));
     root.style.setProperty('--app-modal-header-opacity', getOpacity(settings.opacityTargets.modalHeaderFooter));
