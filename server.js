@@ -95,6 +95,11 @@ app.post('/api/auth/login', async (req, res) => {
 
 // Middleware de Autenticação JWT para rotas privadas
 function authenticateToken(req, res, next) {
+  // Ignora caminhos que não fazem parte da API (estáticos e arquivos frontend)
+  if (!req.path.startsWith('/api')) {
+    return next();
+  }
+
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
