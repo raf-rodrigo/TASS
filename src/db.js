@@ -108,6 +108,12 @@ export const db = {
     }
   },
 
+    async bulkPut(tasksArray) {
+      await Promise.all(tasksArray.map(t => apiFetch('/api/tasks', 'POST', t)));
+      return 1;
+    }
+  },
+
   sprints: {
     async toArray() {
       return apiFetch('/api/sprints');
@@ -123,6 +129,10 @@ export const db = {
     async clear() {
       const list = await apiFetch('/api/sprints');
       await Promise.all(list.map(s => apiFetch(`/api/sprints/${s.id}`, 'DELETE')));
+      return 1;
+    },
+    async bulkPut(sprintsArray) {
+      await Promise.all(sprintsArray.map(s => apiFetch('/api/sprints', 'POST', s)));
       return 1;
     }
   },
@@ -167,6 +177,10 @@ export const db = {
       await Promise.all(list.map(n => apiFetch(`/api/notes/${n.id}`, 'DELETE')));
       return 1;
     },
+    async bulkPut(notesArray) {
+      await Promise.all(notesArray.map(n => apiFetch('/api/notes', 'POST', n)));
+      return 1;
+    },
     toCollection() {
       return {
         async last() {
@@ -196,6 +210,11 @@ export const db = {
     async bulkPut(radiosArray) {
       await Promise.all(radiosArray.map(r => apiFetch('/api/radios', 'POST', r)));
       return 1;
+    },
+    async clear() {
+      const list = await apiFetch('/api/radios');
+      await Promise.all(list.map(r => apiFetch(`/api/radios/${r.id}`, 'DELETE')));
+      return 1;
     }
   },
 
@@ -205,6 +224,14 @@ export const db = {
     },
     async bulkAdd(stylesArray) {
       await apiFetch('/api/task-styles', 'POST', stylesArray);
+      return 1;
+    },
+    async bulkPut(stylesArray) {
+      await apiFetch('/api/task-styles', 'POST', stylesArray);
+      return 1;
+    },
+    async clear() {
+      await apiFetch('/api/task-styles', 'POST', []);
       return 1;
     },
     async update(id, updates) {
