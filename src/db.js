@@ -105,9 +105,7 @@ export const db = {
       const list = await apiFetch('/api/tasks');
       await Promise.all(list.map(t => apiFetch(`/api/tasks/${t.id}`, 'DELETE')));
       return 1;
-    }
-  },
-
+    },
     async bulkPut(tasksArray) {
       await Promise.all(tasksArray.map(t => apiFetch('/api/tasks', 'POST', t)));
       return 1;
