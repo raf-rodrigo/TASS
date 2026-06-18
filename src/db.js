@@ -5,20 +5,30 @@ const API_BASE = (typeof window !== 'undefined' && window.location.hostname !== 
   : 'http://localhost:5176';
 
 // Função auxiliar para requisições fetch
-async function apiFetch(url, method = 'GET', body = null) {
+export async function apiFetch(url, method = 'GET', body = null) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-TASS-Client': 'true'
+  };
+
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('tass_auth_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+
   const options = {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-TASS-Client': 'true'
-    }
+    headers
   };
   if (body) {
     options.body = JSON.stringify(body);
   }
   const res = await fetch(`${API_BASE}${url}`, options);
   if (!res.ok) {
-    throw new Error(`API Error: ${res.statusText}`);
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || `API Error: ${res.statusText}`);
   }
   return res.json();
 }
@@ -252,6 +262,38 @@ export const db = {
       const filtered = styles.filter(s => s.id !== id);
       await apiFetch('/api/task-styles', 'POST', filtered);
       return 1;
+    }
+  },
+
+  auth: {
+    async login(username, password) {
+      const res = await apiFetch('/api/auth/login', 'POST', { username, password });
+      if (res.token) {
+        localStorage.setItem('tass_auth_token', res.token);
+        localStorage.setItem('tass_user', JSON.stringify(res.user));
+      }
+      return res;
+    },
+    async register(username, password) {
+      return apiFetch('/api/auth/register', 'POST', { username, password });
+    },
+    logout() {
+      localStorage.removeItem('tass_auth_token');
+      localStorage.removeItem('tass_user');
+      window.location.href = '/login';
+    },
+    async getMe() {
+      try {
+        return await apiFetch('/api/auth/me');
+      } catch (e) {
+        return null;
+      }
+    }
+  },
+
+  system: {
+    async importBackup(data) {
+      return apiFetch('/api/migration/import', 'POST', data);
     }
   }
 };

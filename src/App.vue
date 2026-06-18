@@ -35,7 +35,7 @@ import { useDeviceBehavior } from './composables/useDeviceBehavior.js';
 // Stores
 
 import { notificationService } from './services/notificationService';
-import { ClipboardList, Plus, Sun, Moon, Settings, Calendar, Maximize, RotateCcw, Pencil, CheckCircle, Trash2, X, Clock } from 'lucide-vue-next';
+import { ClipboardList, Plus, Sun, Moon, Settings, Calendar, Maximize, RotateCcw, Pencil, CheckCircle, Trash2, X, Clock, LogOut, Sparkles } from 'lucide-vue-next';
 
 import { useSettingsStore } from './stores/settingsStore';
 import { useTaskStore } from './stores/taskStore';
@@ -54,6 +54,19 @@ const taskStyleStore = useTaskStyleStore();
 const uiStore = useUIStore();
 const router = useRouter();
 const route = useRoute();
+
+// Estado de Autenticação do Usuário
+const currentUser = computed(() => {
+  if (typeof window !== 'undefined') {
+    const userStr = localStorage.getItem('tass_user');
+    return userStr ? JSON.parse(userStr) : null;
+  }
+  return null;
+});
+
+const handleLogout = () => {
+  db.auth.logout();
+};
 
 // Modal initial states for Welcome Modal redirects
 const interfaceInitialTab = ref(null);
@@ -285,18 +298,22 @@ watch(() => settings.fontFamily, (newFont) => {
 }, { immediate: true });
 
 onMounted(async () => {
-
-
-  await settings.loadSettings();
-  await taskStyleStore.loadStyles();
-  applyTheme();
-  await taskStore.loadTasks();
-  await sprintStore.loadSprints();
-
-  if (!settings.hideWelcomeModal) {
-    uiStore.showWelcome = true;
-  }
+  const token = typeof window !== 'undefined' ? localStorage.getItem('tass_auth_token') : null;
   
+  if (token) {
+    await settings.loadSettings();
+    await taskStyleStore.loadStyles();
+    applyTheme();
+    await taskStore.loadTasks();
+    await sprintStore.loadSprints();
+
+    if (!settings.hideWelcomeModal) {
+      uiStore.showWelcome = true;
+    }
+  } else {
+    // Se não está logado, inicializa com configurações fictícias ou padrão para não quebrar a tela de login
+    settings.isInitialized = true;
+  }
 });
 </script>
 
@@ -344,6 +361,34 @@ onMounted(async () => {
       ]"
       :style="{ maxWidth: '98%' }"
     >
+      <!-- Navbar Superior (Exibida apenas se logado) -->
+      <nav 
+        v-if="currentUser"
+        class="w-full max-w-7xl mx-auto flex items-center justify-between px-6 py-4 rounded-2xl border border-white/10 glass-panel shadow-lg mb-6 z-30 transition-all duration-300"
+        style="background-color: rgba(15, 17, 26, 0.45); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);"
+      >
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-indigo-500/10 rounded-xl text-indigo-400">
+            <Sparkles class="w-5 h-5" />
+          </div>
+          <h1 class="text-lg font-black tracking-widest text-white uppercase leading-none">TASS</h1>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2 px-3 py-1.5 bg-white/[0.03] border border-white/5 rounded-xl text-xs text-slate-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+            <span class="font-medium">Olá, {{ currentUser.username }}</span>
+          </div>
+
+          <button 
+            @click="handleLogout"
+            class="flex items-center gap-2 px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 active:scale-95 border border-rose-500/20 hover:border-rose-500/40 rounded-xl text-xs font-black uppercase tracking-wider text-rose-400 transition-all cursor-pointer"
+          >
+            <LogOut class="w-3.5 h-3.5" />
+            <span>Sair</span>
+          </button>
+        </div>
+      </nav>
       <!-- TASS Branding (Bottom Right) -->
       <div class="hidden md:flex fixed bottom-6 right-6 md:bottom-10 md:right-12 z-20 flex-col items-end animate-[fadeInRight_0.8s_ease-out] select-none pointer-events-none opacity-30 md:opacity-60 hover:opacity-100 transition-opacity">
         <div class="flex items-center gap-2">
@@ -362,7 +407,7 @@ onMounted(async () => {
       </div>
 
       <main class="w-full mt-2 flex-1 flex flex-col">
-        <NotesPanel :isOpen="uiStore.showNotes" @toggle="uiStore.showNotes = !uiStore.showNotes" @close="uiStore.showNotes = false" />
+        <NotesPanel v-if="currentUser" :isOpen="uiStore.showNotes" @toggle="uiStore.showNotes = !uiStore.showNotes" @close="uiStore.showNotes = false" />
 
         <!-- Roteador Principal -->
         <router-view 
@@ -487,6 +532,7 @@ onMounted(async () => {
     />
 
     <RadioPlayer
+      v-if="currentUser"
       :isOpen="uiStore.showRadio"
       @close="uiStore.showRadio = false"
     />

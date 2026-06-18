@@ -8,6 +8,11 @@ const routes = [
     component: Workspace
   },
   {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/Login.vue')
+  },
+  {
     path: '/components',
     name: 'ComponentSuite',
     component: () => import('../views/ComponentSuite.vue')
@@ -37,6 +42,18 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from) => {
+  // 1. Regra de Autenticação JWT
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('tass_auth_token');
+    if (!token && to.name !== 'Login' && to.name !== 'Privacy' && to.name !== 'Terms') {
+      return { name: 'Login' };
+    }
+    if (token && to.name === 'Login') {
+      return { name: 'Workspace' };
+    }
+  }
+
+  // 2. Fechamento automático de modais ao transitar de rota
   try {
     const uiStore = useUIStore();
     if (uiStore.hasOpenModal()) {
@@ -47,7 +64,6 @@ router.beforeEach((to, from) => {
       return false;
     }
   } catch (e) {
-    // Evita erros se o Pinia não estiver inicializado na primeira carga de rota estática
     console.warn("Roteador: Pinia ainda não disponível para o guard de modais", e);
   }
   return true;

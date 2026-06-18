@@ -111,36 +111,20 @@ export const backupService = {
     try {
       if (!data.tasks || !data.settings) throw new Error("Backup incompleto");
 
-      // Importação sequencial e limpa
-      if (data.tasks) {
-        const stoppedTasks = data.tasks.map(task => ({
+      const payload = {
+        tasks: (data.tasks || []).map(task => ({
           ...task,
           isRunning: false,
           lastStartTime: null
-        }));
-        await db.tasks.clear();
-        await db.tasks.bulkPut(stoppedTasks);
-      }
-      if (data.sprints) {
-        await db.sprints.clear();
-        await db.sprints.bulkPut(data.sprints);
-      }
-      if (data.settings) {
-        await db.settings.clear();
-        await db.settings.bulkPut(data.settings);
-      }
-      if (data.notes) {
-        await db.notes.clear();
-        await db.notes.bulkPut(data.notes);
-      }
-      if (data.radios) {
-        await db.radios.clear();
-        await db.radios.bulkPut(data.radios);
-      }
-      if (data.taskStyles) {
-        await db.taskStyles.clear();
-        await db.taskStyles.bulkPut(data.taskStyles);
-      }
+        })),
+        sprints: data.sprints || [],
+        settings: data.settings || [],
+        notes: data.notes || [],
+        radios: data.radios || [],
+        taskStyles: data.taskStyles || []
+      };
+
+      await db.system.importBackup(payload);
       
       await settingsStore.loadSettings();
       await taskStore.loadTasks();
