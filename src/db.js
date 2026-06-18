@@ -27,6 +27,13 @@ export async function apiFetch(url, method = 'GET', body = null) {
   }
   const res = await fetch(`${API_BASE}${url}`, options);
   if (!res.ok) {
+    if ((res.status === 401 || res.status === 403) && typeof window !== 'undefined') {
+      localStorage.removeItem('tass_auth_token');
+      localStorage.removeItem('tass_user');
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
     const errData = await res.json().catch(() => ({}));
     throw new Error(errData.error || `API Error: ${res.statusText}`);
   }
