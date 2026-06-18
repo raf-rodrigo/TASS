@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node server.js & vite",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
@@ -14,8 +14,10 @@
   "dependencies": {
     "@vuepic/vue-datepicker": "^12.1.0",
     "@vueuse/core": "^14.3.0",
+    "cors": "^2.8.6",
     "date-fns": "^4.1.0",
     "dexie": "^4.4.2",
+    "express": "^5.2.1",
     "lucide-vue-next": "^1.0.0",
     "pinia": "^3.0.4",
     "qrcode.vue": "^3.9.1",

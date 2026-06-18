@@ -5,6 +5,7 @@ import cors from 'cors';
 import fs from 'fs/promises';
 import crypto from 'crypto';
 import { exec } from 'child_process';
+import { database } from './database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -92,6 +93,194 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: '1.0.5', port: PORT });
 });
 
+// --- Sprints API ---
+app.get('/api/sprints', async (req, res) => {
+  try {
+    const sprints = await database.getSprints();
+    res.json(sprints);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/sprints', async (req, res) => {
+  try {
+    const sprint = await database.saveSprint(req.body);
+    res.json(sprint);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/sprints/:id', async (req, res) => {
+  try {
+    await database.deleteSprint(Number(req.params.id));
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Tasks API ---
+app.get('/api/tasks', async (req, res) => {
+  try {
+    const tasks = await database.getTasks();
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/tasks', async (req, res) => {
+  try {
+    const task = await database.saveTask(req.body);
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/tasks/batch', async (req, res) => {
+  try {
+    await database.saveTasksBatch(req.body);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/tasks/:id', async (req, res) => {
+  try {
+    const task = await database.saveTask({ ...req.body, id: Number(req.params.id) });
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/tasks/:id', async (req, res) => {
+  try {
+    await database.deleteTask(Number(req.params.id));
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Settings API ---
+app.get('/api/settings', async (req, res) => {
+  try {
+    const settings = await database.getSettings();
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/settings', async (req, res) => {
+  try {
+    const { key, value } = req.body;
+    const setting = await database.saveSetting(key, value);
+    res.json(setting);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Notes API ---
+app.get('/api/notes', async (req, res) => {
+  try {
+    const notes = await database.getNotes();
+    res.json(notes);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/notes', async (req, res) => {
+  try {
+    const note = await database.saveNote(req.body);
+    res.json(note);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/notes/:id', async (req, res) => {
+  try {
+    const note = await database.saveNote({ ...req.body, id: Number(req.params.id) });
+    res.json(note);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/notes/:id', async (req, res) => {
+  try {
+    await database.deleteNote(Number(req.params.id));
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Radios API ---
+app.get('/api/radios', async (req, res) => {
+  try {
+    const radios = await database.getRadios();
+    res.json(radios);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/radios', async (req, res) => {
+  try {
+    const radio = await database.saveRadio(req.body);
+    res.json(radio);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/radios/:id', async (req, res) => {
+  try {
+    await database.deleteRadio(Number(req.params.id));
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Task Styles API ---
+app.get('/api/task-styles', async (req, res) => {
+  try {
+    const styles = await database.getTaskStyles();
+    res.json(styles);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/task-styles', async (req, res) => {
+  try {
+    await database.saveTaskStyles(req.body);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Migration Import API ---
+app.post('/api/migration/import', async (req, res) => {
+  try {
+    await database.importAllData(req.body);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Endpoint para executar comandos no terminal do sistema (PowerShell no Windows, Bash no Linux/macOS)
 app.post('/api/terminal/execute', (req, res) => {
   if (req.headers['x-tass-client'] !== 'true') {
@@ -154,7 +343,7 @@ app.get('/api/terminal/info', (req, res) => {
 app.use('/wallpapers', express.static(path.join(__dirname, 'public', 'wallpapers')));
 app.use(express.static(path.join(__dirname, 'dist')));
 
-app.get('*', (req, res) => {
+app.get('/*splat', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'), (err) => {
     if (err) res.status(404).send('API TASS 5176');
   });

@@ -1,0 +1,1019 @@
+{
+  "tasks": [
+    {
+      "title": "T11070",
+      "description": "SIST- XAVANTINA]Correção da nomenclatura PAIF/PAEFI e inclusão dos dados de endereço no PDF do Planejamento de Acompanhamento Familiar",
+      "estimatedTime": "",
+      "priority": "Normal",
+      "devUrl": 0,
+      "homologUrl": 0,
+      "prodUrl": 0,
+      "taskUrl": "",
+      "branchName": "T11070-SIST-XAVANTINACorrecao-da-nomenclatura-PAIF/PAEFI-e-inclusao-dos-dados-de-endereco-no-PDF-do-Planejamento-de-Acompanhamento-Familiar",
+      "branchUrl": "https://git.lliege.com.br/POCS/ci/-/tree/T11070-SIST-XAVANTINACorrecao-da-nomenclatura-PAIF%2FPAEFI-e-inclusao-dos-dados-de-endereco-no-PDF-do-Planejamento-de-Acompanhamento-Familiar",
+      "dbScripts": "",
+      "moreInfo": "",
+      "sprintId": 2,
+      "styleId": "n-5",
+      "color": "",
+      "bgColor": "",
+      "textLightColor": "",
+      "textDarkColor": "",
+      "position": 5,
+      "columnId": 3,
+      "completed": false,
+      "totalTimeSpent": 244881,
+      "totalWorked": 244881,
+      "dailyLogs": {
+        "2026-06-12": 244881
+      },
+      "isRunning": false,
+      "lastStartTime": null,
+      "createdAt": 1781267670154,
+      "id": 5
+    },
+    {
+      "title": "T11063",
+      "description": "[SIST SOCIAL - MELHORIA - POPULAÇÃO DE RUA] Adequação do Fluxo de Identificação e Manutenção de Pessoas em Situação de Rua",
+      "estimatedTime": "",
+      "priority": "Normal",
+      "devUrl": 0,
+      "homologUrl": 0,
+      "prodUrl": 0,
+      "taskUrl": "",
+      "branchName": "",
+      "branchUrl": "",
+      "dbScripts": "-- Alteração na tabela pessoas_sit_rua com a adição da coliuna ativo, para excluir somemte logicamente, pos estava excluindo fisicamente.\nALTER TABLE sist_social.pessoas_sit_rua ADD COLUMN ativo TINYINT(1) DEFAULT 1;\n-- Incluindo valores padrão para a tabela o campo não pode ser nulo\nALTER TABLE sist_social.pessoas_sit_rua\n    ALTER COLUMN ind_dormir_rua_memb SET DEFAULT '',\n\tALTER COLUMN ind_dormir_albergue_memb SET DEFAULT '',\n\tALTER COLUMN ind_dormir_dom_part_memb SET DEFAULT '',\n\tALTER COLUMN ind_outro_memb SET DEFAULT '',\n\tALTER COLUMN cod_tempo_rua_memb SET DEFAULT 0,\n\tALTER COLUMN ind_motivo_perda_memb SET DEFAULT '',\n\tALTER COLUMN ind_motivo_ameaca_memb SET DEFAULT '',\n\tALTER COLUMN ind_motivo_probs_fam_memb SET DEFAULT '',\n\tALTER COLUMN ind_motivo_alcool_memb SET DEFAULT '',\n\tALTER COLUMN ind_motivo_desemprego_memb SET DEFAULT '',\n\tALTER COLUMN ind_motivo_trabalho_memb SET DEFAULT '',\n\tALTER COLUMN ind_motivo_saude_memb SET DEFAULT '',\n\tALTER COLUMN ind_motivo_pref_memb SET DEFAULT '',\n\tALTER COLUMN ind_motivo_outro_memb SET DEFAULT '',\n\tALTER COLUMN ind_motivo_nao_sabe_memb SET DEFAULT '',\n\tALTER COLUMN ind_motivo_nao_resp_memb SET DEFAULT '',\n\tALTER COLUMN cod_tempo_cidade_memb SET DEFAULT 0,\n\tALTER COLUMN cod_vive_fam_rua_memb SET DEFAULT '',\n\tALTER COLUMN cod_contato_parente_memb SET DEFAULT 0,\n\tALTER COLUMN cod_cart_assinada_memb SET DEFAULT '';",
+      "moreInfo": "",
+      "sprintId": 2,
+      "styleId": "n-5",
+      "styleLocked": false,
+      "color": "",
+      "bgColor": "",
+      "textLightColor": "",
+      "textDarkColor": "",
+      "position": 7,
+      "columnId": 3,
+      "completed": false,
+      "totalTimeSpent": 0,
+      "totalWorked": 0,
+      "dailyLogs": {},
+      "isRunning": false,
+      "lastStartTime": null,
+      "createdAt": 1781620186658,
+      "id": 6
+    },
+    {
+      "title": "T10906",
+      "description": "[SIST-SOCIAL-MELHORIA] ENCAMINHAMENTO DE REFERENCIA - INCLUSÃO DE NOVOS CAMPOS E  MELHORIA DO LAYOUT",
+      "estimatedTime": "",
+      "priority": "Normal",
+      "devUrl": 0,
+      "homologUrl": 0,
+      "prodUrl": 0,
+      "taskUrl": "",
+      "branchName": "T10906-SIST-SOCIAL-MELHORIA-ENCAMINHAMENTO-DE-REFERENCIA-INCLUSAO-DE-NOVOS-CAMPOS-E-MELHORIA-DO-LAYOUT",
+      "branchUrl": "https://git.lliege.com.br/POCS/ci/-/tree/T10906-SIST-SOCIAL-MELHORIA-ENCAMINHAMENTO-DE-REFERENCIA-INCLUSAO-DE-NOVOS-CAMPOS-E-MELHORIA-DO-LAYOUT",
+      "dbScripts": "",
+      "moreInfo": "",
+      "sprintId": 2,
+      "styleId": "n-5",
+      "styleLocked": false,
+      "color": "",
+      "bgColor": "",
+      "textLightColor": "",
+      "textDarkColor": "",
+      "position": 8,
+      "columnId": 3,
+      "completed": false,
+      "totalTimeSpent": 670773,
+      "totalWorked": 670773,
+      "dailyLogs": {
+        "2026-06-16": 670773
+      },
+      "isRunning": false,
+      "lastStartTime": null,
+      "createdAt": 1781620398975,
+      "id": 7
+    },
+    {
+      "title": "T11102",
+      "description": "[SIST-GRUPOS] Novas ação na criação de grupo",
+      "estimatedTime": "",
+      "priority": "Normal",
+      "devUrl": 0,
+      "homologUrl": 0,
+      "prodUrl": 0,
+      "taskUrl": "",
+      "branchName": "T11102-SIST-GRUPOS-Novas-acao-na-criacao-de-grupo",
+      "branchUrl": "https://git.lliege.com.br/POCS/ci/-/tree/T11102-SIST-GRUPOS-Novas-acao-na-criacao-de-grupo",
+      "dbScripts": "",
+      "moreInfo": "",
+      "sprintId": 2,
+      "styleId": "n-5",
+      "styleLocked": false,
+      "color": "",
+      "bgColor": "",
+      "textLightColor": "",
+      "textDarkColor": "",
+      "position": 1,
+      "columnId": 1,
+      "completed": false,
+      "totalTimeSpent": 0,
+      "totalWorked": 0,
+      "dailyLogs": {},
+      "isRunning": false,
+      "lastStartTime": null,
+      "createdAt": 1781642436920,
+      "id": 8
+    },
+    {
+      "title": "T11106",
+      "description": "[TICKET/3769 - SIST SOCIAL - POÁ - BUG - PRONTUARIO] Grid de Prontuários exibe membro incorreto da família ao invés do Responsável Familiar (RF)",
+      "estimatedTime": "",
+      "priority": "Normal",
+      "devUrl": 0,
+      "homologUrl": 0,
+      "prodUrl": 0,
+      "taskUrl": "",
+      "dbScripts": "",
+      "moreInfo": "",
+      "sprintId": 2,
+      "styleId": "n-5",
+      "styleLocked": false,
+      "color": "",
+      "bgColor": "",
+      "textLightColor": "",
+      "textDarkColor": "",
+      "position": 9,
+      "columnId": 3,
+      "completed": false,
+      "totalTimeSpent": 0,
+      "totalWorked": 0,
+      "dailyLogs": {},
+      "isRunning": false,
+      "lastStartTime": null,
+      "createdAt": 1781703228620,
+      "id": 9
+    },
+    {
+      "title": "T11109",
+      "description": "[TICKET/3527 - SIST SOCIAL - XAVANTINA - AJUSTE - PRONTUARIO] Unificação de prontuários duplicados da munícipe Loiri da Costa",
+      "estimatedTime": "",
+      "priority": "Normal",
+      "devUrl": 0,
+      "homologUrl": 0,
+      "prodUrl": 0,
+      "taskUrl": "",
+      "branchName": "",
+      "branchUrl": "",
+      "dbScripts": "",
+      "moreInfo": "",
+      "sprintId": 2,
+      "styleId": null,
+      "styleLocked": false,
+      "color": "",
+      "bgColor": "",
+      "textLightColor": "",
+      "textDarkColor": "",
+      "position": 10,
+      "columnId": 3,
+      "completed": false,
+      "totalTimeSpent": 394485,
+      "totalWorked": 394485,
+      "dailyLogs": {
+        "2026-06-17": 394485
+      },
+      "isRunning": false,
+      "lastStartTime": null,
+      "createdAt": 1781714239580,
+      "id": 10
+    },
+    {
+      "title": "T11107",
+      "description": "[TICKET-3768-POÁ-BUG] Correção de nome exibido na consulta de Prontuários SUAS",
+      "estimatedTime": "",
+      "priority": "Normal",
+      "devUrl": 0,
+      "homologUrl": 0,
+      "prodUrl": 0,
+      "taskUrl": "",
+      "branchName": "T11107-TICKET-3768-POA-BUG-Correcao-de-nome-exibido-na-consulta-de-Prontuarios-SUAS",
+      "branchUrl": "https://git.lliege.com.br/POCS/ci/-/tree/T11107-TICKET-3768-POA-BUG-Correcao-de-nome-exibido-na-consulta-de-Prontuarios-SUAS",
+      "dbScripts": "",
+      "moreInfo": "",
+      "sprintId": 2,
+      "styleId": null,
+      "styleLocked": false,
+      "color": "",
+      "bgColor": "",
+      "textLightColor": "",
+      "textDarkColor": "",
+      "position": 2,
+      "columnId": 1,
+      "completed": false,
+      "totalTimeSpent": 0,
+      "totalWorked": 0,
+      "dailyLogs": {},
+      "isRunning": false,
+      "lastStartTime": null,
+      "createdAt": 1781715972027,
+      "id": 11
+    },
+    {
+      "title": "T11111",
+      "description": "[TICKET/3772-POÁ-BUG] Erro na Exportação de Relatório PDF – Consulta de Prontuários SUAS",
+      "estimatedTime": "",
+      "priority": "Normal",
+      "devUrl": 0,
+      "homologUrl": 0,
+      "prodUrl": 0,
+      "taskUrl": "",
+      "branchName": "T11111-TICKET/3772-POA-BUG-Erro-na-Exportacao-de-Relatorio-PDF-Consulta-de-Prontuarios-SUAS",
+      "branchUrl": "https://git.lliege.com.br/POCS/ci/-/tree/T11111-TICKET%2F3772-POA-BUG-Erro-na-Exportacao-de-Relatorio-PDF-Consulta-de-Prontuarios-SUAS",
+      "dbScripts": "",
+      "moreInfo": "",
+      "sprintId": 2,
+      "styleId": null,
+      "styleLocked": false,
+      "color": "",
+      "bgColor": "",
+      "textLightColor": "",
+      "textDarkColor": "",
+      "position": 6,
+      "columnId": 3,
+      "completed": false,
+      "totalTimeSpent": 0,
+      "totalWorked": 0,
+      "dailyLogs": {},
+      "isRunning": false,
+      "lastStartTime": null,
+      "createdAt": 1781717789230,
+      "id": 12
+    },
+    {
+      "title": "T11117",
+      "description": "[TICKET/3777-POÁ-BUG] Erro ao remover indicação de Situação de Rua no cadastro da pessoa",
+      "estimatedTime": "",
+      "priority": "Normal",
+      "devUrl": 0,
+      "homologUrl": 0,
+      "prodUrl": 0,
+      "taskUrl": "",
+      "branchName": "",
+      "branchUrl": "",
+      "dbScripts": "",
+      "moreInfo": "",
+      "sprintId": 2,
+      "styleId": null,
+      "styleLocked": false,
+      "color": "",
+      "bgColor": "",
+      "textLightColor": "",
+      "textDarkColor": "",
+      "position": 4,
+      "columnId": 3,
+      "completed": false,
+      "totalTimeSpent": 0,
+      "totalWorked": 0,
+      "dailyLogs": {},
+      "isRunning": false,
+      "lastStartTime": null,
+      "createdAt": 1781782446732,
+      "id": 14
+    },
+    {
+      "title": "T11115",
+      "description": "[TICKET/3779-POÁ-BUG] Botão \"Finalizar Edição\" do PIA não conclui o preenchimento e ocasiona perda de dados",
+      "estimatedTime": "",
+      "priority": "Normal",
+      "devUrl": 0,
+      "homologUrl": 0,
+      "prodUrl": 0,
+      "taskUrl": "",
+      "branchName": "T11115-TICKET/3779-POA-BUG-Botao-Finalizar-Edicao-do-PIA-nao-conclui-o-preenchimento-e-ocasiona-perda-de-dados",
+      "branchUrl": "https://git.lliege.com.br/POCS/ci/-/tree/T11115-TICKET%2F3779-POA-BUG-Botao-Finalizar-Edicao-do-PIA-nao-conclui-o-preenchimento-e-ocasiona-perda-de-dados",
+      "dbScripts": "",
+      "moreInfo": "",
+      "sprintId": 2,
+      "styleId": null,
+      "styleLocked": false,
+      "color": "",
+      "bgColor": "",
+      "textLightColor": "",
+      "textDarkColor": "",
+      "position": 3,
+      "columnId": 2,
+      "completed": false,
+      "totalTimeSpent": 0,
+      "totalWorked": 0,
+      "dailyLogs": {},
+      "isRunning": false,
+      "lastStartTime": null,
+      "createdAt": 1781783545770,
+      "id": 15
+    }
+  ],
+  "sprints": [
+    {
+      "endDate": "2026-06-25T14:25:00.000Z",
+      "createdAt": 1781187935507,
+      "id": 2
+    }
+  ],
+  "settings": {
+    "app-active-sprint": "all",
+    "app-auto-pause-work": true,
+    "app-bg-blur": 0,
+    "app-bg-image": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1920&auto=format&fit=crop",
+    "app-body-palette": [],
+    "app-branch-dev": "dev-06",
+    "app-branch-hml": "hml",
+    "app-branch-master": "master-sistsocial",
+    "app-card-opacity": 80,
+    "app-card-padding": 16,
+    "app-card-radius": 16,
+    "app-column-styles": [
+      "p-4",
+      "n-5",
+      "neon-8",
+      "neon-4",
+      "neon-9",
+      ""
+    ],
+    "app-column-titles": [
+      "Nova",
+      "Desenvolvimento",
+      "Validação Lliège",
+      "Validação Cliente",
+      "Concluída",
+      ""
+    ],
+    "app-columns": 5,
+    "app-console-font-size": 11,
+    "app-context-menu-mode": "replace",
+    "app-context-menu-style": "dock",
+    "app-contrast-enhanced": true,
+    "app-custom-wallpapers": [
+      {
+        "name": "Dark Abstract",
+        "url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop"
+      },
+      {
+        "name": "Deep Space",
+        "url": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1920&auto=format&fit=crop"
+      },
+      {
+        "name": "Minimal Nature",
+        "url": "https://images.unsplash.com/photo-1477346611705-65d1883cee1e?q=80&w=1920&auto=format&fit=crop"
+      },
+      {
+        "name": "Modern Scenic",
+        "url": "https://images.unsplash.com/photo-1776811805307-a0e0289c672f?q=80&w=1920&auto=format&fit=crop"
+      },
+      {
+        "name": "Cozy Desk",
+        "url": "https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=1920&auto=format&fit=crop"
+      },
+      {
+        "name": "Studio Night",
+        "url": "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1920&auto=format&fit=crop"
+      },
+      {
+        "name": "Minimalist Zen",
+        "url": "https://images.unsplash.com/photo-1510672981848-a1c4f1cb5ccf?q=80&w=1920&auto=format&fit=crop"
+      },
+      {
+        "name": "Deep Abstract",
+        "url": "https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?q=80&w=1920&auto=format&fit=crop"
+      }
+    ],
+    "app-darken-wallpaper": true,
+    "app-font-family": "Open Sans",
+    "app-git-provider": "gitlab",
+    "app-github-alias-dev": "Desenvolvimento",
+    "app-github-alias-hml": "Homologação",
+    "app-github-alias-master": "Master",
+    "app-github-base-target": "dev",
+    "app-github-branch-dev": "dev",
+    "app-github-branch-hml": "hml",
+    "app-github-branch-master": "main",
+    "app-github-owner": "",
+    "app-github-repo": "",
+    "app-github-token": "",
+    "app-gitlab-alias-dev": "Desenvolvimento",
+    "app-gitlab-alias-hml": "Homologação",
+    "app-gitlab-alias-master": "Produção",
+    "app-gitlab-base-branch": "master-sistsocial",
+    "app-gitlab-base-target": "dev",
+    "app-gitlab-branch-dev": "dev-06",
+    "app-gitlab-branch-hml": "hml",
+    "app-gitlab-branch-master": "master-sistsocial",
+    "app-gitlab-mode": "api",
+    "app-gitlab-project-id": "49",
+    "app-gitlab-token": "glpat-fJl1mjvnNo1SrwQlT6KOfW86MQp1OjN0CA.01.0y176aop1",
+    "app-gitlab-url": "https://git.lliege.com.br/POCS/ci",
+    "app-global-glass": true,
+    "app-hide-welcome": true,
+    "app-immersive-clock": true,
+    "app-inactivity-threshold": 5,
+    "app-notes-btn-top": 128,
+    "app-notes-side": "right",
+    "app-notes-width": 350,
+    "app-opacity-targets": {
+      "cards": true,
+      "topBar": true,
+      "bottomBar": true,
+      "contextMenu": true,
+      "actionBar": true,
+      "modals": true,
+      "modalSidebar": true,
+      "modalBody": true,
+      "modalHeaderFooter": true,
+      "alerts": true
+    },
+    "app-radio-pos-x": 982,
+    "app-radio-pos-y": 80,
+    "app-show-placeholders": true,
+    "app-task-desc-size": 13,
+    "app-task-max-width": 0,
+    "app-task-min-height": 40,
+    "app-task-number-size": 12,
+    "app-task-style-profiles": [],
+    "app-task-timer-size": 10,
+    "app-text-dark-palette": [],
+    "app-text-light-palette": [],
+    "app-theme": "dark",
+    "app-title-palette": [],
+    "app-track-inactivity": true,
+    "app-weather-city": "",
+    "app-weather-enabled": false,
+    "app-wellness-enabled": true,
+    "app-wellness-interval": 20,
+    "app-width": 1400,
+    "app-work-days": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "app-work-end": "18:00",
+    "app-work-start": "08:00"
+  },
+  "notes": [
+    {
+      "content": "<div><br></div>",
+      "updatedAt": 1781268458872,
+      "id": 1
+    },
+    {
+      "content": "",
+      "updatedAt": "2026-06-18T15:59:41.505Z",
+      "id": 2
+    }
+  ],
+  "radios": [],
+  "taskStyles": [
+    {
+      "id": "n-1",
+      "name": "Midnight Blue",
+      "styles": {
+        "cardPadding": 20,
+        "taskNumberSize": 14,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 12,
+        "taskMinHeight": 120,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#63B3ED",
+        "bgColor": "#0B192C",
+        "textLightColor": "#E2E8F0",
+        "textDarkColor": "#E2E8F0"
+      }
+    },
+    {
+      "id": "n-10",
+      "name": "Graphite",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 14,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 12,
+        "taskMinHeight": 90,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#A1A1AA",
+        "bgColor": "#18181B",
+        "textLightColor": "#D4D4D8",
+        "textDarkColor": "#D4D4D8"
+      }
+    },
+    {
+      "id": "n-2",
+      "name": "Violet Night",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 15,
+        "taskTimerSize": 14,
+        "taskMinHeight": 100,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#E94560",
+        "bgColor": "#1A1A2E",
+        "textLightColor": "#F8FAFC",
+        "textDarkColor": "#F8FAFC"
+      }
+    },
+    {
+      "id": "n-3",
+      "name": "Dark Forest",
+      "styles": {
+        "cardPadding": 24,
+        "taskNumberSize": 18,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 16,
+        "taskMinHeight": 140,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#10B981",
+        "bgColor": "#0F172A",
+        "textLightColor": "#A7F3D0",
+        "textDarkColor": "#A7F3D0"
+      }
+    },
+    {
+      "id": "n-4",
+      "name": "Aurora Borealis",
+      "styles": {
+        "cardPadding": 12,
+        "taskNumberSize": 14,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 12,
+        "taskMinHeight": 90,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#14B8A6",
+        "bgColor": "#020617",
+        "textLightColor": "#5EEAD4",
+        "textDarkColor": "#5EEAD4"
+      }
+    },
+    {
+      "id": "n-5",
+      "name": "Neon City",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 15,
+        "taskTimerSize": 14,
+        "taskMinHeight": 110,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#8B5CF6",
+        "bgColor": "#09090B",
+        "textLightColor": "#C4B5FD",
+        "textDarkColor": "#C4B5FD"
+      }
+    },
+    {
+      "id": "n-6",
+      "name": "Deep Ocean",
+      "styles": {
+        "cardPadding": 24,
+        "taskNumberSize": 14,
+        "taskDescriptionSize": 16,
+        "taskTimerSize": 12,
+        "taskMinHeight": 130,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#669BBC",
+        "bgColor": "#001220",
+        "textLightColor": "#F1F5F9",
+        "textDarkColor": "#F1F5F9"
+      }
+    },
+    {
+      "id": "n-7",
+      "name": "Blood Moon",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 18,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 14,
+        "taskMinHeight": 100,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#FCA5A5",
+        "bgColor": "#171717",
+        "textLightColor": "#FEF2F2",
+        "textDarkColor": "#FEF2F2"
+      }
+    },
+    {
+      "id": "n-8",
+      "name": "Starlight",
+      "styles": {
+        "cardPadding": 20,
+        "taskNumberSize": 12,
+        "taskDescriptionSize": 15,
+        "taskTimerSize": 14,
+        "taskMinHeight": 120,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#F3F4F6",
+        "bgColor": "#111827",
+        "textLightColor": "#9CA3AF",
+        "textDarkColor": "#9CA3AF"
+      }
+    },
+    {
+      "id": "n-9",
+      "name": "Purple Haze",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 16,
+        "taskMinHeight": 110,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#7C3AED",
+        "bgColor": "#2E1065",
+        "textLightColor": "#DDD6FE",
+        "textDarkColor": "#DDD6FE"
+      }
+    },
+    {
+      "id": "neon-1",
+      "name": "Cyber Pink",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 14,
+        "taskMinHeight": 110,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#FF2A7A",
+        "bgColor": "#1A0B16",
+        "textLightColor": "#FF94B8",
+        "textDarkColor": "#FF94B8"
+      }
+    },
+    {
+      "id": "neon-10",
+      "name": "Plasma Red",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 14,
+        "taskMinHeight": 110,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#FF003C",
+        "bgColor": "#1A0006",
+        "textLightColor": "#FF809D",
+        "textDarkColor": "#FF809D"
+      }
+    },
+    {
+      "id": "neon-2",
+      "name": "Matrix Green",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 14,
+        "taskMinHeight": 110,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#00FF41",
+        "bgColor": "#0D1A12",
+        "textLightColor": "#8CFFAC",
+        "textDarkColor": "#8CFFAC"
+      }
+    },
+    {
+      "id": "neon-3",
+      "name": "Synthwave Blue",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 14,
+        "taskMinHeight": 110,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#00F0FF",
+        "bgColor": "#0B161A",
+        "textLightColor": "#99F8FF",
+        "textDarkColor": "#99F8FF"
+      }
+    },
+    {
+      "id": "neon-4",
+      "name": "Laser Lemon",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 14,
+        "taskMinHeight": 110,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#FFFF00",
+        "bgColor": "#1A1A00",
+        "textLightColor": "#FFFF99",
+        "textDarkColor": "#FFFF99"
+      }
+    },
+    {
+      "id": "neon-5",
+      "name": "Neon Purple",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 14,
+        "taskMinHeight": 110,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#B026FF",
+        "bgColor": "#120B1A",
+        "textLightColor": "#DDA3FF",
+        "textDarkColor": "#DDA3FF"
+      }
+    },
+    {
+      "id": "neon-6",
+      "name": "Electric Orange",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 14,
+        "taskMinHeight": 110,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#FF5E00",
+        "bgColor": "#1A0E0B",
+        "textLightColor": "#FFAD80",
+        "textDarkColor": "#FFAD80"
+      }
+    },
+    {
+      "id": "neon-7",
+      "name": "Radioactive",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 14,
+        "taskMinHeight": 110,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#CCFF00",
+        "bgColor": "#141A00",
+        "textLightColor": "#E5FF80",
+        "textDarkColor": "#E5FF80"
+      }
+    },
+    {
+      "id": "neon-8",
+      "name": "Hot Magenta",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 14,
+        "taskMinHeight": 110,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#FF0090",
+        "bgColor": "#1A000F",
+        "textLightColor": "#FF80C8",
+        "textDarkColor": "#FF80C8"
+      }
+    },
+    {
+      "id": "neon-9",
+      "name": "Tron Cyan",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 14,
+        "taskMinHeight": 110,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#7DF9FF",
+        "bgColor": "#071A1A",
+        "textLightColor": "#BFFFFF",
+        "textDarkColor": "#BFFFFF"
+      }
+    },
+    {
+      "id": "p-1",
+      "name": "Retro Sunset",
+      "styles": {
+        "cardPadding": 20,
+        "taskNumberSize": 14,
+        "taskDescriptionSize": 15,
+        "taskTimerSize": 14,
+        "taskMinHeight": 120,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#FF5733",
+        "bgColor": "#FFC300",
+        "textLightColor": "#581845",
+        "textDarkColor": "#900C3F"
+      }
+    },
+    {
+      "id": "p-10",
+      "name": "Candy Shop",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 14,
+        "taskMinHeight": 100,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#845EC2",
+        "bgColor": "#FF9671",
+        "textLightColor": "#2C1B40",
+        "textDarkColor": "#2C1B40"
+      }
+    },
+    {
+      "id": "p-2",
+      "name": "Soft Muted",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 14,
+        "taskMinHeight": 110,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#E07A5F",
+        "bgColor": "#F4F1DE",
+        "textLightColor": "#3D405B",
+        "textDarkColor": "#3D405B"
+      }
+    },
+    {
+      "id": "p-3",
+      "name": "Matcha Green",
+      "styles": {
+        "cardPadding": 24,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 12,
+        "taskMinHeight": 100,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#D4A373",
+        "bgColor": "#E9EDC9",
+        "textLightColor": "#4E5A44",
+        "textDarkColor": "#4E5A44"
+      }
+    },
+    {
+      "id": "p-4",
+      "name": "Cyber Grape",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 15,
+        "taskDescriptionSize": 15,
+        "taskTimerSize": 14,
+        "taskMinHeight": 90,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#E84545",
+        "bgColor": "#2B2E4A",
+        "textLightColor": "#F5F5F5",
+        "textDarkColor": "#F5F5F5"
+      }
+    },
+    {
+      "id": "p-5",
+      "name": "Ocean Breeze",
+      "styles": {
+        "cardPadding": 16,
+        "taskNumberSize": 14,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 12,
+        "taskMinHeight": 120,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#05386B",
+        "bgColor": "#5CDB95",
+        "textLightColor": "#05386B",
+        "textDarkColor": "#05386B"
+      }
+    },
+    {
+      "id": "p-6",
+      "name": "Dusty Pink",
+      "styles": {
+        "cardPadding": 20,
+        "taskNumberSize": 18,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 12,
+        "taskMinHeight": 100,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#F67280",
+        "bgColor": "#F8B195",
+        "textLightColor": "#355C7D",
+        "textDarkColor": "#355C7D"
+      }
+    },
+    {
+      "id": "p-7",
+      "name": "Crimson Dark",
+      "styles": {
+        "cardPadding": 20,
+        "taskNumberSize": 14,
+        "taskDescriptionSize": 15,
+        "taskTimerSize": 14,
+        "taskMinHeight": 130,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#C3073F",
+        "bgColor": "#1A1A1D",
+        "textLightColor": "#FFFFFF",
+        "textDarkColor": "#FFFFFF"
+      }
+    },
+    {
+      "id": "p-8",
+      "name": "Velvet Royal",
+      "styles": {
+        "cardPadding": 12,
+        "taskNumberSize": 16,
+        "taskDescriptionSize": 14,
+        "taskTimerSize": 12,
+        "taskMinHeight": 80,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#88BDBC",
+        "bgColor": "#112D32",
+        "textLightColor": "#EDF5E1",
+        "textDarkColor": "#EDF5E1"
+      }
+    },
+    {
+      "id": "p-9",
+      "name": "Beach Pastel",
+      "styles": {
+        "cardPadding": 24,
+        "taskNumberSize": 12,
+        "taskDescriptionSize": 16,
+        "taskTimerSize": 14,
+        "taskMinHeight": 140,
+        "taskMaxWidth": 0
+      },
+      "colors": {
+        "color": "#F79489",
+        "bgColor": "#F9F1F0",
+        "textLightColor": "#904343",
+        "textDarkColor": "#904343"
+      }
+    }
+  ]
+}

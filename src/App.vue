@@ -285,23 +285,7 @@ watch(() => settings.fontFamily, (newFont) => {
 }, { immediate: true });
 
 onMounted(async () => {
-  // Limpa dados legados de água e papéis de parede inválidos (Google Drive) do banco
-  try {
-    await db.settings.where('key').anyOf(['app-water-enabled', 'app-water-interval']).delete();
-    
-    const wps = await db.settings.get('app-custom-wallpapers');
-    if (wps && wps.value && Array.isArray(wps.value)) {
-      const limpos = wps.value.filter(w => !w.url.includes('drive.google.com'));
-      if (limpos.length !== wps.value.length) await db.settings.put({ key: 'app-custom-wallpapers', value: limpos });
-    }
-    
-    const bg = await db.settings.get('app-bg-image');
-    if (bg && bg.value && bg.value.includes('drive.google.com')) {
-      await db.settings.put({ key: 'app-bg-image', value: '' });
-    }
-  } catch (e) {
-    console.warn("Falha na limpeza inicial do DB", e);
-  }
+
 
   await settings.loadSettings();
   await taskStyleStore.loadStyles();
