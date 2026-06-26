@@ -73,6 +73,11 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   });
 
+  // Sincroniza activeSprintId com o banco de dados
+  watch(activeSprintId, (val) => {
+    saveSetting('app-active-sprint', val);
+  });
+
   const backgroundBlur = ref(0);
   const notesButtonTop = ref(128);
   const notesWidth = ref(350);

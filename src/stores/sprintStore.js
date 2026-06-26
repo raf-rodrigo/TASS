@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { db } from '../db.js';
 import { useSettingsStore } from './settingsStore';
 import { useTaskStore } from './taskStore';
-import { formatMsToHMS } from '../utils/time.js';
+import { formatMsToHMS, safeFormatDate } from '../utils/time.js';
 import { notificationService } from '../services/notificationService';
 
 export const useSprintStore = defineStore('sprint', () => {
@@ -23,8 +23,8 @@ export const useSprintStore = defineStore('sprint', () => {
     if (settings.activeSprintId === 'all') return 'Todas as Sprints';
     const sprint = sprints.value.find(s => s.id === parseInt(settings.activeSprintId));
     if (!sprint) return 'Sprint...';
-    const startStr = sprint.startDate ? new Date(sprint.startDate).toLocaleDateString('pt-BR') : '';
-    const endStr = new Date(sprint.endDate).toLocaleDateString('pt-BR');
+    const startStr = sprint.startDate ? safeFormatDate(sprint.startDate) : '';
+    const endStr = safeFormatDate(sprint.endDate);
     return startStr ? `Sprint de ${startStr} a ${endStr}` : `Sprint até ${endStr}`;
   });
 

@@ -14,7 +14,7 @@ import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStyleStore } from '../stores/taskStyleStore';
 import { useUIStore } from '../stores/uiStore';
 import { isValidUrl, ensureProtocol } from '../utils/validation';
-import { formatMsToHMS } from '../utils/time';
+import { formatMsToHMS, safeFormatDate } from '../utils/time';
 import { hexToRgba } from '../utils/colors.js';
 import { notificationService } from '../services/notificationService';
 import BaseModal from './BaseModal.vue';
@@ -164,8 +164,8 @@ const sprintOptions = computed(() => {
   return [
     { label: 'Selecione uma Sprint...', value: '' },
     ...sprintStore.sprints.map(sprint => {
-      const startStr = sprint.startDate ? new Date(sprint.startDate).toLocaleDateString('pt-BR') : '';
-      const endStr = new Date(sprint.endDate).toLocaleDateString('pt-BR');
+      const startStr = sprint.startDate ? safeFormatDate(sprint.startDate) : '';
+      const endStr = safeFormatDate(sprint.endDate);
       return {
         label: startStr ? `Ciclo de ${startStr} a ${endStr}` : `Ciclo até ${endStr}`,
         value: sprint.id

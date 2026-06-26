@@ -140,3 +140,27 @@ export const distributeDailyLogs = (task, fromMs, toMs, settings) => {
     currentDay.setDate(currentDay.getDate() + 1);
   }
 };
+
+/**
+ * Formata datas de maneira segura e livre de deslocamento de fuso horário
+ * @param {string|Date} dateStr 
+ */
+export const safeFormatDate = (dateStr) => {
+  if (!dateStr) return '';
+  if (typeof dateStr === 'string') {
+    if (dateStr.includes('-') && !dateStr.includes('T')) {
+      const [year, month, day] = dateStr.split('-');
+      const d = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+      return d.toLocaleDateString('pt-BR');
+    }
+    if (dateStr.includes('T')) {
+      const datePart = dateStr.split('T')[0];
+      const [year, month, day] = datePart.split('-');
+      const d = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+      return d.toLocaleDateString('pt-BR');
+    }
+  }
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('pt-BR');
+};
+

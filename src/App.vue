@@ -44,6 +44,7 @@ import { backupService } from './services/backupService';
 import { db } from './db.js';
 import { useTaskStyleStore } from './stores/taskStyleStore';
 import { useUIStore } from './stores/uiStore';
+import { safeFormatDate } from './utils/time.js';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -55,13 +56,14 @@ const router = useRouter();
 const route = useRoute();
 
 // Estado de Autenticação do Usuário
-const currentUser = computed(() => {
+const getCurrentUser = () => {
   if (typeof window !== 'undefined') {
     const userStr = localStorage.getItem('tass_user');
     return userStr ? JSON.parse(userStr) : null;
   }
   return null;
-});
+};
+const currentUser = ref(getCurrentUser());
 
 const handleLogout = () => {
   db.auth.logout();
@@ -91,8 +93,8 @@ const activeSprintInfo = computed(() => {
     return { name: '', status: '', statusClass: '' };
   }
 
-  const startStr = sprint.startDate ? new Date(sprint.startDate + 'T00:00:00').toLocaleDateString('pt-BR') : '';
-  const endStr = new Date(sprint.endDate + 'T00:00:00').toLocaleDateString('pt-BR');
+  const startStr = sprint.startDate ? safeFormatDate(sprint.startDate) : '';
+  const endStr = safeFormatDate(sprint.endDate);
   const name = startStr ? `${startStr} a ${endStr}` : `Até ${endStr}`;
 
   // Days remaining calculation
@@ -129,6 +131,34 @@ const activeSprintInfo = computed(() => {
 
   return { name, status, statusClass };
 });
+
+const selectCurrentSprint = () => {
+  if (sprintStore.sprints.length > 0) {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const current = sprintStore.sprints.find(s => {
+      const start = s.startDate || '';
+      const end = s.endDate || '';
+      return todayStr >= start && todayStr <= end;
+    });
+    if (current) {
+      settings.activeSprintId = current.id;
+    } else {
+      // Find the latest sprint
+      const sorted = [...sprintStore.sprints].sort((a, b) => {
+        const aEnd = a.endDate || '';
+        const bEnd = b.endDate || '';
+        return bEnd.localeCompare(aEnd) || (b.id - a.id);
+      });
+      if (sorted[0]) {
+        settings.activeSprintId = sorted[0].id;
+      } else {
+        settings.activeSprintId = 'all';
+      }
+    }
+  } else {
+    settings.activeSprintId = 'all';
+  }
+};
 
 const { currentMessage, showMessage, triggerWellness } = useWellness(settings);
 const { shouldHideDockForModal, isMobile } = useDeviceBehavior();
@@ -355,9 +385,10 @@ watch(() => settings.fontFamily, (newFont) => {
 }, { immediate: true });
 
 watch(() => route.path, async (newPath) => {
+  currentUser.value = getCurrentUser();
   const token = typeof window !== 'undefined' ? localStorage.getItem('tass_auth_token') : null;
   if (newPath !== '/login' && token) {
-    if (!taskStore.selectedUserIdFilter && currentUser.value) {
+    if (currentUser.value) {
       taskStore.selectedUserIdFilter = currentUser.value.id;
       await settings.loadSettings();
       await taskStyleStore.loadStyles();
@@ -365,6 +396,7 @@ watch(() => route.path, async (newPath) => {
       await taskStore.loadTasks();
       await sprintStore.loadSprints();
       await loadUsers();
+      selectCurrentSprint();
     }
   }
 });
@@ -382,6 +414,7 @@ onMounted(async () => {
     await taskStore.loadTasks();
     await sprintStore.loadSprints();
     await loadUsers();
+    selectCurrentSprint();
 
     if (!settings.hideWelcomeModal) {
       uiStore.showWelcome = true;
@@ -484,7 +517,7 @@ onMounted(async () => {
               :value="s.id"
               class="bg-slate-900 text-slate-300"
             >
-              Ciclo: {{ s.startDate ? new Date(s.startDate + 'T00:00:00').toLocaleDateString('pt-BR') : '' }} a {{ new Date(s.endDate + 'T00:00:00').toLocaleDateString('pt-BR') }}
+              Ciclo: {{ s.startDate ? safeFormatDate(s.startDate) : '' }} a {{ safeFormatDate(s.endDate) }}
             </option>
           </select>
           
