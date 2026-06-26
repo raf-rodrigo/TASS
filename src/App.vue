@@ -354,6 +354,21 @@ watch(() => settings.fontFamily, (newFont) => {
   }
 }, { immediate: true });
 
+watch(() => route.path, async (newPath) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('tass_auth_token') : null;
+  if (newPath !== '/login' && token) {
+    if (!taskStore.selectedUserIdFilter && currentUser.value) {
+      taskStore.selectedUserIdFilter = currentUser.value.id;
+      await settings.loadSettings();
+      await taskStyleStore.loadStyles();
+      applyTheme();
+      await taskStore.loadTasks();
+      await sprintStore.loadSprints();
+      await loadUsers();
+    }
+  }
+});
+
 onMounted(async () => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('tass_auth_token') : null;
   

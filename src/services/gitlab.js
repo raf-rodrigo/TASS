@@ -106,7 +106,7 @@ export const gitlabService = {
     }
   },
 
-  async createBranch(task, settings) {
+  async createBranch(task, settings, customBaseRef = null) {
     const { gitlabUrl, gitlabToken, gitlabProjectId, activeBaseBranch } = settings;
     const branchName = this.getBranchName(task);
     
@@ -128,7 +128,7 @@ export const gitlabService = {
         },
         body: JSON.stringify({
           branch: branchName,
-          ref: activeBaseBranch || 'develop'
+          ref: customBaseRef || activeBaseBranch || 'develop'
         })
       });
 

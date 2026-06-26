@@ -8,6 +8,7 @@ import {
   Sparkles, Bug, Zap, RefreshCcw, ArrowDown, ArrowRight, ArrowUp, AlertOctagon
 } from 'lucide-vue-next';
 import { useTaskStore } from '../stores/taskStore';
+import { gitlabService } from '../services/gitlab';
 import { useSprintStore } from '../stores/sprintStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStyleStore } from '../stores/taskStyleStore';
@@ -51,6 +52,14 @@ const moreInfo = ref(taskToEdit?.moreInfo || '');
 const sprintId = ref(taskToEdit?.sprintId || '');
 const styleId = ref(taskToEdit?.styleId || '');
 const styleLocked = ref(taskToEdit?.styleLocked === true);
+
+const createGitLabBranch = ref(false);
+const baseBranchRef = ref('master-sistsocial');
+const baseBranchOptions = [
+  { label: 'master-sistsocial', value: 'master-sistsocial' },
+  { label: 'dev-06', value: 'dev-06' },
+  { label: 'hml', value: 'hml' }
+];
 
 const hoveredStyleId = ref(null);
 const showStyleDropdown = ref(false);
@@ -181,7 +190,7 @@ onMounted(() => {
   }
 });
 
-const submitTask = () => {
+const submitTask = async () => {
   const errorTab = validateFields();
   
   if (errorTab) {
@@ -221,14 +230,31 @@ const submitTask = () => {
   };
 
   if (taskToEdit) {
-    taskStore.updateTask(taskToEdit.id, payload).then(() => {
-      notificationService.toast('Tarefa atualizada!', 'success');
-    });
+    await taskStore.updateTask(taskToEdit.id, payload);
+    notificationService.toast('Tarefa atualizada!', 'success');
   } else {
-    taskStore.addTask(payload);
+    const newId = await taskStore.addTask(payload);
+    if (newId) {
+      notificationService.toast('Tarefa criada com sucesso!', 'success');
+      if (createGitLabBranch.value) {
+        const taskObj = {
+          id: newId,
+          title: payload.title,
+          description: payload.description,
+          branchName: '',
+          branchUrl: ''
+        };
+        await gitlabService.createBranch(taskObj, settings, baseBranchRef.value);
+      }
+    }
   }
   
   uiStore.closeTaskModal();
+};
+
+const submitTaskAndCreateBranch = () => {
+  createGitLabBranch.value = true;
+  submitTask();
 };
 </script>
 
@@ -400,6 +426,32 @@ const submitTask = () => {
             </div>
           </div>
 
+          <!-- Opções de Branch (Se for nova tarefa) -->
+          <div v-if="!taskToEdit" class="bg-app-surface p-4 rounded-2xl border border-app-border-light space-y-3 mt-4">
+            <div class="flex items-center gap-2">
+              <GitBranch class="w-4 h-4 text-indigo-500" />
+              <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none">Configuração de Branch GitLab</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <AppSelect
+                  v-model="baseBranchRef"
+                  label="Criar a partir da Branch Base:"
+                  :icon="GitBranch"
+                  iconColor="text-indigo-500"
+                  :options="baseBranchOptions"
+                />
+              </div>
+              <div class="flex items-center">
+                <AppSwitch 
+                  v-model="createGitLabBranch" 
+                  label="Criar Branch no GitLab" 
+                  description="Cria a nova branch no GitLab automaticamente ao salvar"
+                />
+              </div>
+            </div>
+          </div>
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <AppInput
@@ -521,6 +573,15 @@ const submitTask = () => {
 
     <template #footer>
       <button type="button" @click="uiStore.closeTaskModal()" class="btn btn-secondary px-6 py-2 border-none shadow-none text-xs">Cancelar</button>
+      <button 
+        v-if="!taskToEdit"
+        type="button" 
+        @click="submitTaskAndCreateBranch" 
+        class="btn px-6 py-2 border-none shadow-none text-xs flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+      >
+        <GitBranch class="w-3.5 h-3.5" />
+        <span>Criar com Branch GitLab</span>
+      </button>
       <button type="submit" form="taskForm" class="btn btn-primary px-6 py-2 border-none shadow-none text-xs">
         {{ taskToEdit ? 'Salvar Alterações' : 'Criar Tarefa' }}
       </button>
