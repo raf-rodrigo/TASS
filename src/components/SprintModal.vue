@@ -28,14 +28,40 @@ const emit = defineEmits(['close', 'updated', 'select-sprint']);
 const newSprintDate = ref(null);
 const showAddForm = ref(props.initialShowAddForm);
 
+const formatDateToYYYYMMDD = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const parseDateSafe = (dateStr) => {
+  if (!dateStr) return new Date();
+  if (dateStr.includes('-') && !dateStr.includes('T')) {
+    const [year, month, day] = dateStr.split('-');
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  }
+  return new Date(dateStr);
+};
+
 const addSprint = async () => {
-  if (!newSprintDate.value) return;
+  if (!newSprintDate.value || !Array.isArray(newSprintDate.value) || newSprintDate.value.length < 2) return;
   
   try {
-    const dateToSave = new Date(newSprintDate.value).toISOString();
+    const startObj = new Date(newSprintDate.value[0]);
+    const endObj = new Date(newSprintDate.value[1]);
+
+    if (endObj < startObj) {
+      notificationService.toast('A data final não pode ser menor que a data inicial!', 'error');
+      return;
+    }
+
+    const startDate = formatDateToYYYYMMDD(startObj);
+    const endDate = formatDateToYYYYMMDD(endObj);
     
     await db.sprints.add({
-      endDate: dateToSave,
+      startDate,
+      endDate,
       createdAt: Date.now()
     });
     newSprintDate.value = null;
@@ -71,7 +97,7 @@ const deleteSprint = async (id) => {
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
-  const date = new Date(dateStr);
+  const date = parseDateSafe(dateStr);
   return date.toLocaleDateString('pt-BR');
 };
 
@@ -79,7 +105,8 @@ const isPast = (dateStr) => {
   if (!dateStr) return false;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const sprintDate = new Date(dateStr);
+  const sprintDate = parseDateSafe(dateStr);
+  sprintDate.setHours(0, 0, 0, 0);
   return sprintDate < today;
 };
 </script>
@@ -142,8 +169,9 @@ const isPast = (dateStr) => {
           <VueDatePicker 
             v-model="newSprintDate" 
             :dark="settings.theme === 'dark'"
-            placeholder="Selecione a data..."
+            placeholder="Selecione o período (início e fim)..."
             auto-apply
+            range
             :enable-time-picker="false"
             class="app-datepicker"
             input-class-name="app-input px-4 py-3 shadow-sm transition-all w-full"
@@ -154,7 +182,7 @@ const isPast = (dateStr) => {
           />
           <div class="flex gap-3">
             <button @click="showAddForm = false" class="flex-1 py-3 text-xs font-black text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10 transition-all uppercase tracking-widest" :style="{ borderRadius: 'var(--app-input-radius)' }">Cancelar</button>
-            <button @click="addSprint" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 uppercase tracking-widest" :disabled="!newSprintDate" :style="{ borderRadius: 'var(--app-input-radius)' }">
+            <button @click="addSprint" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black transition-all shadow-lg shadow-indigo-500/25 disabled:opacity-50 uppercase tracking-widest" :disabled="!newSprintDate || !Array.isArray(newSprintDate) || newSprintDate.length < 2" :style="{ borderRadius: 'var(--app-input-radius)' }">
               Salvar
             </button>
           </div>
@@ -190,7 +218,9 @@ const isPast = (dateStr) => {
                   <span class="text-xs font-black">#{{ sprintStore.sprints.length - index }}</span>
                 </div>
                 <div class="text-left overflow-hidden">
-                  <span class="block text-sm font-black uppercase tracking-tight truncate">Término: {{ formatDate(sprint.endDate) }}</span>
+                  <span class="block text-sm font-black uppercase tracking-tight truncate">
+                    Ciclo: {{ sprint.startDate ? formatDate(sprint.startDate) : 'N/A' }} a {{ formatDate(sprint.endDate) }}
+                  </span>
                   <div class="flex items-center gap-2 mt-0.5">
                     <span v-if="!isPast(sprint.endDate)" class="text-[8px] font-black bg-emerald-500 text-white px-1.5 py-0.5 rounded uppercase tracking-widest">Em Aberto</span>
                     <span v-else class="text-[8px] font-black bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded uppercase tracking-widest">Finalizada</span>

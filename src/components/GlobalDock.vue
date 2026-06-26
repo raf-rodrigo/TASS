@@ -167,8 +167,9 @@ const dockRadius = computed(() => {
 
           <!-- Cronômetro (Sempre Visível) -->
           <div 
-            class="dock-item !bg-indigo-500/5 !border-indigo-500/20 px-3 flex items-center gap-2 h-12 md:h-10 shrink-0"
-            data-tip="Tempo trabalhado (Sprint • Hoje)"
+            class="dock-item !bg-indigo-500/5 !border-indigo-500/20 px-3 flex items-center gap-2 h-12 md:h-10 shrink-0 cursor-pointer hover:bg-indigo-500/10 transition-colors"
+            data-tip="Tempo trabalhado (Sprint • Hoje). Clique para gerenciar Sprints."
+            @click="emit('open-sprints')"
           >
             <Clock class="w-4 h-4 text-indigo-600 dark:text-indigo-400" :class="{ 'animate-pulse': timerStore.activeTask }" />
             <span class="text-xs font-black font-mono text-indigo-600 dark:text-indigo-400 whitespace-nowrap">
@@ -230,8 +231,8 @@ const dockRadius = computed(() => {
 
           <!-- Sprint e Utilidades -->
           <div class="flex items-center justify-center md:justify-start w-full md:w-auto gap-2">
-             <!-- Sprint Selector (Mobile icon only) -->
-            <button @click="emit('open-sprints')" class="util-btn md:hidden" data-tip="Sprints">
+             <!-- Sprint Selector -->
+            <button @click="emit('open-sprints')" class="util-btn" data-tip="Sprints">
               <Calendar class="w-4 h-4 text-indigo-500" />
             </button>
 

@@ -191,6 +191,11 @@ onUnmounted(() => {
           <span>Desfazer Exclusão</span>
         </button>
 
+        <button @click="handleOpenSprints" class="context-menu-item text-indigo-500 dark:text-indigo-400">
+          <Calendar class="w-4 h-4" /> 
+          <span>Ciclos de Sprints</span>
+        </button>
+
         <hr class="border-t border-app-border-light my-1" />
 
         <div 

@@ -9,9 +9,9 @@ import { notificationService } from '../services/notificationService';
 export const useSprintStore = defineStore('sprint', () => {
   const sprints = ref([]);
 
-  const loadSprints = async () => {
+  const loadSprints = async (userIdFilter = null) => {
     try {
-      sprints.value = await db.sprints.toArray();
+      sprints.value = await db.sprints.toArray(userIdFilter);
     } catch (error) {
       console.error("Failed to load sprints:", error);
       notificationService.toast("Erro ao carregar as sprints do banco de dados.", "error");
@@ -23,7 +23,9 @@ export const useSprintStore = defineStore('sprint', () => {
     if (settings.activeSprintId === 'all') return 'Todas as Sprints';
     const sprint = sprints.value.find(s => s.id === parseInt(settings.activeSprintId));
     if (!sprint) return 'Sprint...';
-    return `Sprint ${new Date(sprint.endDate).toLocaleDateString('pt-BR')}`;
+    const startStr = sprint.startDate ? new Date(sprint.startDate).toLocaleDateString('pt-BR') : '';
+    const endStr = new Date(sprint.endDate).toLocaleDateString('pt-BR');
+    return startStr ? `Sprint de ${startStr} a ${endStr}` : `Sprint até ${endStr}`;
   });
 
   const activeSprintTotalTime = computed(() => {

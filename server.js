@@ -128,10 +128,21 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: '1.0.5', port: PORT });
 });
 
+// --- Users API ---
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await database.getUsers();
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- Sprints API ---
 app.get('/api/sprints', async (req, res) => {
   try {
-    const sprints = await database.getSprints(req.user.id);
+    const filterUserId = req.query.userId || null;
+    const sprints = await database.getSprints(req.user.id, filterUserId);
     res.json(sprints);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -159,7 +170,8 @@ app.delete('/api/sprints/:id', async (req, res) => {
 // --- Tasks API ---
 app.get('/api/tasks', async (req, res) => {
   try {
-    const tasks = await database.getTasks(req.user.id);
+    const filterUserId = req.query.userId || null;
+    const tasks = await database.getTasks(req.user.id, filterUserId);
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ error: err.message });

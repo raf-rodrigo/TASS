@@ -102,9 +102,16 @@ if (typeof window !== 'undefined' && !localStorage.getItem('tass_migrated')) {
 // 📦 MOCK DO WRAPPER DEXIE.JS PARA AS STORES DO PINIA
 // ----------------------------------------------------
 export const db = {
+  users: {
+    async list() {
+      return apiFetch('/api/users');
+    }
+  },
+
   tasks: {
-    async toArray() {
-      return apiFetch('/api/tasks');
+    async toArray(userIdFilter = null) {
+      const url = userIdFilter ? `/api/tasks?userId=${userIdFilter}` : '/api/tasks';
+      return apiFetch(url);
     },
     async add(task) {
       const res = await apiFetch('/api/tasks', 'POST', task);
@@ -130,8 +137,9 @@ export const db = {
   },
 
   sprints: {
-    async toArray() {
-      return apiFetch('/api/sprints');
+    async toArray(userIdFilter = null) {
+      const url = userIdFilter ? `/api/sprints?userId=${userIdFilter}` : '/api/sprints';
+      return apiFetch(url);
     },
     async add(sprint) {
       const res = await apiFetch('/api/sprints', 'POST', sprint);

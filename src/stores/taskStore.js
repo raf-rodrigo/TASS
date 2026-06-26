@@ -53,10 +53,13 @@ export const useTaskStore = defineStore('task', () => {
     set: () => {}
   });
 
-  const loadTasks = async () => {
+  const selectedUserIdFilter = ref(null);
+
+  const loadTasks = async (userIdFilter = undefined) => {
     isLoading.value = true;
     try {
-      let dbTasks = await db.tasks.toArray();
+      const filterVal = userIdFilter !== undefined ? userIdFilter : selectedUserIdFilter.value;
+      let dbTasks = await db.tasks.toArray(filterVal);
       
       const runningTask = dbTasks.find(t => t.isRunning);
       if (runningTask) {
@@ -68,11 +71,18 @@ export const useTaskStore = defineStore('task', () => {
       tasks.value = dbTasks;
     } catch (error) {
       console.error("Failed to load tasks:", error);
-      notificationService.toast("Erro ao carregar as tarefas do banco de dados local.", "error");
+      notificationService.toast("Erro ao carregar as tarefas do banco de dados.", "error");
     } finally {
       isLoading.value = false;
     }
   };
+
+  watch(selectedUserIdFilter, async (newVal) => {
+    await loadTasks(newVal);
+    // Sincroniza também as sprints no sprintStore
+    const sprintStore = useSprintStore();
+    await sprintStore.loadSprints(newVal);
+  });
 
   const addTask = async (taskData) => {
     const targetColumn = 1;
@@ -265,7 +275,7 @@ export const useTaskStore = defineStore('task', () => {
 
   return {
     tasks, isLoading, selectedTask, hoveredTask, contextMenuPosition,
-    statusFilter, filteredTasks, boardColumns, lastDeletedTask,
+    statusFilter, filteredTasks, boardColumns, lastDeletedTask, selectedUserIdFilter,
     loadTasks, addTask, updateTask, deleteTask, restoreTask, cloneTask,
     toggleTaskCompletion, migrateOrphanTasks, updateAllPositions, resetSystem
   };

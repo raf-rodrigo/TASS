@@ -73,6 +73,64 @@ const interfaceInitialTab = ref(null);
 const sprintInitialShowAddForm = ref(false);
 // Methods
 
+const usersList = ref([]);
+const loadUsers = async () => {
+  try {
+    usersList.value = await db.users.list();
+  } catch (err) {
+    console.error("Failed to load users list:", err);
+  }
+};
+
+const activeSprintInfo = computed(() => {
+  if (settings.activeSprintId === 'all') {
+    return { name: 'Todas as Sprints', status: 'Geral', statusClass: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' };
+  }
+  const id = parseInt(settings.activeSprintId);
+  const sprint = sprintStore.sprints.find(s => s.id === id);
+  if (!sprint) {
+    return { name: '', status: '', statusClass: '' };
+  }
+
+  const startStr = sprint.startDate ? new Date(sprint.startDate + 'T00:00:00').toLocaleDateString('pt-BR') : '';
+  const endStr = new Date(sprint.endDate + 'T00:00:00').toLocaleDateString('pt-BR');
+  const name = startStr ? `${startStr} a ${endStr}` : `Até ${endStr}`;
+
+  // Days remaining calculation
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let sprintEndDate;
+  if (sprint.endDate.includes('-') && !sprint.endDate.includes('T')) {
+    const [year, month, day] = sprint.endDate.split('-');
+    sprintEndDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  } else {
+    sprintEndDate = new Date(sprint.endDate);
+  }
+  sprintEndDate.setHours(0, 0, 0, 0);
+
+  const diffTime = sprintEndDate - today;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  let status = '';
+  let statusClass = '';
+  if (diffDays < 0) {
+    status = 'Encerrada';
+    statusClass = 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+  } else if (diffDays === 0) {
+    status = 'Termina hoje!';
+    statusClass = 'bg-amber-500/15 text-amber-400 border border-amber-500/20 animate-pulse';
+  } else if (diffDays === 1) {
+    status = '1 dia restante';
+    statusClass = 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20';
+  } else {
+    status = `${diffDays} dias restantes`;
+    statusClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+  }
+
+  return { name, status, statusClass };
+});
+
 const { currentMessage, showMessage, triggerWellness } = useWellness(settings);
 const { shouldHideDockForModal, isMobile } = useDeviceBehavior();
 
@@ -301,11 +359,15 @@ onMounted(async () => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('tass_auth_token') : null;
   
   if (token) {
+    if (currentUser.value) {
+      taskStore.selectedUserIdFilter = currentUser.value.id;
+    }
     await settings.loadSettings();
     await taskStyleStore.loadStyles();
     applyTheme();
     await taskStore.loadTasks();
     await sprintStore.loadSprints();
+    await loadUsers();
 
     if (!settings.hideWelcomeModal) {
       uiStore.showWelcome = true;
@@ -372,6 +434,54 @@ onMounted(async () => {
             <Sparkles class="w-5 h-5" />
           </div>
           <h1 class="text-lg font-black tracking-widest text-white uppercase leading-none">TASS</h1>
+        </div>
+
+        <!-- Dropdown de Seleção de Usuários / Quadro -->
+        <div v-if="currentUser" class="flex items-center gap-2">
+          <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filtrar Quadro:</label>
+          <select 
+            v-model="taskStore.selectedUserIdFilter"
+            class="bg-[#1e293b]/70 border border-white/10 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+          >
+            <option :value="currentUser.id" class="bg-slate-900 text-slate-300">Minhas Tarefas ({{ currentUser.username }})</option>
+            <option value="all" class="bg-slate-900 text-slate-300">Todos os Usuários</option>
+            <option 
+              v-for="u in usersList.filter(user => user.id !== currentUser.id)" 
+              :key="u.id" 
+              :value="u.id" 
+              class="bg-slate-900 text-slate-300"
+            >
+              Usuário: {{ u.username }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Seletor de Sprint Ativa -->
+        <div v-if="currentUser" class="hidden lg:flex items-center gap-2">
+          <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sprint:</label>
+          <select 
+            v-model="settings.activeSprintId"
+            class="bg-[#1e293b]/70 border border-white/10 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+          >
+            <option value="all" class="bg-slate-900 text-slate-300">Todas as Sprints</option>
+            <option 
+              v-for="s in sprintStore.sprints" 
+              :key="s.id" 
+              :value="s.id"
+              class="bg-slate-900 text-slate-300"
+            >
+              Ciclo: {{ s.startDate ? new Date(s.startDate + 'T00:00:00').toLocaleDateString('pt-BR') : '' }} a {{ new Date(s.endDate + 'T00:00:00').toLocaleDateString('pt-BR') }}
+            </option>
+          </select>
+          
+          <!-- Badge de dias restantes ou encerrada -->
+          <span 
+            v-if="settings.activeSprintId !== 'all' && activeSprintInfo.status"
+            :class="activeSprintInfo.statusClass" 
+            class="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider leading-none ml-1"
+          >
+            {{ activeSprintInfo.status }}
+          </span>
         </div>
 
         <div class="flex items-center gap-4">

@@ -103,10 +103,22 @@ export const database = {
     return { id: newUser.id, username: newUser.username };
   },
 
-  // --- Sprints ---
-  async getSprints(userId) {
+  async getUsers() {
     const db = await loadDb();
-    return (db.sprints || []).filter(s => s.userId === userId);
+    return (db.users || []).map(u => ({ id: u.id, username: u.username }));
+  },
+
+  // --- Sprints ---
+  async getSprints(userId, filterUserId = null) {
+    const db = await loadDb();
+    const sprints = db.sprints || [];
+    if (filterUserId === 'all') {
+      return sprints;
+    } else if (filterUserId !== null) {
+      const targetId = Number(filterUserId);
+      return sprints.filter(s => s.userId === targetId);
+    }
+    return sprints.filter(s => s.userId === userId);
   },
   async saveSprint(userId, sprint) {
     const db = await loadDb();
@@ -134,20 +146,39 @@ export const database = {
   },
 
   // --- Tasks ---
-  async getTasks(userId) {
+  async getTasks(userId, filterUserId = null) {
     const db = await loadDb();
-    return (db.tasks || []).filter(t => t.userId === userId);
+    let tasks = db.tasks || [];
+    
+    if (filterUserId === 'all') {
+      // return all tasks
+    } else if (filterUserId !== null) {
+      const targetId = Number(filterUserId);
+      tasks = tasks.filter(t => t.userId === targetId);
+    } else {
+      tasks = tasks.filter(t => t.userId === userId);
+    }
+    
+    return tasks.map(t => {
+      const user = db.users.find(u => u.id === t.userId);
+      return {
+        ...t,
+        creatorName: user ? user.username : 'Desconhecido'
+      };
+    });
   },
   async saveTask(userId, task) {
     const db = await loadDb();
-    task.userId = userId;
 
     if (task.id) {
-      const idx = db.tasks.findIndex(t => t.id === task.id && t.userId === userId);
+      const idx = db.tasks.findIndex(t => t.id === task.id);
       if (idx !== -1) {
+        // Preserva o criador original da tarefa
+        task.userId = db.tasks[idx].userId;
         db.tasks[idx] = { ...db.tasks[idx], ...task };
       }
     } else {
+      task.userId = userId;
       task.id = db.tasks.length > 0 ? Math.max(...db.tasks.map(t => t.id)) + 1 : 1;
       db.tasks.push(task);
     }
@@ -159,11 +190,13 @@ export const database = {
     if (!db.tasks) db.tasks = [];
 
     tasks.forEach(updatedTask => {
-      updatedTask.userId = userId;
-      const idx = db.tasks.findIndex(t => t.id === updatedTask.id && t.userId === userId);
+      const idx = db.tasks.findIndex(t => t.id === updatedTask.id);
       if (idx !== -1) {
+        // Preserva o criador original da tarefa
+        updatedTask.userId = db.tasks[idx].userId;
         db.tasks[idx] = { ...db.tasks[idx], ...updatedTask };
       } else {
+        updatedTask.userId = userId;
         db.tasks.push(updatedTask);
       }
     });
@@ -172,7 +205,7 @@ export const database = {
   },
   async deleteTask(userId, id) {
     const db = await loadDb();
-    db.tasks = (db.tasks || []).filter(t => !(t.id === id && t.userId === userId));
+    db.tasks = (db.tasks || []).filter(t => t.id !== id);
     await saveDb(db);
     return true;
   },

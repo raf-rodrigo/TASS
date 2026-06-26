@@ -124,6 +124,12 @@ const validateFields = () => {
     if (!firstErrorTab) firstErrorTab = 'basic';
   }
 
+  // Validar sprint (aba basic) - Tarefas não podem ser criadas sem sprint
+  if (!sprintId.value) {
+    errors.value.sprintId = 'A seleção da Sprint é obrigatória!';
+    if (!firstErrorTab) firstErrorTab = 'basic';
+  }
+
   return firstErrorTab;
 };
 
@@ -132,7 +138,7 @@ const hasErrorInTab = (tabId) => {
     return !!(errors.value.taskUrl || errors.value.branchUrl);
   }
   if (tabId === 'basic') {
-    return !!errors.value.title;
+    return !!(errors.value.title || errors.value.sprintId);
   }
   return false;
 };
@@ -147,11 +153,15 @@ const clearError = (field) => {
 
 const sprintOptions = computed(() => {
   return [
-    { label: 'Nenhuma Sprint', value: '' },
-    ...sprintStore.sprints.map(sprint => ({
-      label: `Ciclo de ${new Date(sprint.endDate).toLocaleDateString('pt-BR')}`,
-      value: sprint.id
-    }))
+    { label: 'Selecione uma Sprint...', value: '' },
+    ...sprintStore.sprints.map(sprint => {
+      const startStr = sprint.startDate ? new Date(sprint.startDate).toLocaleDateString('pt-BR') : '';
+      const endStr = new Date(sprint.endDate).toLocaleDateString('pt-BR');
+      return {
+        label: startStr ? `Ciclo de ${startStr} a ${endStr}` : `Ciclo até ${endStr}`,
+        value: sprint.id
+      };
+    })
   ];
 });
 
@@ -371,7 +381,13 @@ const submitTask = () => {
                 :icon="Layers"
                 iconColor="text-slate-400"
                 :options="sprintOptions"
+                :error="errors.sprintId"
+                @update:modelValue="clearError('sprintId')"
               />
+              <div v-if="sprintStore.sprints.length === 0" class="text-xs text-red-500 font-bold mt-1.5 flex items-center gap-1">
+                <AlertCircle class="w-3.5 h-3.5" />
+                <span>Nenhuma Sprint disponível. Crie uma Sprint para poder criar tarefas.</span>
+              </div>
             </div>
 
             <div>
