@@ -5,7 +5,8 @@ import bcrypt from 'bcryptjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dbPath = path.join(__dirname, 'tass-db.json');
+const defaultDbPath = path.join(__dirname, 'tass-db.json');
+const dbPath = process.env.TASS_DB_PATH || defaultDbPath;
 
 // Inicialização padrão do banco de dados JSON para multiusuário
 const defaultDb = {
@@ -31,6 +32,17 @@ async function loadDb() {
     cachedDb = JSON.parse(data);
   } catch (error) {
     if (error.code === 'ENOENT') {
+      // Se estamos usando um caminho personalizado e o arquivo não existe, tenta semear com a cópia do repositório
+      if (dbPath !== defaultDbPath) {
+        try {
+          const seedData = await fs.readFile(defaultDbPath, 'utf-8');
+          cachedDb = JSON.parse(seedData);
+          await saveDb(cachedDb);
+          return cachedDb;
+        } catch (seedError) {
+          console.warn('[TASS Database] Sem arquivo de semente disponível no repositório:', seedError);
+        }
+      }
       cachedDb = JSON.parse(JSON.stringify(defaultDb));
       await saveDb(cachedDb);
       return cachedDb;

@@ -33,6 +33,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/server.js ./
+COPY --from=builder /app/database.js ./
+COPY --from=builder /app/tass-db.json ./
 COPY --from=builder /app/public ./public
 
 # Instalar apenas as dependências de produção para o backend (Express, CORS, etc.)
