@@ -9,7 +9,7 @@ import { useTaskStyleStore } from '../stores/taskStyleStore';
 import { 
   PlusCircle, RotateCcw, List, Activity, CheckCircle, 
   Calendar, CloudLightning, Headphones, Sun, Moon, Settings,
-  Eye, EyeOff, Filter, ChevronRight, Wrench, Info, Palette
+  Eye, EyeOff, Filter, ChevronRight, Wrench, Info, Palette, Check
 } from 'lucide-vue-next';
 
 const emit = defineEmits(['close']);
@@ -23,6 +23,14 @@ const menuRef = ref(null);
 const showFilters = ref(false);
 const showUtils = ref(false);
 const showStyles = ref(false);
+
+const currentPresetId = computed(() => {
+  const activeTasks = taskStore.tasks.filter(t => !t.completed && !t.styleLocked);
+  if (activeTasks.length === 0) return null;
+  const firstStyleId = activeTasks[0].styleId || '';
+  const allSame = activeTasks.every(t => (t.styleId || '') === firstStyleId);
+  return allSame ? firstStyleId : null;
+});
 
 const menuStyle = ref({ top: 'auto', left: 'auto' });
 
@@ -117,10 +125,15 @@ const handleOpenAbout = () => {
   emit('close');
 };
 
-const handleApplyStyleAll = async (styleId) => {
-  const promises = taskStore.tasks
-    .filter(task => !task.styleLocked)
-    .map(task => taskStore.updateTask(task.id, { styleId: styleId || null }));
+const handleApplyStyleAll = async (styleId, triggerAnimation = false) => {
+  const tasksToUpdate = taskStore.tasks.filter(task => !task.styleLocked);
+  const taskIds = tasksToUpdate.map(t => t.id);
+  if (triggerAnimation && taskIds.length > 0) {
+    uiStore.triggerPresetAnimation(taskIds);
+  }
+  const promises = tasksToUpdate.map(task => 
+    taskStore.updateTask(task.id, { styleId: styleId || null })
+  );
   await Promise.all(promises);
 };
 
@@ -134,7 +147,7 @@ const handlePreviewStart = async (styleId) => {
   if (!savedStylesBeforePreview) {
     savedStylesBeforePreview = taskStore.tasks.map(t => ({ id: t.id, styleId: t.styleId || null }));
   }
-  await handleApplyStyleAll(styleId);
+  await handleApplyStyleAll(styleId, false);
 };
 
 const handlePreviewEnd = async () => {
@@ -151,7 +164,7 @@ const handlePreviewEnd = async () => {
 const handleApplyAndConfirm = async (styleId) => {
   // Ao clicar, descarta o snapshot (o estado atual já é o correto)
   savedStylesBeforePreview = null;
-  await handleApplyStyleAll(styleId);
+  await handleApplyStyleAll(styleId, true);
 };
 
 onMounted(() => {
@@ -284,10 +297,14 @@ onUnmounted(() => {
                   @click="handleApplyAndConfirm('')"
                   @mouseenter="handlePreviewStart('')"
                   @mouseleave="handlePreviewEnd"
-                  class="context-menu-item"
+                  class="context-menu-item flex justify-between items-center"
+                  :class="currentPresetId === '' ? 'bg-indigo-500/10 text-indigo-500 font-bold' : ''"
                 >
-                  <div class="w-3 h-3 rounded-full border border-black/10 dark:border-white/10" style="background-color: #e2e8f0;"></div>
-                  <span>Padrão Global</span>
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-3 h-3 rounded-full border border-black/10 dark:border-white/10 flex-shrink-0" style="background-color: #e2e8f0;"></div>
+                    <span>Padrão Global</span>
+                  </div>
+                  <Check v-if="currentPresetId === ''" class="w-3.5 h-3.5 text-indigo-500 flex-shrink-0 ml-auto" />
                 </button>
 
                 <hr v-if="taskStyleStore.sortedStyles.length <= 12" class="border-t border-app-border-light my-1 mx-2" />
@@ -298,10 +315,14 @@ onUnmounted(() => {
                   @click="handleApplyAndConfirm(preset.id)"
                   @mouseenter="handlePreviewStart(preset.id)"
                   @mouseleave="handlePreviewEnd"
-                  class="context-menu-item"
+                  class="context-menu-item flex justify-between items-center"
+                  :class="currentPresetId === preset.id ? 'bg-indigo-500/10 text-indigo-500 font-bold' : ''"
                 >
-                  <div class="w-3 h-3 rounded-full border border-black/10 dark:border-white/10" :style="{ backgroundColor: preset.colors?.bgColor || '#e2e8f0' }"></div>
-                  <span class="truncate">{{ preset.name }}</span>
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-3 h-3 rounded-full border border-black/10 dark:border-white/10 flex-shrink-0" :style="{ backgroundColor: preset.colors?.bgColor || '#e2e8f0' }"></div>
+                    <span class="truncate">{{ preset.name }}</span>
+                  </div>
+                  <Check v-if="currentPresetId === preset.id" class="w-3.5 h-3.5 text-indigo-500 flex-shrink-0 ml-auto" />
                 </button>
               </div>
               

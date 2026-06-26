@@ -31,7 +31,6 @@ describe('useTheme', () => {
       backgroundImage: '',
       opacityTargets: {
         cards: true,
-        bottomBar: true,
         modals: true,
         contextMenu: true,
         actionBar: true,

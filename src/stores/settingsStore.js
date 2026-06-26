@@ -93,7 +93,6 @@ export const useSettingsStore = defineStore('settings', () => {
   const opacityTargets = ref({
     cards: true,
     topBar: true,
-    bottomBar: true,
     contextMenu: true,
     actionBar: true,
     modals: true,
@@ -122,9 +121,30 @@ export const useSettingsStore = defineStore('settings', () => {
   const weatherCity = ref('');
   const immersiveClockEnabled = ref(true);
 
+  // Doca (Dock)
+  const dockIconSize = ref(16);
+  const dockBackgroundEnabled = ref(true);
+  const dockOpacity = ref(80);
+  const dockVisibleItems = ref({
+    addTask: true,
+    workedHours: true,
+    sprints: true,
+    weather: true,
+    filters: true,
+    gitRebuilder: true,
+    radio: true,
+    notes: true,
+    themeToggle: true,
+    settings: true
+  });
+
   // Getters Universais
   const normalizedCardOpacity = computed(() => {
     return (globalGlassEnabled.value && opacityTargets.value?.cards) ? Math.max(0, (100 - cardOpacity.value) / 100) : 1.0;
+  });
+
+  const normalizedDockOpacity = computed(() => {
+    return globalGlassEnabled.value ? Math.max(0, (100 - dockOpacity.value) / 100) : 1.0;
   });
 
   const customWallpapers = ref([
@@ -246,6 +266,21 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-github-alias-dev'] !== undefined) githubAliasDev.value = settingsMap['app-github-alias-dev'];
       if (settingsMap['app-github-base-target'] !== undefined) githubBaseTarget.value = settingsMap['app-github-base-target'];
       if (settingsMap['app-console-font-size'] !== undefined) consoleFontSize.value = parseInt(settingsMap['app-console-font-size'], 10);
+      
+      // Doca (Dock)
+      if (settingsMap['app-dock-icon-size'] !== undefined) dockIconSize.value = parseInt(settingsMap['app-dock-icon-size'], 10);
+      if (settingsMap['app-dock-bg-enabled'] !== undefined) {
+        dockBackgroundEnabled.value = settingsMap['app-dock-bg-enabled'] === true;
+      }
+      if (settingsMap['app-dock-opacity'] !== undefined) {
+        dockOpacity.value = parseInt(settingsMap['app-dock-opacity'], 10);
+      }
+      if (settingsMap['app-dock-visible-items'] !== undefined) {
+        dockVisibleItems.value = {
+          ...dockVisibleItems.value,
+          ...settingsMap['app-dock-visible-items']
+        };
+      }
 
       // Injeção Inteligente: Sugere os wallpapers de elite apenas se a galeria ainda estiver vazia
       if (customWallpapers.value.length === 0) {
@@ -353,7 +388,11 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-github-branch-dev', value: githubBranchDev.value },
       { key: 'app-github-alias-dev', value: githubAliasDev.value },
       { key: 'app-github-base-target', value: githubBaseTarget.value },
-      { key: 'app-console-font-size', value: consoleFontSize.value }
+      { key: 'app-console-font-size', value: consoleFontSize.value },
+      { key: 'app-dock-icon-size', value: dockIconSize.value },
+      { key: 'app-dock-bg-enabled', value: dockBackgroundEnabled.value },
+      { key: 'app-dock-opacity', value: dockOpacity.value },
+      { key: 'app-dock-visible-items', value: dockVisibleItems.value }
 
     ].map(item => ({
       key: item.key,
@@ -391,6 +430,7 @@ export const useSettingsStore = defineStore('settings', () => {
     titlePalette, bodyPalette, textLightPalette, textDarkPalette,
     isInitialized, globalGlassEnabled,
     weatherWidgetEnabled, weatherCity,
+    dockIconSize, dockVisibleItems, dockBackgroundEnabled, dockOpacity, normalizedDockOpacity,
     loadSettings, saveSetting, saveAllSettings, normalizedCardOpacity
 
   };

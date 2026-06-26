@@ -251,7 +251,7 @@ onUnmounted(() => {
       class="glass-panel !p-1.5 flex flex-col md:flex-row items-center gap-2 md:gap-3 shadow-2xl border border-app-border-light ring-1 ring-black/5 pointer-events-auto transition-all duration-300 animate-scaleIn"
       @click.stop
       :style="{ 
-        backgroundColor: `rgba(var(--app-bg-raw), var(--app-bottom-opacity))`,
+        backgroundColor: `rgba(var(--app-bg-raw), var(--app-menu-opacity))`,
         borderRadius: 'var(--app-card-radius)'
       }"
     >
