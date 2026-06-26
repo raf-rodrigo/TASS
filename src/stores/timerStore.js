@@ -21,9 +21,9 @@ export const useTimerStore = defineStore('timer', () => {
     return activeTask.value ? formatMsToHMS(activeTask.value.totalTimeSpent) : '00:00:00';
   });
 
-  const toggleTimer = async (task) => {
+  const toggleTimer = async (task, customStopMs = null) => {
     if (task.completed) return;
-    const now = Date.now();
+    const now = customStopMs || Date.now();
     
     if (task.isRunning) {
       task.isRunning = false;

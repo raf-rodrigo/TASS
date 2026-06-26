@@ -12,7 +12,7 @@ export function useSystemMonitoring(settings, timerStore) {
    * Verifica inatividade e expediente. 
    * Chamada pelo "pulso global" a cada segundo.
    */
-  const checkMonitoring = () => {
+  const checkMonitoring = async () => {
     const now = Date.now();
 
     // 1. Monitor de Inatividade
@@ -20,7 +20,7 @@ export function useSystemMonitoring(settings, timerStore) {
       const thresholdMs = (settings.inactivityThreshold || 1) * 60000;
       if (now - lastActivity.value > thresholdMs) {
         const pausedTaskName = timerStore.activeTask.title;
-        timerStore.toggleTimer(timerStore.activeTask);
+        await timerStore.toggleTimer(timerStore.activeTask, lastActivity.value);
         notificationService.alert(
           'Monitor de Inatividade', 
           `A tarefa ativa (${pausedTaskName}) foi parada por falta de atividade.`, 
