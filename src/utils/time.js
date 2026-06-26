@@ -44,3 +44,99 @@ export const getHMFromMs = (ms) => {
 export const hmsToMs = (hours = 0, minutes = 0) => {
   return (hours * 60 * 60 * 1000) + (minutes * 60 * 1000);
 };
+
+export const getWorkingIntervalsForDay = (date, settings) => {
+  const day = date.getDay();
+  const workDays = settings.workDays || [1, 2, 3, 4, 5];
+  if (!workDays.includes(day)) return [];
+
+  const [startH, startM] = (settings.workStart || '08:00').split(':').map(Number);
+  const [endH, endM] = (settings.workEnd || '18:00').split(':').map(Number);
+
+  const baseTime = new Date(date);
+  baseTime.setHours(0, 0, 0, 0);
+  const baseMs = baseTime.getTime();
+
+  const workStartMs = baseMs + (startH * 60 + startM) * 60 * 1000;
+  const workEndMs = baseMs + (endH * 60 + endM) * 60 * 1000;
+
+  // Almoço padrão: 12:00 às 13:00
+  const lunchStartMs = baseMs + 12 * 60 * 60 * 1000;
+  const lunchEndMs = baseMs + 13 * 60 * 60 * 1000;
+
+  const intervals = [];
+
+  if (workEndMs <= lunchStartMs || workStartMs >= lunchEndMs) {
+    intervals.push({ start: workStartMs, end: workEndMs });
+  } else {
+    if (workStartMs < lunchStartMs) {
+      intervals.push({ start: workStartMs, end: lunchStartMs });
+    }
+    if (workEndMs > lunchEndMs) {
+      intervals.push({ start: lunchEndMs, end: workEndMs });
+    }
+  }
+
+  return intervals;
+};
+
+export const calculateWorkingTime = (fromMs, toMs, settings) => {
+  if (!fromMs || !toMs || fromMs >= toMs) return 0;
+
+  let totalMs = 0;
+  
+  const startDay = new Date(fromMs);
+  startDay.setHours(0, 0, 0, 0);
+
+  const endDay = new Date(toMs);
+  endDay.setHours(0, 0, 0, 0);
+
+  let currentDay = new Date(startDay);
+  while (currentDay <= endDay) {
+    const intervals = getWorkingIntervalsForDay(currentDay, settings);
+    for (const interval of intervals) {
+      const overlapStart = Math.max(fromMs, interval.start);
+      const overlapEnd = Math.min(toMs, interval.end);
+      if (overlapStart < overlapEnd) {
+        totalMs += (overlapEnd - overlapStart);
+      }
+    }
+    currentDay.setDate(currentDay.getDate() + 1);
+  }
+
+  return totalMs;
+};
+
+export const distributeDailyLogs = (task, fromMs, toMs, settings) => {
+  task.dailyLogs = task.dailyLogs || {};
+  if (!fromMs || !toMs || fromMs >= toMs) return;
+
+  const startDay = new Date(fromMs);
+  startDay.setHours(0, 0, 0, 0);
+  const endDay = new Date(toMs);
+  endDay.setHours(0, 0, 0, 0);
+
+  let currentDay = new Date(startDay);
+  while (currentDay <= endDay) {
+    const yyyy = currentDay.getFullYear();
+    const mm = String(currentDay.getMonth() + 1).padStart(2, '0');
+    const dd = String(currentDay.getDate()).padStart(2, '0');
+    const dayStr = `${yyyy}-${mm}-${dd}`;
+
+    const intervals = getWorkingIntervalsForDay(currentDay, settings);
+    let dayWorkingMs = 0;
+    for (const interval of intervals) {
+      const overlapStart = Math.max(fromMs, interval.start);
+      const overlapEnd = Math.min(toMs, interval.end);
+      if (overlapStart < overlapEnd) {
+        dayWorkingMs += (overlapEnd - overlapStart);
+      }
+    }
+
+    if (dayWorkingMs > 0) {
+      task.dailyLogs[dayStr] = (task.dailyLogs[dayStr] || 0) + dayWorkingMs;
+    }
+
+    currentDay.setDate(currentDay.getDate() + 1);
+  }
+};

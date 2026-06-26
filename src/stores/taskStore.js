@@ -5,6 +5,7 @@ import { notificationService } from '../services/notificationService';
 import { useSettingsStore } from './settingsStore';
 import { useSprintStore } from './sprintStore';
 import { useTimerStore } from './timerStore';
+import { calculateWorkingTime, distributeDailyLogs } from '../utils/time.js';
 
 export const useTaskStore = defineStore('task', () => {
   const tasks = ref([]);
@@ -63,8 +64,22 @@ export const useTaskStore = defineStore('task', () => {
       
       const runningTask = dbTasks.find(t => t.isRunning);
       if (runningTask) {
-        runningTask.lastStartTime = Date.now();
-        await db.tasks.update(runningTask.id, { lastStartTime: runningTask.lastStartTime });
+        const settings = useSettingsStore();
+        const now = Date.now();
+        const diff = calculateWorkingTime(runningTask.lastStartTime, now, settings);
+        
+        runningTask.totalTimeSpent = (runningTask.totalTimeSpent || 0) + diff;
+        runningTask.totalWorked = (runningTask.totalWorked || 0) + diff;
+        
+        distributeDailyLogs(runningTask, runningTask.lastStartTime, now, settings);
+        
+        runningTask.lastStartTime = now;
+        await db.tasks.update(runningTask.id, { 
+          totalTimeSpent: runningTask.totalTimeSpent,
+          totalWorked: runningTask.totalWorked,
+          dailyLogs: runningTask.dailyLogs,
+          lastStartTime: runningTask.lastStartTime 
+        });
       }
       
       dbTasks.sort((a, b) => a.position - b.position);

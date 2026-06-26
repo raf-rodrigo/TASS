@@ -4,7 +4,7 @@ import { db } from '../db.js';
 import { useSettingsStore } from './settingsStore';
 import { useTaskStore } from './taskStore';
 import { notificationService } from '../services/notificationService';
-import { formatMsToHMS } from '../utils/time.js';
+import { formatMsToHMS, calculateWorkingTime } from '../utils/time.js';
 
 export const useTimerStore = defineStore('timer', () => {
   const taskStore = useTaskStore();
@@ -28,7 +28,7 @@ export const useTimerStore = defineStore('timer', () => {
     if (task.isRunning) {
       task.isRunning = false;
       if (task.lastStartTime) {
-        const diff = now - task.lastStartTime;
+        const diff = calculateWorkingTime(task.lastStartTime, now, settings);
         task.totalTimeSpent += diff;
         task.totalWorked = (task.totalWorked || 0) + diff;
         
@@ -73,7 +73,7 @@ export const useTimerStore = defineStore('timer', () => {
         if (t.isRunning && t.id !== task.id) {
           t.isRunning = false;
           if (t.lastStartTime) {
-            const diff = now - t.lastStartTime;
+            const diff = calculateWorkingTime(t.lastStartTime, now, settings);
             t.totalTimeSpent += diff;
             t.totalWorked = (t.totalWorked || 0) + diff;
             
@@ -114,7 +114,7 @@ export const useTimerStore = defineStore('timer', () => {
     const now = Date.now();
     taskStore.tasks.forEach(task => {
       if (task.isRunning && task.lastStartTime) {
-        const diff = now - task.lastStartTime;
+        const diff = calculateWorkingTime(task.lastStartTime, now, settings);
         task.totalTimeSpent += diff;
         task.totalWorked = (task.totalWorked || 0) + diff;
         
