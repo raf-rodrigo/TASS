@@ -42,7 +42,6 @@ RUN npm install --only=production
 
 # Configurações de ambiente
 ENV NODE_ENV=production
-ENV PORT=5176
 
 # Expor a porta de funcionamento do TASS
 EXPOSE 5176

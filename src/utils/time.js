@@ -81,22 +81,24 @@ export const getWorkingIntervalsForDay = (date, settings) => {
 };
 
 export const calculateWorkingTime = (fromMs, toMs, settings) => {
-  if (!fromMs || !toMs || fromMs >= toMs) return 0;
+  const from = Number(fromMs);
+  const to = Number(toMs);
+  if (!from || !to || isNaN(from) || isNaN(to) || from >= to) return 0;
 
   let totalMs = 0;
   
-  const startDay = new Date(fromMs);
+  const startDay = new Date(from);
   startDay.setHours(0, 0, 0, 0);
 
-  const endDay = new Date(toMs);
+  const endDay = new Date(to);
   endDay.setHours(0, 0, 0, 0);
 
   let currentDay = new Date(startDay);
   while (currentDay <= endDay) {
     const intervals = getWorkingIntervalsForDay(currentDay, settings);
     for (const interval of intervals) {
-      const overlapStart = Math.max(fromMs, interval.start);
-      const overlapEnd = Math.min(toMs, interval.end);
+      const overlapStart = Math.max(from, interval.start);
+      const overlapEnd = Math.min(to, interval.end);
       if (overlapStart < overlapEnd) {
         totalMs += (overlapEnd - overlapStart);
       }
@@ -109,11 +111,13 @@ export const calculateWorkingTime = (fromMs, toMs, settings) => {
 
 export const distributeDailyLogs = (task, fromMs, toMs, settings) => {
   task.dailyLogs = task.dailyLogs || {};
-  if (!fromMs || !toMs || fromMs >= toMs) return;
+  const from = Number(fromMs);
+  const to = Number(toMs);
+  if (!from || !to || isNaN(from) || isNaN(to) || from >= to) return;
 
-  const startDay = new Date(fromMs);
+  const startDay = new Date(from);
   startDay.setHours(0, 0, 0, 0);
-  const endDay = new Date(toMs);
+  const endDay = new Date(to);
   endDay.setHours(0, 0, 0, 0);
 
   let currentDay = new Date(startDay);
@@ -126,8 +130,8 @@ export const distributeDailyLogs = (task, fromMs, toMs, settings) => {
     const intervals = getWorkingIntervalsForDay(currentDay, settings);
     let dayWorkingMs = 0;
     for (const interval of intervals) {
-      const overlapStart = Math.max(fromMs, interval.start);
-      const overlapEnd = Math.min(toMs, interval.end);
+      const overlapStart = Math.max(from, interval.start);
+      const overlapEnd = Math.min(to, interval.end);
       if (overlapStart < overlapEnd) {
         dayWorkingMs += (overlapEnd - overlapStart);
       }

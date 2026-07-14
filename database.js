@@ -70,6 +70,8 @@ async function saveDb(data) {
   return new Promise((resolve, reject) => {
     writeQueue = writeQueue.then(async () => {
       try {
+        const dir = path.dirname(dbPath);
+        await fs.mkdir(dir, { recursive: true });
         const tempPath = `${dbPath}.tmp`;
         await fs.writeFile(tempPath, JSON.stringify(data, null, 2), 'utf-8');
         await fs.rename(tempPath, dbPath);
