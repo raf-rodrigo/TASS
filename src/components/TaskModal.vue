@@ -63,11 +63,11 @@ const baseBranchOptions = computed(() => {
   if (settings.activeBranchHml) {
     options.push({ label: `${settings.activeBranchHml} (${settings.activeAliasHml || 'Homologação'})`, value: settings.activeBranchHml });
   }
-  if (settings.activeBranchTest) {
-    options.push({ label: `${settings.activeBranchTest} (${settings.activeAliasTest || 'Testes'})`, value: settings.activeBranchTest });
-  }
   if (settings.activeBranchDev) {
     options.push({ label: `${settings.activeBranchDev} (${settings.activeAliasDev || 'Desenvolvimento'})`, value: settings.activeBranchDev });
+  }
+  if (settings.activeBranchTest) {
+    options.push({ label: `${settings.activeBranchTest} (${settings.activeAliasTest || 'Deploy'})`, value: settings.activeBranchTest });
   }
   return options;
 });

@@ -35,8 +35,8 @@ export const useSettingsStore = defineStore('settings', () => {
   const gitlabAliasMaster = ref('Produção');
   const gitlabBranchHml = ref('hml');
   const gitlabAliasHml = ref('Homologação');
-  const gitlabBranchTest = ref('test');
-  const gitlabAliasTest = ref('Testes');
+  const gitlabBranchTest = ref('deploy');
+  const gitlabAliasTest = ref('Deploy');
   const gitlabBranchDev = ref('dev-06');
   const gitlabAliasDev = ref('Desenvolvimento');
   const gitlabBaseTarget = ref('dev'); // 'master', 'hml', 'test', 'dev'
@@ -46,8 +46,8 @@ export const useSettingsStore = defineStore('settings', () => {
   const githubAliasMaster = ref('Master');
   const githubBranchHml = ref('hml');
   const githubAliasHml = ref('Homologação');
-  const githubBranchTest = ref('test');
-  const githubAliasTest = ref('Testes');
+  const githubBranchTest = ref('deploy');
+  const githubAliasTest = ref('Deploy');
   const githubBranchDev = ref('dev');
   const githubAliasDev = ref('Desenvolvimento');
   const githubBaseTarget = ref('dev'); // 'master', 'hml', 'test', 'dev'

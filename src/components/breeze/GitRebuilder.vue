@@ -196,8 +196,13 @@ const fetchBranches = async (target, isBackgroundSearch = false) => {
       'master', 'main', 'develop'
     ];
     
-    // Filtra para remover ramos base e releases padrão
-    const filtered = data.filter(b => !baseBranches.includes(b.name) && !b.name.startsWith('release/'));
+    // Filtra para remover ramos base e releases padrão (mas mantém as que possuem 'deploy' no nome)
+    const filtered = data.filter(b => {
+      if (b.name.toLowerCase().includes('deploy')) {
+        return true;
+      }
+      return !baseBranches.includes(b.name) && !b.name.startsWith('release/');
+    });
     
     activeBranches.value = filtered.map(b => ({
       name: b.name,
@@ -642,33 +647,6 @@ const toggleTheme = () => {
                   </div>
                 </div>
 
-                <!-- TEST -->
-                <div v-if="settingsStore.activeBranchTest" class="glass-section flex flex-col justify-between shadow-md group shrink-0 border-indigo-500/10 hover:border-indigo-500/30 transition-all !p-4">
-                  <div>
-                    <div class="flex items-center justify-between mb-4">
-                      <span class="px-2.5 py-1 bg-teal-500/10 text-teal-600 dark:text-teal-500 text-[8px] font-black uppercase tracking-wider rounded-[var(--app-input-radius)]">{{ settingsStore.activeAliasTest }}</span>
-                      <div class="w-3 h-3 bg-teal-500 rounded-full shadow-[0_0_8px_rgba(20,184,166,0.3)]"></div>
-                    </div>
-                    <h3 class="text-xl font-black text-app-main font-mono text-teal-500 dark:text-teal-400 truncate" :title="settingsStore.activeBranchTest">
-                      {{ settingsStore.activeBranchTest }}
-                    </h3>
-                    <div class="mt-4 pt-4 border-t border-app-border-light">
-                      <p class="text-[10px] text-app-muted font-bold uppercase">Ambiente de Testes</p>
-                      <p class="text-[9px] text-app-sub mt-0.5 font-medium">Validação e verificação de novas implementações.</p>
-                    </div>
-                  </div>
-                  <div class="mt-5 pt-2">
-                    <button 
-                      @click="runRebuildPipeline('test')"
-                      :disabled="pipelineActive"
-                      class="btn btn-info w-full flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-wider cursor-pointer shadow-sm group-hover:shadow-md transition-all"
-                    >
-                      <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': pipelineActive && pipelineTarget === 'test' }" />
-                      Limpar e Recriar TEST
-                    </button>
-                  </div>
-                </div>
-
                 <!-- DESENVOLVIMENTO -->
                 <div class="glass-section flex flex-col justify-between shadow-md group shrink-0 border-indigo-500/10 hover:border-indigo-500/30 transition-all !p-4">
                   <div>
@@ -692,6 +670,33 @@ const toggleTheme = () => {
                     >
                       <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': pipelineActive && pipelineTarget === 'dev' }" />
                       Limpar e Recriar DEV
+                    </button>
+                  </div>
+                </div>
+
+                <!-- DEPLOY -->
+                <div v-if="settingsStore.activeBranchTest" class="glass-section flex flex-col justify-between shadow-md group shrink-0 border-indigo-500/10 hover:border-indigo-500/30 transition-all !p-4">
+                  <div>
+                    <div class="flex items-center justify-between mb-4">
+                      <span class="px-2.5 py-1 bg-teal-500/10 text-teal-600 dark:text-teal-500 text-[8px] font-black uppercase tracking-wider rounded-[var(--app-input-radius)]">{{ settingsStore.activeAliasTest }}</span>
+                      <div class="w-3 h-3 bg-teal-500 rounded-full shadow-[0_0_8px_rgba(20,184,166,0.3)]"></div>
+                    </div>
+                    <h3 class="text-xl font-black text-app-main font-mono text-teal-500 dark:text-teal-400 truncate" :title="settingsStore.activeBranchTest">
+                      {{ settingsStore.activeBranchTest }}
+                    </h3>
+                    <div class="mt-4 pt-4 border-t border-app-border-light">
+                      <p class="text-[10px] text-app-muted font-bold uppercase">Ambiente de Deploy</p>
+                      <p class="text-[9px] text-app-sub mt-0.5 font-medium">Validação e verificação de novas implementações para deploy.</p>
+                    </div>
+                  </div>
+                  <div class="mt-5 pt-2">
+                    <button 
+                      @click="runRebuildPipeline('test')"
+                      :disabled="pipelineActive"
+                      class="btn btn-info w-full flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-wider cursor-pointer shadow-sm group-hover:shadow-md transition-all"
+                    >
+                      <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': pipelineActive && pipelineTarget === 'test' }" />
+                      Limpar e Recriar DEPLOY
                     </button>
                   </div>
                 </div>

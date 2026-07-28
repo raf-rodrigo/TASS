@@ -544,7 +544,7 @@
       "1": ""
     },
     "app-gitlab-alias-dev": {
-      "1": "deploy"
+      "1": "Desenvolvimento"
     },
     "app-gitlab-alias-hml": {
       "1": "Homologação"
@@ -559,7 +559,7 @@
       "1": "master"
     },
     "app-gitlab-branch-dev": {
-      "1": "DEPLOY-30/07/2026"
+      "1": "dev-06"
     },
     "app-gitlab-branch-hml": {
       "1": "hml"
@@ -705,10 +705,10 @@
       "1": "08:00"
     },
     "app-gitlab-branch-test": {
-      "1": "dev-06"
+      "1": "DEPLOY-30/07/2026"
     },
     "app-gitlab-alias-test": {
-      "1": "Desenvolvimento"
+      "1": "DEPOLY"
     },
     "app-github-branch-test": {
       "1": "test"

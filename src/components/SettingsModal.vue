@@ -21,6 +21,7 @@ import AppSelect from './base/AppSelect.vue';
 import AppRadio from './base/AppRadio.vue';
 import QrcodeVue from 'qrcode.vue';
 import { useTabSwipe } from '../composables/useTabSwipe';
+import { gitProviderService } from '../services/gitProvider';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -212,6 +213,7 @@ const testGitConnection = async () => {
         const data = await res.json();
         testGitStatus.value = 'success';
         testGitMessage.value = `Conectado! Projeto: "${data.name_with_namespace}"`;
+        loadDeployBranches();
       } else {
         testGitStatus.value = 'error';
         testGitMessage.value = `GitLab respondeu com erro HTTP ${res.status}: ${res.statusText}`;
@@ -246,6 +248,7 @@ const testGitConnection = async () => {
         const data = await res.json();
         testGitStatus.value = 'success';
         testGitMessage.value = `Conectado! Repositório: "${data.full_name}"`;
+        loadDeployBranches();
       } else {
         testGitStatus.value = 'error';
         testGitMessage.value = `GitHub respondeu com erro HTTP ${res.status}: ${res.statusText}`;
@@ -256,6 +259,77 @@ const testGitConnection = async () => {
     }
   }
 };
+
+const deployBranches = ref([]);
+const isLoadingBranches = ref(false);
+
+const loadDeployBranches = async () => {
+  const hasGitlabConfig = localSettings.value.gitProvider === 'gitlab' && 
+    localSettings.value.gitlabIntegrationMode !== 'link' && 
+    localSettings.value.gitlabToken && 
+    localSettings.value.gitlabProjectId;
+
+  const hasGithubConfig = localSettings.value.gitProvider === 'github' && 
+    localSettings.value.githubOwner && 
+    localSettings.value.githubRepo && 
+    localSettings.value.githubToken;
+
+  if (!hasGitlabConfig && !hasGithubConfig) {
+    deployBranches.value = [];
+    return;
+  }
+
+  isLoadingBranches.value = true;
+  try {
+    const branches = await gitProviderService.breezeGetBranches(localSettings.value, '', 'deploy');
+    deployBranches.value = branches
+      .map(b => b.name)
+      .filter(name => name.toLowerCase().includes('deploy'));
+  } catch (err) {
+    console.error('Erro ao buscar branches:', err);
+    deployBranches.value = [];
+  } finally {
+    isLoadingBranches.value = false;
+  }
+};
+
+const deployBranchesOptions = computed(() => {
+  const currentBranch = localSettings.value.gitProvider === 'gitlab' 
+    ? localSettings.value.gitlabBranchTest 
+    : localSettings.value.githubBranchTest;
+  
+  const optionsList = deployBranches.value.map(name => ({ label: name, value: name }));
+  
+  if (currentBranch && !deployBranches.value.includes(currentBranch)) {
+    optionsList.unshift({ label: `${currentBranch} (Atual)`, value: currentBranch });
+  }
+
+  if (optionsList.length === 0 && !isLoadingBranches.value) {
+    const fallback = currentBranch || 'deploy';
+    optionsList.push({ label: `${fallback} (Padrão)`, value: fallback });
+  }
+  
+  return optionsList;
+});
+
+watch(() => [
+  localSettings.value.gitProvider, 
+  localSettings.value.githubOwner, 
+  localSettings.value.githubRepo, 
+  localSettings.value.githubToken,
+  localSettings.value.gitlabUrl,
+  localSettings.value.gitlabProjectId,
+  localSettings.value.gitlabToken,
+  localSettings.value.gitlabIntegrationMode
+], () => {
+  loadDeployBranches();
+}, { deep: true });
+
+watch(activeTab, (newVal) => {
+  if (newVal === 'git') {
+    loadDeployBranches();
+  }
+});
 
 const handleSave = async () => {
   settings.gitProvider = localSettings.value.gitProvider;
@@ -548,20 +622,6 @@ const handleResetSystem = async () => {
                         </div>
                       </div>
 
-                      <!-- TEST -->
-                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'test' ? 'ring-2 ring-indigo-500/50' : ''">
-                        <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.gitlabBranchTest" label="Branch (Test)" placeholder="test" />
-                          <AppInput v-model="localSettings.gitlabAliasTest" label="Alias" placeholder="Testes" />
-                        </div>
-                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
-                            Branch Base
-                            <input type="radio" v-model="localSettings.gitlabBaseTarget" value="test" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
-                          </label>
-                        </div>
-                      </div>
-
                       <!-- DEV -->
                       <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'dev' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
@@ -572,6 +632,21 @@ const handleResetSystem = async () => {
                           <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
                             Branch Base
                             <input type="radio" v-model="localSettings.gitlabBaseTarget" value="dev" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- DEPLOY -->
+                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'test' ? 'ring-2 ring-indigo-500/50' : ''">
+                        <div class="grid grid-cols-2 gap-4 flex-1">
+                          <AppInput v-if="localSettings.gitlabIntegrationMode === 'link'" v-model="localSettings.gitlabBranchTest" label="Branch (Deploy)" placeholder="deploy" />
+                          <AppSelect v-else v-model="localSettings.gitlabBranchTest" label="Branch (Deploy)" :options="deployBranchesOptions" :placeholder="isLoadingBranches ? 'Carregando...' : 'Selecione a branch...'" />
+                          <AppInput v-model="localSettings.gitlabAliasTest" label="Alias" placeholder="Deploy" />
+                        </div>
+                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
+                            Branch Base
+                            <input type="radio" v-model="localSettings.gitlabBaseTarget" value="test" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
                           </label>
                         </div>
                       </div>
@@ -617,20 +692,6 @@ const handleResetSystem = async () => {
                         </div>
                       </div>
 
-                      <!-- TEST -->
-                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'test' ? 'ring-2 ring-indigo-500/50' : ''">
-                        <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.githubBranchTest" label="Branch (Test)" placeholder="test" />
-                          <AppInput v-model="localSettings.githubAliasTest" label="Alias" placeholder="Testes" />
-                        </div>
-                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
-                            Branch Base
-                            <input type="radio" v-model="localSettings.githubBaseTarget" value="test" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
-                          </label>
-                        </div>
-                      </div>
-
                       <!-- DEV -->
                       <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'dev' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
@@ -641,6 +702,20 @@ const handleResetSystem = async () => {
                           <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
                             Branch Base
                             <input type="radio" v-model="localSettings.githubBaseTarget" value="dev" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- DEPLOY -->
+                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'test' ? 'ring-2 ring-indigo-500/50' : ''">
+                        <div class="grid grid-cols-2 gap-4 flex-1">
+                          <AppSelect v-model="localSettings.githubBranchTest" label="Branch (Deploy)" :options="deployBranchesOptions" :placeholder="isLoadingBranches ? 'Carregando...' : 'Selecione a branch...'" />
+                          <AppInput v-model="localSettings.githubAliasTest" label="Alias" placeholder="Deploy" />
+                        </div>
+                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
+                            Branch Base
+                            <input type="radio" v-model="localSettings.githubBaseTarget" value="test" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
                           </label>
                         </div>
                       </div>
