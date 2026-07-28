@@ -120,6 +120,8 @@ const localSettings = ref({
   gitlabAliasMaster: settings.gitlabAliasMaster,
   gitlabBranchHml: settings.gitlabBranchHml,
   gitlabAliasHml: settings.gitlabAliasHml,
+  gitlabBranchTest: settings.gitlabBranchTest,
+  gitlabAliasTest: settings.gitlabAliasTest,
   gitlabBranchDev: settings.gitlabBranchDev,
   gitlabAliasDev: settings.gitlabAliasDev,
   gitlabBaseTarget: settings.gitlabBaseTarget,
@@ -127,6 +129,8 @@ const localSettings = ref({
   githubAliasMaster: settings.githubAliasMaster,
   githubBranchHml: settings.githubBranchHml,
   githubAliasHml: settings.githubAliasHml,
+  githubBranchTest: settings.githubBranchTest,
+  githubAliasTest: settings.githubAliasTest,
   githubBranchDev: settings.githubBranchDev,
   githubAliasDev: settings.githubAliasDev,
   githubBaseTarget: settings.githubBaseTarget,
@@ -266,6 +270,8 @@ const handleSave = async () => {
   settings.gitlabAliasMaster = localSettings.value.gitlabAliasMaster;
   settings.gitlabBranchHml = localSettings.value.gitlabBranchHml;
   settings.gitlabAliasHml = localSettings.value.gitlabAliasHml;
+  settings.gitlabBranchTest = localSettings.value.gitlabBranchTest;
+  settings.gitlabAliasTest = localSettings.value.gitlabAliasTest;
   settings.gitlabBranchDev = localSettings.value.gitlabBranchDev;
   settings.gitlabAliasDev = localSettings.value.gitlabAliasDev;
   settings.gitlabBaseTarget = localSettings.value.gitlabBaseTarget;
@@ -273,6 +279,8 @@ const handleSave = async () => {
   settings.githubAliasMaster = localSettings.value.githubAliasMaster;
   settings.githubBranchHml = localSettings.value.githubBranchHml;
   settings.githubAliasHml = localSettings.value.githubAliasHml;
+  settings.githubBranchTest = localSettings.value.githubBranchTest;
+  settings.githubAliasTest = localSettings.value.githubAliasTest;
   settings.githubBranchDev = localSettings.value.githubBranchDev;
   settings.githubAliasDev = localSettings.value.githubAliasDev;
   settings.githubBaseTarget = localSettings.value.githubBaseTarget;
@@ -540,6 +548,20 @@ const handleResetSystem = async () => {
                         </div>
                       </div>
 
+                      <!-- TEST -->
+                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'test' ? 'ring-2 ring-indigo-500/50' : ''">
+                        <div class="grid grid-cols-2 gap-4 flex-1">
+                          <AppInput v-model="localSettings.gitlabBranchTest" label="Branch (Test)" placeholder="test" />
+                          <AppInput v-model="localSettings.gitlabAliasTest" label="Alias" placeholder="Testes" />
+                        </div>
+                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
+                            Branch Base
+                            <input type="radio" v-model="localSettings.gitlabBaseTarget" value="test" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
+                          </label>
+                        </div>
+                      </div>
+
                       <!-- DEV -->
                       <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'dev' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
@@ -591,6 +613,20 @@ const handleResetSystem = async () => {
                           <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
                             Branch Base
                             <input type="radio" v-model="localSettings.githubBaseTarget" value="hml" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- TEST -->
+                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'test' ? 'ring-2 ring-indigo-500/50' : ''">
+                        <div class="grid grid-cols-2 gap-4 flex-1">
+                          <AppInput v-model="localSettings.githubBranchTest" label="Branch (Test)" placeholder="test" />
+                          <AppInput v-model="localSettings.githubAliasTest" label="Alias" placeholder="Testes" />
+                        </div>
+                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
+                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
+                            Branch Base
+                            <input type="radio" v-model="localSettings.githubBaseTarget" value="test" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
                           </label>
                         </div>
                       </div>

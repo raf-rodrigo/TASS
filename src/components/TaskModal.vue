@@ -54,12 +54,23 @@ const styleId = ref(taskToEdit?.styleId || '');
 const styleLocked = ref(taskToEdit?.styleLocked === true);
 
 const createGitLabBranch = ref(false);
-const baseBranchRef = ref('master-sistsocial');
-const baseBranchOptions = [
-  { label: 'master-sistsocial', value: 'master-sistsocial' },
-  { label: 'dev-06', value: 'dev-06' },
-  { label: 'hml', value: 'hml' }
-];
+const baseBranchRef = ref(settings.activeBaseBranch || settings.activeBranchDev || 'master');
+const baseBranchOptions = computed(() => {
+  const options = [];
+  if (settings.activeBranchMaster) {
+    options.push({ label: `${settings.activeBranchMaster} (${settings.activeAliasMaster || 'Master'})`, value: settings.activeBranchMaster });
+  }
+  if (settings.activeBranchHml) {
+    options.push({ label: `${settings.activeBranchHml} (${settings.activeAliasHml || 'Homologação'})`, value: settings.activeBranchHml });
+  }
+  if (settings.activeBranchTest) {
+    options.push({ label: `${settings.activeBranchTest} (${settings.activeAliasTest || 'Testes'})`, value: settings.activeBranchTest });
+  }
+  if (settings.activeBranchDev) {
+    options.push({ label: `${settings.activeBranchDev} (${settings.activeAliasDev || 'Desenvolvimento'})`, value: settings.activeBranchDev });
+  }
+  return options;
+});
 
 const hoveredStyleId = ref(null);
 const showStyleDropdown = ref(false);

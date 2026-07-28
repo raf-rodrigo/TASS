@@ -35,18 +35,22 @@ export const useSettingsStore = defineStore('settings', () => {
   const gitlabAliasMaster = ref('Produção');
   const gitlabBranchHml = ref('hml');
   const gitlabAliasHml = ref('Homologação');
+  const gitlabBranchTest = ref('test');
+  const gitlabAliasTest = ref('Testes');
   const gitlabBranchDev = ref('dev-06');
   const gitlabAliasDev = ref('Desenvolvimento');
-  const gitlabBaseTarget = ref('dev'); // 'master', 'hml', 'dev'
+  const gitlabBaseTarget = ref('dev'); // 'master', 'hml', 'test', 'dev'
 
   // Configuração das branches do GitHub
   const githubBranchMaster = ref('main');
   const githubAliasMaster = ref('Master');
   const githubBranchHml = ref('hml');
   const githubAliasHml = ref('Homologação');
+  const githubBranchTest = ref('test');
+  const githubAliasTest = ref('Testes');
   const githubBranchDev = ref('dev');
   const githubAliasDev = ref('Desenvolvimento');
-  const githubBaseTarget = ref('dev'); // 'master', 'hml', 'dev'
+  const githubBaseTarget = ref('dev'); // 'master', 'hml', 'test', 'dev'
 
   const consoleFontSize = ref(11);
 
@@ -55,12 +59,15 @@ export const useSettingsStore = defineStore('settings', () => {
   const activeAliasMaster = computed(() => gitProvider.value === 'gitlab' ? gitlabAliasMaster.value : githubAliasMaster.value);
   const activeBranchHml = computed(() => gitProvider.value === 'gitlab' ? gitlabBranchHml.value : githubBranchHml.value);
   const activeAliasHml = computed(() => gitProvider.value === 'gitlab' ? gitlabAliasHml.value : githubAliasHml.value);
+  const activeBranchTest = computed(() => gitProvider.value === 'gitlab' ? gitlabBranchTest.value : githubBranchTest.value);
+  const activeAliasTest = computed(() => gitProvider.value === 'gitlab' ? gitlabAliasTest.value : githubAliasTest.value);
   const activeBranchDev = computed(() => gitProvider.value === 'gitlab' ? gitlabBranchDev.value : githubBranchDev.value);
   const activeAliasDev = computed(() => gitProvider.value === 'gitlab' ? gitlabAliasDev.value : githubAliasDev.value);
   const activeBaseBranch = computed(() => {
     const target = gitProvider.value === 'gitlab' ? gitlabBaseTarget.value : githubBaseTarget.value;
     if (target === 'master') return activeBranchMaster.value;
     if (target === 'hml') return activeBranchHml.value;
+    if (target === 'test') return activeBranchTest.value;
     return activeBranchDev.value;
   });
 
@@ -259,6 +266,8 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-gitlab-alias-master'] !== undefined) gitlabAliasMaster.value = settingsMap['app-gitlab-alias-master'];
       if (settingsMap['app-gitlab-branch-hml'] !== undefined) gitlabBranchHml.value = settingsMap['app-gitlab-branch-hml'];
       if (settingsMap['app-gitlab-alias-hml'] !== undefined) gitlabAliasHml.value = settingsMap['app-gitlab-alias-hml'];
+      if (settingsMap['app-gitlab-branch-test'] !== undefined) gitlabBranchTest.value = settingsMap['app-gitlab-branch-test'];
+      if (settingsMap['app-gitlab-alias-test'] !== undefined) gitlabAliasTest.value = settingsMap['app-gitlab-alias-test'];
       if (settingsMap['app-gitlab-branch-dev'] !== undefined) gitlabBranchDev.value = settingsMap['app-gitlab-branch-dev'];
       if (settingsMap['app-gitlab-alias-dev'] !== undefined) gitlabAliasDev.value = settingsMap['app-gitlab-alias-dev'];
       if (settingsMap['app-gitlab-base-target'] !== undefined) gitlabBaseTarget.value = settingsMap['app-gitlab-base-target'];
@@ -267,6 +276,8 @@ export const useSettingsStore = defineStore('settings', () => {
       if (settingsMap['app-github-alias-master'] !== undefined) githubAliasMaster.value = settingsMap['app-github-alias-master'];
       if (settingsMap['app-github-branch-hml'] !== undefined) githubBranchHml.value = settingsMap['app-github-branch-hml'];
       if (settingsMap['app-github-alias-hml'] !== undefined) githubAliasHml.value = settingsMap['app-github-alias-hml'];
+      if (settingsMap['app-github-branch-test'] !== undefined) githubBranchTest.value = settingsMap['app-github-branch-test'];
+      if (settingsMap['app-github-alias-test'] !== undefined) githubAliasTest.value = settingsMap['app-github-alias-test'];
       if (settingsMap['app-github-branch-dev'] !== undefined) githubBranchDev.value = settingsMap['app-github-branch-dev'];
       if (settingsMap['app-github-alias-dev'] !== undefined) githubAliasDev.value = settingsMap['app-github-alias-dev'];
       if (settingsMap['app-github-base-target'] !== undefined) githubBaseTarget.value = settingsMap['app-github-base-target'];
@@ -383,6 +394,8 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-gitlab-alias-master', value: gitlabAliasMaster.value },
       { key: 'app-gitlab-branch-hml', value: gitlabBranchHml.value },
       { key: 'app-gitlab-alias-hml', value: gitlabAliasHml.value },
+      { key: 'app-gitlab-branch-test', value: gitlabBranchTest.value },
+      { key: 'app-gitlab-alias-test', value: gitlabAliasTest.value },
       { key: 'app-gitlab-branch-dev', value: gitlabBranchDev.value },
       { key: 'app-gitlab-alias-dev', value: gitlabAliasDev.value },
       { key: 'app-gitlab-base-target', value: gitlabBaseTarget.value },
@@ -390,6 +403,8 @@ export const useSettingsStore = defineStore('settings', () => {
       { key: 'app-github-alias-master', value: githubAliasMaster.value },
       { key: 'app-github-branch-hml', value: githubBranchHml.value },
       { key: 'app-github-alias-hml', value: githubAliasHml.value },
+      { key: 'app-github-branch-test', value: githubBranchTest.value },
+      { key: 'app-github-alias-test', value: githubAliasTest.value },
       { key: 'app-github-branch-dev', value: githubBranchDev.value },
       { key: 'app-github-alias-dev', value: githubAliasDev.value },
       { key: 'app-github-base-target', value: githubBaseTarget.value },
@@ -428,9 +443,9 @@ export const useSettingsStore = defineStore('settings', () => {
     cardBorderRadius, opacityTargets, customWallpapers, columnTitles, columnStyles,
     wellnessEnabled, wellnessInterval, contrastEnhanced, darkenWallpaper, keepWindowState,
     contextMenuStyle, contextMenuMode, hideWelcomeModal,
-    gitlabBranchMaster, gitlabAliasMaster, gitlabBranchHml, gitlabAliasHml, gitlabBranchDev, gitlabAliasDev, gitlabBaseTarget,
-    githubBranchMaster, githubAliasMaster, githubBranchHml, githubAliasHml, githubBranchDev, githubAliasDev, githubBaseTarget,
-    activeBranchMaster, activeAliasMaster, activeBranchHml, activeAliasHml, activeBranchDev, activeAliasDev, activeBaseBranch,
+    gitlabBranchMaster, gitlabAliasMaster, gitlabBranchHml, gitlabAliasHml, gitlabBranchTest, gitlabAliasTest, gitlabBranchDev, gitlabAliasDev, gitlabBaseTarget,
+    githubBranchMaster, githubAliasMaster, githubBranchHml, githubAliasHml, githubBranchTest, githubAliasTest, githubBranchDev, githubAliasDev, githubBaseTarget,
+    activeBranchMaster, activeAliasMaster, activeBranchHml, activeAliasHml, activeBranchTest, activeAliasTest, activeBranchDev, activeAliasDev, activeBaseBranch,
     consoleFontSize, taskStyleProfiles,
     titlePalette, bodyPalette, textLightPalette, textDarkPalette,
     isInitialized, globalGlassEnabled,
