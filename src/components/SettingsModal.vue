@@ -281,12 +281,42 @@ const loadDeployBranches = async () => {
 
   isLoadingBranches.value = true;
   try {
-    const branches = await gitProviderService.breezeGetBranches(localSettings.value, '', 'deploy');
-    deployBranches.value = branches
+    // 1. Busca usando o termo 'deploy' na API (pode falhar/retornar erro em algumas versões antigas do GitLab)
+    let branchesWithSearch = [];
+    try {
+      branchesWithSearch = await gitProviderService.breezeGetBranches(localSettings.value, '', 'deploy');
+    } catch (err) {
+      console.warn('Erro ao buscar branches com filtro "deploy":', err);
+    }
+    
+    // 2. Busca as 100 branches mais recentes/ativas sem filtro na API (mais seguro e compatível)
+    let allBranches = [];
+    try {
+      allBranches = await gitProviderService.breezeGetBranches(localSettings.value, '', '');
+    } catch (err) {
+      console.warn('Erro ao buscar todas as branches sem filtro:', err);
+    }
+    
+    // Se ambas retornaram vazio/falharam e temos erro real, tenta forçar uma última chamada para expor o erro no catch principal
+    if (branchesWithSearch.length === 0 && allBranches.length === 0) {
+      allBranches = await gitProviderService.breezeGetBranches(localSettings.value, '', '');
+    }
+    
+    // Combina os resultados e remove duplicados por nome
+    const combinedMap = new Map();
+    [...branchesWithSearch, ...allBranches].forEach(b => {
+      if (b && b.name) {
+        combinedMap.set(b.name, b);
+      }
+    });
+    
+    // Filtra no cliente garantindo case-insensitive contendo 'deploy'
+    deployBranches.value = Array.from(combinedMap.values())
       .map(b => b.name)
       .filter(name => name.toLowerCase().includes('deploy'));
   } catch (err) {
     console.error('Erro ao buscar branches:', err);
+    notificationService.toast(`Erro ao carregar branches remotas: ${err.message}`, 'error');
     deployBranches.value = [];
   } finally {
     isLoadingBranches.value = false;
@@ -639,8 +669,7 @@ const handleResetSystem = async () => {
                       <!-- DEPLOY -->
                       <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'test' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-if="localSettings.gitlabIntegrationMode === 'link'" v-model="localSettings.gitlabBranchTest" label="Branch (Deploy)" placeholder="deploy" />
-                          <AppSelect v-else v-model="localSettings.gitlabBranchTest" label="Branch (Deploy)" :options="deployBranchesOptions" :placeholder="isLoadingBranches ? 'Carregando...' : 'Selecione a branch...'" />
+                          <AppInput v-model="localSettings.gitlabBranchTest" label="Branch (Deploy)" placeholder="deploy" />
                           <AppInput v-model="localSettings.gitlabAliasTest" label="Alias" placeholder="Deploy" />
                         </div>
                         <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
@@ -709,7 +738,7 @@ const handleResetSystem = async () => {
                       <!-- DEPLOY -->
                       <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'test' ? 'ring-2 ring-indigo-500/50' : ''">
                         <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppSelect v-model="localSettings.githubBranchTest" label="Branch (Deploy)" :options="deployBranchesOptions" :placeholder="isLoadingBranches ? 'Carregando...' : 'Selecione a branch...'" />
+                          <AppInput v-model="localSettings.githubBranchTest" label="Branch (Deploy)" placeholder="deploy" />
                           <AppInput v-model="localSettings.githubAliasTest" label="Alias" placeholder="Deploy" />
                         </div>
                         <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
