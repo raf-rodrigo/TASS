@@ -1,5 +1,12 @@
 import { db } from '../db.js';
 import { notificationService } from './notificationService';
+import { sanitizeTaskData } from '../utils/taskData.js';
+
+const SENSITIVE_SETTING_KEYS = new Set(['app-nextcloud-credentials']);
+
+const withoutSensitiveSettings = settings => (
+  settings.filter(setting => !SENSITIVE_SETTING_KEYS.has(setting.key))
+);
 
 export const backupService = {
   /**
@@ -7,7 +14,7 @@ export const backupService = {
    */
   async exportTasks() {
     try {
-      const data = await db.tasks.toArray();
+      const data = (await db.tasks.toArray()).map(sanitizeTaskData);
       this.downloadJson(data, 'tass_tasks_backup.json');
       notificationService.toast('Backup de tarefas exportado!');
     } catch (error) {
@@ -40,10 +47,12 @@ export const backupService = {
    * Obtém todo o sistema (Tarefas, Sprints, Configs, Notas) em um objeto
    */
   async getFullBackupData() {
+    const settings = withoutSensitiveSettings(await db.settings.toArray());
+
     return {
-      tasks: await db.tasks.toArray(),
+      tasks: (await db.tasks.toArray()).map(sanitizeTaskData),
       sprints: await db.sprints.toArray(),
-      settings: await db.settings.toArray(),
+      settings,
       notes: await db.notes.toArray(),
       radios: await db.radios.toArray(),
       taskStyles: await db.taskStyles.toArray(),
@@ -82,7 +91,7 @@ export const backupService = {
           // Processamento para Merge Seguro
           const processedTasks = tasksData.map(task => {
             // Remove o ID para que o Dexie gere um novo
-            const { id, ...taskWithoutId } = task;
+            const { id, ...taskWithoutId } = sanitizeTaskData(task);
             return {
               ...taskWithoutId,
               sprintId: 'all',      // Desvincula de sprints órfãs
@@ -113,7 +122,7 @@ export const backupService = {
 
       // Importação sequencial e limpa
       if (data.tasks) {
-        const stoppedTasks = data.tasks.map(task => ({
+        const stoppedTasks = data.tasks.map(task => sanitizeTaskData({
           ...task,
           isRunning: false,
           lastStartTime: null
@@ -126,8 +135,15 @@ export const backupService = {
         await db.sprints.bulkPut(data.sprints);
       }
       if (data.settings) {
+        // Credenciais locais não viajam no backup e também não podem ser
+        // sobrescritas por um arquivo importado. Preserve a cópia deste navegador.
+        const localSensitiveSettings = (await Promise.all(
+          [...SENSITIVE_SETTING_KEYS].map(key => db.settings.get(key))
+        )).filter(Boolean);
+        const restoredSettings = withoutSensitiveSettings(data.settings);
+
         await db.settings.clear();
-        await db.settings.bulkPut(data.settings);
+        await db.settings.bulkPut([...restoredSettings, ...localSensitiveSettings]);
       }
       if (data.notes) {
         await db.notes.clear();

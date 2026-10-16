@@ -39,9 +39,6 @@ const description = ref(taskToEdit ? taskToEdit.description : '');
 
 // Advanced properties
 const priority = ref(taskToEdit?.priority || 'Normal');
-const devUrl = ref(taskToEdit?.devUrl == 1);
-const homologUrl = ref(taskToEdit?.homologUrl == 1);
-const prodUrl = ref(taskToEdit?.prodUrl == 1);
 const taskUrl = ref(taskToEdit?.taskUrl || '');
 const isGitHub = computed(() => settings.gitProvider === 'github');
 const branchName = ref(settings.gitProvider === 'github' ? (taskToEdit?.githubBranchName || '') : (taskToEdit?.branchName || ''));
@@ -187,9 +184,6 @@ const submitTask = () => {
     description: description.value.trim(),
     estimatedTime: timeStr,
     priority: priority.value,
-    devUrl: devUrl.value ? 1 : 0,
-    homologUrl: homologUrl.value ? 1 : 0,
-    prodUrl: prodUrl.value ? 1 : 0,
     taskUrl: ensureProtocol(taskUrl.value.trim()),
     ...(settings.gitProvider === 'github' ? {
       githubBranchName: branchName.value.trim(),
@@ -443,18 +437,6 @@ const submitTask = () => {
             />
           </div>
 
-          <div class="p-6 bg-slate-500/5 rounded-3xl border border-app-border-light space-y-6">
-            <div class="flex items-center gap-3 mb-2">
-              <Globe class="w-4 h-4 text-indigo-500" />
-              <h4 class="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-[0.2em]">Pipeline</h4>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <AppSwitch v-model="devUrl" label="Desenvolvimento" active-color="peer-checked:bg-orange-500" />
-              <AppSwitch v-model="homologUrl" label="Homologação" active-color="peer-checked:bg-emerald-500" />
-              <AppSwitch v-model="prodUrl" label="Produção" active-color="peer-checked:bg-blue-500" />
-            </div>
-          </div>
         </div>
 
         <!-- ABA 3: Documentação -->

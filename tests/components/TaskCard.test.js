@@ -3,12 +3,23 @@ import { mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import TaskCard from '../../src/components/TaskCard.vue';
 
+const uiStore = vi.hoisted(() => ({
+  animatingTaskIds: [],
+  previewGlobalStyleId: null,
+  previewTaskId: null,
+  previewStyleId: null,
+  showStylePickerMenu: false
+}));
+
 // Mock das Stores
 vi.mock('../../src/stores/settingsStore', () => ({
   useSettingsStore: vi.fn(() => ({
     cardOpacity: 80,
+    normalizedCardOpacity: 0.8,
     taskNumberSize: 12,
-    taskDescriptionSize: 13
+    taskDescriptionSize: 13,
+    columnStyles: [],
+    theme: 'dark'
   }))
 }));
 
@@ -17,6 +28,25 @@ vi.mock('../../src/stores/taskStore', () => ({
     selectedTask: null,
     contextMenuPosition: { x: 0, y: 0 }
   }))
+}));
+
+vi.mock('../../src/stores/taskStyleStore', () => ({
+  useTaskStyleStore: vi.fn(() => ({
+    getStyleById: vi.fn((id) => id === 'style-green' ? {
+      id,
+      styles: {},
+      colors: {
+        color: '#00ff00',
+        bgColor: '#001100',
+        textLightColor: '#005500',
+        textDarkColor: '#00ff00'
+      }
+    } : null)
+  }))
+}));
+
+vi.mock('../../src/stores/uiStore', () => ({
+  useUIStore: () => uiStore
 }));
 
 // Mock do ResizeObserver para o ambiente de testes
@@ -39,6 +69,10 @@ describe('TaskCard.vue', () => {
 
   beforeEach(() => {
     setActivePinia(createPinia());
+    uiStore.previewGlobalStyleId = null;
+    uiStore.previewTaskId = null;
+    uiStore.previewStyleId = null;
+    uiStore.showStylePickerMenu = false;
   });
 
   it('deve renderizar o título e o tempo formatado corretamente', () => {
@@ -48,6 +82,21 @@ describe('TaskCard.vue', () => {
 
     expect(wrapper.text()).toContain('TSK-1');
     expect(wrapper.text()).toContain('01:00:00');
+  });
+
+  it('não exibe indicadores dos antigos ambientes da tarefa', () => {
+    const wrapper = mount(TaskCard, {
+      props: {
+        task: {
+          ...mockTask,
+          devUrl: 1,
+          homologUrl: 1,
+          prodUrl: 1
+        }
+      }
+    });
+
+    expect(wrapper.text()).not.toMatch(/\b(PRD|HML|DEV)\b/);
   });
 
   it('deve disparar evento toggle-timer ao clicar no botão de play', async () => {
@@ -83,5 +132,16 @@ describe('TaskCard.vue', () => {
 
     const content = wrapper.find('.transition-opacity');
     expect(content.classes()).toContain('opacity-50');
+  });
+
+  it('exibe a prévia do submenu mesmo sem abrir o seletor separado', () => {
+    uiStore.previewTaskId = mockTask.id;
+    uiStore.previewStyleId = 'style-green';
+
+    const wrapper = mount(TaskCard, {
+      props: { task: mockTask }
+    });
+
+    expect(wrapper.attributes('style')).toContain('background-color: rgba(0, 17, 0, 0.8)');
   });
 });

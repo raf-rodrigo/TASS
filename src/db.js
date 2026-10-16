@@ -1,4 +1,5 @@
 import Dexie from 'dexie';
+import { removeLegacyTaskEnvironmentFields } from './utils/taskData.js';
 
 export const db = new Dexie('TaskManagerDB');
 
@@ -41,4 +42,12 @@ db.version(9).stores({
     'app-text-dark-palette'
   ];
   await tx.settings.where('key').anyOf(keysToDelete).delete();
+});
+
+db.version(10).stores({
+  tasks: '++id, title, position, sprintId, columnId, styleId'
+}).upgrade(async tx => {
+  // As antigas flags DEV/HML/PRD pertenciam à tarefa. A partir desta versão,
+  // os ambientes existem apenas nas configurações das integrações Git/Breeze.
+  await tx.tasks.toCollection().modify(removeLegacyTaskEnvironmentFields);
 });

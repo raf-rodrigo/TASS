@@ -6,7 +6,7 @@ import {
   LayoutGrid, Layers, Type as TypeIcon, Droplets,
   Cloud, Loader2, ArrowLeft, RotateCcw, Clock,
   Save, CheckCircle2, Pencil, Upload, Download, Puzzle,
-  Sliders
+  Sliders, GitBranch
 } from 'lucide-vue-next';
 import { DOCK_ITEMS } from '../utils/dockConfig.js';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -18,6 +18,7 @@ import { backupService } from '../services/backupService';
 import BaseModal from './BaseModal.vue';
 import AppColorPalette from './AppColorPalette.vue';
 import AppInput from './base/AppInput.vue';
+import AppSelect from './base/AppSelect.vue';
 import { useTabSwipe } from '../composables/useTabSwipe';
 
 const settings = useSettingsStore();
@@ -230,6 +231,35 @@ const handleColumnChange = (n) => {
   settings.saveSetting('app-columns', n);
   if (n < oldColumns) taskStore.migrateOrphanTasks(n);
 };
+
+const columnMergeOptions = computed(() => [
+  { value: '', label: 'Não executar merge' },
+  ...settings.activeEnvironments.map(environment => ({
+    value: environment.id,
+    label: `${environment.alias} — ${environment.branch}`
+  }))
+]);
+
+const getColumnMergeTarget = (columnIndex) => {
+  const environmentId = settings.columnMergeTargets?.[settings.gitProvider]?.[columnIndex] || '';
+  return settings.activeEnvironments.some(environment => environment.id === environmentId)
+    ? environmentId
+    : '';
+};
+
+const updateColumnMergeTarget = async (columnIndex, environmentId) => {
+  const providerTargets = [
+    ...(settings.columnMergeTargets?.[settings.gitProvider] || Array(6).fill(''))
+  ];
+  providerTargets[columnIndex] = environmentId;
+
+  settings.columnMergeTargets = {
+    ...settings.columnMergeTargets,
+    [settings.gitProvider]: providerTargets
+  };
+
+  await settings.saveSetting('app-column-merge-targets', settings.columnMergeTargets);
+};
 </script>
 
 <template>
@@ -307,6 +337,27 @@ const handleColumnChange = (n) => {
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-indigo-400/50">
                               <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg>
                             </div>
+                          </div>
+
+                          <div
+                            class="bg-app-surface border border-app-border-light p-3"
+                            :style="{ borderRadius: 'var(--app-input-radius)' }"
+                          >
+                            <AppSelect
+                              :model-value="getColumnMergeTarget(n - 1)"
+                              :options="columnMergeOptions"
+                              :icon="GitBranch"
+                              icon-color="text-app-accent"
+                              label="Ao mover, fazer o merge com a branch:"
+                              placeholder="Não executar merge"
+                              size="sm"
+                              searchable
+                              search-placeholder="Buscar branch ou alias..."
+                              @update:model-value="updateColumnMergeTarget(n - 1, $event)"
+                            />
+                            <p class="mt-2 text-[9px] font-bold text-app-muted">
+                              Ambientes da integração {{ settings.gitProvider === 'github' ? 'GitHub' : 'GitLab' }} ativa.
+                            </p>
                           </div>
                         </div>
                       </div>

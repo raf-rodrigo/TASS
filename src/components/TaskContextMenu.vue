@@ -3,9 +3,10 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { 
   Pencil, CheckCircle, RotateCcw, Trash2, X, 
   GitBranch, MessageSquare, ExternalLink, 
-  Play, Square, Globe, Copy, TimerReset,
-  Database, Clock, Lock, Unlock
+  Play, Square, Copy, TimerReset,
+  Database, Clock, Lock, Unlock, Palette, ChevronRight
 } from 'lucide-vue-next';
+import PresetMenuItems from './PresetMenuItems.vue';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
 import { useTimerStore } from '../stores/timerStore';
@@ -28,9 +29,15 @@ const taskStore = useTaskStore();
 const timerStore = useTimerStore();
 const uiStore = useUIStore();
 const isCreatingBranch = ref(false);
+const showTaskStyles = ref(false);
 const menuRef = ref(null);
 
 const isFloating = computed(() => settings.contextMenuStyle === 'floating');
+const gitActionLabel = computed(() => (
+  gitProviderService.hasBranch(props.task, settings)
+    ? `Ver Branch ${gitProviderService.getProviderName(settings)}`
+    : 'Criar branch'
+));
 
 /**
  * Classes descritivas de posicionamento do menu de contexto.
@@ -89,6 +96,42 @@ const handleCloneAction = async () => {
   emit('close');
 };
 
+const currentTaskPresetId = computed(() => props.task.styleId || '');
+
+const taskPresetSubmenuClass = computed(() => {
+  if (!isFloating.value) {
+    return ['bottom-[calc(100%+0.5rem)]', 'left-1/2', '-translate-x-1/2'];
+  }
+
+  const { x, y } = taskStore.contextMenuPosition;
+  return [
+    x > window.innerWidth / 2 ? 'right-[calc(100%+0.5rem)]' : 'left-[calc(100%+0.5rem)]',
+    y > window.innerHeight / 2 ? 'bottom-[-0.5rem]' : '-top-2'
+  ];
+});
+
+const handleTaskPreviewStart = (styleId) => {
+  uiStore.previewTaskId = props.task.id;
+  uiStore.previewStyleId = styleId;
+};
+
+const handleTaskPreviewEnd = () => {
+  if (uiStore.previewTaskId === props.task.id) {
+    uiStore.previewTaskId = null;
+    uiStore.previewStyleId = null;
+  }
+};
+
+const handleApplyTaskStyle = async (styleId) => {
+  try {
+    uiStore.triggerPresetAnimation(props.task.id);
+    await taskStore.updateTask(props.task.id, { styleId: styleId || null });
+  } catch (error) {
+    console.error('Erro ao aplicar preset ao card:', error);
+    notificationService.toast('Erro ao salvar preset do card', 'error');
+  }
+};
+
 const openLink = (url) => {
   if (url) {
     const finalUrl = url.startsWith('http') ? url : `https://${url}`;
@@ -126,6 +169,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  handleTaskPreviewEnd();
   window.removeEventListener('click', () => {});
 });
 </script>
@@ -191,28 +235,60 @@ onUnmounted(() => {
       <hr class="border-t border-app-border-light my-1.5 mx-1" />
 
       <div class="flex flex-col gap-0.5">
-        <div class="px-2 py-1 flex items-center justify-between">
-          <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Ambientes</span>
-          <div class="flex items-center gap-1">
-            <button @click="taskStore.updateTask(task.id, { prodUrl: task.prodUrl == 1 ? 0 : 1 })" class="env-tag-sm" :class="{ 'env-active-prd': task.prodUrl == 1 }">PRD</button>
-            <button @click="taskStore.updateTask(task.id, { homologUrl: task.homologUrl == 1 ? 0 : 1 })" class="env-tag-sm" :class="{ 'env-active-hml': task.homologUrl == 1 }">HML</button>
-            <button @click="taskStore.updateTask(task.id, { devUrl: task.devUrl == 1 ? 0 : 1 })" class="env-tag-sm" :class="{ 'env-active-dev': task.devUrl == 1 }">DEV</button>
-          </div>
-        </div>
-      </div>
-
-      <hr class="border-t border-app-border-light my-1.5 mx-1" />
-
-      <div class="flex flex-col gap-0.5">
         <button @click="handleGitAction" :disabled="isCreatingBranch" class="context-menu-item" :class="{ 'active-item-purple': gitProviderService.hasBranch(task, settings) }">
           <GitBranch v-if="!isCreatingBranch" class="w-4 h-4" />
           <div v-else class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
-          <span>{{ gitProviderService.hasBranch(task, settings) ? `Ver Branch ${gitProviderService.getProviderName(settings)}` : 'Criar Branch Automática' }}</span>
+          <span>{{ gitActionLabel }}</span>
         </button>
         <button @click="handleCloneAction" class="context-menu-item text-slate-500">
           <Copy class="w-4 h-4" />
           <span>Clonar Tarefa (c)</span>
         </button>
+        <div
+          data-test="task-presets-container"
+          class="relative"
+          @mouseenter="showTaskStyles = true"
+          @mouseleave="showTaskStyles = false; handleTaskPreviewEnd()"
+        >
+          <button
+            data-test="open-task-presets"
+            class="context-menu-item w-full justify-between text-pink-500"
+          >
+            <div class="flex items-center gap-3">
+              <Palette class="w-4 h-4" />
+              <span>Presets</span>
+            </div>
+            <ChevronRight class="w-4 h-4 opacity-50" />
+          </button>
+
+          <transition
+            enter-active-class="transition duration-150 ease-out"
+            enter-from-class="opacity-0 scale-95"
+            enter-to-class="opacity-100 scale-100"
+            leave-active-class="transition duration-100 ease-in"
+            leave-from-class="opacity-100 scale-100"
+            leave-to-class="opacity-0 scale-95"
+          >
+            <div
+              v-show="showTaskStyles"
+              data-test="task-presets-submenu"
+              class="absolute glass-panel !py-2 !px-1.5 flex flex-col shadow-2xl border-indigo-500/30 ring-1 ring-black/10"
+              :class="taskPresetSubmenuClass"
+              :style="{
+                backgroundColor: `rgba(var(--app-bg-raw), var(--app-menu-opacity))`,
+                borderRadius: 'var(--app-card-radius)'
+              }"
+            >
+              <PresetMenuItems
+                title="Presets do Card"
+                :current-preset-id="currentTaskPresetId"
+                @apply="handleApplyTaskStyle"
+                @preview="handleTaskPreviewStart"
+                @clear-preview="handleTaskPreviewEnd"
+              />
+            </div>
+          </transition>
+        </div>
         <button @click="taskStore.updateTask(task.id, { styleLocked: !task.styleLocked })" class="context-menu-item" :class="task.styleLocked ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10' : 'text-slate-500'">
           <component :is="task.styleLocked ? Lock : Unlock" class="w-4 h-4" />
           <span>{{ task.styleLocked ? 'Preset Protegido' : 'Proteger Preset' }}</span>
@@ -269,11 +345,51 @@ onUnmounted(() => {
       </div>
 
       <div class="flex items-center gap-1.5 px-2">
-        <button @click="handleGitAction" :disabled="isCreatingBranch" class="icon-btn-large group" :class="{ 'active-action': gitProviderService.hasBranch(task, settings) }" data-tip="Branch do Git">
+        <button @click="handleGitAction" :disabled="isCreatingBranch" class="icon-btn-large group" :class="{ 'active-action': gitProviderService.hasBranch(task, settings) }" :data-tip="gitActionLabel">
           <GitBranch v-if="!isCreatingBranch" class="w-4 h-4" />
           <div v-else class="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin"></div>
         </button>
         <button @click="handleCloneAction" class="icon-btn-large group" data-tip="Clonar Tarefa (c)"><Copy class="w-4 h-4" /></button>
+        <div
+          data-test="task-presets-container-dock"
+          class="relative"
+          @mouseenter="showTaskStyles = true"
+          @mouseleave="showTaskStyles = false; handleTaskPreviewEnd()"
+        >
+          <button
+            data-test="open-task-presets-dock"
+            class="icon-btn-large group text-pink-500"
+            data-tip="Presets do Card (p)"
+          ><Palette class="w-4 h-4" /></button>
+
+          <transition
+            enter-active-class="transition duration-150 ease-out"
+            enter-from-class="opacity-0 scale-95"
+            enter-to-class="opacity-100 scale-100"
+            leave-active-class="transition duration-100 ease-in"
+            leave-from-class="opacity-100 scale-100"
+            leave-to-class="opacity-0 scale-95"
+          >
+            <div
+              v-show="showTaskStyles"
+              data-test="task-presets-submenu-dock"
+              class="absolute glass-panel !py-2 !px-1.5 flex flex-col shadow-2xl border-indigo-500/30 ring-1 ring-black/10"
+              :class="taskPresetSubmenuClass"
+              :style="{
+                backgroundColor: `rgba(var(--app-bg-raw), var(--app-menu-opacity))`,
+                borderRadius: 'var(--app-card-radius)'
+              }"
+            >
+              <PresetMenuItems
+                title="Presets do Card"
+                :current-preset-id="currentTaskPresetId"
+                @apply="handleApplyTaskStyle"
+                @preview="handleTaskPreviewStart"
+                @clear-preview="handleTaskPreviewEnd"
+              />
+            </div>
+          </transition>
+        </div>
         <button @click="taskStore.updateTask(task.id, { styleLocked: !task.styleLocked })" class="icon-btn-large group" :class="{ 'active-action': task.styleLocked }" :data-tip="task.styleLocked ? 'Desbloquear Preset (Preset Protegido)' : 'Proteger Preset (Ignora mudanças globais)'">
           <component :is="task.styleLocked ? Lock : Unlock" class="w-4 h-4" />
         </button>
@@ -295,11 +411,6 @@ onUnmounted(() => {
           class="icon-btn-large" :class="{ 'active-action-indigo': task.taskUrl }"
           data-tip="Link da Tarefa"
         ><ExternalLink class="w-4 h-4" /></button>
-        <div class="flex items-center gap-1 ml-1">
-          <button @click="taskStore.updateTask(task.id, { prodUrl: task.prodUrl == 1 ? 0 : 1 })" class="env-btn" :class="{ 'env-active-prd': task.prodUrl == 1 }">PRD</button>
-          <button @click="taskStore.updateTask(task.id, { homologUrl: task.homologUrl == 1 ? 0 : 1 })" class="env-btn" :class="{ 'env-active-hml': task.homologUrl == 1 }">HML</button>
-          <button @click="taskStore.updateTask(task.id, { devUrl: task.devUrl == 1 ? 0 : 1 })" class="env-btn" :class="{ 'env-active-dev': task.devUrl == 1 }">DEV</button>
-        </div>
       </div>
 
       <div class="flex items-center gap-1.5 pl-2 md:pl-4 border-t md:border-t-0 md:border-l border-app-border-light w-full md:w-auto justify-center">
@@ -323,10 +434,6 @@ onUnmounted(() => {
   @apply w-full px-3 py-2 flex items-center gap-3 text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors rounded-[8px] active:scale-[0.98] cursor-pointer;
 }
 
-.env-tag-sm {
-  @apply px-1.5 py-0.5 text-[9px] font-black tracking-tighter transition-all active:scale-95 bg-slate-100 dark:bg-white/5 text-slate-400 rounded border border-transparent text-center cursor-pointer hover:bg-slate-200 dark:hover:bg-white/10;
-}
-
 .active-item-purple { @apply text-purple-600 dark:text-purple-400 bg-purple-500/10 hover:bg-purple-500/20 !important; }
 .active-item-amber { @apply text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 !important; }
 .active-item-indigo { @apply text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 !important; }
@@ -334,14 +441,6 @@ onUnmounted(() => {
 .floating-btn {
   @apply w-9 h-9 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 transition-all active:scale-90 rounded-xl border border-transparent;
 }
-
-.env-tag-floating {
-  @apply px-2 py-1 text-[9px] font-black tracking-tighter transition-all active:scale-95 bg-slate-100 dark:bg-white/5 text-slate-400 rounded-lg border border-transparent text-center;
-}
-
-.env-active-prd { @apply bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30 !important; }
-.env-active-hml { @apply bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 !important; }
-.env-active-dev { @apply bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30 !important; }
 
 .btn-active-purple { @apply text-purple-600 dark:text-purple-400 bg-purple-500/15 border-purple-500/30 !important; }
 .btn-active-amber { @apply text-amber-600 dark:text-amber-400 bg-amber-500/15 border-amber-500/30 !important; }
@@ -356,11 +455,6 @@ onUnmounted(() => {
 .active-action-purple { @apply text-purple-600 bg-purple-500/15 border border-purple-500/30 !important; }
 .active-action-amber { @apply text-amber-600 bg-amber-500/15 border border-amber-500/30 !important; }
 .active-action-indigo { @apply text-indigo-600 bg-indigo-500/15 border border-indigo-500/30 !important; }
-
-.env-btn {
-  @apply px-2 py-1.5 text-[9px] font-black tracking-tighter border border-transparent transition-all active:scale-95 bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-600 hover:bg-slate-200 dark:hover:bg-white/10;
-  border-radius: calc(var(--app-input-radius) * 0.8);
-}
 
 .animate-scaleIn { animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
 @keyframes scaleIn { from { opacity: 0; transform: scale(0.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }

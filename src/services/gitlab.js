@@ -1,5 +1,6 @@
 import { db } from '../db.js';
 import { gitBranchSlug } from '../utils/string.js';
+import { buildBranchCheckoutCommand } from '../utils/gitCommands.js';
 import { notificationService } from './notificationService.js';
 
 export const gitlabService = {
@@ -142,7 +143,11 @@ export const gitlabService = {
         await db.tasks.update(task.id, { branchUrl: treeUrl, branchName: branchName });
         task.branchUrl = treeUrl;
         task.branchName = branchName;
-        notificationService.toast('Branch criada com sucesso!', 'success');
+        await notificationService.copyCommand({
+          title: 'Branch criada',
+          message: `A branch '${branchName}' foi criada no GitLab. Use o comando abaixo para baixá-la e acessá-la no terminal.`,
+          command: buildBranchCheckoutCommand(branchName)
+        });
         return { treeUrl, branchName };
       } else {
         const errorData = await response.json().catch(() => ({}));

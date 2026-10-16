@@ -170,6 +170,8 @@ O script `scripts/publish-tass.sh` gera o build de produção, valida o acesso S
 
 O destino pode ser alterado com `--directory`. Também é possível definir `TASS_DEPLOY_TARGET` e `TASS_DEPLOY_DIRECTORY` em `scripts/.env`; esse arquivo privado não deve ser versionado.
 
+O procedimento completo de atualização, verificação e recuperação está documentado em [`PUBLICACAO.md`](PUBLICACAO.md).
+
 ---
 
 ## 📄 Licença

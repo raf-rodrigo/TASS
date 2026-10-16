@@ -1,13 +1,11 @@
 <script setup>
 import { 
-  AlertTriangle, CheckCircle, Info, XCircle, X 
+  AlertTriangle, CheckCircle, Copy, Info, XCircle
 } from 'lucide-vue-next';
 import { ref, watch, nextTick } from 'vue';
 import { useModalStore } from '../stores/modalStore';
-import { useSettingsStore } from '../stores/settingsStore';
 
 const modalStore = useModalStore();
-const settings = useSettingsStore();
 const inputRef = ref(null);
 
 const icons = {
@@ -109,6 +107,17 @@ watch(() => modalStore.isOpen, (newVal) => {
                     </p>
                   </div>
 
+                  <div
+                    v-if="modalStore.codeBlock"
+                    class="mt-4 border border-app-border-light bg-app-surface p-3 text-left"
+                    :style="{ borderRadius: 'var(--app-input-radius)' }"
+                  >
+                    <p class="mb-2 text-[10px] font-black uppercase tracking-widest text-app-muted">
+                      Comando para o terminal
+                    </p>
+                    <pre class="max-h-40 overflow-auto whitespace-pre-wrap break-all font-mono text-xs leading-relaxed text-app-main custom-scrollbar"><code>{{ modalStore.codeBlock }}</code></pre>
+                  </div>
+
                   <!-- Centered Prompt Input -->
                   <div v-if="modalStore.isPrompt" class="mt-4">
                     <textarea
@@ -142,6 +151,7 @@ watch(() => modalStore.isOpen, (newVal) => {
                 :class="primaryButtonClasses[modalStore.type]"
                 @click="modalStore.handleConfirm"
               >
+                <Copy v-if="modalStore.codeBlock" class="mr-2 h-4 w-4" />
                 {{ modalStore.confirmText }}
               </button>
 

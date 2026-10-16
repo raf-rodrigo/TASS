@@ -7,6 +7,10 @@ import {
   getDefaultGitEnvironmentConfig,
   loadGitEnvironmentConfig
 } from '../utils/gitEnvironments.js';
+import {
+  createEmptyColumnMergeTargets,
+  normalizeColumnMergeTargets
+} from '../utils/columnMerge.js';
 
 export const useSettingsStore = defineStore('settings', () => {
   const theme = ref('dark');
@@ -98,6 +102,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const globalGlassEnabled = ref(true);
   const columnTitles = ref(['', '', '', '', '', '']);
   const columnStyles = ref(['', '', '', '', '', '']);
+  const columnMergeTargets = ref(createEmptyColumnMergeTargets());
   const contextMenuStyle = ref('floating'); // 'floating' (estilo OS) ou 'dock' (estilo clássico)
   const contextMenuMode = ref('stack'); // 'stack' (empilhado) ou 'replace' (substitui a dock)
   const contrastEnhanced = ref(true);
@@ -222,6 +227,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
       if (settingsMap['app-column-titles'] !== undefined) columnTitles.value = settingsMap['app-column-titles'];
       if (settingsMap['app-column-styles'] !== undefined) columnStyles.value = settingsMap['app-column-styles'];
+      columnMergeTargets.value = normalizeColumnMergeTargets(settingsMap['app-column-merge-targets']);
       if (settingsMap['app-context-menu-style'] !== undefined) contextMenuStyle.value = settingsMap['app-context-menu-style'];
       if (settingsMap['app-context-menu-mode'] !== undefined) contextMenuMode.value = settingsMap['app-context-menu-mode'];
       if (settingsMap['app-contrast-enhanced'] !== undefined) contrastEnhanced.value = settingsMap['app-contrast-enhanced'] === true;
@@ -350,6 +356,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
       { key: 'app-column-titles', value: columnTitles.value },
       { key: 'app-column-styles', value: columnStyles.value },
+      { key: 'app-column-merge-targets', value: columnMergeTargets.value },
       { key: 'app-context-menu-style', value: contextMenuStyle.value },
       { key: 'app-context-menu-mode', value: contextMenuMode.value },
       { key: 'app-contrast-enhanced', value: contrastEnhanced.value },
@@ -399,7 +406,7 @@ export const useSettingsStore = defineStore('settings', () => {
     notesButtonTop, notesWidth, radioPositionX, radioPositionY, cardPadding, fontFamily, trackInactivity,
 
     workStart, workEnd, workDays, autoPauseOutsideWork, cardOpacity,
-    cardBorderRadius, opacityTargets, customWallpapers, columnTitles, columnStyles,
+    cardBorderRadius, opacityTargets, customWallpapers, columnTitles, columnStyles, columnMergeTargets,
     wellnessEnabled, wellnessInterval, contrastEnhanced, darkenWallpaper, keepWindowState,
     contextMenuStyle, contextMenuMode, hideWelcomeModal,
     gitlabEnvironments, gitlabBaseEnvironmentId,

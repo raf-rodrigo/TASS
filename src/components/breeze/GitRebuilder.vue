@@ -107,6 +107,10 @@ const currentCheckMrIid = ref(null); // Armazena o ID do MR de teste para fecham
 const selectedBranches = ref([]);
 const showBulkDeleteModal = ref(false);
 
+const clearBranchSelection = () => {
+  selectedBranches.value = [];
+};
+
 const providerName = computed(() => gitProviderService.getProviderName(settingsStore));
 const providerIsReady = computed(() => {
   if (settingsStore.gitProvider === 'github') {
@@ -264,6 +268,11 @@ const fetchBranches = async (target, isBackgroundSearch = false) => {
 
 let searchTimeout = null;
 const handleSearch = () => {
+  // Uma branch filtrada deixa de aparecer na lista, mas continuava selecionada
+  // internamente. Ao clicar em outro resultado, a seleção oculta fazia o Breeze
+  // entender que havia duas branches e removia as opções de destino do merge.
+  clearBranchSelection();
+
   if (searchTimeout) clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
     if (mergeTarget.value) {
@@ -275,7 +284,7 @@ const handleSearch = () => {
 const listAllBranches = async () => {
   searchQuery.value = '';
   branchesError.value = '';
-  selectedBranches.value = [];
+  clearBranchSelection();
   mergeTarget.value = settingsStore.activeBaseBranch;
   await fetchBranches(settingsStore.activeBaseBranch, false);
   branchesFetched.value = true;
@@ -323,6 +332,8 @@ const runMergeToTarget = (targetEnvironment) => {
 
 const cancelMergeCheck = async () => {
   showMergeConfirmModal.value = false;
+  clearBranchSelection();
+
   if (currentCheckMrIid.value) {
     const iidToClose = currentCheckMrIid.value;
     currentCheckMrIid.value = null; // Evita duplicação de chamadas
@@ -480,7 +491,7 @@ const requestBulkDelete = () => {
 const executeBulkDelete = async () => {
   showBulkDeleteModal.value = false;
   const branchesToExclude = [...selectedBranches.value];
-  selectedBranches.value = []; // Limpa a seleção
+  clearBranchSelection();
   
   addMergeLog(`Iniciando exclusão em lote de ${branchesToExclude.length} branches...`, 'warning');
   
