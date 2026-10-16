@@ -3,7 +3,7 @@ import { ref, onMounted, watch, toRef, nextTick, computed } from 'vue';
 import { X } from 'lucide-vue-next';
 import { useNoteStore } from '../stores/noteStore';
 import { useSettingsStore } from '../stores/settingsStore';
-import { useNotesDrag } from '../composables/useNotesDrag.js';
+import { NOTES_HANDLE_MIN_TOP, useNotesDrag } from '../composables/useNotesDrag.js';
 import { useSwipe } from '@vueuse/core';
 
 const props = defineProps({
@@ -102,6 +102,11 @@ const panelSlideClass = computed(() => {
   return settings.notesSide === 'right' ? 'translate-x-full' : '-translate-x-full';
 });
 
+const notesHandleTop = computed(() => Math.max(
+  NOTES_HANDLE_MIN_TOP,
+  Number(settings.notesButtonTop) || 0
+));
+
 // Arraste fluido (1:1 Tracking) com @vueuse/core
 const asideRef = ref(null);
 const { lengthX, isSwiping } = useSwipe(asideRef, {
@@ -157,7 +162,8 @@ const swipeTransform = computed(() => {
   <!-- Painel de Notas -->
   <aside 
     ref="asideRef"
-    class="fixed top-0 h-full max-w-[90vw] z-[70] shadow-2xl flex flex-col glass-panel !p-0"
+    data-test="notes-panel"
+    class="fixed inset-y-0 max-w-[90vw] min-h-0 z-[70] shadow-2xl flex flex-col glass-panel !p-0"
     :class="[
       (isResizingLocal || isSwiping) ? '!transition-none' : 'transition-all duration-500 ease-in-out',
       settings.notesSide === 'right' ? 'right-0' : 'left-0',
@@ -174,13 +180,14 @@ const swipeTransform = computed(() => {
   >
     <!-- Aba de Arraste Física -->
     <div 
+      data-test="notes-drag-handle"
       class="absolute w-7 h-20 cursor-move flex items-center justify-center group z-[100] shadow-lg transition-all backdrop-blur-md border-y"
       :class="[
         settings.notesSide === 'right' ? 'right-full rounded-l-xl border-l' : 'left-full rounded-r-xl border-r',
         isResizingLocal ? '!transition-none' : '',
         'bg-app-glass border-app-border-light'
       ]"
-      :style="{ top: settings.notesButtonTop + 'px', touchAction: 'none' }"
+      :style="{ top: notesHandleTop + 'px', touchAction: 'none' }"
       @mousedown.stop="handleResize"
       @click.stop="handleHandleClick"
       :data-tip="isOpen ? 'Arraste para redimensionar / Clique para fechar' : 'Arraste para mover / Clique para abrir'"
@@ -191,9 +198,9 @@ const swipeTransform = computed(() => {
       </div>
     </div>
 
-    <div class="flex-1 flex flex-col overflow-hidden rounded-[var(--app-card-radius)]">
+    <div class="flex-1 min-h-0 flex flex-col overflow-hidden rounded-[var(--app-card-radius)]">
       <!-- Header Simplificado -->
-      <div class="flex items-center gap-4 px-5 py-3.5 border-b select-none transition-colors duration-500 bg-app-surface border-app-border-light">
+      <div class="shrink-0 flex items-center gap-4 px-5 py-3.5 border-b select-none transition-colors duration-500 bg-app-surface border-app-border-light">
          <div class="flex-1 text-sm font-bold text-app-muted tracking-wider">
            NOTAS RÁPIDAS
          </div>
@@ -206,25 +213,27 @@ const swipeTransform = computed(() => {
       </div>
 
       <!-- Área de Texto -->
-      <div class="flex-1 p-6 relative flex flex-col">
-        <div class="flex items-start gap-3 h-full overflow-hidden">
+      <div class="flex-1 min-h-0 min-w-0 p-6 relative flex flex-col overflow-hidden">
+        <div class="flex flex-1 min-h-0 min-w-0 items-start gap-3 overflow-hidden">
           
           <!-- Numeração de Linhas -->
           <div 
             ref="linesRef"
-            class="flex flex-col text-right pr-3 border-r border-app-border-light opacity-30 select-none font-mono text-lg h-full overflow-hidden leading-relaxed text-app-main"
+            data-test="notes-line-numbers"
+            class="shrink-0 flex flex-col text-right pr-3 border-r border-app-border-light opacity-30 select-none font-mono text-lg h-full overflow-hidden leading-relaxed text-app-main"
           >
              <div v-for="n in lineCount" :key="n">{{ n }}</div>
           </div>
 
           <div
             ref="editableRef"
+            data-test="notes-editor"
             contenteditable="true"
             @blur="handleBlur"
             @input="updateLineCount"
             @keyup="updateLineCount"
             @scroll="(e) => { if (linesRef) linesRef.scrollTop = e.target.scrollTop }"
-            class="flex-1 h-full bg-transparent border-none focus:ring-0 font-mono leading-relaxed overflow-auto custom-scrollbar-note text-lg outline-none text-app-text-main whitespace-pre"
+            class="flex-1 min-h-0 min-w-0 h-full bg-transparent border-none focus:ring-0 font-mono leading-relaxed overflow-y-auto overflow-x-hidden overscroll-contain touch-pan-y custom-scrollbar-note text-lg outline-none text-app-text-main whitespace-pre-wrap break-words"
           ></div>
         </div>
       </div>

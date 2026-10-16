@@ -34,6 +34,20 @@ describe('ModalStore', () => {
     expect(result).toBe('denied');
   });
 
+  it('deve expor um comando copiável e o limpar ao abrir outro modal', async () => {
+    const store = useModalStore();
+
+    const confirmPromise = store.confirm({ code: 'git checkout feature/task-1' });
+    expect(store.codeBlock).toBe('git checkout feature/task-1');
+    store.handleCancel();
+    await confirmPromise;
+
+    const alertPromise = store.alert({ title: 'Outro modal' });
+    expect(store.codeBlock).toBe('');
+    store.handleConfirm();
+    await alertPromise;
+  });
+
   it('deve abrir um prompt e retornar o valor digitado', async () => {
     const store = useModalStore();
     const promptPromise = store.prompt({ title: 'Nome', value: 'Original' });

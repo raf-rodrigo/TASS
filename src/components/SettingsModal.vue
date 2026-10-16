@@ -57,12 +57,17 @@ const copyPixKey = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   // Inicializa o serviço do Google com um callback para atualizar o estado de autenticação
   googleDriveService.init((status, profile) => {
     isGoogleAuthenticated.value = status;
     googleUser.value = profile;
   });
+
+  await nextcloudService.initialize();
+  if (nextcloudService.isAuthenticated()) {
+    cloudProvider.value = 'nextcloud';
+  }
 
   if (props.initialTab) {
     activeTab.value = props.initialTab;

@@ -1,5 +1,9 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 
+// Altura aproximada do cabeçalho das notas mais uma pequena margem visual.
+// A orelha pode ser movida para baixo, mas nunca deve voltar a cobrir o header.
+export const NOTES_HANDLE_MIN_TOP = 64;
+
 export function useNotesDrag(settings, showNotes, forcedMode = null) {
   const isDragging = ref(null); // 'vertical' or 'horizontal'
   const startY = ref(0);
@@ -41,7 +45,7 @@ export function useNotesDrag(settings, showNotes, forcedMode = null) {
     if (isDragging.value === 'vertical') {
       let newTop = startTop.value + deltaY;
       // Constraints
-      newTop = Math.max(20, Math.min(window.innerHeight - 100, newTop));
+      newTop = Math.max(NOTES_HANDLE_MIN_TOP, Math.min(window.innerHeight - 100, newTop));
       settings.notesButtonTop = newTop;
     } else if (isDragging.value === 'horizontal') {
       const direction = settings.notesSide === 'right' ? -1 : 1;

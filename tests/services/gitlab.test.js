@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { gitlabService } from '../../src/services/gitlab';
+import { db } from '../../src/db.js';
+import { notificationService } from '../../src/services/notificationService.js';
 
 // Mock do notificationService e db
 vi.mock('../../src/services/notificationService.js', () => ({
   notificationService: {
     toast: vi.fn(),
     confirm: vi.fn(),
-    alert: vi.fn()
+    alert: vi.fn(),
+    copyCommand: vi.fn()
   }
 }));
 
@@ -82,6 +85,34 @@ describe('gitlabService', () => {
 
       const exists = await gitlabService.checkBranchExists(settings, 'minha-branch');
       expect(exists).toBe(false);
+    });
+  });
+
+  describe('createBranch', () => {
+    it('deve salvar a branch e oferecer um comando que busca e acessa a referência remota', async () => {
+      const task = { id: 7, title: 'TASK-7', description: 'Ajustar login' };
+      const settings = {
+        gitlabUrl: 'https://gitlab.com/grupo/projeto',
+        gitlabToken: 'token',
+        gitlabProjectId: 'grupo%2Fprojeto',
+        activeBaseBranch: 'main'
+      };
+      fetch.mockResolvedValue({ ok: true });
+
+      const result = await gitlabService.createBranch(task, settings);
+
+      expect(db.tasks.update).toHaveBeenCalledWith(7, {
+        branchUrl: 'https://gitlab.com/grupo/projeto/-/tree/TASK-7-Ajustar-login',
+        branchName: 'TASK-7-Ajustar-login'
+      });
+      expect(notificationService.copyCommand).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'Branch criada',
+        command: expect.stringContaining("git fetch origin '+TASK-7-Ajustar-login:refs/remotes/origin/TASK-7-Ajustar-login'")
+      }));
+      expect(notificationService.copyCommand).toHaveBeenCalledWith(expect.objectContaining({
+        command: expect.stringContaining("git checkout -b 'TASK-7-Ajustar-login' --track 'origin/TASK-7-Ajustar-login'")
+      }));
+      expect(result.branchName).toBe('TASK-7-Ajustar-login');
     });
   });
 });

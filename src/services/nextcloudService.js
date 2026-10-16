@@ -1,8 +1,12 @@
+import { db } from '../db.js';
+
 const SESSION_KEY = 'tass_nextcloud_session';
+export const NEXTCLOUD_CREDENTIALS_KEY = 'app-nextcloud-credentials';
 const BACKUP_FOLDER = 'TASS';
 const BACKUP_PREFIX = 'tass_backup_';
 
 let activeSession = null;
+let initializationPromise = null;
 
 const getSessionStorage = () => {
   return typeof window !== 'undefined' ? window.sessionStorage : null;
@@ -36,15 +40,38 @@ const encodeBasicAuth = (username, password) => {
   return btoa(binaryValue);
 };
 
+const normalizeCredentials = ({ serverUrl, username, appPassword } = {}) => {
+  const normalizedUsername = username?.trim();
+  if (!normalizedUsername) throw new Error('Informe o usuário da Nextcloud.');
+  if (!appPassword) throw new Error('Informe uma senha de aplicativo da Nextcloud.');
+
+  return {
+    serverUrl: normalizeServerUrl(serverUrl),
+    username: normalizedUsername,
+    appPassword
+  };
+};
+
+const saveSessionStorage = () => {
+  if (!activeSession) return;
+  getSessionStorage()?.setItem(SESSION_KEY, JSON.stringify(activeSession));
+};
+
+const persistActiveSession = async () => {
+  if (!activeSession) return;
+  await db.settings.put({
+    key: NEXTCLOUD_CREDENTIALS_KEY,
+    value: { ...activeSession }
+  });
+};
+
 const readSavedSession = () => {
   const storage = getSessionStorage();
   if (!storage) return null;
 
   try {
     const savedSession = JSON.parse(storage.getItem(SESSION_KEY));
-    if (savedSession?.serverUrl && savedSession?.username && savedSession?.appPassword) {
-      return savedSession;
-    }
+    if (savedSession) return normalizeCredentials(savedSession);
   } catch {
     storage.removeItem(SESSION_KEY);
   }
@@ -78,6 +105,43 @@ const normalizeDavDate = (value) => {
 activeSession = readSavedSession();
 
 export const nextcloudService = {
+  async initialize() {
+    if (activeSession) {
+      try {
+        // Migra automaticamente uma conexão da versão antiga, que existia
+        // apenas no sessionStorage, para o mesmo IndexedDB das configurações.
+        await persistActiveSession();
+      } catch (error) {
+        console.error('[Nextcloud] Falha ao migrar credenciais para o IndexedDB:', error);
+      }
+      return this.getConnection();
+    }
+    if (initializationPromise) return initializationPromise;
+
+    initializationPromise = (async () => {
+      try {
+        const savedSetting = await db.settings.get(NEXTCLOUD_CREDENTIALS_KEY);
+        if (!savedSetting?.value) return null;
+
+        try {
+          activeSession = normalizeCredentials(savedSetting.value);
+          saveSessionStorage();
+          return this.getConnection();
+        } catch {
+          await db.settings.delete(NEXTCLOUD_CREDENTIALS_KEY);
+          return null;
+        }
+      } catch (error) {
+        console.error('[Nextcloud] Falha ao carregar credenciais do IndexedDB:', error);
+        return null;
+      }
+    })().finally(() => {
+      initializationPromise = null;
+    });
+
+    return initializationPromise;
+  },
+
   getConnection() {
     if (!activeSession) return null;
     return {
@@ -122,15 +186,7 @@ export const nextcloudService = {
   },
 
   async connect({ serverUrl, username, appPassword }) {
-    const normalizedUsername = username?.trim();
-    if (!normalizedUsername) throw new Error('Informe o usuário da Nextcloud.');
-    if (!appPassword) throw new Error('Informe uma senha de aplicativo da Nextcloud.');
-
-    activeSession = {
-      serverUrl: normalizeServerUrl(serverUrl),
-      username: normalizedUsername,
-      appPassword
-    };
+    activeSession = normalizeCredentials({ serverUrl, username, appPassword });
 
     try {
       const response = await this.request('', {
@@ -146,7 +202,8 @@ export const nextcloudService = {
       }
 
       await this.ensureBackupFolder();
-      getSessionStorage()?.setItem(SESSION_KEY, JSON.stringify(activeSession));
+      await persistActiveSession();
+      saveSessionStorage();
       return this.getConnection();
     } catch (error) {
       activeSession = null;
@@ -155,7 +212,8 @@ export const nextcloudService = {
     }
   },
 
-  disconnect() {
+  async disconnect() {
+    await db.settings.delete(NEXTCLOUD_CREDENTIALS_KEY);
     activeSession = null;
     getSessionStorage()?.removeItem(SESSION_KEY);
   },

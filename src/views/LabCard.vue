@@ -30,9 +30,6 @@ const mockTask = ref({
   moreInfo: 'Informações adicionais para testar o cartão',
   dbScripts: 'SELECT * FROM tass;',
   taskUrl: 'https://github.com',
-  devUrl: 1,
-  homologUrl: 1,
-  prodUrl: 1,
   _labOverride: true
 });
 

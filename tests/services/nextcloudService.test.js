@@ -1,5 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { nextcloudService } from '../../src/services/nextcloudService.js';
+import {
+  NEXTCLOUD_CREDENTIALS_KEY,
+  nextcloudService
+} from '../../src/services/nextcloudService.js';
+import { db } from '../../src/db.js';
+
+vi.mock('../../src/db.js', () => ({
+  db: {
+    settings: {
+      get: vi.fn(),
+      put: vi.fn(),
+      delete: vi.fn()
+    }
+  }
+}));
 
 global.fetch = vi.fn();
 
@@ -25,10 +39,14 @@ const connect = async () => {
 };
 
 describe('nextcloudService', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+  beforeEach(async () => {
     sessionStorage.clear();
-    nextcloudService.disconnect();
+    db.settings.delete.mockResolvedValue(undefined);
+    await nextcloudService.disconnect();
+    vi.clearAllMocks();
+    db.settings.get.mockResolvedValue(undefined);
+    db.settings.put.mockResolvedValue(undefined);
+    db.settings.delete.mockResolvedValue(undefined);
   });
 
   it('valida a conexão e cria a pasta TASS quando necessário', async () => {
@@ -46,6 +64,45 @@ describe('nextcloudService', () => {
     );
     expect(sessionStorage.getItem('tass_nextcloud_session')).toContain('senha exclusiva');
     expect(localStorage.getItem('tass_nextcloud_session')).toBeNull();
+    expect(db.settings.put).toHaveBeenCalledWith({
+      key: NEXTCLOUD_CREDENTIALS_KEY,
+      value: {
+        serverUrl: 'https://cloud.example.com',
+        username: 'sergio@example.com',
+        appPassword: 'senha exclusiva'
+      }
+    });
+  });
+
+  it('restaura do IndexedDB uma conexão validada anteriormente', async () => {
+    db.settings.get.mockResolvedValue({
+      key: NEXTCLOUD_CREDENTIALS_KEY,
+      value: {
+        serverUrl: 'https://cloud.example.com/',
+        username: ' sergio ',
+        appPassword: 'senha persistida'
+      }
+    });
+
+    await expect(nextcloudService.initialize()).resolves.toEqual({
+      serverUrl: 'https://cloud.example.com',
+      username: 'sergio'
+    });
+
+    expect(nextcloudService.isAuthenticated()).toBe(true);
+    expect(sessionStorage.getItem('tass_nextcloud_session')).toContain('senha persistida');
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('remove as credenciais persistidas ao desconectar', async () => {
+    await connect();
+    vi.clearAllMocks();
+
+    await nextcloudService.disconnect();
+
+    expect(db.settings.delete).toHaveBeenCalledWith(NEXTCLOUD_CREDENTIALS_KEY);
+    expect(nextcloudService.isAuthenticated()).toBe(false);
+    expect(sessionStorage.getItem('tass_nextcloud_session')).toBeNull();
   });
 
   it('recusa HTTP fora do ambiente local', async () => {
@@ -55,6 +112,7 @@ describe('nextcloudService', () => {
       appPassword: 'senha'
     })).rejects.toThrow('HTTPS');
     expect(fetch).not.toHaveBeenCalled();
+    expect(db.settings.put).not.toHaveBeenCalled();
   });
 
   it('impede segmentos de navegação no caminho WebDAV', async () => {

@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { AlertTriangle, Cloud, Download, Loader2, LogIn, LogOut, Server, Trash2, Upload } from 'lucide-vue-next';
 import AppButton from './base/AppButton.vue';
 import AppInput from './base/AppInput.vue';
@@ -30,6 +30,20 @@ const isLoading = ref(false);
 const backups = ref([]);
 const showRestoreList = ref(false);
 
+onMounted(async () => {
+  isLoading.value = true;
+  try {
+    const connection = await nextcloudService.initialize();
+    if (connection) {
+      credentials.value.serverUrl = connection.serverUrl;
+      credentials.value.username = connection.username;
+      isAuthenticated.value = true;
+    }
+  } finally {
+    isLoading.value = false;
+  }
+});
+
 const showError = (title, error) => {
   console.error(`[Nextcloud] ${title}:`, error);
   notificationService.alert(title, error.message || 'Não foi possível concluir a operação.', 'error');
@@ -49,12 +63,20 @@ const handleConnect = async () => {
   }
 };
 
-const handleDisconnect = () => {
-  nextcloudService.disconnect();
-  isAuthenticated.value = false;
-  backups.value = [];
-  showRestoreList.value = false;
-  notificationService.toast('Nextcloud desconectada.');
+const handleDisconnect = async () => {
+  isLoading.value = true;
+  try {
+    await nextcloudService.disconnect();
+    credentials.value.appPassword = '';
+    isAuthenticated.value = false;
+    backups.value = [];
+    showRestoreList.value = false;
+    notificationService.toast('Nextcloud desconectada.');
+  } catch (error) {
+    showError('Falha ao remover a conexão da Nextcloud', error);
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 const handleBackup = async () => {
@@ -138,7 +160,7 @@ const handleDelete = async (file) => {
             {{ isAuthenticated ? credentials.username : 'Nextcloud' }}
           </h4>
           <p class="text-[9px] font-bold text-app-muted">
-            {{ isAuthenticated ? 'Conectado nesta sessão' : 'Nuvem livre via WebDAV' }}
+            {{ isAuthenticated ? 'Conectado neste navegador' : 'Nuvem livre via WebDAV' }}
           </p>
         </div>
       </div>
@@ -147,7 +169,8 @@ const handleDelete = async (file) => {
 
     <p class="text-[10px] text-app-sub leading-relaxed relative z-10">
       Salva backups completos na pasta <strong>“TASS”</strong> da sua própria Nextcloud.
-      A senha de aplicativo permanece somente nesta aba e é apagada ao desconectar ou fechar a sessão.
+      As credenciais ficam salvas localmente no IndexedDB deste navegador e são removidas ao desconectar.
+      A senha de aplicativo não é incluída nos arquivos de backup.
     </p>
 
     <form v-if="!isAuthenticated" class="space-y-3 relative z-10" @submit.prevent="handleConnect">

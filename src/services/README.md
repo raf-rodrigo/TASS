@@ -19,7 +19,7 @@ Gerencia a integração autenticada com o Google Identity Services (GIS) e a API
 ### ☁️ `nextcloudService.js`
 Integra o TASS a instâncias Nextcloud por meio do protocolo WebDAV nativo, sem SDK externo ou cadastro de cliente OAuth.
 - **Conexão:** `connect({ serverUrl, username, appPassword })` valida as credenciais com `PROPFIND`, exige HTTPS fora de ambientes locais e cria a pasta `TASS` com `MKCOL` quando necessário.
-- **Sessão:** `getConnection()` e `isAuthenticated()` expõem apenas o estado necessário à interface. A URL, o usuário e a senha de aplicativo ficam em `sessionStorage`, nunca no backup ou no armazenamento persistente; `disconnect()` remove a sessão.
+- **Credenciais:** depois que o WebDAV e a pasta `TASS` são validados, a URL, o usuário e a senha de aplicativo são armazenados no IndexedDB, na tabela de configurações. `initialize()` restaura a conexão ao reabrir o aplicativo e `disconnect()` remove tanto o registro persistente quanto a cópia da sessão. A senha não é incluída nos arquivos de backup.
 - **Backups:** `uploadBackup(data)` envia JSON via `PUT`; `listBackups()` consulta a pasta com `PROPFIND` e ordena os arquivos pela última modificação; `downloadBackup(filename)` e `deleteBackup(filename)` usam `GET` e `DELETE`.
 - **Segurança:** Todos os segmentos de caminho são codificados, conexões remotas sem HTTPS são recusadas e a interface orienta o uso de senha de aplicativo exclusiva.
 - **CORS:** Em instalações de outra origem, o servidor ou proxy reverso da Nextcloud deve autorizar a origem do TASS, os cabeçalhos `Authorization`, `Content-Type` e `Depth`, e os métodos `GET`, `PUT`, `DELETE`, `PROPFIND` e `MKCOL`, incluindo a requisição de preflight `OPTIONS`.

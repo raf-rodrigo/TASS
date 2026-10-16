@@ -136,7 +136,7 @@ const isCurrentStyle = (styleId) => {
       <div class="px-3 py-2 flex items-center justify-between mb-1" :class="sortedPresets.length > 12 ? 'col-span-full' : ''">
         <div class="flex items-center gap-2">
           <Palette class="w-4 h-4 text-indigo-500" />
-          <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Presets (Live Preview)</span>
+          <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Presets do Card (Prévia)</span>
         </div>
         <button @click="uiStore.closeStylePicker" class="p-1 hover:bg-slate-500/10 rounded-md transition-colors">
           <X class="w-3 h-3 text-slate-400" />

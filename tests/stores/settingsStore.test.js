@@ -32,6 +32,13 @@ describe('SettingsStore', () => {
     db.settings.toArray.mockResolvedValue([
       { key: 'app-theme', value: 'light' },
       { key: 'app-columns', value: 4 },
+      {
+        key: 'app-column-merge-targets',
+        value: {
+          gitlab: ['', 'gitlab-hml'],
+          github: ['', '', 'github-main']
+        }
+      },
       { key: 'app-darken-wallpaper', value: false }
     ]);
 
@@ -39,8 +46,30 @@ describe('SettingsStore', () => {
 
     expect(store.theme).toBe('light');
     expect(store.columns).toBe(4);
+    expect(store.columnMergeTargets.gitlab).toEqual(['', 'gitlab-hml', '', '', '', '']);
+    expect(store.columnMergeTargets.github).toEqual(['', '', 'github-main', '', '', '']);
     expect(store.darkenWallpaper).toBe(false);
     expect(store.isInitialized).toBe(true);
+  });
+
+  it('persiste os destinos de merge das colunas no IndexedDB', async () => {
+    const store = useSettingsStore();
+    store.columnMergeTargets = {
+      gitlab: ['', 'gitlab-hml', '', '', '', ''],
+      github: ['', '', 'github-main', '', '', '']
+    };
+
+    await store.saveAllSettings();
+
+    expect(db.settings.bulkPut).toHaveBeenCalledWith(expect.arrayContaining([
+      {
+        key: 'app-column-merge-targets',
+        value: {
+          gitlab: ['', 'gitlab-hml', '', '', '', ''],
+          github: ['', '', 'github-main', '', '', '']
+        }
+      }
+    ]));
   });
 
   it('expõe a coleção e a branch base do provedor ativo sem depender de nomes fixos', async () => {

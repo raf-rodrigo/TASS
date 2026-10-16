@@ -24,6 +24,10 @@
   --app-text-shadow: none;
   --app-border-opacity: 0.1;
   --app-input-radius: 8px;
+  --app-color-accent: 99 102 241;
+  --app-color-success: 16 185 129;
+  --app-color-danger: 239 68 68;
+  --app-color-warning: 245 158 11;
 
   /* Semantic UI Tokens - Modo Claro */
   --app-btn-secondary-bg: rgba(0, 0, 0, 0.04);
