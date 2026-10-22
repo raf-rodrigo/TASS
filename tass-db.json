@@ -326,7 +326,7 @@
       "branchUrl": "https://git.lliege.com.br/POCS/ci/-/tree/Teste01-teste",
       "dbScripts": "",
       "moreInfo": "",
-      "sprintId": 3,
+      "sprintId": null,
       "styleId": null,
       "styleLocked": false,
       "color": "",
@@ -353,11 +353,12 @@
       "id": 2
     },
     {
-      "startDate": "2026-06-29",
-      "endDate": "2026-07-09",
-      "createdAt": 1782483505193,
+      "startDate": "2026-10-22",
+      "endDate": "2026-10-30",
+      "createdAt": 1792698813176,
       "userId": 1,
-      "id": 3
+      "id": 3,
+      "name": "Sist_social"
     }
   ],
   "settings": {
@@ -738,6 +739,60 @@
         "themeToggle": true,
         "settings": true
       }
+    },
+    "app-gitlab-environments": {
+      "1": [
+        {
+          "id": "gitlab-environment-1",
+          "branch": "master-sistsocial",
+          "alias": "Produção"
+        },
+        {
+          "id": "gitlab-environment-2",
+          "branch": "hml",
+          "alias": "Homologação"
+        },
+        {
+          "id": "gitlab-environment-3",
+          "branch": "dev-06",
+          "alias": "Desenvolvimento"
+        },
+        {
+          "id": "gitlab-environment-4",
+          "branch": "DEPLOY-30/07/2026",
+          "alias": "DEPOLY"
+        }
+      ]
+    },
+    "app-gitlab-base-environment-id": {
+      "1": "gitlab-environment-1"
+    },
+    "app-github-environments": {
+      "1": [
+        {
+          "id": "github-environment-1",
+          "branch": "main",
+          "alias": "Master"
+        },
+        {
+          "id": "github-environment-2",
+          "branch": "hml",
+          "alias": "Homologação"
+        },
+        {
+          "id": "github-environment-3",
+          "branch": "dev",
+          "alias": "Desenvolvimento"
+        },
+        {
+          "id": "github-environment-4",
+          "branch": "test",
+          "alias": "Testes"
+        }
+      ]
+    },
+    "app-github-base-environment-id": {
+      "1": "github-environment-3"
     }
   },
   "notes": [

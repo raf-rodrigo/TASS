@@ -154,7 +154,7 @@ export const database = {
     const db = await loadDb();
     db.sprints = (db.sprints || []).filter(s => !(s.id === id && s.userId === userId));
     // Desvincula sprintId das tasks associadas ao usuário
-    db.tasks = (db.tasks || []).map(t => (t.sprintId === id && t.userId === userId) ? { ...t, sprintId: null } : t);
+    db.tasks = (db.tasks || []).map(t => (String(t.sprintId) === String(id) && t.userId === userId) ? { ...t, sprintId: null } : t);
     await saveDb(db);
     return true;
   },

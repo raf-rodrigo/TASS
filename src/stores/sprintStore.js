@@ -9,7 +9,10 @@ import { notificationService } from '../services/notificationService';
 export const useSprintStore = defineStore('sprint', () => {
   const sprints = ref([]);
 
-  const loadSprints = async (userIdFilter = null) => {
+  let selectedUserIdFilter = null;
+
+  const loadSprints = async (userIdFilter = selectedUserIdFilter) => {
+    selectedUserIdFilter = userIdFilter;
     try {
       sprints.value = await db.sprints.toArray(userIdFilter);
     } catch (error) {
@@ -18,14 +21,41 @@ export const useSprintStore = defineStore('sprint', () => {
     }
   };
 
+  const sprintLabel = (sprint) => {
+    const startStr = sprint.startDate ? safeFormatDate(sprint.startDate) : '';
+    const endStr = safeFormatDate(sprint.endDate);
+    const period = startStr ? `Sprint de ${startStr} a ${endStr}` : `Sprint até ${endStr}`;
+    return sprint.name?.trim() ? `${sprint.name.trim()} · ${period}` : period;
+  };
+
+  const saveSprint = async (sprint) => {
+    const name = String(sprint.name || '').trim();
+    if (!name) throw new Error('Informe o nome da sprint.');
+    const validDate = value => {
+      if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+      const date = new Date(`${value}T00:00:00Z`);
+      return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+    };
+    if (!validDate(sprint.endDate) || (!sprint.id && !validDate(sprint.startDate))
+      || (sprint.startDate && (!validDate(sprint.startDate) || sprint.endDate < sprint.startDate))) {
+      throw new Error('Informe um período válido, com o fim igual ou posterior ao início.');
+    }
+    await db.sprints.add({ ...sprint, name, createdAt: sprint.createdAt ?? Date.now() });
+    await loadSprints();
+  };
+
+  const deleteSprint = async (id) => {
+    await db.sprints.delete(id);
+    const settings = useSettingsStore();
+    if (String(settings.activeSprintId) === String(id)) settings.activeSprintId = 'all';
+    await Promise.all([loadSprints(), useTaskStore().loadTasks()]);
+  };
+
   const activeSprintName = computed(() => {
     const settings = useSettingsStore();
     if (settings.activeSprintId === 'all') return 'Todas as Sprints';
-    const sprint = sprints.value.find(s => s.id === parseInt(settings.activeSprintId));
-    if (!sprint) return 'Sprint...';
-    const startStr = sprint.startDate ? safeFormatDate(sprint.startDate) : '';
-    const endStr = safeFormatDate(sprint.endDate);
-    return startStr ? `Sprint de ${startStr} a ${endStr}` : `Sprint até ${endStr}`;
+    const sprint = sprints.value.find(s => String(s.id) === String(settings.activeSprintId));
+    return sprint ? sprintLabel(sprint) : 'Sprint...';
   });
 
   const activeSprintTotalTime = computed(() => {
@@ -43,6 +73,9 @@ export const useSprintStore = defineStore('sprint', () => {
   return {
     sprints,
     loadSprints,
+    saveSprint,
+    deleteSprint,
+    sprintLabel,
     activeSprintName,
     activeSprintTotalTime
   };

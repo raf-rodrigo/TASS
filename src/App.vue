@@ -44,7 +44,6 @@ import { backupService } from './services/backupService';
 import { db } from './db.js';
 import { useTaskStyleStore } from './stores/taskStyleStore';
 import { useUIStore } from './stores/uiStore';
-import { safeFormatDate } from './utils/time.js';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -93,9 +92,7 @@ const activeSprintInfo = computed(() => {
     return { name: '', status: '', statusClass: '' };
   }
 
-  const startStr = sprint.startDate ? safeFormatDate(sprint.startDate) : '';
-  const endStr = safeFormatDate(sprint.endDate);
-  const name = startStr ? `${startStr} a ${endStr}` : `Até ${endStr}`;
+  const name = sprintStore.sprintLabel(sprint);
 
   // Days remaining calculation
   const today = new Date();
@@ -514,7 +511,7 @@ onMounted(async () => {
               :value="s.id"
               class="bg-slate-900 text-slate-300"
             >
-              Ciclo: {{ s.startDate ? safeFormatDate(s.startDate) : '' }} a {{ safeFormatDate(s.endDate) }}
+              {{ sprintStore.sprintLabel(s) }}
             </option>
           </select>
           
