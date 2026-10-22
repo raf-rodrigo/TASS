@@ -1,8 +1,12 @@
 import Dexie from 'dexie';
+import { sanitizeTaskData } from './utils/taskData.js';
 
 const API_BASE = (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
   ? ''
   : 'http://localhost:5176';
+
+const LOCAL_SETTING_KEYS = new Set(['app-nextcloud-credentials']);
+const localSettingStorageKey = key => `tass-local-setting:${key}`;
 
 // Função auxiliar para requisições fetch
 export async function apiFetch(url, method = 'GET', body = null) {
@@ -50,7 +54,7 @@ if (typeof window !== 'undefined' && !localStorage.getItem('tass_migrated')) {
       const localDb = new Dexie('TaskManagerDB');
       
       // Define a estrutura para o Dexie conseguir abrir a base antiga
-      localDb.version(9).stores({
+      localDb.version(10).stores({
         tasks: '++id, title, position, sprintId, columnId, styleId',
         sprints: '++id, endDate',
         settings: 'key',
@@ -66,7 +70,11 @@ if (typeof window !== 'undefined' && !localStorage.getItem('tass_migrated')) {
         
         const tasks = await localDb.tasks.toArray();
         const sprints = await localDb.sprints.toArray();
-        const settings = await localDb.settings.toArray();
+        const legacySettings = await localDb.settings.toArray();
+        const settings = legacySettings.filter(setting => !LOCAL_SETTING_KEYS.has(setting.key));
+        legacySettings.filter(setting => LOCAL_SETTING_KEYS.has(setting.key)).forEach(setting => {
+          localStorage.setItem(localSettingStorageKey(setting.key), JSON.stringify(setting.value));
+        });
         const notes = await localDb.notes.toArray();
         const radios = await localDb.radios.toArray();
         const taskStyles = await localDb.taskStyles.toArray();
@@ -75,7 +83,7 @@ if (typeof window !== 'undefined' && !localStorage.getItem('tass_migrated')) {
         if (tasks.length > 0 || sprints.length > 0 || settings.length > 0 || notes.length > 0 || radios.length > 0) {
           console.log('[TASS Migration] Dados locais encontrados. Migrando para o servidor...');
           await apiFetch('/api/migration/import', 'POST', {
-            tasks,
+            tasks: tasks.map(sanitizeTaskData),
             sprints,
             settings,
             notes,
@@ -130,6 +138,9 @@ export const db = {
       await Promise.all(list.map(t => apiFetch(`/api/tasks/${t.id}`, 'DELETE')));
       return 1;
     },
+    async bulkAdd(tasksArray) {
+      return Promise.all(tasksArray.map(task => this.add(task)));
+    },
     async bulkPut(tasksArray) {
       await Promise.all(tasksArray.map(t => apiFetch('/api/tasks', 'POST', t)));
       return 1;
@@ -161,16 +172,39 @@ export const db = {
   },
 
   settings: {
+    async get(key) {
+      if (LOCAL_SETTING_KEYS.has(key)) {
+        const saved = localStorage.getItem(localSettingStorageKey(key));
+        return saved ? { key, value: JSON.parse(saved) } : undefined;
+      }
+      return (await this.toArray()).find(setting => setting.key === key);
+    },
+    async delete(key) {
+      if (LOCAL_SETTING_KEYS.has(key)) {
+        localStorage.removeItem(localSettingStorageKey(key));
+        return 1;
+      }
+      await this.put({ key, value: null });
+      return 1;
+    },
     async toArray() {
       const res = await apiFetch('/api/settings');
-      return Object.entries(res).map(([key, value]) => ({ key, value }));
+      const remote = Object.entries(res)
+        .filter(([key]) => !LOCAL_SETTING_KEYS.has(key))
+        .map(([key, value]) => ({ key, value }));
+      const local = (await Promise.all([...LOCAL_SETTING_KEYS].map(key => this.get(key)))).filter(Boolean);
+      return [...remote, ...local];
     },
     async put(setting) {
+      if (LOCAL_SETTING_KEYS.has(setting.key)) {
+        localStorage.setItem(localSettingStorageKey(setting.key), JSON.stringify(setting.value));
+        return setting.key;
+      }
       await apiFetch('/api/settings', 'POST', setting);
       return setting.key;
     },
     async bulkPut(settingsArray) {
-      await Promise.all(settingsArray.map(s => apiFetch('/api/settings', 'POST', s)));
+      await Promise.all(settingsArray.map(setting => this.put(setting)));
       return 1;
     },
     async clear() {
@@ -308,7 +342,8 @@ export const db = {
 
   system: {
     async importBackup(data) {
-      return apiFetch('/api/migration/import', 'POST', data);
+      const settings = (data.settings || []).filter(setting => !LOCAL_SETTING_KEYS.has(setting.key));
+      return apiFetch('/api/migration/import', 'POST', { ...data, settings });
     }
   }
 };

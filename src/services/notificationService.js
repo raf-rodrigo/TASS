@@ -57,6 +57,41 @@ export const notificationService = {
   },
 
   /**
+   * Exibe um comando em destaque e permite copiá-lo antes de fechar o modal.
+   * @param {Object} options
+   * @param {string} options.title
+   * @param {string} options.message
+   * @param {string} options.command
+   * @returns {Promise<boolean>} true quando o comando foi copiado
+   */
+  async copyCommand({ title, message, command }) {
+    const store = useModalStore();
+    const result = await store.confirm({
+      title,
+      message,
+      code: command,
+      confirmText: 'Copiar comando',
+      cancelText: 'Fechar',
+      type: 'success'
+    });
+
+    if (result !== 'confirmed') return false;
+
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error('A área de transferência não está disponível.');
+      }
+      await navigator.clipboard.writeText(command);
+      this.toast('Comando copiado!', 'success');
+      return true;
+    } catch (error) {
+      console.error('Falha ao copiar comando:', error);
+      this.toast('Não foi possível copiar o comando.', 'error');
+      return false;
+    }
+  },
+
+  /**
    * Alert a warning or error via Custom Modal
    */
   alert(title, text, icon = 'warning') {

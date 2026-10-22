@@ -1,0 +1,114 @@
+# 🛠️ Guia de Padronização Visual (TASS)
+
+Este documento serve como referência para manter a consistência "Premium" da interface. Todos os novos componentes e refatorações devem seguir estas diretrizes.
+
+## 0. Política de "Zero Hardcoded" (Design Tokens)
+**CRÍTICO:** É estritamente proibido o uso de qualquer valor visual fixo (hardcoded) em novos componentes ou refatorações. A interface do TASS deve ser 100% reativa e orientada a tokens.
+
+- **Cores**: NUNCA use classes como `text-slate-500`, `bg-white` ou `dark:text-white`. Use SEMPRE os tokens semânticos `text-app-*`, `bg-app-*` e `border-app-*`.
+- **Geometria (Bordas)**: NUNCA use classes de arredondamento fixas do Tailwind (ex: `rounded-xl`, `rounded-2xl`). Use SEMPRE as variáveis `--app-card-radius` (containers) e `--app-input-radius` (elementos internos).
+- **Transparência e Blur**: NUNCA use `opacity-50` ou `backdrop-blur-md` fixos. Use a classe `.glass-panel` ou as variáveis `--app-card-opacity` e `--app-glass-blur`.
+- **Espaçamento (Padding/Gap)**: Prefira usar a variável `--app-card-padding` para manter a consistência de respiro entre modais e cards.
+- **Uso Seguro do @apply**: Use `@apply` apenas para tokens e classes padrão. **EVITE** usar `@apply` com colchetes `[...]` que contenham espaços ou funções complexas (ex: sombras rgba), pois formatadores de código (Prettier) quebram a compilação do PostCSS ao inserir espaços. Nestes casos, use CSS puro dentro do bloco `.dark .classe` ou utilitários nomeados.
+
+Essa abordagem garante que o sistema de temas (Light/Dark), o motor de transparência e a personalização geométrica funcionem sem intervenção manual.
+
+## 1. Modais e Layouts Base
+- **Uso do BaseModal:** Todos os modais DEVEM utilizar o componente `BaseModal.vue`. NUNCA aplique filtros de `backdrop-blur` ou `bg-black/50` manualmente nos modais filhos, o sistema de background é centralizado.
+- **Janelas Flutuantes (Modo OS):** Para janelas persistentes que não devem bloquear a interação com o sistema (ex: RadioPlayer), utilize a prop `:isWindow="true"`. Isso desativa o backdrop bloqueante e permite cliques através do fundo vazio.
+- **Modo Mobile First:** Modais complexos em mobile devem ocupar `90vh`, possuir abas de navegação horizontais no topo e botões de ação (Salvar/Fechar) fixos no rodapé com efeito de glassmorphism.
+
+## 2. Gestão de Tempo e Dados
+- **Separação de Cronômetros:** Todo rastreamento de tempo em tarefas deve separar `totalTimeSpent` (sessão atual, zerável) de `totalWorked` (acumulador persistente da vida útil).
+- **Cálculos de Sprint:** O totalizador de horas da Sprint deve sempre basear-se no `totalWorked` para garantir a integridade dos dados históricos, independentemente de resets de sessão do usuário.
+
+## 3. Componentes e Micro-interações
+- **Ilhas Dinâmicas:** Componentes fixos de controle (Dock) em mobile devem seguir o padrão de "Pílula Compacta" que se expande via toque, priorizando métricas essenciais no estado fechado.
+- **Equilíbrio Óptico:** Ícones assimétricos (como o triângulo de Play) devem receber ajustes manuais de padding ou translação (ex: `padding-right: 6px`) para garantir que pareçam centralizados aos olhos humanos, ignorando a centralização puramente geométrica.
+- **Semântica Direta:** Utilize labels curtos e imperativos para botões de ação: "Salvar" (em vez de "Salvar Alterações") e "Fechar" (para encerrar fluxos).
+- **Estrutura de Slots**:
+  - **Header (`#header`)**: Padrão com Ícone em box colorido + Título + Subtítulo.
+- **Footer (`#footer`)**: Botões alinhados à direita (`justify-end`) com pesos diferentes:
+  - Ação Secundária (Cancelar): `btn-secondary px-6`.
+  - Ação Primária (Salvar/Confirmar): `btn-primary px-10`.
+- **Alinhamento e Altura:** Os modais complexos (ex: TaskModal, SettingsModal) DEVEM usar o layout padrão "Sidebar + Main" em CSS Grid/Flexbox e manter a altura de `600px` (`md:h-[600px]`) em resoluções de desktop.
+- **ALERTA CRÍTICO DE PADDING (glass-panel):** A classe global `.glass-panel` no `style.css` injeta automaticamente um `padding` de 20px (`var(--app-card-padding)`). O `BaseModal.vue` JÁ POSSUI a classe `!p-0` em sua raiz (`<section>`) para anular esse efeito e permitir que componentes como Headers e Footers encostem nas bordas. **NUNCA remova o `!p-0` do BaseModal**, ou todos os modais do sistema apresentarão uma borda/margem "flutuante" indesejada ao redor do conteúdo!
+
+## 2. Componentes de Formulário (Inputs)
+**PROIBIÇÃO:** NUNCA crie tags `<input>` ou `<textarea>` do zero com classes do Tailwind extensas e repetitivas.
+- OBRIGATORIAMENTE importe e utilize os componentes `AppInput.vue` e `AppTextarea.vue` (de `src/components/base/`).
+- Eles já gerenciam rótulos (`label`), ícones (`icon`), classes reativas, estados de erro (`error` com `animate-shake`) e repasse de atributos.
+
+## 2. Geometria e Arredondamento (Radius Harmony)
+- A regra de ouro é o **Arredondamento Geométrico**: o raio interno deve ser proporcional ao externo. O sistema já calcula o `input-radius` como ~60% do `card-radius`.
+- **Implementação**: Sempre utilize as variáveis CSS via `:style` ou classes que referenciem:
+  - **Containers Principais (Modais, Cards Grandes, Seções)**: `var(--app-card-radius)`.
+  - **Elementos Internos (Inputs, Botões, Itens de Lista)**: `var(--app-input-radius)`.
+
+## 3. Tipografia e Rótulos
+- **Rótulos de Campo (Labels)**: `text-[10px] font-black text-app-muted uppercase tracking-widest`.
+- **Botões de Ação**: `text-xs font-black uppercase tracking-tight`.
+### 4. Qualidade e Testes (Obrigatório)
+- **Cultura de Manutenção**: Nenhuma alteração de lógica em Stores, Services ou Utils é aceita sem o respectivo teste unitário atualizado ou criado em `*.test.js`.
+- **Validação Antecipada**: Execute obrigatoriamente `npm test` antes de reportar uma tarefa como concluída ou realizar o commit.
+- **Isolamento**: Utilize `vi.mock` do Vitest para isolar dependências externas (como o banco IndexedDB) e garantir testes puros e rápidos.
+- **reprodução de Bugs**: Ao identificar um erro de lógica, crie um caso de teste que o reproduza antes de aplicar a solução (Red-Green-Refactor).
+- **Hierarquia**:
+  - Texto Principal: `text-app-main`.
+  - Texto Secundário: `text-app-sub`.
+  - Texto Desativado/Rótulo: `text-app-muted`.
+
+## 4. Paleta de Cores e Semântica (Obrigatório)
+- **Principal (Indigo)**: Preferencialmente `indigo-600` para botões e `indigo-500` para ícones/detalhes.
+- **Sucesso (Emerald)**: `emerald-500/600`.
+- **Perigo (Red)**: `red-500/600`.
+- **Uso de Tokens**:
+  - Fundos de Itens: `bg-app-surface` com borda `border-app-border-light`.
+  - Superfícies Sólidas: `bg-app-solid`.
+  - Vidro Dinâmico: `bg-app-glass`.
+
+## 5. Interações e Feedback
+- **Hover**: Usar `transition-all`. Para botões, prefira `active:scale-95`.
+- **Ações Destrutivas**:
+  - Botão: `btn-danger` (Vermelho).
+  - Ícone de Confirmação: `danger` ou `error` (Vermelho), nunca amarelo (warning).
+- **Transparência Reativa (Regra de Ouro)**:
+  - SEMPRE usar as variáveis CSS injetadas no `:root`: `var(--app-card-opacity)`, `var(--app-bottom-opacity)`, `var(--app-modal-opacity)`.
+  - NUNCA usar classes utilitárias fixas do Tailwind como `opacity-50` ou `bg-black/50` para definir transparência global/fundo.
+  - OBRIGATORIAMENTE utilize a classe reativa `.glass-panel` que responde diretamente ao slider do `settingsStore`.
+
+## 6. Layout e Espaçamento
+- **Gaps de Seção**: Usar `space-y-6` ou `gap-6` para separar grandes blocos de formulário.
+- **Respiros Internos**: `p-4` a `p-6` para containers principais.
+
+## 7. Validação e Integridade de Dados
+- **URLs**: Nunca salvar URLs sem validação. Utilizar sempre a função `isValidUrl` de `src/utils/validation.js`.
+- **Formatação**: Utilizar sempre `ensureProtocol` ao salvar links para garantir que o prefixo `https://` esteja presente.
+
+## 8. Diálogos e Prompts (GlobalModal)
+O sistema TASS NÃO utiliza mais SweetAlert2 nem alertas nativos (`window.alert`).
+- **PROIBIDO:** NUNCA crie modais customizados para fluxos de decisão simples ou utilize `alert()`/`confirm()`.
+- **PADRÃO:** Utilize OBRIGATORIAMENTE a API unificada do `notificationService` que invoca o `GlobalModal`:
+  - Sucesso: `notificationService.alert('Título', 'Msg', 'success')`
+  - Erro: `notificationService.alert('Erro', 'Msg', 'error')`
+  - Confirmação: `await notificationService.confirm('Aviso', 'Msg', 'OK', 'warning')`
+  - Entrada de Dados: `await notificationService.prompt('Título', 'Msg', 'text')`
+
+## 9. Tooltips Customizadas
+- **Nativo**: Nunca utilizar o atributo `title` do navegador.
+- **Custom**: Utilizar o atributo `data-tip` nos elementos. O sistema CSS em `style.css` cuidará da exibição opaca e centralizada.
+- **Z-Index**: Elementos com tooltips devem garantir um `z-index` maior em estado de hover (`hover:z-[100]`) para evitar sobreposição por elementos vizinhos.
+
+## 10. Inteligência Artificial e Fluxo de Trabalho (IA)
+
+### 10.1 Mensagens de Commit
+Após qualquer alteração, a IA deve sugerir a mensagem de commit no padrão **Conventional Commits**, fornecendo sempre o **comando completo em uma única linha** começando obrigatoriamente com `git commit -m "tipo(escopo): mensagem"`.
+- **Formato**: Tudo em uma única linha para facilitar o copiar/colar: `git commit -m "tipo(escopo): título e detalhes rápidos"`
+- **Praticidade**: O comando deve ser gerado sem quebras de linha.
+
+### 10.2 Idioma e Raciocínio
+- **Raciocínio Interno**: A IA deve realizar todo o seu processo de raciocínio (pensamento) em **Português**, garantindo que a lógica e a criatividade estejam alinhadas com o idioma do usuário.
+- **Respostas**: Todas as explicações e comunicações devem ser em Português.
+
+### 10.3 Criatividade e UX Premium
+- A IA deve sempre buscar soluções criativas que elevem a experiênica do usuário, sugerindo micro-interações, animações ou melhorias de fluxo que sigam a estética "Premium" definida nas seções anteriores.

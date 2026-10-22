@@ -5,11 +5,11 @@ import { useSettingsStore } from '../stores/settingsStore';
 import { useTaskStore } from '../stores/taskStore';
 import { useRadioStore } from '../stores/radioStore';
 import { useTheme } from '../composables/useTheme';
-import { useTaskStyleStore } from '../stores/taskStyleStore';
+import PresetMenuItems from './PresetMenuItems.vue';
 import { 
   PlusCircle, RotateCcw, List, Activity, CheckCircle, 
   Calendar, CloudLightning, Headphones, Sun, Moon, Settings,
-  Eye, EyeOff, Filter, ChevronRight, Wrench, Info, Palette, Check
+  Eye, EyeOff, Filter, ChevronRight, Wrench, Info, Palette
 } from 'lucide-vue-next';
 
 const emit = defineEmits(['close']);
@@ -17,7 +17,6 @@ const uiStore = useUIStore();
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
 const radioStore = useRadioStore();
-const taskStyleStore = useTaskStyleStore();
 const { toggleTheme } = useTheme(settings);
 const menuRef = ref(null);
 const showFilters = ref(false);
@@ -137,37 +136,24 @@ const handleApplyStyleAll = async (styleId, triggerAnimation = false) => {
   await Promise.all(promises);
 };
 
-// --- PREVIEW DE PRESETS AO HOVER ---
-// Guarda o styleId original de cada tarefa antes de iniciar o preview.
-// Assim conseguimos restaurar exatamente o estado anterior caso o usuário não confirme.
-let savedStylesBeforePreview = null;
-
-const handlePreviewStart = async (styleId) => {
-  // Salva o estado atual antes de qualquer alteração de preview
-  if (!savedStylesBeforePreview) {
-    savedStylesBeforePreview = taskStore.tasks.map(t => ({ id: t.id, styleId: t.styleId || null }));
-  }
-  await handleApplyStyleAll(styleId, false);
+// --- PREVIEW DE PRESETS AO HOVER (Visual apenas) ---
+// O hover apenas aplica um preview visual via uiStore.previewGlobalStyleId,
+// sem persistir nada no store/banco. O preset só é aplicado de fato no clique.
+const handlePreviewStart = (styleId) => {
+  uiStore.previewGlobalStyleId = styleId;
 };
 
-const handlePreviewEnd = async () => {
-  // Restaura o estado salvo ao sair do hover sem clicar
-  if (savedStylesBeforePreview) {
-    const promises = savedStylesBeforePreview.map(({ id, styleId }) =>
-      taskStore.updateTask(id, { styleId })
-    );
-    await Promise.all(promises);
-    savedStylesBeforePreview = null;
-  }
+const handlePreviewEnd = () => {
+  uiStore.previewGlobalStyleId = null;
 };
 
 const handleApplyAndConfirm = async (styleId) => {
-  // Ao clicar, descarta o snapshot (o estado atual já é o correto)
-  savedStylesBeforePreview = null;
+  uiStore.previewGlobalStyleId = null;
   await handleApplyStyleAll(styleId, true);
 };
 
 onMounted(() => {
+  uiStore.previewGlobalStyleId = null;
   adjustPosition();
   window.addEventListener('click', (e) => {
     if (menuRef.value && !menuRef.value.contains(e.target)) emit('close');
@@ -175,6 +161,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  uiStore.previewGlobalStyleId = null;
   window.removeEventListener('click', () => {});
 });
 </script>
@@ -284,51 +271,19 @@ onUnmounted(() => {
             <div 
               v-show="showStyles" 
               class="absolute glass-panel !py-2 !px-1.5 flex flex-col shadow-2xl border-indigo-500/30 ring-1 ring-black/10"
-              :class="[submenuClass, taskStyleStore.sortedStyles.length > 24 ? 'w-[580px]' : taskStyleStore.sortedStyles.length > 12 ? 'w-[380px]' : 'w-[200px]']"
+              :class="submenuClass"
               :style="{ 
                 backgroundColor: `rgba(var(--app-bg-raw), var(--app-menu-opacity))`,
                 borderRadius: 'var(--app-card-radius)'
               }"
             >
-              <div class="px-3 py-1.5 text-[10px] font-black uppercase text-app-sub tracking-widest border-b border-app-border-light mb-1">Presets (Global)</div>
-              
-              <div :class="[taskStyleStore.sortedStyles.length > 12 ? 'grid gap-x-2 gap-y-0.5' : 'flex flex-col gap-0.5', taskStyleStore.sortedStyles.length > 24 ? 'grid-cols-3' : taskStyleStore.sortedStyles.length > 12 ? 'grid-cols-2' : '']">
-                <button
-                  @click="handleApplyAndConfirm('')"
-                  @mouseenter="handlePreviewStart('')"
-                  @mouseleave="handlePreviewEnd"
-                  class="context-menu-item flex justify-between items-center"
-                  :class="currentPresetId === '' ? 'bg-indigo-500/10 text-indigo-500 font-bold' : ''"
-                >
-                  <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-3 h-3 rounded-full border border-black/10 dark:border-white/10 flex-shrink-0" style="background-color: #e2e8f0;"></div>
-                    <span>Padrão Global</span>
-                  </div>
-                  <Check v-if="currentPresetId === ''" class="w-3.5 h-3.5 text-indigo-500 flex-shrink-0 ml-auto" />
-                </button>
-
-                <hr v-if="taskStyleStore.sortedStyles.length <= 12" class="border-t border-app-border-light my-1 mx-2" />
-
-                <button 
-                  v-for="preset in taskStyleStore.sortedStyles" 
-                  :key="preset.id"
-                  @click="handleApplyAndConfirm(preset.id)"
-                  @mouseenter="handlePreviewStart(preset.id)"
-                  @mouseleave="handlePreviewEnd"
-                  class="context-menu-item flex justify-between items-center"
-                  :class="currentPresetId === preset.id ? 'bg-indigo-500/10 text-indigo-500 font-bold' : ''"
-                >
-                  <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-3 h-3 rounded-full border border-black/10 dark:border-white/10 flex-shrink-0" :style="{ backgroundColor: preset.colors?.bgColor || '#e2e8f0' }"></div>
-                    <span class="truncate">{{ preset.name }}</span>
-                  </div>
-                  <Check v-if="currentPresetId === preset.id" class="w-3.5 h-3.5 text-indigo-500 flex-shrink-0 ml-auto" />
-                </button>
-              </div>
-              
-              <div v-if="taskStyleStore.sortedStyles.length === 0" class="py-3 px-2 text-center">
-                <p class="text-[10px] text-slate-400 italic">Nenhum preset.</p>
-              </div>
+              <PresetMenuItems
+                title="Presets (Global)"
+                :current-preset-id="currentPresetId"
+                @apply="handleApplyAndConfirm"
+                @preview="handlePreviewStart"
+                @clear-preview="handlePreviewEnd"
+              />
             </div>
           </transition>
         </div>

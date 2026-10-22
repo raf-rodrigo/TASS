@@ -8,6 +8,7 @@ import {
 import { useSettingsStore } from '../stores/settingsStore';
 import { notificationService } from '../services/notificationService';
 import { googleDriveService } from '../services/googleDriveService';
+import { nextcloudService } from '../services/nextcloudService.js';
 import { backupService } from '../services/backupService';
 import { db } from '../db.js';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
@@ -19,9 +20,11 @@ import '@vuepic/vue-datepicker/dist/main.css';
 import AppInput from './base/AppInput.vue';
 import AppSelect from './base/AppSelect.vue';
 import AppRadio from './base/AppRadio.vue';
+import GitEnvironmentEditor from './GitEnvironmentEditor.vue';
+import NextcloudBackupCard from './NextcloudBackupCard.vue';
 import QrcodeVue from 'qrcode.vue';
 import { useTabSwipe } from '../composables/useTabSwipe';
-import { gitProviderService } from '../services/gitProvider';
+import { validateGitEnvironments } from '../utils/gitEnvironments.js';
 
 const settings = useSettingsStore();
 const taskStore = useTaskStore();
@@ -39,6 +42,7 @@ const isGoogleAuthenticated = ref(googleDriveService.isAuthenticated());
 const googleUser = ref(googleDriveService.getProfile());
 const googleBackups = ref([]);
 const showGoogleRestoreList = ref(false);
+const cloudProvider = ref(nextcloudService.isAuthenticated() ? 'nextcloud' : 'google');
 
 const showPix = ref(false);
 const pixKey = '8990fa68-8d2b-45e9-a588-531c620845d0';
@@ -53,12 +57,17 @@ const copyPixKey = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   // Inicializa o serviço do Google com um callback para atualizar o estado de autenticação
   googleDriveService.init((status, profile) => {
     isGoogleAuthenticated.value = status;
     googleUser.value = profile;
   });
+
+  await nextcloudService.initialize();
+  if (nextcloudService.isAuthenticated()) {
+    cloudProvider.value = 'nextcloud';
+  }
 
   if (props.initialTab) {
     activeTab.value = props.initialTab;
@@ -117,24 +126,10 @@ const localSettings = ref({
   gitlabIntegrationMode: settings.gitlabIntegrationMode,
   gitlabProjectId: settings.gitlabProjectId,
   gitlabToken: settings.gitlabToken,
-  gitlabBranchMaster: settings.gitlabBranchMaster,
-  gitlabAliasMaster: settings.gitlabAliasMaster,
-  gitlabBranchHml: settings.gitlabBranchHml,
-  gitlabAliasHml: settings.gitlabAliasHml,
-  gitlabBranchTest: settings.gitlabBranchTest,
-  gitlabAliasTest: settings.gitlabAliasTest,
-  gitlabBranchDev: settings.gitlabBranchDev,
-  gitlabAliasDev: settings.gitlabAliasDev,
-  gitlabBaseTarget: settings.gitlabBaseTarget,
-  githubBranchMaster: settings.githubBranchMaster,
-  githubAliasMaster: settings.githubAliasMaster,
-  githubBranchHml: settings.githubBranchHml,
-  githubAliasHml: settings.githubAliasHml,
-  githubBranchTest: settings.githubBranchTest,
-  githubAliasTest: settings.githubAliasTest,
-  githubBranchDev: settings.githubBranchDev,
-  githubAliasDev: settings.githubAliasDev,
-  githubBaseTarget: settings.githubBaseTarget,
+  gitlabEnvironments: settings.gitlabEnvironments.map(environment => ({ ...environment })),
+  gitlabBaseEnvironmentId: settings.gitlabBaseEnvironmentId,
+  githubEnvironments: settings.githubEnvironments.map(environment => ({ ...environment })),
+  githubBaseEnvironmentId: settings.githubBaseEnvironmentId,
   trackInactivity: settings.trackInactivity,
   workStart: stringToTimeObj(settings.workStart),
   workEnd: stringToTimeObj(settings.workEnd),
@@ -172,6 +167,61 @@ const toggleDay = (dayId) => {
 
 const testGitStatus = ref(null);
 const testGitMessage = ref('');
+const gitEnvironmentErrors = ref({ gitlab: '', github: '' });
+
+const githubRepos = ref([]);
+const githubReposLoading = ref(false);
+const githubReposLoaded = ref(false);
+const githubReposError = ref('');
+
+const loadGithubRepos = async (force = false) => {
+  const owner = localSettings.value.githubOwner;
+  const token = localSettings.value.githubToken;
+  if (!owner || !token) {
+    githubRepos.value = [];
+    githubReposError.value = 'Informe o Dono e o Token para listar os repositórios.';
+    return;
+  }
+  if (githubReposLoaded.value && !force) return;
+  githubReposLoading.value = true;
+  githubReposError.value = '';
+  try {
+    const allRepos = [];
+    let page = 1;
+    let hasMore = true;
+    while (hasMore && page <= 10) {
+      const res = await fetch(`https://api.github.com/users/${encodeURIComponent(owner)}/repos?per_page=100&page=${page}&sort=updated`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'X-GitHub-Api-Version': '2022-11-28'
+        }
+      });
+      if (!res.ok) throw new Error(`GitHub respondeu com erro HTTP ${res.status}: ${res.statusText}`);
+      const data = await res.json();
+      allRepos.push(...data);
+      if (data.length < 100) hasMore = false;
+      page += 1;
+    }
+    githubRepos.value = allRepos
+      .map(r => ({ value: r.name, label: r.name }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    githubReposLoaded.value = true;
+  } catch (err) {
+    githubReposError.value = `Erro ao carregar repositórios: ${err.message}`;
+  } finally {
+    githubReposLoading.value = false;
+  }
+};
+
+watch(
+  () => [localSettings.value.githubOwner, localSettings.value.githubToken],
+  () => {
+    githubReposLoaded.value = false;
+    githubRepos.value = [];
+    githubReposError.value = '';
+  }
+);
 
 const testGitConnection = async () => {
   testGitStatus.value = 'checking';
@@ -260,108 +310,24 @@ const testGitConnection = async () => {
   }
 };
 
-const deployBranches = ref([]);
-const isLoadingBranches = ref(false);
+const handleSave = async () => {
+  const gitlabError = validateGitEnvironments(
+    localSettings.value.gitlabEnvironments,
+    localSettings.value.gitlabBaseEnvironmentId
+  );
+  const githubError = validateGitEnvironments(
+    localSettings.value.githubEnvironments,
+    localSettings.value.githubBaseEnvironmentId
+  );
+  gitEnvironmentErrors.value = { gitlab: gitlabError, github: githubError };
 
-const loadDeployBranches = async () => {
-  const hasGitlabConfig = localSettings.value.gitProvider === 'gitlab' && 
-    localSettings.value.gitlabIntegrationMode !== 'link' && 
-    localSettings.value.gitlabToken && 
-    localSettings.value.gitlabProjectId;
-
-  const hasGithubConfig = localSettings.value.gitProvider === 'github' && 
-    localSettings.value.githubOwner && 
-    localSettings.value.githubRepo && 
-    localSettings.value.githubToken;
-
-  if (!hasGitlabConfig && !hasGithubConfig) {
-    deployBranches.value = [];
+  if (gitlabError || githubError) {
+    localSettings.value.gitProvider = gitlabError ? 'gitlab' : 'github';
+    activeTab.value = 'git';
+    notificationService.toast('Revise a configuração dos ambientes Git.', 'error');
     return;
   }
 
-  isLoadingBranches.value = true;
-  try {
-    // 1. Busca usando o termo 'deploy' na API (pode falhar/retornar erro em algumas versões antigas do GitLab)
-    let branchesWithSearch = [];
-    try {
-      branchesWithSearch = await gitProviderService.breezeGetBranches(localSettings.value, '', 'deploy');
-    } catch (err) {
-      console.warn('Erro ao buscar branches com filtro "deploy":', err);
-    }
-    
-    // 2. Busca as 100 branches mais recentes/ativas sem filtro na API (mais seguro e compatível)
-    let allBranches = [];
-    try {
-      allBranches = await gitProviderService.breezeGetBranches(localSettings.value, '', '');
-    } catch (err) {
-      console.warn('Erro ao buscar todas as branches sem filtro:', err);
-    }
-    
-    // Se ambas retornaram vazio/falharam e temos erro real, tenta forçar uma última chamada para expor o erro no catch principal
-    if (branchesWithSearch.length === 0 && allBranches.length === 0) {
-      allBranches = await gitProviderService.breezeGetBranches(localSettings.value, '', '');
-    }
-    
-    // Combina os resultados e remove duplicados por nome
-    const combinedMap = new Map();
-    [...branchesWithSearch, ...allBranches].forEach(b => {
-      if (b && b.name) {
-        combinedMap.set(b.name, b);
-      }
-    });
-    
-    // Filtra no cliente garantindo case-insensitive contendo 'deploy'
-    deployBranches.value = Array.from(combinedMap.values())
-      .map(b => b.name)
-      .filter(name => name.toLowerCase().includes('deploy'));
-  } catch (err) {
-    console.error('Erro ao buscar branches:', err);
-    notificationService.toast(`Erro ao carregar branches remotas: ${err.message}`, 'error');
-    deployBranches.value = [];
-  } finally {
-    isLoadingBranches.value = false;
-  }
-};
-
-const deployBranchesOptions = computed(() => {
-  const currentBranch = localSettings.value.gitProvider === 'gitlab' 
-    ? localSettings.value.gitlabBranchTest 
-    : localSettings.value.githubBranchTest;
-  
-  const optionsList = deployBranches.value.map(name => ({ label: name, value: name }));
-  
-  if (currentBranch && !deployBranches.value.includes(currentBranch)) {
-    optionsList.unshift({ label: `${currentBranch} (Atual)`, value: currentBranch });
-  }
-
-  if (optionsList.length === 0 && !isLoadingBranches.value) {
-    const fallback = currentBranch || 'deploy';
-    optionsList.push({ label: `${fallback} (Padrão)`, value: fallback });
-  }
-  
-  return optionsList;
-});
-
-watch(() => [
-  localSettings.value.gitProvider, 
-  localSettings.value.githubOwner, 
-  localSettings.value.githubRepo, 
-  localSettings.value.githubToken,
-  localSettings.value.gitlabUrl,
-  localSettings.value.gitlabProjectId,
-  localSettings.value.gitlabToken,
-  localSettings.value.gitlabIntegrationMode
-], () => {
-  loadDeployBranches();
-}, { deep: true });
-
-watch(activeTab, (newVal) => {
-  if (newVal === 'git') {
-    loadDeployBranches();
-  }
-});
-
-const handleSave = async () => {
   settings.gitProvider = localSettings.value.gitProvider;
   settings.githubOwner = localSettings.value.githubOwner;
   settings.githubRepo = localSettings.value.githubRepo;
@@ -370,24 +336,18 @@ const handleSave = async () => {
   settings.gitlabIntegrationMode = localSettings.value.gitlabIntegrationMode;
   settings.gitlabProjectId = localSettings.value.gitlabProjectId;
   settings.gitlabToken = localSettings.value.gitlabToken;
-  settings.gitlabBranchMaster = localSettings.value.gitlabBranchMaster;
-  settings.gitlabAliasMaster = localSettings.value.gitlabAliasMaster;
-  settings.gitlabBranchHml = localSettings.value.gitlabBranchHml;
-  settings.gitlabAliasHml = localSettings.value.gitlabAliasHml;
-  settings.gitlabBranchTest = localSettings.value.gitlabBranchTest;
-  settings.gitlabAliasTest = localSettings.value.gitlabAliasTest;
-  settings.gitlabBranchDev = localSettings.value.gitlabBranchDev;
-  settings.gitlabAliasDev = localSettings.value.gitlabAliasDev;
-  settings.gitlabBaseTarget = localSettings.value.gitlabBaseTarget;
-  settings.githubBranchMaster = localSettings.value.githubBranchMaster;
-  settings.githubAliasMaster = localSettings.value.githubAliasMaster;
-  settings.githubBranchHml = localSettings.value.githubBranchHml;
-  settings.githubAliasHml = localSettings.value.githubAliasHml;
-  settings.githubBranchTest = localSettings.value.githubBranchTest;
-  settings.githubAliasTest = localSettings.value.githubAliasTest;
-  settings.githubBranchDev = localSettings.value.githubBranchDev;
-  settings.githubAliasDev = localSettings.value.githubAliasDev;
-  settings.githubBaseTarget = localSettings.value.githubBaseTarget;
+  settings.gitlabEnvironments = localSettings.value.gitlabEnvironments.map(environment => ({
+    ...environment,
+    branch: environment.branch.trim(),
+    alias: environment.alias.trim()
+  }));
+  settings.gitlabBaseEnvironmentId = localSettings.value.gitlabBaseEnvironmentId;
+  settings.githubEnvironments = localSettings.value.githubEnvironments.map(environment => ({
+    ...environment,
+    branch: environment.branch.trim(),
+    alias: environment.alias.trim()
+  }));
+  settings.githubBaseEnvironmentId = localSettings.value.githubBaseEnvironmentId;
   settings.trackInactivity = localSettings.value.trackInactivity;
   settings.workStart = timeObjToString(localSettings.value.workStart);
   settings.workEnd = timeObjToString(localSettings.value.workEnd);
@@ -621,134 +581,38 @@ const handleResetSystem = async () => {
                       <p class="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium leading-relaxed">No modo <b>Link Mágico</b>, o TASS apenas gerará URLs diretas para criação de branches. Nenhuma credencial de API é necessária.</p>
                     </div>
 
-                    <div class="space-y-4 pt-4 mt-2 border-t border-app-border-light">
-                      <h4 class="text-[10px] font-black uppercase text-app-main tracking-widest">Ambientes e Aliases</h4>
-                      
-                      <!-- Master -->
-                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'master' ? 'ring-2 ring-indigo-500/50' : ''">
-                        <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.gitlabBranchMaster" label="Branch (Master)" placeholder="master" />
-                          <AppInput v-model="localSettings.gitlabAliasMaster" label="Alias" placeholder="Produção" />
-                        </div>
-                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
-                            Branch Base
-                            <input type="radio" v-model="localSettings.gitlabBaseTarget" value="master" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
-                          </label>
-                        </div>
-                      </div>
-                      
-                      <!-- HML -->
-                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'hml' ? 'ring-2 ring-indigo-500/50' : ''">
-                        <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.gitlabBranchHml" label="Branch (Hml)" placeholder="hml" />
-                          <AppInput v-model="localSettings.gitlabAliasHml" label="Alias" placeholder="Homologação" />
-                        </div>
-                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
-                            Branch Base
-                            <input type="radio" v-model="localSettings.gitlabBaseTarget" value="hml" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
-                          </label>
-                        </div>
-                      </div>
-
-                      <!-- DEV -->
-                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'dev' ? 'ring-2 ring-indigo-500/50' : ''">
-                        <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.gitlabBranchDev" label="Branch (Dev)" placeholder="dev" />
-                          <AppInput v-model="localSettings.gitlabAliasDev" label="Alias" placeholder="Desenvolvimento" />
-                        </div>
-                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
-                            Branch Base
-                            <input type="radio" v-model="localSettings.gitlabBaseTarget" value="dev" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
-                          </label>
-                        </div>
-                      </div>
-
-                      <!-- DEPLOY -->
-                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.gitlabBaseTarget === 'test' ? 'ring-2 ring-indigo-500/50' : ''">
-                        <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.gitlabBranchTest" label="Branch (Deploy)" placeholder="deploy" />
-                          <AppInput v-model="localSettings.gitlabAliasTest" label="Alias" placeholder="Deploy" />
-                        </div>
-                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
-                            Branch Base
-                            <input type="radio" v-model="localSettings.gitlabBaseTarget" value="test" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
-                          </label>
-                        </div>
-                      </div>
-                    </div>
+                    <GitEnvironmentEditor
+                      v-model="localSettings.gitlabEnvironments"
+                      v-model:base-environment-id="localSettings.gitlabBaseEnvironmentId"
+                      provider="gitlab"
+                      :error="gitEnvironmentErrors.gitlab"
+                    />
                   </div>
 
                   <!-- Configurações GitHub -->
                   <div v-else-if="localSettings.gitProvider === 'github'" class="grid gap-6 pt-4 border-t border-app-border-light animate-fadeIn">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <AppInput v-model="localSettings.githubOwner" label="Dono do Repositório (Owner)" placeholder="Ex: ssergio100" />
-                      <AppInput v-model="localSettings.githubRepo" label="Nome do Repositório" placeholder="Ex: TASS" />
+                      <AppSelect
+                        v-model="localSettings.githubRepo"
+                        label="Nome do Repositório"
+                        placeholder="Selecione o repositório..."
+                        searchable
+                        search-placeholder="Buscar repositório..."
+                        :options="githubRepos"
+                        :loading="githubReposLoading"
+                        :empty-message="githubReposError || 'Nenhum repositório encontrado para este dono.'"
+                        @open="loadGithubRepos()"
+                      />
                     </div>
                     <AppInput v-model="localSettings.githubToken" type="password" label="Personal Access Token (Classic ou Fine-grained)" placeholder="ghp_..." help-text="Precisa das permissões de leitura/escrita em Pull Requests e Conteúdo (repo)." />
                     
-                    <div class="space-y-4 pt-4 mt-2 border-t border-app-border-light">
-                      <h4 class="text-[10px] font-black uppercase text-app-main tracking-widest">Ambientes e Aliases</h4>
-                      
-                      <!-- Master -->
-                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'master' ? 'ring-2 ring-indigo-500/50' : ''">
-                        <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.githubBranchMaster" label="Branch (Master)" placeholder="main" />
-                          <AppInput v-model="localSettings.githubAliasMaster" label="Alias" placeholder="Master" />
-                        </div>
-                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
-                            Branch Base
-                            <input type="radio" v-model="localSettings.githubBaseTarget" value="master" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
-                          </label>
-                        </div>
-                      </div>
-                      
-                      <!-- HML -->
-                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'hml' ? 'ring-2 ring-indigo-500/50' : ''">
-                        <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.githubBranchHml" label="Branch (Hml)" placeholder="hml" />
-                          <AppInput v-model="localSettings.githubAliasHml" label="Alias" placeholder="Homologação" />
-                        </div>
-                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
-                            Branch Base
-                            <input type="radio" v-model="localSettings.githubBaseTarget" value="hml" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
-                          </label>
-                        </div>
-                      </div>
-
-                      <!-- DEV -->
-                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'dev' ? 'ring-2 ring-indigo-500/50' : ''">
-                        <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.githubBranchDev" label="Branch (Dev)" placeholder="dev" />
-                          <AppInput v-model="localSettings.githubAliasDev" label="Alias" placeholder="Desenvolvimento" />
-                        </div>
-                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
-                            Branch Base
-                            <input type="radio" v-model="localSettings.githubBaseTarget" value="dev" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
-                          </label>
-                        </div>
-                      </div>
-
-                      <!-- DEPLOY -->
-                      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-app-surface border border-app-border-light rounded-xl p-3 relative transition-all" :class="localSettings.githubBaseTarget === 'test' ? 'ring-2 ring-indigo-500/50' : ''">
-                        <div class="grid grid-cols-2 gap-4 flex-1">
-                          <AppInput v-model="localSettings.githubBranchTest" label="Branch (Deploy)" placeholder="deploy" />
-                          <AppInput v-model="localSettings.githubAliasTest" label="Alias" placeholder="Deploy" />
-                        </div>
-                        <div class="flex flex-row md:flex-col items-center justify-center shrink-0 w-full md:w-24 border-t md:border-t-0 md:border-l border-app-border-light pt-3 md:pt-0 md:pl-4">
-                          <label class="text-[9px] font-bold text-app-muted uppercase tracking-wider text-center cursor-pointer md:mb-2 flex flex-row md:flex-col items-center gap-2 md:gap-1 hover:text-indigo-500">
-                            Branch Base
-                            <input type="radio" v-model="localSettings.githubBaseTarget" value="test" class="w-4 h-4 text-indigo-500 accent-indigo-500 cursor-pointer" />
-                          </label>
-                        </div>
-                      </div>
-                    </div>
+                    <GitEnvironmentEditor
+                      v-model="localSettings.githubEnvironments"
+                      v-model:base-environment-id="localSettings.githubBaseEnvironmentId"
+                      provider="github"
+                      :error="gitEnvironmentErrors.github"
+                    />
                   </div>
                   
                   <div class="pt-6 mt-4 border-t border-app-border-light flex flex-col sm:flex-row items-center gap-4 justify-between">
@@ -933,7 +797,24 @@ const handleResetSystem = async () => {
               </div>
 
               <div v-else-if="activeTab === 'security'" :key="'security'" class="space-y-6">
-                <div class="glass-section p-6 space-y-4 border border-indigo-500/20 relative overflow-hidden" :class="isGoogleAuthenticated ? 'bg-indigo-500/5' : 'bg-slate-500/5'">
+                <div class="glass-section p-6 space-y-6">
+                  <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-2">
+                    <div class="flex items-center gap-3">
+                      <div class="p-2.5 bg-indigo-500/10 rounded-xl text-indigo-500">
+                        <Cloud class="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 class="text-sm font-black text-app-main uppercase tracking-tight">Provedor de Backup</h3>
+                        <p class="text-[9px] text-app-muted font-bold uppercase tracking-widest">Escolha a sua nuvem</p>
+                      </div>
+                    </div>
+                    <div class="flex bg-app-surface p-1 rounded-xl border border-app-border-light w-full md:w-auto overflow-x-auto">
+                      <button type="button" @click="cloudProvider = 'google'" class="flex-1 md:flex-none px-4 py-2 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all flex items-center justify-center gap-2" :class="cloudProvider === 'google' ? 'bg-indigo-500 text-white shadow-md' : 'text-app-muted hover:text-indigo-500'"><Cloud class="w-3 h-3" /> Google Drive</button>
+                      <button type="button" @click="cloudProvider = 'nextcloud'" class="flex-1 md:flex-none px-4 py-2 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all flex items-center justify-center gap-2" :class="cloudProvider === 'nextcloud' ? 'bg-indigo-500 text-white shadow-md' : 'text-app-muted hover:text-indigo-500'"><Server class="w-3 h-3" /> Nextcloud</button>
+                    </div>
+                  </div>
+
+                  <div v-if="cloudProvider === 'google'" class="space-y-4 pt-4 border-t border-app-border-light relative overflow-hidden animate-fadeIn" :class="isGoogleAuthenticated ? 'bg-indigo-500/5' : 'bg-slate-500/5'">
                   <div class="absolute -top-6 -right-6 opacity-[0.03] pointer-events-none"><Cloud class="w-40 h-40" /></div>
                   <div class="flex items-center justify-between relative z-10">
                     <div class="flex items-center gap-3">
@@ -954,7 +835,11 @@ const handleResetSystem = async () => {
                     </div>
                     <button @click="handleGoogleLogout" class="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-bold text-red-500 hover:text-red-600 transition-colors"><LogOut class="w-3 h-3" /> Desconectar conta</button>
                   </div>
+                  </div>
+
+                  <NextcloudBackupCard v-else embedded class="pt-4 border-t border-app-border-light animate-fadeIn" />
                 </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="glass-section p-6 space-y-4 relative overflow-hidden"><div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><Server class="w-16 h-16" /></div><div class="flex items-center gap-3 mb-2 relative z-10"><ShieldCheck class="w-5 h-5 text-emerald-500" /><h4 class="text-sm font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">Sistema Completo</h4></div><p class="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed mb-4 relative z-10">Exporta <b>absolutamente tudo</b>: tarefas, sprints, notas rápidas e todas as configurações de interface.</p><div class="flex flex-row gap-3 relative z-10"><button @click="handleExportSystem" class="flex-1 flex items-center justify-center gap-2 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-500/20"><Download class="w-4 h-4" /> Exportar</button><label class="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer text-center"><Upload class="w-4 h-4" /> Restaurar<input type="file" accept=".json" class="hidden" @change="handleImportSystem" /></label></div></div>
                   <div class="glass-section p-6 space-y-4 relative overflow-hidden flex-1"><div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><FileJson class="w-16 h-16" /></div><div class="flex items-center gap-3 mb-2 relative z-10"><FileJson class="w-5 h-5 text-indigo-500" /><h4 class="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-tight">Apenas Tarefas</h4></div><p class="text-[10px] text-slate-500 leading-relaxed mb-4 relative z-10">Lista de tarefas atual. Ideal para transferências rápidas ou backups frequentes.</p><div class="flex flex-row gap-3 relative z-10"><button @click="handleExportTasks" class="flex-1 flex items-center justify-center gap-2 py-2 bg-slate-100 dark:bg-white/5 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light"><Download class="w-4 h-4" /> Exportar</button><label class="flex-1 flex items-center justify-center gap-2 py-2 bg-white dark:bg-slate-100 dark:bg-white/5 hover:bg-emerald-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light cursor-pointer text-center"><Upload class="w-4 h-4" /> Importar<input type="file" accept=".json" class="hidden" @change="handleImportTasks" /></label></div></div>

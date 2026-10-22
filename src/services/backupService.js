@@ -1,5 +1,12 @@
 import { db } from '../db.js';
 import { notificationService } from './notificationService';
+import { sanitizeTaskData } from '../utils/taskData.js';
+
+const SENSITIVE_SETTING_KEYS = new Set(['app-nextcloud-credentials']);
+
+const withoutSensitiveSettings = settings => (
+  settings.filter(setting => !SENSITIVE_SETTING_KEYS.has(setting.key))
+);
 
 export const backupService = {
   /**
@@ -7,7 +14,7 @@ export const backupService = {
    */
   async exportTasks() {
     try {
-      const data = await db.tasks.toArray();
+      const data = (await db.tasks.toArray()).map(sanitizeTaskData);
       this.downloadJson(data, 'tass_tasks_backup.json');
       notificationService.toast('Backup de tarefas exportado!');
     } catch (error) {
@@ -40,10 +47,12 @@ export const backupService = {
    * Obtém todo o sistema (Tarefas, Sprints, Configs, Notas) em um objeto
    */
   async getFullBackupData() {
+    const settings = withoutSensitiveSettings(await db.settings.toArray());
+
     return {
-      tasks: await db.tasks.toArray(),
+      tasks: (await db.tasks.toArray()).map(sanitizeTaskData),
       sprints: await db.sprints.toArray(),
-      settings: await db.settings.toArray(),
+      settings,
       notes: await db.notes.toArray(),
       radios: await db.radios.toArray(),
       taskStyles: await db.taskStyles.toArray(),
@@ -82,7 +91,7 @@ export const backupService = {
           // Processamento para Merge Seguro
           const processedTasks = tasksData.map(task => {
             // Remove o ID para que o Dexie gere um novo
-            const { id, ...taskWithoutId } = task;
+            const { id, ...taskWithoutId } = sanitizeTaskData(task);
             return {
               ...taskWithoutId,
               sprintId: 'all',      // Desvincula de sprints órfãs
@@ -111,14 +120,16 @@ export const backupService = {
     try {
       if (!data.tasks || !data.settings) throw new Error("Backup incompleto");
 
+      const localSensitiveSettings = (await db.settings.toArray())
+        .filter(setting => SENSITIVE_SETTING_KEYS.has(setting.key));
       const payload = {
-        tasks: (data.tasks || []).map(task => ({
+        tasks: data.tasks.map(task => sanitizeTaskData({
           ...task,
           isRunning: false,
           lastStartTime: null
         })),
         sprints: data.sprints || [],
-        settings: data.settings || [],
+        settings: [...withoutSensitiveSettings(data.settings), ...localSensitiveSettings],
         notes: data.notes || [],
         radios: data.radios || [],
         taskStyles: data.taskStyles || []

@@ -249,9 +249,6 @@ const handleWelcomeShortcut = async (action) => {
     const basePayload = {
       estimatedTime: '',
       priority: 'Normal',
-      devUrl: 0,
-      homologUrl: 0,
-      prodUrl: 0,
       taskUrl: '',
       branchName: '',
       branchUrl: '',

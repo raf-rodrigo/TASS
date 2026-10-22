@@ -1,5 +1,6 @@
 import { db } from '../db.js';
 import { gitBranchSlug } from '../utils/string.js';
+import { buildBranchCheckoutCommand } from '../utils/gitCommands.js';
 import { notificationService } from './notificationService.js';
 
 export const gitlabService = {
@@ -75,7 +76,7 @@ export const gitlabService = {
         }
       }
 
-      return await this.handleExistingBranch(task, branchName, gitlabUrl, gitlabOrigin, safeProjectId, gitlabToken);
+      return await this.handleExistingBranch(task, branchName, gitlabUrl, gitlabOrigin, safeProjectId, gitlabToken, settings);
     } else {
       if (task.branchUrl) {
         const result = await notificationService.confirm(
@@ -114,6 +115,10 @@ export const gitlabService = {
       notificationService.toast("Configuração incompleta: Preencha o Token e o ID.", "error");
       return;
     }
+    if (!activeBaseBranch) {
+      notificationService.toast('Configuração incompleta: selecione uma branch base.', 'error');
+      return;
+    }
 
     try {
       const urlObj = new URL(gitlabUrl);
@@ -138,7 +143,11 @@ export const gitlabService = {
         await db.tasks.update(task.id, { branchUrl: treeUrl, branchName: branchName });
         task.branchUrl = treeUrl;
         task.branchName = branchName;
-        notificationService.toast('Branch criada com sucesso!', 'success');
+        await notificationService.copyCommand({
+          title: 'Branch criada',
+          message: `A branch '${branchName}' foi criada no GitLab. Use o comando abaixo para baixá-la e acessá-la no terminal.`,
+          command: buildBranchCheckoutCommand(branchName)
+        });
         return { treeUrl, branchName };
       } else {
         const errorData = await response.json().catch(() => ({}));
@@ -150,7 +159,7 @@ export const gitlabService = {
     }
   },
 
-  async handleExistingBranch(task, branchName, gitlabUrl, gitlabOrigin, safeProjectId, gitlabToken) {
+  async handleExistingBranch(task, branchName, gitlabUrl, gitlabOrigin, safeProjectId, gitlabToken, settings) {
     const baseUrl = gitlabUrl.replace(/\/$/, '');
     const treeUrl = `${baseUrl}/-/tree/${encodeURIComponent(branchName)}`;
     
@@ -165,6 +174,12 @@ export const gitlabService = {
     if (result === 'confirmed') {
       window.open(treeUrl, '_blank');
     } else if (result === 'denied') {
+      const isEnvironment = settings.activeEnvironments?.some(environment => environment.branch === branchName);
+      if (isEnvironment) {
+        notificationService.alert('Acesso negado', 'Branches de ambiente não podem ser excluídas por esta ação.', 'warning');
+        return treeUrl;
+      }
+
       const confirmed = await notificationService.confirm(
         'Alerta de Exclusão',
         `Deseja realmente DELETAR a branch '${branchName}'?`,
@@ -189,7 +204,7 @@ export const gitlabService = {
     return treeUrl;
   },
 
-  async analyzeAndMerge(task, settings, targetBranch = 'dev-06') {
+  async analyzeAndMerge(task, settings, targetBranch) {
     const { gitlabUrl, gitlabToken, gitlabProjectId, gitlabIntegrationMode } = settings;
     
     // Tenta pegar o nome exato da branch pela URL salva, caso contrário usa o gerador
@@ -205,6 +220,10 @@ export const gitlabService = {
 
     if (!gitlabToken || !gitlabProjectId) {
       notificationService.toast("Configuração incompleta: Preencha o Token e o ID.", "error");
+      return;
+    }
+    if (!targetBranch) {
+      notificationService.toast('Selecione um ambiente de destino para o merge.', 'error');
       return;
     }
 

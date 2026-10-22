@@ -4,10 +4,11 @@ import { backupService } from '../../src/services/backupService';
 // Mock do DB Dexie
 vi.mock('../../src/db.js', () => ({
   db: {
-    tasks: { toArray: vi.fn(), bulkPut: vi.fn(), bulkAdd: vi.fn() },
-    sprints: { toArray: vi.fn(), bulkPut: vi.fn() },
-    settings: { toArray: vi.fn(), bulkPut: vi.fn() },
-    notes: { toArray: vi.fn(), bulkPut: vi.fn() },
+    system: { importBackup: vi.fn() },
+    tasks: { toArray: vi.fn(), bulkPut: vi.fn(), bulkAdd: vi.fn(), clear: vi.fn() },
+    sprints: { toArray: vi.fn(), bulkPut: vi.fn(), clear: vi.fn() },
+    settings: { toArray: vi.fn(), get: vi.fn(), bulkPut: vi.fn(), clear: vi.fn() },
+    notes: { toArray: vi.fn(), bulkPut: vi.fn(), clear: vi.fn() },
     radios: { toArray: vi.fn(), bulkPut: vi.fn(), clear: vi.fn() },
     taskStyles: { toArray: vi.fn(), bulkPut: vi.fn(), clear: vi.fn() }
   }
@@ -31,9 +32,21 @@ describe('backupService', () => {
   describe('exportSystem', () => {
     it('deve coletar dados de todas as tabelas e chamar downloadJson', async () => {
       const { db } = await import('../../src/db.js');
-      db.tasks.toArray.mockResolvedValue([{ id: 1, title: 'Task 1' }]);
+      db.tasks.toArray.mockResolvedValue([{
+        id: 1,
+        title: 'Task 1',
+        devUrl: 1,
+        homologUrl: 1,
+        prodUrl: 1
+      }]);
       db.sprints.toArray.mockResolvedValue([{ id: 10 }]);
-      db.settings.toArray.mockResolvedValue([{ key: 'theme', value: 'dark' }]);
+      db.settings.toArray.mockResolvedValue([
+        { key: 'theme', value: 'dark' },
+        {
+          key: 'app-nextcloud-credentials',
+          value: { username: 'sergio', appPassword: 'segredo' }
+        }
+      ]);
       db.notes.toArray.mockResolvedValue([{ content: 'Nota 1' }]);
       db.radios.toArray.mockResolvedValue([{ id: 1, name: 'Radio 1' }]);
       db.taskStyles.toArray.mockResolvedValue([{ id: 1, name: 'Style 1' }]);
@@ -48,6 +61,10 @@ describe('backupService', () => {
         }),
         'tass_full_system_backup.json'
       );
+
+      const exportedBackup = backupService.downloadJson.mock.calls[0][0];
+      expect(exportedBackup.settings).toEqual([{ key: 'theme', value: 'dark' }]);
+      expect(exportedBackup.tasks).toEqual([{ id: 1, title: 'Task 1' }]);
     });
   });
 
@@ -55,7 +72,16 @@ describe('backupService', () => {
     it('deve realizar um Merge Seguro (remover ID, resetar status e usar bulkAdd)', async () => {
       const { db } = await import('../../src/db.js');
       const mockTaskStore = { loadTasks: vi.fn() };
-      const originalTask = { id: 1, title: 'Importada', sprintId: '123', isRunning: true, lastStartTime: 5000 };
+      const originalTask = {
+        id: 1,
+        title: 'Importada',
+        sprintId: '123',
+        isRunning: true,
+        lastStartTime: 5000,
+        devUrl: 1,
+        homologUrl: 1,
+        prodUrl: 1
+      };
       const mockFileContent = JSON.stringify([originalTask]);
       const mockFile = new Blob([mockFileContent], { type: 'application/json' });
 
@@ -91,6 +117,52 @@ describe('backupService', () => {
         expect.any(String), 
         'error'
       );
+    });
+  });
+
+  describe('applyBackupData', () => {
+    it('preserva as credenciais locais da Nextcloud e ignora credenciais do backup', async () => {
+      vi.useFakeTimers();
+      const { db } = await import('../../src/db.js');
+      const localCredentials = {
+        key: 'app-nextcloud-credentials',
+        value: { username: 'local', appPassword: 'senha local' }
+      };
+      db.settings.toArray.mockResolvedValue([localCredentials]);
+      const settingsStore = { loadSettings: vi.fn().mockResolvedValue(undefined) };
+      const taskStore = { loadTasks: vi.fn().mockResolvedValue(undefined) };
+
+      const result = await backupService.applyBackupData({
+        tasks: [{
+          id: 1,
+          title: 'Tarefa antiga',
+          devUrl: 1,
+          homologUrl: 1,
+          prodUrl: 1
+        }],
+        settings: [
+          { key: 'app-theme', value: 'light' },
+          {
+            key: 'app-nextcloud-credentials',
+            value: { username: 'backup', appPassword: 'senha do backup' }
+          }
+        ]
+      }, settingsStore, taskStore);
+
+      expect(result).toBe(true);
+      expect(db.system.importBackup).toHaveBeenCalledWith(expect.objectContaining({ settings: [
+        { key: 'app-theme', value: 'light' },
+        localCredentials
+      ] }));
+      expect(db.system.importBackup).toHaveBeenCalledWith(expect.objectContaining({ tasks: [{
+        id: 1,
+        title: 'Tarefa antiga',
+        isRunning: false,
+        lastStartTime: null
+      }] }));
+
+      vi.clearAllTimers();
+      vi.useRealTimers();
     });
   });
 });

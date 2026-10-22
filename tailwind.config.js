@@ -16,7 +16,11 @@ export default {
           solid: 'var(--app-surface-solid)',
           surface: 'var(--app-surface-muted)',
           border: 'var(--app-border-main)',
-          'border-light': 'var(--app-border-light)'
+          'border-light': 'var(--app-border-light)',
+          accent: 'rgb(var(--app-color-accent) / <alpha-value>)',
+          success: 'rgb(var(--app-color-success) / <alpha-value>)',
+          danger: 'rgb(var(--app-color-danger) / <alpha-value>)',
+          warning: 'rgb(var(--app-color-warning) / <alpha-value>)'
         }
       },
       fontFamily: {

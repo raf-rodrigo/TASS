@@ -9,8 +9,9 @@ export default defineConfig(({ mode }) => ({
   ],
   server: {
     host: true, // Expõe o servidor na rede local (responde por IP)
-    port: 5175,
-    strictPort: true
+    port: 5173,
+    strictPort: true,
+    allowedHosts: true
   },
   test: {
     environment: 'jsdom',

@@ -10,6 +10,7 @@ export const useModalStore = defineStore('modal', () => {
   const confirmText = ref('Confirmar');
   const cancelText = ref('Cancelar');
   const denyText = ref(null); // Terceiro botão (opcional)
+  const codeBlock = ref('');
   
   // Prompt Fields
   const isPrompt = ref(false);
@@ -25,6 +26,7 @@ export const useModalStore = defineStore('modal', () => {
     promptPlaceholder.value = '';
     promptType.value = 'text';
     denyText.value = null;
+    codeBlock.value = '';
     cancelText.value = 'Cancelar';
     confirmText.value = 'Confirmar';
   };
@@ -41,6 +43,7 @@ export const useModalStore = defineStore('modal', () => {
     confirmText.value = options.confirmText || 'Sim';
     cancelText.value = options.cancelText === null ? null : (options.cancelText || 'Cancelar');
     denyText.value = options.denyText || null;
+    codeBlock.value = options.code || '';
     
     isOpen.value = true;
 
@@ -120,6 +123,7 @@ export const useModalStore = defineStore('modal', () => {
     confirmText,
     cancelText,
     denyText,
+    codeBlock,
     isPrompt,
     promptType,
     promptValue,

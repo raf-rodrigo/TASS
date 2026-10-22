@@ -6,6 +6,7 @@ import { useSettingsStore } from './settingsStore';
 import { useSprintStore } from './sprintStore';
 import { useTimerStore } from './timerStore';
 import { calculateWorkingTime, distributeDailyLogs } from '../utils/time.js';
+import { sanitizeTaskData } from '../utils/taskData.js';
 
 export const useTaskStore = defineStore('task', () => {
   const tasks = ref([]);
@@ -60,7 +61,7 @@ export const useTaskStore = defineStore('task', () => {
     isLoading.value = true;
     try {
       const filterVal = userIdFilter !== undefined ? userIdFilter : selectedUserIdFilter.value;
-      let dbTasks = await db.tasks.toArray(filterVal);
+      let dbTasks = (await db.tasks.toArray(filterVal)).map(sanitizeTaskData);
       
       const runningTask = dbTasks.find(t => t.isRunning);
       if (runningTask) {
@@ -108,7 +109,7 @@ export const useTaskStore = defineStore('task', () => {
     });
     await Promise.all(updates);
 
-    const taskToAdd = {
+    const taskToAdd = sanitizeTaskData({
       ...taskData,
       position: 1,
       columnId: targetColumn,
@@ -119,7 +120,7 @@ export const useTaskStore = defineStore('task', () => {
       isRunning: false,
       lastStartTime: null,
       createdAt: Date.now()
-    };
+    });
 
     try {
       const id = await db.tasks.add(taskToAdd);
@@ -150,12 +151,12 @@ export const useTaskStore = defineStore('task', () => {
   const updateTask = async (id, updates) => {
     try {
       // Remover os Proxies do Vue para evitar DataCloneError no IndexedDB
-      const cleanUpdates = JSON.parse(JSON.stringify(updates));
+      const cleanUpdates = sanitizeTaskData(JSON.parse(JSON.stringify(updates)));
       await db.tasks.update(id, cleanUpdates);
       
       const index = tasks.value.findIndex(t => t.id === id);
       if (index !== -1) {
-        const updatedTask = { ...tasks.value[index], ...updates };
+        const updatedTask = sanitizeTaskData({ ...tasks.value[index], ...cleanUpdates });
         tasks.value[index] = updatedTask;
         
         if (selectedTask.value && selectedTask.value.id === id) {
@@ -194,7 +195,7 @@ export const useTaskStore = defineStore('task', () => {
   const restoreTask = async () => {
     if (!lastDeletedTask.value) return;
     try {
-      const taskToRestore = { ...lastDeletedTask.value };
+      const taskToRestore = sanitizeTaskData(lastDeletedTask.value);
       const updates = [];
       tasks.value.forEach(t => {
         if (t.position >= taskToRestore.position) {
@@ -222,7 +223,7 @@ export const useTaskStore = defineStore('task', () => {
 
   const cloneTask = async (taskToClone) => {
     try {
-      const { id, branchUrl, branchName, githubBranchUrl, githubBranchName, ...rest } = taskToClone;
+      const { id, branchUrl, branchName, githubBranchUrl, githubBranchName, ...rest } = sanitizeTaskData(taskToClone);
       const newTaskData = {
         ...rest,
         title: `${taskToClone.title} (Cópia)`

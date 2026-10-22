@@ -1,5 +1,6 @@
 import { db } from '../db.js';
 import { gitBranchSlug } from '../utils/string.js';
+import { buildBranchCheckoutCommand } from '../utils/gitCommands.js';
 import { notificationService } from './notificationService.js';
 
 export const githubService = {
@@ -94,10 +95,14 @@ export const githubService = {
   async createBranch(task, settings) {
     const { githubOwner, githubRepo, githubToken, activeBaseBranch } = settings;
     const branchName = this.getBranchName(task);
-    const baseBranch = activeBaseBranch || 'develop';
+    const baseBranch = activeBaseBranch;
     
     if (!githubToken || !githubOwner || !githubRepo) {
       notificationService.toast("Configuração incompleta: Preencha o Token, Owner e Repo do GitHub.", "error");
+      return;
+    }
+    if (!baseBranch) {
+      notificationService.toast('Configuração incompleta: selecione uma branch base.', 'error');
       return;
     }
 
@@ -137,7 +142,11 @@ export const githubService = {
         await db.tasks.update(task.id, { githubBranchUrl: treeUrl, githubBranchName: branchName });
         task.githubBranchUrl = treeUrl;
         task.githubBranchName = branchName;
-        notificationService.toast('Branch criada com sucesso!', 'success');
+        await notificationService.copyCommand({
+          title: 'Branch criada',
+          message: `A branch '${branchName}' foi criada no GitHub. Use o comando abaixo para baixá-la e acessá-la no terminal.`,
+          command: buildBranchCheckoutCommand(branchName)
+        });
         return { treeUrl, branchName };
       } else {
         const errorData = await createRes.json().catch(() => ({}));
@@ -164,6 +173,12 @@ export const githubService = {
     if (result === 'confirmed') {
       window.open(treeUrl, '_blank');
     } else if (result === 'denied') {
+      const isEnvironment = settings.activeEnvironments?.some(environment => environment.branch === branchName);
+      if (isEnvironment) {
+        notificationService.alert('Acesso negado', 'Branches de ambiente não podem ser excluídas por esta ação.', 'warning');
+        return treeUrl;
+      }
+
       const confirmed = await notificationService.confirm(
         'Alerta de Exclusão',
         `Deseja realmente DELETAR a branch '${branchName}'?`,
@@ -191,7 +206,7 @@ export const githubService = {
     return treeUrl;
   },
 
-  async analyzeAndMerge(task, settings, targetBranch = 'dev-06') {
+  async analyzeAndMerge(task, settings, targetBranch) {
     const { githubOwner, githubRepo, githubToken } = settings;
     
     let sourceBranch = this.getBranchName(task);
@@ -201,6 +216,10 @@ export const githubService = {
 
     if (!githubToken || !githubOwner || !githubRepo) {
       notificationService.toast("Configuração incompleta: Preencha o Token, Owner e Repo.", "error");
+      return;
+    }
+    if (!targetBranch) {
+      notificationService.toast('Selecione um ambiente de destino para o merge.', 'error');
       return;
     }
 

@@ -54,13 +54,9 @@ const activeStyle = computed(() => {
     if (profile && profile.styles && Object.keys(profile.styles).length > 0) customStyles = profile.styles;
   }
 
-  // Prioridade 1.5: Preview Temporário (Ao pressionar 'p' e flutuar o mouse)
-  const isPreviewing = uiStore.previewTaskId === props.task.id && uiStore.showStylePickerMenu;
-  const effectiveStyleId = isPreviewing ? uiStore.previewStyleId : props.task.styleId;
-
-  // Prioridade 2: Estilo próprio da Tarefa ou Preview
-  if (Object.keys(customStyles).length === 0 && effectiveStyleId) {
-    const profile = taskStyleStore.getStyleById(effectiveStyleId);
+  // Prioridade 2: Estilo próprio da Tarefa, Preview (single) ou Preview Global
+  if (Object.keys(customStyles).length === 0 && effectiveStyleId.value) {
+    const profile = taskStyleStore.getStyleById(effectiveStyleId.value);
     if (profile && profile.styles && Object.keys(profile.styles).length > 0) customStyles = profile.styles;
   }
   
@@ -84,12 +80,9 @@ const taskColors = computed(() => {
     if (profile && profile.colors && profile.colors.color) return profile.colors;
   }
 
-  const isPreviewing = uiStore.previewTaskId === props.task.id && uiStore.showStylePickerMenu;
-  const effectiveStyleId = isPreviewing ? uiStore.previewStyleId : props.task.styleId;
-
-  // Prioridade 2: Estilo próprio da Tarefa ou Preview
-  if (effectiveStyleId) {
-    const profile = taskStyleStore.getStyleById(effectiveStyleId);
+  // Prioridade 2: Estilo próprio da Tarefa, Preview (single) ou Preview Global
+  if (effectiveStyleId.value) {
+    const profile = taskStyleStore.getStyleById(effectiveStyleId.value);
     if (profile && profile.colors && profile.colors.color) return profile.colors;
   }
   
@@ -100,6 +93,20 @@ const taskColors = computed(() => {
     textLightColor: '',
     textDarkColor: ''
   };
+});
+
+const effectiveStyleId = computed(() => {
+  // Preview global do menu de contexto (Presets do Workspace)
+  // Nunca altera o estado real da tarefa, apenas a visualização.
+  if (uiStore.previewGlobalStyleId !== null && !props.task.styleLocked) {
+    return uiStore.previewGlobalStyleId;
+  }
+
+  // Preview single-task (StylePickerMenu)
+  const isPreviewing = uiStore.previewTaskId === props.task.id && uiStore.previewStyleId !== null;
+  if (isPreviewing) return uiStore.previewStyleId;
+
+  return props.task.styleId || '';
 });
 
 const emit = defineEmits([
@@ -393,15 +400,10 @@ const timerButtonClasses = computed(() => {
             {{ task.title }}
           </span>
 
-          <span v-if="task.creatorName" class="text-[8px] font-black bg-slate-500/15 text-slate-400 border border-slate-500/20 px-1.5 py-0.5 rounded-[4px] uppercase tracking-wide leading-none shrink-0" :data-tip="`Criado por: ${task.creatorName}`">
+          <span v-if="task.creatorName" class="text-[8px] font-black bg-app-surface text-app-muted border border-app-border-light px-1.5 py-0.5 rounded-[var(--app-input-radius)] uppercase tracking-wide leading-none shrink-0" :data-tip="`Criado por: ${task.creatorName}`">
             👤 {{ task.creatorName }}
           </span>
 
-          <div v-if="task.prodUrl == 1 || task.homologUrl == 1 || task.devUrl == 1" class="flex flex-row-reverse items-center gap-0.5 ml-auto">
-            <div v-if="task.prodUrl == 1" class="px-1 py-0.5 rounded-[4px] text-[7px] font-black bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20 leading-none">PRD</div>
-            <div v-if="task.homologUrl == 1" class="px-1 py-0.5 rounded-[4px] text-[7px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 leading-none">HML</div>
-            <div v-if="task.devUrl == 1" class="px-1 py-0.5 rounded-[4px] text-[7px] font-black bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/20 leading-none">DEV</div>
-          </div>
         </div>
           <span 
             v-if="task.description && cardMode !== 'micro'" 

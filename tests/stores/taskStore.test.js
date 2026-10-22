@@ -49,16 +49,65 @@ describe('TaskStore', () => {
   });
 
   describe('Gerenciamento de Tarefas', () => {
+    it('carrega o filtro de usuário preservando autoria e removendo flags legadas', async () => {
+      const store = useTaskStore();
+      db.tasks.toArray.mockResolvedValue([{ id: 1, title: 'Filtrada', creatorName: 'Ana', devUrl: 1 }]);
+      await store.loadTasks(7);
+      expect(db.tasks.toArray).toHaveBeenCalledWith(7);
+      expect(store.tasks).toEqual([{ id: 1, title: 'Filtrada', creatorName: 'Ana' }]);
+    });
+
     it('deve adicionar uma nova tarefa na primeira posição', async () => {
       const store = useTaskStore();
-      const mockTaskData = { title: 'Nova Tarefa', description: 'Teste' };
+      const mockTaskData = {
+        title: 'Nova Tarefa',
+        description: 'Teste',
+        devUrl: 1,
+        homologUrl: 1,
+        prodUrl: 1
+      };
       db.tasks.add.mockResolvedValue(1);
 
       await store.addTask(mockTaskData);
 
       expect(db.tasks.add).toHaveBeenCalled();
+      const taskSavedInDb = db.tasks.add.mock.calls[0][0];
+      expect(taskSavedInDb).not.toHaveProperty('devUrl');
+      expect(taskSavedInDb).not.toHaveProperty('homologUrl');
+      expect(taskSavedInDb).not.toHaveProperty('prodUrl');
       expect(store.tasks[0].title).toBe('Nova Tarefa');
       expect(store.tasks[0].position).toBe(1);
+      expect(store.tasks[0].devUrl).toBeUndefined();
+      expect(store.tasks[0].homologUrl).toBeUndefined();
+      expect(store.tasks[0].prodUrl).toBeUndefined();
+    });
+
+    it('remove flags legadas ao atualizar uma tarefa', async () => {
+      const store = useTaskStore();
+      store.tasks = [{
+        id: 1,
+        title: 'Tarefa antiga',
+        devUrl: 1,
+        homologUrl: 1,
+        prodUrl: 1
+      }];
+
+      await store.updateTask(1, {
+        description: 'Atualizada',
+        devUrl: 1,
+        homologUrl: 1,
+        prodUrl: 1
+      });
+
+      expect(db.tasks.update).toHaveBeenCalledWith(1, { description: 'Atualizada' });
+      expect(store.tasks[0]).toEqual(expect.objectContaining({
+        id: 1,
+        title: 'Tarefa antiga',
+        description: 'Atualizada'
+      }));
+      expect(store.tasks[0].devUrl).toBeUndefined();
+      expect(store.tasks[0].homologUrl).toBeUndefined();
+      expect(store.tasks[0].prodUrl).toBeUndefined();
     });
 
     it('deve excluir uma tarefa e salvar no histórico para restaurar', async () => {

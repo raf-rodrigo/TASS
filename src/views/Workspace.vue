@@ -3,6 +3,12 @@ import { ref, watch, onMounted } from 'vue';
 import TaskBoard from '../components/TaskBoard.vue';
 import { useTaskStore } from '../stores/taskStore';
 import { useSettingsStore } from '../stores/settingsStore';
+import ColumnMergeModal from '../components/ColumnMergeModal.vue';
+import { notificationService } from '../services/notificationService.js';
+import {
+  getColumnMergeEnvironment,
+  getTaskMergeSourceBranch
+} from '../utils/columnMerge.js';
 
 defineProps({
   isDraggingTask: Boolean
@@ -21,6 +27,7 @@ const settings = useSettingsStore();
 
 // Board State Proxy
 const boardColumns = ref([[], [], [], [], [], []]);
+const pendingColumnMerge = ref(null);
 
 const syncBoardWithStore = () => {
   const newCols = [[], [], [], [], [], []];
@@ -42,6 +49,8 @@ watch(
 );
 
 const handleBoardChange = async (evt, columnId) => {
+  const movedTask = evt.added?.element || null;
+
   if (evt.added) {
     evt.added.element.columnId = columnId;
   }
@@ -56,6 +65,53 @@ const handleBoardChange = async (evt, columnId) => {
   });
 
   await taskStore.updateAllPositions(allOrderedTasks);
+
+  if (movedTask) {
+    await requestColumnMerge(movedTask, columnId);
+  }
+};
+
+const requestColumnMerge = async (task, columnId) => {
+  const targetEnvironment = getColumnMergeEnvironment({
+    targets: settings.columnMergeTargets,
+    provider: settings.gitProvider,
+    columnId,
+    environments: settings.activeEnvironments
+  });
+
+  if (!targetEnvironment) return;
+
+  const sourceBranch = getTaskMergeSourceBranch(task, settings.gitProvider);
+  if (!sourceBranch) {
+    notificationService.toast(
+      `A tarefa '${task.title}' foi movida, mas não possui uma branch vinculada para o merge.`,
+      'warning'
+    );
+    return;
+  }
+
+  if (sourceBranch === targetEnvironment.branch) {
+    notificationService.toast(
+      `A tarefa já aponta para a branch de destino '${targetEnvironment.branch}'.`,
+      'info'
+    );
+    return;
+  }
+
+  const confirmed = await notificationService.confirm(
+    'Analisar merge da tarefa?',
+    `Ao mover '${task.title}' para esta coluna, deseja verificar e mesclar '${sourceBranch}' em '${targetEnvironment.branch}' (${targetEnvironment.alias})?`,
+    'Analisar merge',
+    'info'
+  );
+
+  if (!confirmed) return;
+
+  pendingColumnMerge.value = {
+    taskId: task.id,
+    sourceBranch,
+    targetEnvironment
+  };
 };
 
 const deleteTask = async (id) => {
@@ -81,6 +137,14 @@ onMounted(() => {
       @drag-start="() => emit('drag-start')"
       @drag-end="() => emit('drag-end')"
       @open-time-adjustment="(task) => emit('open-time-adjustment', task)"
+    />
+
+    <ColumnMergeModal
+      v-if="pendingColumnMerge"
+      :key="`${pendingColumnMerge.taskId}-${pendingColumnMerge.targetEnvironment.id}`"
+      :source-branch="pendingColumnMerge.sourceBranch"
+      :target-environment="pendingColumnMerge.targetEnvironment"
+      @close="pendingColumnMerge = null"
     />
   </div>
 </template>
