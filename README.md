@@ -160,17 +160,20 @@ npm run lint
 npm run build
 ```
 
-### Publicação em servidor estático
+### Publicação no Fly.io
 
-O script `scripts/publish-tass.sh` gera o build de produção, valida o acesso SSH e envia o conteúdo de `dist/` para `/srv/sites/tass` no host informado:
+O deploy é realizado exclusivamente no Fly.io, no app definido em `fly.toml`:
 
 ```bash
-./scripts/publish-tass.sh --target USUARIO@HOST
+./deploy.sh --dry-run
+./deploy.sh
 ```
 
-O destino pode ser alterado com `--directory`. Também é possível definir `TASS_DEPLOY_TARGET` e `TASS_DEPLOY_DIRECTORY` em `scripts/.env`; esse arquivo privado não deve ser versionado.
+Também é possível usar `npm run deploy`. O script valida a configuração e a máquina existente, executa testes, lint e build, publica com `fly deploy --remote-only --ha=false` e verifica o site. O banco permanece no volume `tass_data`, montado em `/data`.
 
-O procedimento completo de atualização, verificação e recuperação está documentado em [`PUBLICACAO.md`](PUBLICACAO.md).
+`fly launch` é usado na criação inicial do app. Para atualizar o app existente, use o script; ele não cria outro app nem altera o volume. O comando antigo `scripts/publish-tass.sh` também encaminha para o deploy no Fly.io e não aceita mais destinos SSH.
+
+O procedimento completo está em [`PUBLICACAO.md`](PUBLICACAO.md).
 
 ---
 

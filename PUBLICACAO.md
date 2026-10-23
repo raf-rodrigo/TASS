@@ -1,118 +1,79 @@
-# Publicação do TASS
+# Publicação do TASS no Fly.io
 
-Este arquivo descreve a atualização do frontend do TASS no ambiente de produção.
-
-## Ambiente de produção
-
-- Aplicação: SPA Vue/Vite servida como arquivos estáticos.
-- Site: `https://tass.smresume.com`
-- Diretório remoto padrão: `/srv/sites/tass`
-- Script de publicação: `scripts/publish-tass.sh`
-- Configuração local privada: `scripts/.env`
-
-Execute os comandos locais a partir da raiz deste projeto.
+O TASS é publicado exclusivamente no Fly.io. O destino é o app definido no
+`fly.toml`, atualmente `tass-app-twilight-canyon-5020`, na região `gru`.
+O endereço padrão é https://tass-app-twilight-canyon-5020.fly.dev/.
+Frontend Vue/Vite e API Express são distribuídos na mesma imagem Docker.
 
 ## Pré-requisitos
 
-- Node.js e npm instalados.
-- Acesso SSH por chave ao servidor de produção.
-- Diretório remoto existente e com permissão de escrita para o usuário do deploy.
-- Arquivo `scripts/.env` configurado ou destino informado pela linha de comando.
+- Node.js, npm e curl instalados, com as dependências do projeto (`npm ci`).
+- CLI `fly` ou `flyctl` instalada e sessão autenticada com `fly auth login`.
+- App já criado, com uma única máquina e o volume `tass_data` montado em `/data`.
+- `TASS_DB_PATH=/data/tass-db.json` preservado no `fly.toml`.
 
-Exemplo de `scripts/.env`:
+`fly launch` prepara a criação inicial de um app. Não o execute a cada atualização:
+as próximas publicações utilizam `fly deploy` no mesmo app.
 
-```dotenv
-TASS_DEPLOY_TARGET=USUARIO@HOST
-TASS_DEPLOY_DIRECTORY=/srv/sites/tass
-```
+## Publicar
 
-O arquivo é privado e ignorado pelo Git. Não registre senhas, tokens ou chaves
-SSH neste documento.
-
-Teste o acesso antes de publicar:
+A partir da raiz do projeto:
 
 ```bash
-ssh -o BatchMode=yes -o ConnectTimeout=8 USUARIO@HOST 'hostname'
+./deploy.sh --dry-run
+./deploy.sh
 ```
 
-## Atualizar a produção
+Também é possível executar `npm run deploy`. O script funciona a partir de outros
+diretórios e aceita `--help`.
 
-### 1. Validar o projeto localmente
-
-Execute os testes, a análise estática e o build de produção:
+O script lê o `fly.toml`, valida o destino e a persistência, confirma a existência
+de uma única máquina com o volume correto, executa `npm test -- --run`,
+`npm run lint` e `npm run build`. Qualquer falha interrompe a publicação.
+Em seguida executa:
 
 ```bash
-npm test -- --run
-npm run lint
-npm run build
+fly deploy --config fly.toml --app tass-app-twilight-canyon-5020 --remote-only --ha=false --yes
 ```
 
-Não prossiga se algum comando falhar.
+O build Docker acontece no builder remoto, sem exigir Docker local. `--ha=false`
+evita criar uma máquina extra. O banco JSON não possui replicação entre máquinas;
+o script recusa múltiplas máquinas em vez de alterar a escala automaticamente.
 
-### 2. Publicar
+A publicação termina após verificar uma resposta HTTP de sucesso no site e
+consultar o status do app. Uma falha nessa verificação após o deploy não desfaz
+a publicação; consulte o status e os logs para diagnosticar.
 
-Se `scripts/.env` estiver configurado:
+O comando legado `./scripts/publish-tass.sh` encaminha para `./deploy.sh`.
+A publicação por SSH/SCP e as opções `--target` e `--directory` não são utilizadas.
+Não é necessário configurar `scripts/.env` para o deploy.
+
+## Persistência e segredos
+
+Mantenha o mesmo app, o volume `tass_data` e o caminho `/data/tass-db.json`.
+O deploy substitui a imagem da máquina e preserva o volume. Trocar o nome do app
+não migra os dados para o novo destino. Faça backups do conteúdo antes de
+alterações de infraestrutura e não exclua o volume.
+
+O script não altera os segredos existentes. Configure credenciais como
+`JWT_SECRET` no painel de Secrets do Fly.io e preserve seu valor entre deploys.
+Não registre tokens ou senhas no Git nem nos argumentos do script.
+
+## Verificação e diagnóstico
 
 ```bash
-./scripts/publish-tass.sh
+fly status --app tass-app-twilight-canyon-5020
+fly machine list --app tass-app-twilight-canyon-5020
+fly volumes list --app tass-app-twilight-canyon-5020
+fly logs --app tass-app-twilight-canyon-5020
+curl -fL https://tass-app-twilight-canyon-5020.fly.dev/
 ```
 
-Também é possível informar o destino explicitamente:
+O app utiliza parada e partida automáticas para períodos sem tráfego. Uma máquina
+parada pode ser iniciada pelo primeiro acesso; o script repete a verificação HTTP.
+Após publicar, confira login, tarefas, sprints, configurações e as alterações feitas.
 
-```bash
-./scripts/publish-tass.sh \
-  --target USUARIO@HOST \
-  --directory /srv/sites/tass
-```
+Para recuperar uma versão anterior, utilize uma cópia separada do commit desejado
+com o `fly.toml` do mesmo app e execute o script. Preserve o volume e os segredos.
 
-O script gera um novo build, valida o acesso ao diretório remoto e envia o
-conteúdo de `dist/` para a produção.
-
-### 3. Verificar a publicação
-
-Evite uma resposta mantida pelo cache acrescentando um identificador à URL:
-
-```bash
-DEPLOY_CHECK="$(date +%s)"
-
-curl -fsS -o /dev/null -w 'TASS: %{http_code}\n' \
-  "https://tass.smresume.com/?v=${DEPLOY_CHECK}"
-```
-
-A resposta esperada é `200`. Abra também `https://tass.smresume.com` em uma
-janela anônima ou recarregue a página ignorando o cache e confira o fluxo que
-foi alterado.
-
-Para esta correção, valide especificamente:
-
-1. Abra o Breeze em **Mesclar e Excluir**.
-2. Selecione uma branch e abra a confirmação de merge.
-3. Cancele a operação.
-4. Busque e selecione outra branch.
-5. Confirme que os ambientes de destino continuam visíveis e que apenas a nova
-   branch está selecionada.
-
-## Diagnóstico de falha
-
-Confirme primeiro se o HTML publicado está acessível:
-
-```bash
-curl -fsS https://tass.smresume.com/ | head
-```
-
-Confira depois se os arquivos referenciados pelo HTML existem no diretório
-remoto:
-
-```bash
-ssh USUARIO@HOST 'find /srv/sites/tass -maxdepth 2 -type f | sort | tail -50'
-```
-
-Se o site ainda apresentar uma versão antiga, recarregue ignorando o cache e
-verifique as regras de cache do proxy ou CDN responsável pelo domínio.
-
-## Recuperação
-
-O TASS é uma aplicação estática. Para retornar a uma versão anterior, gere o
-build da versão desejada e execute novamente `scripts/publish-tass.sh`. Dados do
-usuário ficam no navegador e nas integrações configuradas; a publicação não deve
-apagar bancos, backups ou credenciais externas.
+Referência: https://fly.io/docs/launch/deploy/

@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "deploy": "bash ./deploy.sh"
   },
   "dependencies": {
     "@vuepic/vue-datepicker": "^12.1.0",
