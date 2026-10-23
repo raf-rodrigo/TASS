@@ -253,19 +253,19 @@ const decrementProgress = () => {
             <label class="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 block">Tamanhos (com iniciais)</label>
             <div class="flex items-end gap-3">
               <div class="flex flex-col items-center gap-1">
-                <AppAvatar name="Sergio Ramos" size="sm" />
+                <AppAvatar name="Rafael Rodrigo Doimo" size="sm" />
                 <span class="text-[8px] font-mono text-slate-400 dark:text-slate-500">sm</span>
               </div>
               <div class="flex flex-col items-center gap-1">
-                <AppAvatar name="Sergio Ramos" size="md" />
+                <AppAvatar name="Rafael Rodrigo Doimo" size="md" />
                 <span class="text-[8px] font-mono text-slate-400 dark:text-slate-500">md</span>
               </div>
               <div class="flex flex-col items-center gap-1">
-                <AppAvatar name="Sergio Ramos" size="lg" />
+                <AppAvatar name="Rafael Rodrigo Doimo" size="lg" />
                 <span class="text-[8px] font-mono text-slate-400 dark:text-slate-500">lg</span>
               </div>
               <div class="flex flex-col items-center gap-1">
-                <AppAvatar name="Sergio Ramos" size="xl" />
+                <AppAvatar name="Rafael Rodrigo Doimo" size="xl" />
                 <span class="text-[8px] font-mono text-slate-400 dark:text-slate-500">xl</span>
               </div>
             </div>

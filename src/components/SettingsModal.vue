@@ -263,7 +263,6 @@ const testGitConnection = async () => {
         const data = await res.json();
         testGitStatus.value = 'success';
         testGitMessage.value = `Conectado! Projeto: "${data.name_with_namespace}"`;
-        loadDeployBranches();
       } else {
         testGitStatus.value = 'error';
         testGitMessage.value = `GitLab respondeu com erro HTTP ${res.status}: ${res.statusText}`;
@@ -298,7 +297,6 @@ const testGitConnection = async () => {
         const data = await res.json();
         testGitStatus.value = 'success';
         testGitMessage.value = `Conectado! Repositório: "${data.full_name}"`;
-        loadDeployBranches();
       } else {
         testGitStatus.value = 'error';
         testGitMessage.value = `GitHub respondeu com erro HTTP ${res.status}: ${res.statusText}`;
@@ -592,7 +590,7 @@ const handleResetSystem = async () => {
                   <!-- Configurações GitHub -->
                   <div v-else-if="localSettings.gitProvider === 'github'" class="grid gap-6 pt-4 border-t border-app-border-light animate-fadeIn">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <AppInput v-model="localSettings.githubOwner" label="Dono do Repositório (Owner)" placeholder="Ex: ssergio100" />
+                      <AppInput v-model="localSettings.githubOwner" label="Dono do Repositório (Owner)" placeholder="Ex: rrdaoimo" />
                       <AppSelect
                         v-model="localSettings.githubRepo"
                         label="Nome do Repositório"
@@ -955,11 +953,11 @@ const handleResetSystem = async () => {
                   <div class="relative z-10 max-w-md mx-auto space-y-6 pt-6 border-t border-app-border-light">
                     <div class="space-y-2">
                       <p class="text-sm font-bold text-slate-600 dark:text-slate-300">Desenvolvido por</p>
-                      <p class="text-lg font-black text-indigo-600 dark:text-indigo-400">Sérgio Moreira</p>
+                      <p class="text-lg font-black text-indigo-600 dark:text-indigo-400">Rafael Rodrigo Doimo</p>
                     </div>
 
                     <div class="flex flex-row flex-wrap gap-3 justify-center pt-4">
-                      <a href="https://github.com/ssergio100/TASS" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light shadow-sm text-center whitespace-nowrap">
+                      <a href="https://github.com/rrdaoimo/TASS" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-500 hover:text-white rounded-xl text-xs font-bold transition-all border border-app-border-light shadow-sm text-center whitespace-nowrap">
                         <Github class="w-4 h-4" />
                         GitHub
                       </a>

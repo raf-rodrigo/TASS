@@ -33,7 +33,7 @@ const connect = async () => {
 
   await nextcloudService.connect({
     serverUrl: 'https://cloud.example.com/',
-    username: 'sergio@example.com',
+    username: 'rafael@example.com',
     appPassword: 'senha exclusiva'
   });
 };
@@ -55,11 +55,11 @@ describe('nextcloudService', () => {
     expect(nextcloudService.isAuthenticated()).toBe(true);
     expect(nextcloudService.getConnection()).toEqual({
       serverUrl: 'https://cloud.example.com',
-      username: 'sergio@example.com'
+      username: 'rafael@example.com'
     });
     expect(fetch).toHaveBeenNthCalledWith(
       3,
-      'https://cloud.example.com/remote.php/dav/files/sergio%40example.com/TASS',
+      'https://cloud.example.com/remote.php/dav/files/rafael%40example.com/TASS',
       expect.objectContaining({ method: 'MKCOL' })
     );
     expect(sessionStorage.getItem('tass_nextcloud_session')).toContain('senha exclusiva');
@@ -68,7 +68,7 @@ describe('nextcloudService', () => {
       key: NEXTCLOUD_CREDENTIALS_KEY,
       value: {
         serverUrl: 'https://cloud.example.com',
-        username: 'sergio@example.com',
+        username: 'rafael@example.com',
         appPassword: 'senha exclusiva'
       }
     });
@@ -79,14 +79,14 @@ describe('nextcloudService', () => {
       key: NEXTCLOUD_CREDENTIALS_KEY,
       value: {
         serverUrl: 'https://cloud.example.com/',
-        username: ' sergio ',
+        username: ' rafael ',
         appPassword: 'senha persistida'
       }
     });
 
     await expect(nextcloudService.initialize()).resolves.toEqual({
       serverUrl: 'https://cloud.example.com',
-      username: 'sergio'
+      username: 'rafael'
     });
 
     expect(nextcloudService.isAuthenticated()).toBe(true);
@@ -108,7 +108,7 @@ describe('nextcloudService', () => {
   it('recusa HTTP fora do ambiente local', async () => {
     await expect(nextcloudService.connect({
       serverUrl: 'http://cloud.example.com',
-      username: 'sergio',
+      username: 'rafael',
       appPassword: 'senha'
     })).rejects.toThrow('HTTPS');
     expect(fetch).not.toHaveBeenCalled();
@@ -125,7 +125,7 @@ describe('nextcloudService', () => {
 
     await expect(nextcloudService.connect({
       serverUrl: 'https://cloud.example.com',
-      username: 'sergio',
+      username: 'rafael',
       appPassword: 'senha'
     })).rejects.toThrow('CORS');
   });

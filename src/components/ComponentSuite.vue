@@ -219,8 +219,8 @@ const toggleTheme = () => {
               </h3>
 
               <div class="flex items-end gap-6">
-                <AppAvatar name="Sérgio" size="xl" />
-                <AppAvatar src="https://github.com/ssergio100.png" name="Sérgio" size="lg" />
+                <AppAvatar name="Rafael" size="xl" />
+                <AppAvatar src="https://github.com/rrdaoimo.png" name="Rafael" size="lg" />
                 <AppAvatar name="UX" size="md" />
                 <AppAvatar name="T" size="sm" />
               </div>
@@ -358,7 +358,7 @@ const toggleTheme = () => {
       <div class="flex gap-6">
         <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest cursor-default">Docs Local: /suite</span>
         <div class="h-4 w-px bg-app-border-light opacity-50"></div>
-        <a href="https://github.com/ssergio100/TASS" target="_blank" class="text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:underline flex items-center gap-1.5">
+        <a href="https://github.com/rrdaoimo/TASS" target="_blank" class="text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:underline flex items-center gap-1.5">
           <Database class="w-3 h-3" />
           Repositório Git
         </a>

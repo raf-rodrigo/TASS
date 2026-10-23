@@ -110,8 +110,8 @@ const activeSprintInfo = computed(() => {
   const diffTime = sprintEndDate - today;
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  let status = '';
-  let statusClass = '';
+  let status;
+  let statusClass;
   if (diffDays < 0) {
     status = 'Encerrada';
     statusClass = 'bg-rose-500/10 text-rose-400 border border-rose-500/20';

@@ -44,7 +44,7 @@ describe('backupService', () => {
         { key: 'theme', value: 'dark' },
         {
           key: 'app-nextcloud-credentials',
-          value: { username: 'sergio', appPassword: 'segredo' }
+          value: { username: 'rafael', appPassword: 'segredo' }
         }
       ]);
       db.notes.toArray.mockResolvedValue([{ content: 'Nota 1' }]);
