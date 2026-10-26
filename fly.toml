@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for tass-app-twilight-canyon-5020 on 2026-10-23T16:14:24-03:00
+# Configuração do app de produção acessado em https://tass-app.fly.dev.
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'tass-app-twilight-canyon-5020'
+app = 'tass-app'
 primary_region = 'gru'
 
 [build]
