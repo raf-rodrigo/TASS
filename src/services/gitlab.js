@@ -1,5 +1,6 @@
 import { db } from '../db.js';
 import { gitBranchSlug } from '../utils/string.js';
+import { withBranchType } from '../utils/branchTypes.js';
 import { buildBranchCheckoutCommand } from '../utils/gitCommands.js';
 import { notificationService } from './notificationService.js';
 
@@ -8,7 +9,7 @@ export const gitlabService = {
     if (task.branchName) return task.branchName;
     const titlePart = gitBranchSlug(task.title);
     const descPart = task.description ? gitBranchSlug(task.description) : '';
-    return descPart ? `${titlePart}-${descPart}` : titlePart;
+    return withBranchType(descPart ? `${titlePart}-${descPart}` : titlePart, task.branchType);
   },
 
   async deleteLocalBranchLink(task) {

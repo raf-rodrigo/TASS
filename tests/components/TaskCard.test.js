@@ -84,6 +84,25 @@ describe('TaskCard.vue', () => {
     expect(wrapper.text()).toContain('01:00:00');
   });
 
+  it('exibe o tipo da tarefa com explicação e reage à alteração do tipo', async () => {
+    const wrapper = mount(TaskCard, {
+      props: { task: { ...mockTask, branchType: 'feat' } }
+    });
+
+    expect(wrapper.get('[data-test="task-type"]').text()).toBe('feat');
+    expect(wrapper.get('[data-test="task-type"]').attributes('data-tip')).toBe('Nova funcionalidade.');
+
+    await wrapper.setProps({ task: { ...mockTask, branchType: 'docs' } });
+    expect(wrapper.get('[data-test="task-type"]').text()).toBe('docs');
+    wrapper.unmount();
+  });
+
+  it('não exibe o selo em tarefas sem tipo', () => {
+    const wrapper = mount(TaskCard, { props: { task: mockTask } });
+    expect(wrapper.find('[data-test="task-type"]').exists()).toBe(false);
+    wrapper.unmount();
+  });
+
   it('não exibe indicadores dos antigos ambientes da tarefa', () => {
     const wrapper = mount(TaskCard, {
       props: {

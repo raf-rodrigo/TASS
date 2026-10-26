@@ -3,6 +3,7 @@ import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import { Play, Square, MoreVertical, ArrowDown, ArrowRight, ArrowUp, AlertOctagon, GitBranch, MessageSquare, Database, ExternalLink } from 'lucide-vue-next';
 import { formatMsToHMS } from '../utils/time.js';
 import { hexToRgba } from '../utils/colors.js';
+import { branchTypes } from '../utils/branchTypes.js';
 
 // Stores
 import { useSettingsStore } from '../stores/settingsStore';
@@ -30,6 +31,7 @@ const props = defineProps({
 });
 
 const isMobile = ref(window.innerWidth < 768);
+const taskType = computed(() => branchTypes.find(type => type.value === props.task.branchType));
 const isAnimatingPreset = computed(() => uiStore.animatingTaskIds.includes(props.task.id));
 
 onMounted(() => {
@@ -383,6 +385,14 @@ const timerButtonClasses = computed(() => {
         ]"
       >
         <div class="flex items-center gap-2 shrink-0" :class="{ 'w-full': isSquareLayout }">
+          <span
+            v-if="taskType"
+            data-test="task-type"
+            class="relative text-xs font-black bg-app-surface text-app-sub border border-app-border-light px-2 py-1 rounded-[var(--app-input-radius)] leading-tight shrink-0 transition-all hover:z-[100]"
+            :data-tip="taskType.description"
+          >
+            {{ taskType.value }}
+          </span>
           <span 
             class="font-bold px-2 py-1 rounded-lg leading-tight flex-shrink-0 transition-all border flex items-center justify-center min-w-[85px] active:scale-95" 
             :style="{ 

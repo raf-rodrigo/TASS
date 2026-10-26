@@ -16,6 +16,7 @@ import { useUIStore } from '../stores/uiStore';
 import { isValidUrl, ensureProtocol } from '../utils/validation';
 import { formatMsToHMS } from '../utils/time';
 import { hexToRgba } from '../utils/colors.js';
+import { branchTypes } from '../utils/branchTypes.js';
 import { notificationService } from '../services/notificationService';
 import BaseModal from './BaseModal.vue';
 import AppInput from './base/AppInput.vue';
@@ -37,6 +38,15 @@ const activeTab = ref('basic');
 
 const title = ref(taskToEdit ? taskToEdit.title : '');
 const description = ref(taskToEdit ? taskToEdit.description : '');
+const branchType = ref(taskToEdit?.branchType || '');
+const branchTypeOptions = [
+  { value: '', label: 'Sem prefixo' },
+  ...branchTypes
+];
+const branchTypeDescription = computed(() =>
+  branchTypes.find(type => type.value === branchType.value)?.description ||
+  'Selecione o tipo de trabalho para identificar a branch.'
+);
 
 // Advanced properties
 const priority = ref(taskToEdit?.priority || 'Normal');
@@ -197,6 +207,7 @@ const submitTask = async () => {
 
   const payload = {
     title: title.value.trim(),
+    branchType: branchType.value,
     description: description.value.trim(),
     estimatedTime: timeStr,
     priority: priority.value,
@@ -231,6 +242,7 @@ const submitTask = async () => {
         const taskObj = {
           id: newId,
           title: payload.title,
+          branchType: payload.branchType,
           description: payload.description,
           branchName: '',
           branchUrl: ''
@@ -305,6 +317,16 @@ const submitTaskAndCreateBranch = () => {
         <transition :name="disableVueTransition ? '' : 'fade-slide'" :mode="disableVueTransition ? '' : 'out-in'">
         <!-- ABA 1: Cadastro Básico -->
         <div v-if="activeTab === 'basic'" :key="'basic'" class="space-y-6">
+          <div>
+            <AppSelect
+              v-model="branchType"
+              label="Tipo de Branch"
+              :icon="GitBranch"
+              iconColor="text-app-muted"
+              :options="branchTypeOptions"
+            />
+            <p class="mt-2 text-xs text-app-sub" aria-live="polite">{{ branchTypeDescription }}</p>
+          </div>
           <AppInput
             v-model="title"
             label="Número da Tarefa"
